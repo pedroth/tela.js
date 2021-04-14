@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<head>
+    <meta charset='utf-8'>
+    <meta http-equiv='X-UA-Compatible' content='IE=edge'>
+    <title>JsLib</title>
+    <meta name='viewport' content='width=device-width, initial-scale=1'>
+    <script src='/dist/index.js'></script>
+</head>
+<body>
+    <div id="root"></div>
+</body>
+<script>
+    const {Function} = JsLib;
+    const div = document.getElementById("root")
+    div.innerText = `sqrt(sq(3)) = ${Function.of(x => x * x).dot(Math.sqrt).call(3)}`
+</script>
+</html>
