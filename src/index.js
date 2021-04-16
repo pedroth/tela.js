@@ -1,2 +1,2 @@
-import Function from "./Function/Function";
-export { Function };
+import Canvas from "./Canvas/main/Canvas";
+export { Canvas };

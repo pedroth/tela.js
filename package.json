@@ -1,7 +1,7 @@
 {
-  "name": "jslib",
+  "name": "tela.js",
   "version": "1.0.0",
-  "description": "Template for js libraries with webpack",
+  "description": "Graphic library from scratch",
   "main": "./dist/index.js",
   "scripts": {
     "test": "jest",
@@ -11,12 +11,14 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/pedroth/jsLib.git"
+    "url": "git+https://github.com/pedroth/tela.js.git"
   },
   "keywords": [
     "javascript",
-    "template",
-    "webpack"
+    "computer graphics",
+    "algorithms",
+    "mathematics",
+    "minimal dependencies"
   ],
   "author": "Pedroth",
   "license": "Apache-2.0",

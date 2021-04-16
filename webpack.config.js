@@ -4,14 +4,14 @@ const nodeExternals = require("webpack-node-externals");
 const baseConfig = {
   mode: "production",
   entry: {
-    index: "./src/index.js"
+    index: "./src/index.js",
   },
   devtool: "source-map",
   output: {
     path: path.resolve("./dist/"),
     filename: "[name].js",
-    library: "JsLib",
-    libraryTarget: "umd"
+    library: "Tela",
+    libraryTarget: "umd",
   },
   module: {
     rules: [
@@ -26,14 +26,14 @@ const baseConfig = {
               "@babel/plugin-proposal-class-properties",
               [
                 "@babel/plugin-transform-runtime",
-                { useESModules: true, helpers: true }
-              ]
-            ]
-          }
-        }
-      }
-    ]
-  }
+                { useESModules: true, helpers: true },
+              ],
+            ],
+          },
+        },
+      },
+    ],
+  },
 };
 
 const serverConfig = { ...baseConfig };
@@ -48,13 +48,13 @@ clientConfig.module = { ...baseConfig.module };
 clientConfig.module.rules.push(
   {
     test: /\.css$/i,
-    use: ["style-loader", "css-loader"]
+    use: ["style-loader", "css-loader"],
   },
   {
     test: /\.(woff|woff2)$/,
     use: {
-      loader: "url-loader"
-    }
+      loader: "url-loader",
+    },
   }
 );
 
