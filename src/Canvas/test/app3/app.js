@@ -1,4 +1,4 @@
-const { Canvas, ImageIO } = Nabla;
+const { Canvas, ImageIO } = Tela;
 
 const f = Canvas.simpleShader([0, 255, 0, 255]);
 const g = Canvas.simpleShader([0, 0, 255, 255]);
@@ -25,7 +25,7 @@ function randomVector(a, b) {
 const triangleShader = Canvas.colorShader([
   [255, 0, 0, 255],
   [0, 255, 0, 255],
-  [0, 0, 255, 255]
+  [0, 0, 255, 255],
 ]);
 const canvas = new Canvas(
   Canvas.createCanvas([window.innerWidth, window.innerHeight], "body")
@@ -37,7 +37,7 @@ const size = canvas.getSize();
 const animeTriangle = [
   randomVector(0, size[0]),
   randomVector(0, size[0]),
-  randomVector(0, size[0])
+  randomVector(0, size[0]),
 ];
 const average = [0, 0];
 const diff = [];
@@ -50,14 +50,14 @@ average[1] /= 3;
 for (let k = 0; k < animeTriangle.length; k++) {
   diff[k] = [
     animeTriangle[k][0] - average[0],
-    animeTriangle[k][1] - average[1]
+    animeTriangle[k][1] - average[1],
   ];
 }
 const animeCircle = randomVector(0, size[0]);
 
 let t = 0;
 
-update = function() {
+update = function () {
   if (ite > 0) {
     canvas.drawLine(
       [0, Math.floor(size[0] / 10)],

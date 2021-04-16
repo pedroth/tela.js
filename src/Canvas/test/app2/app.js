@@ -1,4 +1,4 @@
-const { Canvas, ImageIO } = Nabla;
+const { Canvas, ImageIO } = Tela;
 
 let i = 0;
 let j = 0;
@@ -7,7 +7,7 @@ const canvas = new Canvas(
   Canvas.createCanvas([window.innerWidth, window.innerHeight], "body")
 );
 const img = ImageIO.loadImage("../resources/R.png");
-const update = function() {
+const update = function () {
   canvas.clearImage([0, 0, 0, 255]);
   canvas.drawPxl([i, j], [255, 0, 0, 255]);
   canvas.drawPxl([i + 1, j], [255, 0, 0, 255]);

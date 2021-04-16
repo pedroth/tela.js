@@ -133,7 +133,7 @@ Canvas.prototype.getCanvas = function () {
  * @param rgba
  */
 Canvas.prototype.clearImage = function (rgba) {
-  this.useCanvasCtx(canvas => {
+  this.useCanvasCtx((canvas) => {
     var size = canvas.getSize();
     canvas.ctx.fillStyle =
       "rgba(" + rgba[0] + "," + rgba[1] + "," + rgba[2] + "," + rgba[3] + ")";
@@ -166,7 +166,7 @@ Canvas.prototype.getPxl = function (x) {
     this.imageData[index],
     this.imageData[index + 1],
     this.imageData[index + 2],
-    this.imageData[index + 3]
+    this.imageData[index + 3],
   ];
 };
 
@@ -223,21 +223,21 @@ Canvas.prototype.drawLine = function (x1, x2, shader) {
   intersectionSolutions.push(
     solve2by2LowerTriMatrix(v, -(this.canvas.width - 1), [
       this.canvas.height - 1 - x1[0],
-      -x1[1]
+      -x1[1],
     ])
   );
   // line intersection with [H - 1, W - 1]^T + [-(H - 1), 0]^T s
   intersectionSolutions.push(
     solve2by2UpperTriMatrix(v, this.canvas.height - 1, [
       this.canvas.height - 1 - x1[0],
-      this.canvas.width - 1 - x1[1]
+      this.canvas.width - 1 - x1[1],
     ])
   );
   // line intersection with [0, W - 1]^T + [0, -(W - 1)]^T s
   intersectionSolutions.push(
     solve2by2LowerTriMatrix(v, this.canvas.width - 1, [
       -x1[0],
-      this.canvas.width - 1 - x1[1]
+      this.canvas.width - 1 - x1[1],
     ])
   );
 
@@ -255,7 +255,7 @@ Canvas.prototype.drawLine = function (x1, x2, shader) {
   if (inStack.length > 0) {
     var p = [
       x1[0] + validIntersection[0][0] * v[0],
-      x1[1] + validIntersection[0][0] * v[1]
+      x1[1] + validIntersection[0][0] * v[1],
     ];
     this.drawLineInt(inStack.pop(), p, shader);
     return;
@@ -263,12 +263,12 @@ Canvas.prototype.drawLine = function (x1, x2, shader) {
 
   var p0 = [
     x1[0] + validIntersection[0][0] * v[0],
-    x1[1] + validIntersection[0][0] * v[1]
+    x1[1] + validIntersection[0][0] * v[1],
   ];
   for (var i = 1; i < validIntersection.length; i++) {
     var p = [
       x1[0] + validIntersection[i][0] * v[0],
-      x1[1] + validIntersection[i][0] * v[1]
+      x1[1] + validIntersection[i][0] * v[1],
     ];
     var v = diff(p, p0);
     if (dot(v, v) > 1e-3) {
@@ -329,7 +329,7 @@ Canvas.prototype.drawPolygon = function (
 ) {
   let upperBox = [
     [Number.MAX_VALUE, Number.MAX_VALUE],
-    [Number.MIN_VALUE, Number.MIN_VALUE]
+    [Number.MIN_VALUE, Number.MIN_VALUE],
   ];
   for (let i = 0; i < array.length; i++) {
     upperBox[0] = min(array[i], upperBox[0]);
@@ -375,7 +375,7 @@ Canvas.prototype.drawQuad = function (x1, x2, x3, x4, shader) {
 
 Canvas.prototype.drawImage = function (img, x) {
   if ("isReady" in img && !img.isReady) return;
-  this.useCanvasCtx(canvas => canvas.ctx.drawImage(img, x[1], x[0]));
+  this.useCanvasCtx((canvas) => canvas.ctx.drawImage(img, x[1], x[0]));
 };
 
 Canvas.prototype.drawCircle = function (x, r, shader) {
@@ -403,7 +403,7 @@ Canvas.prototype.addEventListener = function (key, lambda, useCapture) {
 };
 
 Canvas.prototype.drawString = function (x, string, contextShader) {
-  this.useCanvasCtx(canvas => {
+  this.useCanvasCtx((canvas) => {
     contextShader(canvas.ctx);
     canvas.ctx.fillText(string, x[1], x[0]);
   });
@@ -481,7 +481,7 @@ Canvas.interpolateQuadShader = function (shader) {
 
 Canvas.interpolateTriangleShader = function (shader) {
   return (x, triangle, canvas) => {
-    alpha = Canvas.triangleBaryCoord(x, triangle);
+    const alpha = Canvas.triangleBaryCoord(x, triangle);
     shader(x, triangle, canvas, alpha);
   };
 };
@@ -521,7 +521,7 @@ Canvas.quadTextureShader = function (
     }
     var i = [
       (1 - interpolateTexCoord[1]) * (imgSize[1] - 1),
-      (imgSize[0] - 1) * interpolateTexCoord[0]
+      (imgSize[0] - 1) * interpolateTexCoord[0],
     ];
     // bound coordinates
     i = max([0, 0], min(diff([imgSize[0], imgSize[1]], [1, 1]), i));
@@ -531,7 +531,7 @@ Canvas.quadTextureShader = function (
       imageCanvas.getPxl(j),
       imageCanvas.getPxl(add(j, [1, 0])),
       imageCanvas.getPxl(add(j, [1, 1])),
-      imageCanvas.getPxl(add(j, [0, 1]))
+      imageCanvas.getPxl(add(j, [0, 1])),
     ];
     var finalColor = interpolation(cornerColors, diff(i, j));
     canvas.drawPxl(x, finalColor);
@@ -543,20 +543,20 @@ Canvas.triangleCache = (() => {
   const hashMap = [];
   const size = 3;
   return {
-    constains: triangleHash => hashMap[triangleHash % size] != undefined,
-    get: triangleHash => hashMap[triangleHash % size],
-    set: (triangleHash, value) => (hashMap[triangleHash % size] = value)
+    constains: (triangleHash) => hashMap[triangleHash % size] != undefined,
+    get: (triangleHash) => hashMap[triangleHash % size],
+    set: (triangleHash, value) => (hashMap[triangleHash % size] = value),
   };
 })(); //{triangle: null, u: [], v:[], det:null, hash:null}
 
-Canvas.triangleHash = triangle => {
+Canvas.triangleHash = (triangle) => {
   const array = [
     triangle[0][0],
     triangle[1][0],
     triangle[2][0],
     triangle[0][1],
     triangle[1][1],
-    triangle[2][1]
+    triangle[2][1],
   ];
   return array.reduce((h, x) => 31 * h + x, 1);
 };
@@ -567,19 +567,19 @@ Canvas.triangleBaryCoord = function (x, triangle) {
   if (!Canvas.triangleCache.constains(hash)) {
     const u = [
       triangle[1][0] - triangle[0][0],
-      triangle[1][1] - triangle[0][1]
+      triangle[1][1] - triangle[0][1],
     ];
     const v = [
       triangle[2][0] - triangle[0][0],
-      triangle[2][1] - triangle[0][1]
+      triangle[2][1] - triangle[0][1],
     ];
     const det = u[0] * v[1] - u[1] * v[0];
     Canvas.triangleCache.set(hash, {
       triangle: triangle,
-      u: u.map(x => x / det),
-      v: v.map(x => x / det),
+      u: u.map((x) => x / det),
+      v: v.map((x) => x / det),
       det: det,
-      hash: hash
+      hash: hash,
     });
   }
   const cache = Canvas.triangleCache.get(hash);

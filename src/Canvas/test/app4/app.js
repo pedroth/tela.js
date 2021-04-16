@@ -1,29 +1,37 @@
-const { Canvas2D, Canvas, ImageIO } = Nabla;
+const { Canvas2D, Canvas, ImageIO } = Tela;
 const canvas = new Canvas2D(
   Canvas.createCanvas([window.innerWidth, window.innerHeight], "body"),
-  [[-1, 1], [-1, 1]]
+  [
+    [-1, 1],
+    [-1, 1],
+  ]
 );
 let oldTime = new Date().getTime();
 
 const texture = ImageIO.loadImage("../resources/R.png");
 let t = 0;
-const quad = [[-0.25, -0.25], [0.45, -0.25], [0.25, 0.45], [-0.25, 0.25]];
+const quad = [
+  [-0.25, -0.25],
+  [0.45, -0.25],
+  [0.25, 0.45],
+  [-0.25, 0.25],
+];
 const textIsReady = ImageIO.generateImageReadyPredicate(texture);
 const textShader = Canvas.quadTextureShader(texture, [
   [0, 0],
   [1, 0],
   [1, 1],
-  [0, 1]
+  [0, 1],
 ]);
 const defaultShader = Canvas.simpleShader([255, 0, 255, 255]);
 
-const update = function() {
+const update = function () {
   const dt = 1e-3 * (new Date().getTime() - oldTime);
   oldTime = new Date().getTime();
 
   canvas.clearImage([0, 0, 0, 255]);
 
-  canvas.drawString([-0.95, 0.9], "FPS : " + 1 / dt, function(ctx) {
+  canvas.drawString([-0.95, 0.9], "FPS : " + 1 / dt, function (ctx) {
     ctx.fillStyle = "white";
     ctx.font = "bold 16px Arial";
   });

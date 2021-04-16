@@ -1,4 +1,4 @@
-const { Canvas2D, Canvas } = Nabla;
+const { Canvas2D, Canvas } = Tela;
 
 const f = Canvas.simpleShader([0, 255, 0, 255]);
 const g = Canvas.simpleShader([0, 0, 255, 255]);
@@ -17,7 +17,10 @@ function randomVector(a, b) {
 
 const canvas = new Canvas2D(
   Canvas.createCanvas([window.innerWidth, window.innerHeight], "body"),
-  [[-1, 1], [-1, 1]]
+  [
+    [-1, 1],
+    [-1, 1],
+  ]
 );
 
 let isFirstIte = true;
@@ -27,7 +30,7 @@ const n = [1, -1];
 const speed = 0.01;
 const points = giveMeLine(a, v);
 
-const colorInterShader = function(x, line, canvas, t) {
+const colorInterShader = function (x, line, canvas, t) {
   const c1 = [0, 0, 0, 255];
   const c2 = [255, 255, 255, 255];
   const gradient = [c2[0] - c1[0], c2[1] - c1[1], c2[2] - c1[2], c2[3] - c1[3]];
@@ -35,11 +38,11 @@ const colorInterShader = function(x, line, canvas, t) {
     c1[0] + gradient[0] * t,
     c1[1] + gradient[1] * t,
     c1[2] + gradient[2] * t,
-    c1[3] + gradient[3] * t
+    c1[3] + gradient[3] * t,
   ]);
 };
 
-const update = function() {
+const update = function () {
   if (isFirstIte) {
     const samples = 100;
     for (let i = 0; i < samples; i++) {
