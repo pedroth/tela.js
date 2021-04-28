@@ -15,6 +15,9 @@ import ImageIO from "./ImageIO.js";
  */
 
 /*
+
+The point xe_1 + ye_2 corresponds to a point in the middle of a pxl.
+
 The canvas data is an array of length colors(C) * width(W) * height(H). Is a 3D-array.
 The index is a number in [0, C * W * H - 1].
 Having (x, y, z) where z is the color axis, the formula to index the array is :
