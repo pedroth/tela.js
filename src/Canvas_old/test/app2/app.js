@@ -1,4 +1,4 @@
-const { Canvas, ImageIO } = Tela;
+const { Canvas_old: Canvas, ImageIO } = Tela;
 
 let i = 0;
 let j = 0;

@@ -1,4 +1,4 @@
-const { Canvas, ImageIO } = Tela;
+const { Canvas_old: Canvas, ImageIO } = Tela;
 
 const f = Canvas.simpleShader([0, 255, 0, 255]);
 const g = Canvas.simpleShader([0, 0, 255, 255]);

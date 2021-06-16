@@ -1,2 +1,913 @@
-!function(t,e){"object"==typeof exports&&"object"==typeof module?module.exports=e():"function"==typeof define&&define.amd?define([],e):"object"==typeof exports?exports.Tela=e():t.Tela=e()}(window,(function(){return function(t){var e={};function r(n){if(e[n])return e[n].exports;var a=e[n]={i:n,l:!1,exports:{}};return t[n].call(a.exports,a,a.exports,r),a.l=!0,a.exports}return r.m=t,r.c=e,r.d=function(t,e,n){r.o(t,e)||Object.defineProperty(t,e,{enumerable:!0,get:n})},r.r=function(t){"undefined"!=typeof Symbol&&Symbol.toStringTag&&Object.defineProperty(t,Symbol.toStringTag,{value:"Module"}),Object.defineProperty(t,"__esModule",{value:!0})},r.t=function(t,e){if(1&e&&(t=r(t)),8&e)return t;if(4&e&&"object"==typeof t&&t&&t.__esModule)return t;var n=Object.create(null);if(r.r(n),Object.defineProperty(n,"default",{enumerable:!0,value:t}),2&e&&"string"!=typeof t)for(var a in t)r.d(n,a,function(e){return t[e]}.bind(null,a));return n},r.n=function(t){var e=t&&t.__esModule?function(){return t.default}:function(){return t};return r.d(e,"a",e),e},r.o=function(t,e){return Object.prototype.hasOwnProperty.call(t,e)},r.p="",r(r.s=0)}([function(t,e,r){"use strict";r.r(e),r.d(e,"Canvas",(function(){return m})),r.d(e,"Canvas2D",(function(){return w})),r.d(e,"ImageIO",(function(){return a}));var n={getImageCanvas:function(t){var e=document.createElement("canvas");e.width=t.width,e.height=t.height;var r=e.getContext("2d");return r.fillStyle="rgba(0, 0, 0, 0)",r.globalCompositeOperation="source-over",r.fillRect(0,0,e.width,e.height),r.drawImage(t,0,0),e},getDataFromImage:function(t){return canvas=n.getImageCanvas(t),canvas.getContext("2d").getImageData(0,0,t.width,t.height)},loadImage:function(t){var e=new Image;return e.src=t,e.isReady=!1,e.onload=function(){return e.isReady=!0},e},generateImageReadyPredicate:function(t){return function(){return t.isReady}}},a=n;function i(t,e){var r=[];return r[0]=t[0]+e[0],r[1]=t[1]+e[1],r}function o(t){var e=[];return e[0]=Math.floor(t[0]),e[1]=Math.floor(t[1]),e}function s(t,e){var r=[];return r[0]=t[0]-e[0],r[1]=t[1]-e[1],r}function u(t,e){return t[0]*e[0]+t[1]*e[1]}function c(t){return u(t,t)}function h(t){return Math.sqrt(u(t,t))}function f(t,e){var r=[];return r[0]=Math.min(t[0],e[0]),r[1]=Math.min(t[1],e[1]),r}function g(t,e){var r=[];return r[0]=Math.max(t[0],e[0]),r[1]=Math.max(t[1],e[1]),r}function p(t,e,r){var n=r[1]/t[1];return[n,(-t[0]*n+r[0])/e]}function l(t,e,r){var n=r[0]/t[0];return[n,(-t[1]*n+r[1])/e]}var d,v=function(t){this.canvas=t,this.ctx=t.getContext("2d"),this.image=this.ctx.getImageData(0,0,t.width,t.height),this.imageData=this.image.data};v.prototype.getSize=function(){return[this.canvas.height,this.canvas.width]},v.prototype.paintImage=function(){this.ctx.putImageData(this.image,0,0)},v.prototype.getCanvas=function(){return this.canvas},v.prototype.clearImage=function(t){this.useCanvasCtx((function(e){var r=e.getSize();e.ctx.fillStyle="rgba("+t[0]+","+t[1]+","+t[2]+","+t[3]+")",e.ctx.globalCompositeOperation="source-over",e.ctx.fillRect(0,0,r[1],r[0])}),!0)},v.prototype.useCanvasCtx=function(t){var e=arguments.length>1&&void 0!==arguments[1]&&arguments[1];e||this.ctx.putImageData(this.image,0,0),t(this),this.image=this.ctx.getImageData(0,0,this.canvas.width,this.canvas.height),this.imageData=this.image.data},v.prototype.getImageIndex=function(t){return 4*(this.canvas.width*t[0]+t[1])},v.prototype.getPxl=function(t){var e=this.getImageIndex(t);return[this.imageData[e],this.imageData[e+1],this.imageData[e+2],this.imageData[e+3]]},v.prototype.drawPxl=function(t,e){var r=this.getImageIndex(t);this.imageData[r]=e[0],this.imageData[r+1]=e[1],this.imageData[r+2]=e[2],this.imageData[r+3]=e[3]},v.prototype.drawLine=function(t,e,r){r.points=[t,e];var n=[];n.push(t),n.push(e);for(var a=[],i=[],o=0;o<n.length;o++){0<=(g=n[o])[0]&&g[0]<this.canvas.height&&0<=g[1]&&g[1]<this.canvas.width?a.push(g):i.push(g)}if(2!=a.length){var c=[],h=[e[0]-t[0],e[1]-t[1]];c.push(p(h,-(this.canvas.height-1),[-t[0],-t[1]])),c.push(l(h,-(this.canvas.width-1),[this.canvas.height-1-t[0],-t[1]])),c.push(p(h,this.canvas.height-1,[this.canvas.height-1-t[0],this.canvas.width-1-t[1]])),c.push(l(h,this.canvas.width-1,[-t[0],this.canvas.width-1-t[1]]));var f=[];for(o=0;o<c.length;o++){var g;0<=(g=c[o])[0]&&g[0]<=1&&0<=g[1]&&g[1]<=1&&f.push(g)}if(0!=f.length)if(a.length>0){var d=[t[0]+f[0][0]*h[0],t[1]+f[0][0]*h[1]];this.drawLineInt(a.pop(),d,r)}else{var v=[t[0]+f[0][0]*h[0],t[1]+f[0][0]*h[1]];for(o=1;o<f.length;o++){if(u(h=s(d=[t[0]+f[o][0]*h[0],t[1]+f[o][0]*h[1]],v),h)>.001)return void this.drawLineInt(v,d,r)}this.drawLineInt(v,v,r)}}else this.drawLineInt(a[0],a[1],r)},v.prototype.drawLineInt=function(t,e,r){t=o(t),e=o(e);var n=[-1,0,1],a=n.length,c=a*a,h=[];h[0]=t[0],h[1]=t[1];var f=s(e,t),g=[];for(g[0]=-f[1],g[1]=f[0],r(h,r.points,this);h[0]!==e[0]||h[1]!==e[1];){for(var p=Number.MAX_VALUE,l=[],d=0;d<c;d++){var v=n[d%a],m=n[Math.floor(d/a)],y=s(i(h,[v,m]),t),w=Math.abs(u(y,g))-u(y,f);p>w&&(p=w,l=[v,m])}r(h=i(h,l),r.points,this)}r(h,r.points,this)},v.prototype.drawPolygon=function(t,e){for(var r=arguments.length>2&&void 0!==arguments[2]?arguments[2]:v.isInsidePolygon,n=[[Number.MAX_VALUE,Number.MAX_VALUE],[Number.MIN_VALUE,Number.MIN_VALUE]],a=0;a<t.length;a++)n[0]=f(t[a],n[0]),n[1]=g(t[a],n[1]);var i=this.getSize(),u=s(i,[1,1]),c=[0,0];n[0]=o(f(u,g(c,n[0]))),n[1]=o(f(u,g(c,n[1])));for(var h=n[0][0];h<n[1][0];h++)for(var p=n[0][1];p<n[1][1];p++){var l=[h,p];r(l,t)&&e(l,t,this)}},v.prototype.drawTriangle=function(t,e,r,n){var a=[t,e,r];this.drawPolygon(a,n,v.isInsideConvex)},v.prototype.drawQuad=function(t,e,r,n,a){this.drawPolygon([t,e,r,n],a)},v.prototype.drawImage=function(t,e){"isReady"in t&&!t.isReady||this.useCanvasCtx((function(r){return r.ctx.drawImage(t,e[1],e[0])}))},v.prototype.drawCircle=function(t,e,r){var n=function(t,e){var r=[];return r[0]=t[0]*e,r[1]=t[1]*e,r}([1,1],e),a=[s(t,n),i(t,n)],u=this.getSize();a[0]=o(f(s(u,[1,1]),g([0,0],a[0]))),a[1]=o(f(s(u,[1,1]),g([0,0],a[1])));for(var c=a[0][0];c<=a[1][0];c++)for(var h=a[0][1];h<=a[1][1];h++){var p=[c,h];this.isInsideCircle(p,t,e)&&r(p,[t,e],this)}},v.prototype.isInsideCircle=function(t,e,r){return c(s(t,e))<=r*r},v.prototype.addEventListener=function(t,e,r){this.canvas.addEventListener(t,e,r)},v.prototype.drawString=function(t,e,r){this.useCanvasCtx((function(n){r(n.ctx),n.ctx.fillText(e,t[1],t[0])}))},v.isInsidePolygon=function(t,e){for(var r=[],n=0,a=e.length,i=0;i<a;i++)r[0]=s(e[(i+1)%a],t),r[1]=s(e[i],t),n+=Math.acos(u(r[0],r[1])/(h(r[0])*h(r[1])));return Math.abs(n-2*Math.PI)<.001},v.isInsideConvex=function(t,e){for(var r=e.length,n=[],a=[],i=0;i<r;i++){n[i]=s(e[(i+1)%r],e[i]);var o=[-n[i][1],n[i][0]],c=s(t,e[i]);a[i]=u(c,o)}var h=n[0][0]*n[1][1]-n[0][1]*n[1][0]>0?1:-1;for(i=0;i<r;i++){if(a[i]*h<0)return!1}return!0},v.simpleShader=function(t){return function(e,r,n){return n.drawPxl(e,t)}},v.colorShader=function(t){return v.interpolateTriangleShader((function(e,r,n,a){for(var i=[0,0,0,0],o=0;o<r.length;o++)i[0]=i[0]+t[o][0]*a[o],i[1]=i[1]+t[o][1]*a[o],i[2]=i[2]+t[o][2]*a[o],i[3]=i[3]+t[o][3]*a[o];n.drawPxl(e,i)}))},v.interpolateQuadShader=function(t){return function(e,r,n){var a=[r[0],r[1],r[2]],i=[r[2],r[3],r[0]],o=v.triangleBaryCoord(e,a);o[0]>0&&o[1]>0&&o[2]>0&&Math.abs(o[0]+o[1]+o[2]-1)<1e-10?t(e,r,n,[o[0],o[1],o[2],0]):(o=v.triangleBaryCoord(e,i),t(e,r,n,[o[2],0,o[0],o[1]]))}},v.interpolateTriangleShader=function(t){return function(e,r,n){var a=v.triangleBaryCoord(e,r);t(e,r,n,a)}},v.interpolateLineShader=function(t){return function(e,r,n){var a=s(r[1],r[0]),i=s(e,r[0]),o=c(a),h=u(i,a);t(e,r,n,0==o?0:h/o)}},v.quadTextureShader=function(t,e){var r=arguments.length>2&&void 0!==arguments[2]?arguments[2]:v.bilinearInterpolation,n=null,u=function(u,c,h,p){t.isReady&&null!=n||(n=new v(a.getImageCanvas(t)));for(var l=n,d=l.getSize(),m=[0,0],y=0;y<e.length;y++)m[0]=m[0]+e[y][0]*p[y],m[1]=m[1]+e[y][1]*p[y];var w=[(1-m[1])*(d[1]-1),(d[0]-1)*m[0]],x=o(w=g([0,0],f(s([d[0],d[1]],[1,1]),w))),I=[l.getPxl(x),l.getPxl(i(x,[1,0])),l.getPxl(i(x,[1,1])),l.getPxl(i(x,[0,1]))],C=r(I,s(w,x));h.drawPxl(u,C)};return v.interpolateQuadShader(u)},v.triangleCache=(d=[],{constains:function(t){return null!=d[t%3]},get:function(t){return d[t%3]},set:function(t,e){return d[t%3]=e}}),v.triangleHash=function(t){return[t[0][0],t[1][0],t[2][0],t[0][1],t[1][1],t[2][1]].reduce((function(t,e){return 31*t+e}),1)},v.triangleBaryCoord=function(t,e){var r=v.triangleHash(e),n=[t[0]-e[0][0],t[1]-e[0][1]];if(!v.triangleCache.constains(r)){var a=[e[1][0]-e[0][0],e[1][1]-e[0][1]],i=[e[2][0]-e[0][0],e[2][1]-e[0][1]],o=a[0]*i[1]-a[1]*i[0];v.triangleCache.set(r,{triangle:e,u:a.map((function(t){return t/o})),v:i.map((function(t){return t/o})),det:o,hash:r})}var s=v.triangleCache.get(r),u=s.u,c=s.v;if(0==s.det)return[0,0,0];var h=[c[1]*n[0]-c[0]*n[1],u[0]*n[1]-u[1]*n[0]];return[1-h[0]-h[1],h[0],h[1]]},v.bilinearInterpolation=function(t,e){for(var r=[],n=0;n<t.length;n++){var a=t[0][n]+(t[3][n]-t[0][n])*e[1],i=a+(t[1][n]+(t[2][n]-t[1][n])*e[1]-a)*e[0];r.push(i)}return r},v.createCanvas=function(t,e){var r=document.createElement("canvas");return r.setAttribute("width",t[0]),r.setAttribute("height",t[1]),document.getElementById(e).appendChild(r),r};var m=v,y=function(t,e){if(m.call(this,t),2!=e.length||2!=e[0].length&&2!=e[1].length)throw"camera space must be 2-dim array with 2-dim arrays representing an interval";this.cameraSpace=e};(y.prototype=Object.create(m.prototype)).constructor=y,y.prototype.integerTransform=function(t){return[-(this.canvas.height-1)/(this.cameraSpace[1][1]-this.cameraSpace[1][0])*(t[1]-this.cameraSpace[1][1]),(this.canvas.width-1)/(this.cameraSpace[0][1]-this.cameraSpace[0][0])*(t[0]-this.cameraSpace[0][0])]},y.prototype.inverseTransform=function(t){return[this.cameraSpace[0][0]+(this.cameraSpace[0][1]-this.cameraSpace[0][0])/(this.canvas.width-1)*t[1],this.cameraSpace[1][1]-(this.cameraSpace[1][1]-this.cameraSpace[1][0])/(this.canvas.height-1)*t[0]]},y.prototype.drawLine=function(t,e,r){var n=this.integerTransform(t),a=this.integerTransform(e);m.prototype.drawLine.call(this,n,a,r)},y.prototype.drawTriangle=function(t,e,r,n){var a=this.integerTransform(t),i=this.integerTransform(e),o=this.integerTransform(r);m.prototype.drawTriangle.call(this,a,i,o,n)},y.prototype.drawQuad=function(t,e,r,n,a){var i=this.integerTransform(t),o=this.integerTransform(e),s=this.integerTransform(r),u=this.integerTransform(n);m.prototype.drawQuad.call(this,i,o,s,u,a)},y.prototype.drawCircle=function(t,e,r){var n=this.integerTransform(t),a=this.integerTransform([e,0])[1]-this.integerTransform([0,0])[1];m.prototype.drawCircle.call(this,n,a,r)},y.prototype.drawImage=function(t,e){m.prototype.drawImage.call(this,t,this.integerTransform(e))},y.prototype.drawString=function(t,e,r){var n=this.integerTransform(t);m.prototype.drawString.call(this,n,e,r)},y.prototype.setCamera=function(t){if(2!=t.length||2!=t[0].length&&2!=t[1].length)throw"camera space must be 2-dim array with 2-dim arrays representing an interval";this.cameraSpace=t};var w=y}])}));
+(function webpackUniversalModuleDefinition(root, factory) {
+	if(typeof exports === 'object' && typeof module === 'object')
+		module.exports = factory();
+	else if(typeof define === 'function' && define.amd)
+		define([], factory);
+	else if(typeof exports === 'object')
+		exports["Tela"] = factory();
+	else
+		root["Tela"] = factory();
+})(window, function() {
+return /******/ (function(modules) { // webpackBootstrap
+/******/ 	// The module cache
+/******/ 	var installedModules = {};
+/******/
+/******/ 	// The require function
+/******/ 	function __webpack_require__(moduleId) {
+/******/
+/******/ 		// Check if module is in cache
+/******/ 		if(installedModules[moduleId]) {
+/******/ 			return installedModules[moduleId].exports;
+/******/ 		}
+/******/ 		// Create a new module (and put it into the cache)
+/******/ 		var module = installedModules[moduleId] = {
+/******/ 			i: moduleId,
+/******/ 			l: false,
+/******/ 			exports: {}
+/******/ 		};
+/******/
+/******/ 		// Execute the module function
+/******/ 		modules[moduleId].call(module.exports, module, module.exports, __webpack_require__);
+/******/
+/******/ 		// Flag the module as loaded
+/******/ 		module.l = true;
+/******/
+/******/ 		// Return the exports of the module
+/******/ 		return module.exports;
+/******/ 	}
+/******/
+/******/
+/******/ 	// expose the modules object (__webpack_modules__)
+/******/ 	__webpack_require__.m = modules;
+/******/
+/******/ 	// expose the module cache
+/******/ 	__webpack_require__.c = installedModules;
+/******/
+/******/ 	// define getter function for harmony exports
+/******/ 	__webpack_require__.d = function(exports, name, getter) {
+/******/ 		if(!__webpack_require__.o(exports, name)) {
+/******/ 			Object.defineProperty(exports, name, { enumerable: true, get: getter });
+/******/ 		}
+/******/ 	};
+/******/
+/******/ 	// define __esModule on exports
+/******/ 	__webpack_require__.r = function(exports) {
+/******/ 		if(typeof Symbol !== 'undefined' && Symbol.toStringTag) {
+/******/ 			Object.defineProperty(exports, Symbol.toStringTag, { value: 'Module' });
+/******/ 		}
+/******/ 		Object.defineProperty(exports, '__esModule', { value: true });
+/******/ 	};
+/******/
+/******/ 	// create a fake namespace object
+/******/ 	// mode & 1: value is a module id, require it
+/******/ 	// mode & 2: merge all properties of value into the ns
+/******/ 	// mode & 4: return value when already ns object
+/******/ 	// mode & 8|1: behave like require
+/******/ 	__webpack_require__.t = function(value, mode) {
+/******/ 		if(mode & 1) value = __webpack_require__(value);
+/******/ 		if(mode & 8) return value;
+/******/ 		if((mode & 4) && typeof value === 'object' && value && value.__esModule) return value;
+/******/ 		var ns = Object.create(null);
+/******/ 		__webpack_require__.r(ns);
+/******/ 		Object.defineProperty(ns, 'default', { enumerable: true, value: value });
+/******/ 		if(mode & 2 && typeof value != 'string') for(var key in value) __webpack_require__.d(ns, key, function(key) { return value[key]; }.bind(null, key));
+/******/ 		return ns;
+/******/ 	};
+/******/
+/******/ 	// getDefaultExport function for compatibility with non-harmony modules
+/******/ 	__webpack_require__.n = function(module) {
+/******/ 		var getter = module && module.__esModule ?
+/******/ 			function getDefault() { return module['default']; } :
+/******/ 			function getModuleExports() { return module; };
+/******/ 		__webpack_require__.d(getter, 'a', getter);
+/******/ 		return getter;
+/******/ 	};
+/******/
+/******/ 	// Object.prototype.hasOwnProperty.call
+/******/ 	__webpack_require__.o = function(object, property) { return Object.prototype.hasOwnProperty.call(object, property); };
+/******/
+/******/ 	// __webpack_public_path__
+/******/ 	__webpack_require__.p = "";
+/******/
+/******/
+/******/ 	// Load entry module and return exports
+/******/ 	return __webpack_require__(__webpack_require__.s = "./src/index.js");
+/******/ })
+/************************************************************************/
+/******/ ({
+
+/***/ "./src/Canvas_old/main/Canvas.js":
+/*!***************************************!*\
+  !*** ./src/Canvas_old/main/Canvas.js ***!
+  \***************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _ImageIO__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./ImageIO */ "./src/Canvas_old/main/ImageIO.js");
+
+/*
+ Canvas coordinates
+
+ 0                  W-1
+ +-------------> y
+ |
+ |
+ |       *
+ |
+ |
+ v x
+
+ H-1
+ */
+
+/*
+
+The point xe_1 + ye_2 corresponds to a point in the middle of a pxl.
+
+The canvas data is an array of length colors(C) * width(W) * height(H). Is a 3D-array.
+The index is a number in [0, C * W * H - 1].
+Having (x, y, z) where z is the color axis, the formula to index the array is :
+
+f(x, y, z) = C * W * x + C * y + z.
+
+Where x in [0, H - 1], y in [0, W - 1] and z in [0, C - 1].
+
+Note that f(H - 1, W - 1, C - 1) = C * W * H - 1.
+*/
+// Auxiliary functions
+
+function scale(u, r) {
+  var ans = [];
+  ans[0] = u[0] * r;
+  ans[1] = u[1] * r;
+  return ans;
+}
+
+function add(u, v) {
+  var ans = [];
+  ans[0] = u[0] + v[0];
+  ans[1] = u[1] + v[1];
+  return ans;
+}
+
+function floor(x) {
+  var ans = [];
+  ans[0] = Math.floor(x[0]);
+  ans[1] = Math.floor(x[1]);
+  return ans;
+}
+
+function diff(u, v) {
+  var ans = [];
+  ans[0] = u[0] - v[0];
+  ans[1] = u[1] - v[1];
+  return ans;
+}
+
+function dot(u, v) {
+  return u[0] * v[0] + u[1] * v[1];
+}
+
+function squareNorm(x) {
+  return dot(x, x);
+}
+
+function norm(x) {
+  return Math.sqrt(dot(x, x));
+}
+
+function min(u, v) {
+  var ans = [];
+  ans[0] = Math.min(u[0], v[0]);
+  ans[1] = Math.min(u[1], v[1]);
+  return ans;
+}
+
+function max(u, v) {
+  var ans = [];
+  ans[0] = Math.max(u[0], v[0]);
+  ans[1] = Math.max(u[1], v[1]);
+  return ans;
+}
+/**
+ * return solution to : [ u_0 , h] x = z_0
+ *
+ *                       [ u_1,  0] y = z_1
+ */
+
+
+function solve2by2UpperTriMatrix(u, h, z) {
+  var aux = z[1] / u[1];
+  return [aux, (-u[0] * aux + z[0]) / h];
+}
+/**
+ * return solution to : [ u_0 , 0] x = z_0
+ *
+ *                       [ u_1,  w] y = z_1
+ */
+
+
+function solve2by2LowerTriMatrix(u, w, z) {
+  var aux = z[0] / u[0];
+  return [aux, (-u[1] * aux + z[1]) / w];
+} // Canvas
+
+
+var Canvas = function Canvas(canvas) {
+  this.canvas = canvas;
+  this.ctx = canvas.getContext("2d");
+  this.image = this.ctx.getImageData(0, 0, canvas.width, canvas.height); // width * height * 4 array of integers
+
+  this.imageData = this.image.data;
+};
+/**
+ * Returns a two vector with Height as first coordinate and Width as second. [Height, Width].
+ */
+
+
+Canvas.prototype.getSize = function () {
+  return [this.canvas.height, this.canvas.width];
+};
+/**
+ *  Draw update image on canvas.
+ */
+
+
+Canvas.prototype.paintImage = function () {
+  this.ctx.putImageData(this.image, 0, 0);
+};
+
+Canvas.prototype.getCanvas = function () {
+  return this.canvas;
+};
+/**
+ * Clear Image with @rgba color.
+ *
+ * @param rgba
+ */
+
+
+Canvas.prototype.clearImage = function (rgba) {
+  this.useCanvasCtx(function (canvas) {
+    var size = canvas.getSize();
+    canvas.ctx.fillStyle = "rgba(" + rgba[0] + "," + rgba[1] + "," + rgba[2] + "," + rgba[3] + ")";
+    canvas.ctx.globalCompositeOperation = "source-over";
+    canvas.ctx.fillRect(0, 0, size[1], size[0]);
+  }, true);
+};
+
+Canvas.prototype.useCanvasCtx = function (lambda) {
+  var isClearImage = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : false;
+
+  if (!isClearImage) {
+    this.ctx.putImageData(this.image, 0, 0);
+  }
+
+  lambda(this);
+  this.image = this.ctx.getImageData(0, 0, this.canvas.width, this.canvas.height);
+  this.imageData = this.image.data;
+};
+
+Canvas.prototype.getImageIndex = function (x) {
+  return 4 * (this.canvas.width * x[0] + x[1]);
+};
+
+Canvas.prototype.getPxl = function (x) {
+  var index = this.getImageIndex(x);
+  return [this.imageData[index], this.imageData[index + 1], this.imageData[index + 2], this.imageData[index + 3]];
+};
+
+Canvas.prototype.drawPxl = function (x, rgb) {
+  var index = this.getImageIndex(x);
+  this.imageData[index] = rgb[0];
+  this.imageData[index + 1] = rgb[1];
+  this.imageData[index + 2] = rgb[2];
+  this.imageData[index + 3] = rgb[3];
+};
+/*
+ * x1     :   2-dim array
+ * x2     :   2-dim array
+ * shader :   is a function that receives a 2-dim array and a line (array with 2 points) and returns a rgba 4-dim array
+ */
+
+
+Canvas.prototype.drawLine = function (x1, x2, shader) {
+  // add points before clip
+  shader.points = [x1, x2]; // do clipping
+
+  var stack = [];
+  stack.push(x1);
+  stack.push(x2);
+  var inStack = [];
+  var outStack = [];
+
+  for (var i = 0; i < stack.length; i++) {
+    var x = stack[i];
+
+    if (0 <= x[0] && x[0] < this.canvas.height && 0 <= x[1] && x[1] < this.canvas.width) {
+      inStack.push(x);
+    } else {
+      outStack.push(x);
+    }
+  } // both points are inside canvas
+
+
+  if (inStack.length == 2) {
+    this.drawLineInt(inStack[0], inStack[1], shader);
+    return;
+  } //intersecting line with canvas
+
+
+  var intersectionSolutions = [];
+  var v = [x2[0] - x1[0], x2[1] - x1[1]]; // Let s \in [0,1]
+  // line intersection with [0, 0]^T + [H - 1, 0]^T s
+
+  intersectionSolutions.push(solve2by2UpperTriMatrix(v, -(this.canvas.height - 1), [-x1[0], -x1[1]])); // line intersection with [H - 1, 0]^T + [0, W - 1]^T s
+
+  intersectionSolutions.push(solve2by2LowerTriMatrix(v, -(this.canvas.width - 1), [this.canvas.height - 1 - x1[0], -x1[1]])); // line intersection with [H - 1, W - 1]^T + [-(H - 1), 0]^T s
+
+  intersectionSolutions.push(solve2by2UpperTriMatrix(v, this.canvas.height - 1, [this.canvas.height - 1 - x1[0], this.canvas.width - 1 - x1[1]])); // line intersection with [0, W - 1]^T + [0, -(W - 1)]^T s
+
+  intersectionSolutions.push(solve2by2LowerTriMatrix(v, this.canvas.width - 1, [-x1[0], this.canvas.width - 1 - x1[1]]));
+  var validIntersection = [];
+
+  for (var i = 0; i < intersectionSolutions.length; i++) {
+    var x = intersectionSolutions[i];
+
+    if (0 <= x[0] && x[0] <= 1 && 0 <= x[1] && x[1] <= 1) {
+      validIntersection.push(x);
+    }
+  }
+
+  if (validIntersection.length == 0) return; //it can be shown that at this point there is at least one valid intersection.
+
+  if (inStack.length > 0) {
+    var p = [x1[0] + validIntersection[0][0] * v[0], x1[1] + validIntersection[0][0] * v[1]];
+    this.drawLineInt(inStack.pop(), p, shader);
+    return;
+  }
+
+  var p0 = [x1[0] + validIntersection[0][0] * v[0], x1[1] + validIntersection[0][0] * v[1]];
+
+  for (var i = 1; i < validIntersection.length; i++) {
+    var p = [x1[0] + validIntersection[i][0] * v[0], x1[1] + validIntersection[i][0] * v[1]];
+    var v = diff(p, p0);
+
+    if (dot(v, v) > 1e-3) {
+      this.drawLineInt(p0, p, shader);
+      return;
+    }
+  }
+
+  this.drawLineInt(p0, p0, shader);
+};
+
+Canvas.prototype.drawLineInt = function (x1, x2, shader) {
+  x1 = floor(x1);
+  x2 = floor(x2);
+  var index = [-1, 0, 1];
+  var n = index.length;
+  var nn = n * n;
+  var x = [];
+  x[0] = x1[0];
+  x[1] = x1[1];
+  var tangent = diff(x2, x1);
+  var normal = [];
+  normal[0] = -tangent[1];
+  normal[1] = tangent[0];
+  shader(x, shader.points, this);
+
+  while (x[0] !== x2[0] || x[1] !== x2[1]) {
+    var fmin = Number.MAX_VALUE;
+    var minDir = [];
+
+    for (var k = 0; k < nn; k++) {
+      var i = index[k % n];
+      var j = index[Math.floor(k / n)];
+      var nextX = add(x, [i, j]);
+      var v = diff(nextX, x1);
+      var f = Math.abs(dot(v, normal)) - dot(v, tangent);
+
+      if (fmin > f) {
+        fmin = f;
+        minDir = [i, j];
+      }
+    }
+
+    x = add(x, minDir);
+    shader(x, shader.points, this);
+  }
+
+  shader(x, shader.points, this);
+};
+
+Canvas.prototype.drawPolygon = function (array, shader) {
+  var isInsidePoly = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : Canvas.isInsidePolygon;
+  var upperBox = [[Number.MAX_VALUE, Number.MAX_VALUE], [Number.MIN_VALUE, Number.MIN_VALUE]];
+
+  for (var _i = 0; _i < array.length; _i++) {
+    upperBox[0] = min(array[_i], upperBox[0]);
+    upperBox[1] = max(array[_i], upperBox[1]);
+  }
+
+  var size = this.getSize();
+  var clampedSize = diff(size, [1, 1]);
+  var zeros = [0, 0];
+  upperBox[0] = floor(min(clampedSize, max(zeros, upperBox[0])));
+  upperBox[1] = floor(min(clampedSize, max(zeros, upperBox[1])));
+
+  for (var i = upperBox[0][0]; i < upperBox[1][0]; i++) {
+    for (var j = upperBox[0][1]; j < upperBox[1][1]; j++) {
+      var x = [i, j];
+
+      if (isInsidePoly(x, array)) {
+        shader(x, array, this);
+      }
+    }
+  }
+};
+/*
+ * x1     :   2-dim array
+ * x2     :   2-dim array
+ * x3     :   2-dim array
+ * shader :   is a function that receives a 2-dim array and a triangle (array with 3 points) and returns a rgba 4-dim array
+ */
+
+
+Canvas.prototype.drawTriangle = function (x1, x2, x3, shader) {
+  var array = [x1, x2, x3];
+  this.drawPolygon(array, shader, Canvas.isInsideConvex);
+};
+/* x1     :   2-dim array
+ * x2     :   2-dim array
+ * x3     :   2-dim array
+ * x4     :   2-dim array
+ * shader :   is a function that receives a 2-dim array and returns a rgba 4-dim array
+ */
+
+
+Canvas.prototype.drawQuad = function (x1, x2, x3, x4, shader) {
+  this.drawPolygon([x1, x2, x3, x4], shader);
+};
+
+Canvas.prototype.drawImage = function (img, x) {
+  if ("isReady" in img && !img.isReady) return;
+  this.useCanvasCtx(function (canvas) {
+    return canvas.ctx.drawImage(img, x[1], x[0]);
+  });
+};
+
+Canvas.prototype.drawCircle = function (x, r, shader) {
+  var corner = scale([1, 1], r);
+  var upperBox = [diff(x, corner), add(x, corner)];
+  var size = this.getSize();
+  upperBox[0] = floor(min(diff(size, [1, 1]), max([0, 0], upperBox[0])));
+  upperBox[1] = floor(min(diff(size, [1, 1]), max([0, 0], upperBox[1])));
+
+  for (var i = upperBox[0][0]; i <= upperBox[1][0]; i++) {
+    for (var j = upperBox[0][1]; j <= upperBox[1][1]; j++) {
+      var p = [i, j];
+
+      if (this.isInsideCircle(p, x, r)) {
+        shader(p, [x, r], this);
+      }
+    }
+  }
+};
+
+Canvas.prototype.isInsideCircle = function (p, x, r) {
+  return squareNorm(diff(p, x)) <= r * r;
+};
+
+Canvas.prototype.addEventListener = function (key, lambda, useCapture) {
+  this.canvas.addEventListener(key, lambda, useCapture);
+};
+
+Canvas.prototype.drawString = function (x, string, contextShader) {
+  this.useCanvasCtx(function (canvas) {
+    contextShader(canvas.ctx);
+    canvas.ctx.fillText(string, x[1], x[0]);
+  });
+}; // Static functions
+// slower than isInsideConvex method
+
+
+Canvas.isInsidePolygon = function (x, array) {
+  var v = [];
+  var theta = 0;
+  var n = array.length;
+
+  for (var i = 0; i < n; i++) {
+    v[0] = diff(array[(i + 1) % n], x);
+    v[1] = diff(array[i], x);
+    theta += Math.acos(dot(v[0], v[1]) / (norm(v[0]) * norm(v[1])));
+  }
+
+  return Math.abs(theta - 2 * Math.PI) < 1e-3;
+};
+
+Canvas.isInsideConvex = function (x, array) {
+  var m = array.length;
+  var v = [];
+  var vDotN = [];
+
+  for (var i = 0; i < m; i++) {
+    v[i] = diff(array[(i + 1) % m], array[i]);
+    var n = [-v[i][1], v[i][0]];
+    var r = diff(x, array[i]);
+    vDotN[i] = dot(r, n);
+  }
+
+  var orientation = v[0][0] * v[1][1] - v[0][1] * v[1][0] > 0 ? 1 : -1;
+
+  for (var i = 0; i < m; i++) {
+    var myDot = vDotN[i] * orientation;
+    if (myDot < 0) return false;
+  }
+
+  return true;
+};
+
+Canvas.simpleShader = function (color) {
+  return function (x, element, canvas) {
+    return canvas.drawPxl(x, color);
+  };
+};
+
+Canvas.colorShader = function (colors) {
+  var auxShader = function auxShader(x, poly, canvas, alpha) {
+    var interpolateColors = [0, 0, 0, 0];
+
+    for (var i = 0; i < poly.length; i++) {
+      interpolateColors[0] = interpolateColors[0] + colors[i][0] * alpha[i];
+      interpolateColors[1] = interpolateColors[1] + colors[i][1] * alpha[i];
+      interpolateColors[2] = interpolateColors[2] + colors[i][2] * alpha[i];
+      interpolateColors[3] = interpolateColors[3] + colors[i][3] * alpha[i];
+    }
+
+    canvas.drawPxl(x, interpolateColors);
+  };
+
+  return Canvas.interpolateTriangleShader(auxShader);
+};
+
+Canvas.interpolateQuadShader = function (shader) {
+  return function (x, quad, canvas) {
+    var t1 = [quad[0], quad[1], quad[2]];
+    var t2 = [quad[2], quad[3], quad[0]];
+    var alpha = Canvas.triangleBaryCoord(x, t1);
+
+    if (alpha[0] > 0 && alpha[1] > 0 && alpha[2] > 0 && Math.abs(alpha[0] + alpha[1] + alpha[2] - 1) < 1e-10) {
+      shader(x, quad, canvas, [alpha[0], alpha[1], alpha[2], 0]);
+    } else {
+      alpha = Canvas.triangleBaryCoord(x, t2);
+      shader(x, quad, canvas, [alpha[2], 0, alpha[0], alpha[1]]);
+    }
+  };
+};
+
+Canvas.interpolateTriangleShader = function (shader) {
+  return function (x, triangle, canvas) {
+    var alpha = Canvas.triangleBaryCoord(x, triangle);
+    shader(x, triangle, canvas, alpha);
+  };
+};
+
+Canvas.interpolateLineShader = function (shader) {
+  return function (x, line, canvas) {
+    var v = diff(line[1], line[0]);
+    var z = diff(x, line[0]);
+    var vnorm = squareNorm(v);
+    var projection = dot(z, v);
+    var t = vnorm == 0.0 ? 0 : projection / vnorm;
+    shader(x, line, canvas, t);
+  };
+};
+/**
+ * img: html loaded image.
+ * quadTexCoord: [0, 1]^{2 * 4}, texture coordinates
+ */
+
+
+Canvas.quadTextureShader = function (img, quadTexCoord) {
+  var interpolation = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : Canvas.bilinearInterpolation;
+  var imageCache = null;
+
+  var imageShader = function imageShader(x, quad, canvas, alpha) {
+    if (!img.isReady || imageCache == null) imageCache = new Canvas(_ImageIO__WEBPACK_IMPORTED_MODULE_0__["default"].getImageCanvas(img));
+    var imageCanvas = imageCache;
+    var imgSize = imageCanvas.getSize();
+    var interpolateTexCoord = [0, 0];
+
+    for (var _i2 = 0; _i2 < quadTexCoord.length; _i2++) {
+      interpolateTexCoord[0] = interpolateTexCoord[0] + quadTexCoord[_i2][0] * alpha[_i2];
+      interpolateTexCoord[1] = interpolateTexCoord[1] + quadTexCoord[_i2][1] * alpha[_i2];
+    }
+
+    var i = [(1 - interpolateTexCoord[1]) * (imgSize[1] - 1), (imgSize[0] - 1) * interpolateTexCoord[0]]; // bound coordinates
+
+    i = max([0, 0], min(diff([imgSize[0], imgSize[1]], [1, 1]), i)); // pxl lower corner
+
+    var j = floor(i);
+    var cornerColors = [imageCanvas.getPxl(j), imageCanvas.getPxl(add(j, [1, 0])), imageCanvas.getPxl(add(j, [1, 1])), imageCanvas.getPxl(add(j, [0, 1]))];
+    var finalColor = interpolation(cornerColors, diff(i, j));
+    canvas.drawPxl(x, finalColor);
+  };
+
+  return Canvas.interpolateQuadShader(imageShader);
+};
+
+Canvas.triangleCache = function () {
+  var hashMap = [];
+  var size = 3;
+  return {
+    constains: function constains(triangleHash) {
+      return hashMap[triangleHash % size] != undefined;
+    },
+    get: function get(triangleHash) {
+      return hashMap[triangleHash % size];
+    },
+    set: function set(triangleHash, value) {
+      return hashMap[triangleHash % size] = value;
+    }
+  };
+}(); //{triangle: null, u: [], v:[], det:null, hash:null}
+
+
+Canvas.triangleHash = function (triangle) {
+  var array = [triangle[0][0], triangle[1][0], triangle[2][0], triangle[0][1], triangle[1][1], triangle[2][1]];
+  return array.reduce(function (h, x) {
+    return 31 * h + x;
+  }, 1);
+};
+
+Canvas.triangleBaryCoord = function (x, triangle) {
+  var hash = Canvas.triangleHash(triangle);
+  var y = [x[0] - triangle[0][0], x[1] - triangle[0][1]];
+
+  if (!Canvas.triangleCache.constains(hash)) {
+    var _u = [triangle[1][0] - triangle[0][0], triangle[1][1] - triangle[0][1]];
+    var _v = [triangle[2][0] - triangle[0][0], triangle[2][1] - triangle[0][1]];
+
+    var _det = _u[0] * _v[1] - _u[1] * _v[0];
+
+    Canvas.triangleCache.set(hash, {
+      triangle: triangle,
+      u: _u.map(function (x) {
+        return x / _det;
+      }),
+      v: _v.map(function (x) {
+        return x / _det;
+      }),
+      det: _det,
+      hash: hash
+    });
+  }
+
+  var cache = Canvas.triangleCache.get(hash);
+  var u = cache.u;
+  var v = cache.v;
+  var det = cache.det;
+  if (det == 0) return [0, 0, 0];
+  var alpha = [v[1] * y[0] - v[0] * y[1], u[0] * y[1] - u[1] * y[0]];
+  return [1 - alpha[0] - alpha[1], alpha[0], alpha[1]];
+};
+/**
+ * values \in R^{k * 4}
+ * x \in [0,1]^2
+ */
+
+
+Canvas.bilinearInterpolation = function (values, x) {
+  var acc = [];
+
+  for (var k = 0; k < values.length; k++) {
+    var f03 = values[0][k] + (values[3][k] - values[0][k]) * x[1];
+    var f12 = values[1][k] + (values[2][k] - values[1][k]) * x[1];
+    var f = f03 + (f12 - f03) * x[0];
+    acc.push(f);
+  }
+
+  return acc;
+};
+/**
+ * size: is an array with width and height of a HTML5 Canvas.
+ * domId: DOM element where the canvas will be added
+ *
+ * returns Canvas object from the generated html canvas.
+ */
+
+
+Canvas.createCanvas = function (size, domId) {
+  var canvas = document.createElement("canvas");
+  canvas.setAttribute("width", size[0]);
+  canvas.setAttribute("height", size[1]);
+  document.getElementById(domId).appendChild(canvas);
+  return canvas;
+};
+
+/* harmony default export */ __webpack_exports__["default"] = (Canvas);
+
+/***/ }),
+
+/***/ "./src/Canvas_old/main/Canvas2D.js":
+/*!*****************************************!*\
+  !*** ./src/Canvas_old/main/Canvas2D.js ***!
+  \*****************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _Canvas__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./Canvas */ "./src/Canvas_old/main/Canvas.js");
+ //Note that we can switch from heritage to composition, think about that
+// cameraSpace : 2-dim array with two 2-dim arrays that are intervals [a,b] | a < b
+
+var Canvas2D = function Canvas2D(canvas, cameraSpace) {
+  _Canvas__WEBPACK_IMPORTED_MODULE_0__["default"].call(this, canvas);
+
+  if (cameraSpace.length != 2 || cameraSpace[0].length != 2 && cameraSpace[1].length != 2) {
+    throw "camera space must be 2-dim array with 2-dim arrays representing an interval";
+  }
+
+  this.cameraSpace = cameraSpace;
+};
+
+Canvas2D.prototype = Object.create(_Canvas__WEBPACK_IMPORTED_MODULE_0__["default"].prototype);
+Canvas2D.prototype.constructor = Canvas2D;
+/* x : 2-dim array in camera space coordinates
+ * returns : 2-dim array in integer coordinates
+ */
+
+Canvas2D.prototype.integerTransform = function (x) {
+  var xint = -(this.canvas.height - 1) / (this.cameraSpace[1][1] - this.cameraSpace[1][0]) * (x[1] - this.cameraSpace[1][1]);
+  var yint = (this.canvas.width - 1) / (this.cameraSpace[0][1] - this.cameraSpace[0][0]) * (x[0] - this.cameraSpace[0][0]);
+  return [xint, yint];
+};
+/* x : 2-dim array in integer coordinates
+ * returns : 2-dim array in camera space coordinates
+ */
+
+
+Canvas2D.prototype.inverseTransform = function (x) {
+  var xt = this.cameraSpace[0][0] + (this.cameraSpace[0][1] - this.cameraSpace[0][0]) / (this.canvas.width - 1) * x[1];
+  var yt = this.cameraSpace[1][1] - (this.cameraSpace[1][1] - this.cameraSpace[1][0]) / (this.canvas.height - 1) * x[0];
+  return [xt, yt];
+};
+/* x1     :   2-dim array
+ * x2     :   2-dim array
+ * shader :   is a function that receives a 2-dim array and returns a rgba 4-dim array
+ */
+
+
+Canvas2D.prototype.drawLine = function (x1, x2, shader) {
+  var y1 = this.integerTransform(x1);
+  var y2 = this.integerTransform(x2);
+  _Canvas__WEBPACK_IMPORTED_MODULE_0__["default"].prototype.drawLine.call(this, y1, y2, shader);
+};
+/* x1     :   2-dim array
+ * x2     :   2-dim array
+ * x3     :   2-dim array
+ * shader :   is a function that receives a 2-dim array and returns a rgba 4-dim array
+ */
+
+
+Canvas2D.prototype.drawTriangle = function (x1, x2, x3, shader) {
+  var y1 = this.integerTransform(x1);
+  var y2 = this.integerTransform(x2);
+  var y3 = this.integerTransform(x3);
+  _Canvas__WEBPACK_IMPORTED_MODULE_0__["default"].prototype.drawTriangle.call(this, y1, y2, y3, shader);
+};
+/* x1     :   2-dim array
+ * x2     :   2-dim array
+ * x3     :   2-dim array
+ * x4     :   2-dim array
+ * shader :   is a function that receives a 2-dim array and returns a rgba 4-dim array
+ */
+
+
+Canvas2D.prototype.drawQuad = function (x1, x2, x3, x4, shader) {
+  var y1 = this.integerTransform(x1);
+  var y2 = this.integerTransform(x2);
+  var y3 = this.integerTransform(x3);
+  var y4 = this.integerTransform(x4);
+  _Canvas__WEBPACK_IMPORTED_MODULE_0__["default"].prototype.drawQuad.call(this, y1, y2, y3, y4, shader);
+};
+
+Canvas2D.prototype.drawCircle = function (x, r, shader) {
+  // it assumes squared canvas, for now ...
+  var y = this.integerTransform(x);
+  var z = this.integerTransform([r, 0])[1] - this.integerTransform([0, 0])[1];
+  _Canvas__WEBPACK_IMPORTED_MODULE_0__["default"].prototype.drawCircle.call(this, y, z, shader);
+};
+
+Canvas2D.prototype.drawImage = function (img, x) {
+  _Canvas__WEBPACK_IMPORTED_MODULE_0__["default"].prototype.drawImage.call(this, img, this.integerTransform(x));
+};
+
+Canvas2D.prototype.drawString = function (x, string, contextShader) {
+  var y = this.integerTransform(x);
+  _Canvas__WEBPACK_IMPORTED_MODULE_0__["default"].prototype.drawString.call(this, y, string, contextShader);
+}; // camera : 2-dim array with two 2-dim arrays that are intervals [a,b] | a < b
+
+
+Canvas2D.prototype.setCamera = function (camera) {
+  if (camera.length != 2 || camera[0].length != 2 && camera[1].length != 2) {
+    throw "camera space must be 2-dim array with 2-dim arrays representing an interval";
+  }
+
+  this.cameraSpace = camera;
+};
+
+/* harmony default export */ __webpack_exports__["default"] = (Canvas2D);
+
+/***/ }),
+
+/***/ "./src/Canvas_old/main/ImageIO.js":
+/*!****************************************!*\
+  !*** ./src/Canvas_old/main/ImageIO.js ***!
+  \****************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+var ImageIO = {// empty object
+};
+/**
+ * img : html image
+ */
+
+ImageIO.getImageCanvas = function (img) {
+  var canvasAux = document.createElement("canvas");
+  canvasAux.width = img.width;
+  canvasAux.height = img.height;
+  var contextAux = canvasAux.getContext("2d");
+  contextAux.fillStyle = "rgba(0, 0, 0, 0)";
+  contextAux.globalCompositeOperation = "source-over";
+  contextAux.fillRect(0, 0, canvasAux.width, canvasAux.height);
+  contextAux.drawImage(img, 0, 0);
+  return canvasAux;
+};
+/**
+ * img : html image
+ */
+
+
+ImageIO.getDataFromImage = function (img) {
+  canvas = ImageIO.getImageCanvas(img);
+  return canvas.getContext("2d").getImageData(0, 0, img.width, img.height);
+};
+
+ImageIO.loadImage = function (src) {
+  var img = new Image();
+  img.src = src;
+  img.isReady = false;
+
+  img.onload = function () {
+    return img.isReady = true;
+  };
+
+  return img;
+};
+
+ImageIO.generateImageReadyPredicate = function (img) {
+  return function () {
+    return img.isReady;
+  };
+};
+
+/* harmony default export */ __webpack_exports__["default"] = (ImageIO);
+
+/***/ }),
+
+/***/ "./src/index.js":
+/*!**********************!*\
+  !*** ./src/index.js ***!
+  \**********************/
+/*! exports provided: Canvas_old, Canvas2D_old, ImageIO */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _Canvas_old_main_Canvas__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./Canvas_old/main/Canvas */ "./src/Canvas_old/main/Canvas.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "Canvas_old", function() { return _Canvas_old_main_Canvas__WEBPACK_IMPORTED_MODULE_0__["default"]; });
+
+/* harmony import */ var _Canvas_old_main_Canvas2D__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./Canvas_old/main/Canvas2D */ "./src/Canvas_old/main/Canvas2D.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "Canvas2D_old", function() { return _Canvas_old_main_Canvas2D__WEBPACK_IMPORTED_MODULE_1__["default"]; });
+
+/* harmony import */ var _Canvas_old_main_ImageIO__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./Canvas_old/main/ImageIO */ "./src/Canvas_old/main/ImageIO.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "ImageIO", function() { return _Canvas_old_main_ImageIO__WEBPACK_IMPORTED_MODULE_2__["default"]; });
+
+
+
+
+
+
+/***/ })
+
+/******/ });
+});
 //# sourceMappingURL=index.js.map

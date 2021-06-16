@@ -1,4 +1,4 @@
-import Canvas from "./Canvas/main/Canvas";
-import Canvas2D from "./Canvas/main/Canvas2D";
-import ImageIO from "./Canvas/main/ImageIO";
-export { Canvas, Canvas2D, ImageIO };
+import Canvas_old from "./Canvas_old/main/Canvas";
+import Canvas2D_old from "./Canvas_old/main/Canvas2D";
+import ImageIO from "./Canvas_old/main/ImageIO";
+export { Canvas_old, Canvas2D_old, ImageIO };

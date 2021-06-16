@@ -6,8 +6,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Canvas Test</title>
     <script src="../../../dist/index.js"></script>
-    <script src="../../../dist/index.js"></script>
   </head>
   <body></body>
-  <script></script>
+  <script>
+    const { Canvas, Color } = Tela;
+    const canvas = Canvas.builder().width(100).height(100).build();
+    document.body.appendChild(canvas.getDom());
+    canvas.fill(Color.ofRGBA(1, 1, 1, 1));
+  </script>
 </html>

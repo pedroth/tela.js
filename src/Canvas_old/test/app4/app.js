@@ -1,4 +1,4 @@
-const { Canvas2D, Canvas, ImageIO } = Tela;
+const { Canvas2D_old: Canvas2D, Canvas_old: Canvas, ImageIO } = Tela;
 const canvas = new Canvas2D(
   Canvas.createCanvas([window.innerWidth, window.innerHeight], "body"),
   [

@@ -1,4 +1,4 @@
-const { Canvas2D, Canvas } = Tela;
+const { Canvas2D_old: Canvas2D, Canvas_old: Canvas } = Tela;
 
 const f = Canvas.simpleShader([0, 255, 0, 255]);
 const g = Canvas.simpleShader([0, 0, 255, 255]);

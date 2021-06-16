@@ -1,4 +1,4 @@
-import ImageIO from "./ImageIO.js";
+import ImageIO from "./ImageIO";
 /*
  Canvas coordinates
 

@@ -1,4 +1,4 @@
-import Canvas from "./Canvas.js";
+import Canvas from "./Canvas";
 
 //Note that we can switch from heritage to composition, think about that
 
