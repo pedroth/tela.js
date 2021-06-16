@@ -19,4 +19,25 @@ export default class Color {
     rgba[3] = alpha;
     return new Color(rgba);
   }
+
+  static random() {
+    const r = () => Math.random() * 256;
+    return Color.ofRGBA(r(), r(), r(), r());
+  }
+
+  get red() {
+    return this.rgba[0];
+  }
+
+  get green() {
+    return this.rgba[1];
+  }
+
+  get blue() {
+    return this.rgba[2];
+  }
+
+  get alpha() {
+    return this.rgba[3];
+  }
 }

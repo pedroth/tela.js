@@ -7,3 +7,11 @@ test("test creation", () => {
     ArrayUtils.TYPED_ARRAY.Uint8Array(255, 255, 255, 255)
   );
 });
+
+test("test get rgba", () => {
+  const c = Color.ofRGBA(1, 2, 3);
+  expect(c.red).toStrictEqual(1);
+  expect(c.green).toStrictEqual(2);
+  expect(c.blue).toStrictEqual(3);
+  expect(c.alpha).toStrictEqual(255);
+});

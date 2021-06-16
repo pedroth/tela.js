@@ -86,6 +86,185 @@
 /************************************************************************/
 /******/ ({
 
+/***/ "./src/Canvas/main/Canvas.js":
+/*!***********************************!*\
+  !*** ./src/Canvas/main/Canvas.js ***!
+  \***********************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return Canvas; });
+/* harmony import */ var _babel_runtime_helpers_esm_classCallCheck__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! @babel/runtime/helpers/esm/classCallCheck */ "@babel/runtime/helpers/esm/classCallCheck");
+/* harmony import */ var _babel_runtime_helpers_esm_classCallCheck__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_babel_runtime_helpers_esm_classCallCheck__WEBPACK_IMPORTED_MODULE_0__);
+/* harmony import */ var _babel_runtime_helpers_esm_createClass__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! @babel/runtime/helpers/esm/createClass */ "@babel/runtime/helpers/esm/createClass");
+/* harmony import */ var _babel_runtime_helpers_esm_createClass__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(_babel_runtime_helpers_esm_createClass__WEBPACK_IMPORTED_MODULE_1__);
+/* harmony import */ var _babel_runtime_helpers_esm_defineProperty__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! @babel/runtime/helpers/esm/defineProperty */ "@babel/runtime/helpers/esm/defineProperty");
+/* harmony import */ var _babel_runtime_helpers_esm_defineProperty__WEBPACK_IMPORTED_MODULE_2___default = /*#__PURE__*/__webpack_require__.n(_babel_runtime_helpers_esm_defineProperty__WEBPACK_IMPORTED_MODULE_2__);
+/* harmony import */ var _Color_main_Color__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../../Color/main/Color */ "./src/Color/main/Color.js");
+
+
+
+
+/*
+ Canvas coordinates
+
+ 0                  W-1
+ +-------------> y
+ |
+ |
+ |       *
+ |
+ |
+ v x
+
+ H-1
+ */
+
+/*
+
+The point xe_1 + ye_2 corresponds to a point in the middle of a pxl.
+
+The canvas data is an array of length colors(C) * width(W) * height(H). Is a 3D-array.
+The index is a number in [0, C * W * H - 1].
+Having (x, y, z) where z is the color axis, the formula to index the array is :
+
+f(x, y, z) = C * W * x + C * y + z.
+
+Where x in [0, H - 1], y in [0, W - 1] and z in [0, C - 1].
+
+Note that f(H - 1, W - 1, C - 1) = C * W * H - 1.
+*/
+
+var Canvas = /*#__PURE__*/function () {
+  /**
+   *
+   * @param {*} canvas: DOM element of type canvas
+   */
+  function Canvas(canvas) {
+    _babel_runtime_helpers_esm_classCallCheck__WEBPACK_IMPORTED_MODULE_0___default()(this, Canvas);
+
+    _babel_runtime_helpers_esm_defineProperty__WEBPACK_IMPORTED_MODULE_2___default()(this, "getDom", this.getCanvas);
+
+    this.canvas = canvas;
+    this.ctx = canvas.getContext("2d");
+    this.image = this.ctx.getImageData(0, 0, canvas.width, canvas.height); // width * height * 4 array of integers
+
+    this.imgBuffer = this.image.data;
+  }
+
+  _babel_runtime_helpers_esm_createClass__WEBPACK_IMPORTED_MODULE_1___default()(Canvas, [{
+    key: "getCanvas",
+    value: function getCanvas() {
+      return this.canvas;
+    }
+  }, {
+    key: "fill",
+    value: //========================================================================================
+
+    /*                                                                                      *
+     *                                 side effects function                                *
+     *                                                                                      */
+    //========================================================================================
+
+    /**
+     * Update color of canvas
+     * @param {*} color: Color
+     */
+    function fill(color) {
+      this.ctx.fillStyle = "rgba(".concat(color.red, ", ").concat(color.green, ", ").concat(color.blue, ", ").concat(color.alpha / 255.0, ")");
+      this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+      this.image = this.ctx.getImageData(0, 0, this.canvas.width, this.canvas.height);
+      this.imgBuffer = this.image.data;
+    }
+    /**
+     *
+     * @param {*} lambda: (Color,x:number,y:number) => Color
+     */
+
+  }, {
+    key: "map",
+    value: function map() {
+      var lambda = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : function () {};
+      var n = this.imgBuffer.length;
+      var width = this.canvas.width;
+      var w = 4 * width;
+
+      for (var i = 0; i < n; i += 4) {
+        var x = Math.floor(i / w);
+        var y = Math.floor(i / 4) % w;
+        var color = lambda(_Color_main_Color__WEBPACK_IMPORTED_MODULE_3__["default"].ofRGBA(this.imgBuffer[i], this.imgBuffer[i + 1], this.imgBuffer[i + 2], this.imgBuffer[i + 3]), x, y);
+        this.imgBuffer[i] = color.red;
+        this.imgBuffer[i + 1] = color.green;
+        this.imgBuffer[i + 2] = color.blue;
+        this.imgBuffer[i + 3] = color.alpha;
+      }
+
+      return this;
+    }
+  }, {
+    key: "paint",
+    value: function paint() {
+      this.ctx.putImageData(this.image, 0, 0);
+    } //========================================================================================
+
+    /*                                                                                      *
+     *                                   static functions                                   *
+     *                                                                                      */
+    //========================================================================================
+
+  }], [{
+    key: "builder",
+    value: function builder() {
+      return new CanvasBuilder();
+    }
+  }]);
+
+  return Canvas;
+}();
+
+
+
+var CanvasBuilder = /*#__PURE__*/function () {
+  function CanvasBuilder() {
+    _babel_runtime_helpers_esm_classCallCheck__WEBPACK_IMPORTED_MODULE_0___default()(this, CanvasBuilder);
+
+    _babel_runtime_helpers_esm_defineProperty__WEBPACK_IMPORTED_MODULE_2___default()(this, "_canvas", document.createElement("canvas"));
+
+    _babel_runtime_helpers_esm_defineProperty__WEBPACK_IMPORTED_MODULE_2___default()(this, "_width", 500);
+
+    _babel_runtime_helpers_esm_defineProperty__WEBPACK_IMPORTED_MODULE_2___default()(this, "_height", 500);
+  }
+
+  _babel_runtime_helpers_esm_createClass__WEBPACK_IMPORTED_MODULE_1___default()(CanvasBuilder, [{
+    key: "width",
+    value: function width(_width) {
+      this._width = _width;
+      return this;
+    }
+  }, {
+    key: "height",
+    value: function height(_height) {
+      this._height = _height;
+      return this;
+    }
+  }, {
+    key: "build",
+    value: function build() {
+      this._canvas.setAttribute("width", this._width);
+
+      this._canvas.setAttribute("height", this._height);
+
+      return new Canvas(this._canvas);
+    }
+  }]);
+
+  return CanvasBuilder;
+}();
+
+/***/ }),
+
 /***/ "./src/Canvas_old/main/Canvas.js":
 /*!***************************************!*\
   !*** ./src/Canvas_old/main/Canvas.js ***!
@@ -873,11 +1052,136 @@ ImageIO.generateImageReadyPredicate = function (img) {
 
 /***/ }),
 
+/***/ "./src/Color/main/Color.js":
+/*!*********************************!*\
+  !*** ./src/Color/main/Color.js ***!
+  \*********************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return Color; });
+/* harmony import */ var _babel_runtime_helpers_esm_classCallCheck__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! @babel/runtime/helpers/esm/classCallCheck */ "@babel/runtime/helpers/esm/classCallCheck");
+/* harmony import */ var _babel_runtime_helpers_esm_classCallCheck__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_babel_runtime_helpers_esm_classCallCheck__WEBPACK_IMPORTED_MODULE_0__);
+/* harmony import */ var _babel_runtime_helpers_esm_createClass__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! @babel/runtime/helpers/esm/createClass */ "@babel/runtime/helpers/esm/createClass");
+/* harmony import */ var _babel_runtime_helpers_esm_createClass__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(_babel_runtime_helpers_esm_createClass__WEBPACK_IMPORTED_MODULE_1__);
+
+
+
+var Color = /*#__PURE__*/function () {
+  /**
+   *
+   * @param {*} rgba: Uint8Array
+   */
+  function Color(rgba) {
+    _babel_runtime_helpers_esm_classCallCheck__WEBPACK_IMPORTED_MODULE_0___default()(this, Color);
+
+    this.rgba = rgba;
+  }
+
+  _babel_runtime_helpers_esm_createClass__WEBPACK_IMPORTED_MODULE_1___default()(Color, [{
+    key: "getRGBA",
+    value: function getRGBA() {
+      return this.rgba;
+    }
+  }, {
+    key: "red",
+    get: function get() {
+      return this.rgba[0];
+    }
+  }, {
+    key: "green",
+    get: function get() {
+      return this.rgba[1];
+    }
+  }, {
+    key: "blue",
+    get: function get() {
+      return this.rgba[2];
+    }
+  }, {
+    key: "alpha",
+    get: function get() {
+      return this.rgba[3];
+    }
+  }], [{
+    key: "ofRGBA",
+    value: function ofRGBA() {
+      var red = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 0;
+      var green = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 0;
+      var blue = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : 0;
+      var alpha = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : 255;
+      var rgba = new Uint8Array(4);
+      rgba[0] = red;
+      rgba[1] = green;
+      rgba[2] = blue;
+      rgba[3] = alpha;
+      return new Color(rgba);
+    }
+  }, {
+    key: "random",
+    value: function random() {
+      var r = function r() {
+        return Math.random() * 256;
+      };
+
+      return Color.ofRGBA(r(), r(), r(), r());
+    }
+  }]);
+
+  return Color;
+}();
+
+
+
+/***/ }),
+
+/***/ "./src/Utils/main/Utils.js":
+/*!*********************************!*\
+  !*** ./src/Utils/main/Utils.js ***!
+  \*********************************/
+/*! exports provided: ArrayUtils, perf */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "ArrayUtils", function() { return ArrayUtils; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "perf", function() { return perf; });
+var ArrayUtils = {};
+ArrayUtils.TYPED_ARRAY = {
+  Uint8Array: function Uint8Array() {
+    for (var _len = arguments.length, array = new Array(_len), _key = 0; _key < _len; _key++) {
+      array[_key] = arguments[_key];
+    }
+
+    return Uint8ArrayFactory(array);
+  }
+};
+
+var perf = function perf(lambda) {
+  var t = performance.now();
+  lambda();
+  return performance.now() - t;
+};
+
+function Uint8ArrayFactory(array) {
+  var answer = new Uint8Array(array.length);
+
+  for (var i = 0; i < answer.length; i++) {
+    answer[i] = array[i];
+  }
+
+  return answer;
+}
+
+/***/ }),
+
 /***/ "./src/index.js":
 /*!**********************!*\
   !*** ./src/index.js ***!
   \**********************/
-/*! exports provided: Canvas_old, Canvas2D_old, ImageIO */
+/*! exports provided: Canvas_old, Canvas2D_old, ImageIO, Canvas, Color, Utils */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -891,10 +1195,54 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _Canvas_old_main_ImageIO__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./Canvas_old/main/ImageIO */ "./src/Canvas_old/main/ImageIO.js");
 /* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "ImageIO", function() { return _Canvas_old_main_ImageIO__WEBPACK_IMPORTED_MODULE_2__["default"]; });
 
+/* harmony import */ var _Canvas_main_Canvas__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./Canvas/main/Canvas */ "./src/Canvas/main/Canvas.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "Canvas", function() { return _Canvas_main_Canvas__WEBPACK_IMPORTED_MODULE_3__["default"]; });
+
+/* harmony import */ var _Color_main_Color__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./Color/main/Color */ "./src/Color/main/Color.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "Color", function() { return _Color_main_Color__WEBPACK_IMPORTED_MODULE_4__["default"]; });
+
+/* harmony import */ var _Utils_main_Utils__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./Utils/main/Utils */ "./src/Utils/main/Utils.js");
+/* harmony reexport (module object) */ __webpack_require__.d(__webpack_exports__, "Utils", function() { return _Utils_main_Utils__WEBPACK_IMPORTED_MODULE_5__; });
 
 
 
 
+
+
+
+
+/***/ }),
+
+/***/ "@babel/runtime/helpers/esm/classCallCheck":
+/*!************************************************************!*\
+  !*** external "@babel/runtime/helpers/esm/classCallCheck" ***!
+  \************************************************************/
+/*! no static exports found */
+/***/ (function(module, exports) {
+
+module.exports = require("@babel/runtime/helpers/esm/classCallCheck");
+
+/***/ }),
+
+/***/ "@babel/runtime/helpers/esm/createClass":
+/*!*********************************************************!*\
+  !*** external "@babel/runtime/helpers/esm/createClass" ***!
+  \*********************************************************/
+/*! no static exports found */
+/***/ (function(module, exports) {
+
+module.exports = require("@babel/runtime/helpers/esm/createClass");
+
+/***/ }),
+
+/***/ "@babel/runtime/helpers/esm/defineProperty":
+/*!************************************************************!*\
+  !*** external "@babel/runtime/helpers/esm/defineProperty" ***!
+  \************************************************************/
+/*! no static exports found */
+/***/ (function(module, exports) {
+
+module.exports = require("@babel/runtime/helpers/esm/defineProperty");
 
 /***/ })
 
