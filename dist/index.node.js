@@ -86,6 +86,107 @@
 /************************************************************************/
 /******/ ({
 
+/***/ "./src/Animator/main/Animator.js":
+/*!***************************************!*\
+  !*** ./src/Animator/main/Animator.js ***!
+  \***************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return Animator; });
+/* harmony import */ var _babel_runtime_helpers_esm_classCallCheck__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! @babel/runtime/helpers/esm/classCallCheck */ "@babel/runtime/helpers/esm/classCallCheck");
+/* harmony import */ var _babel_runtime_helpers_esm_classCallCheck__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_babel_runtime_helpers_esm_classCallCheck__WEBPACK_IMPORTED_MODULE_0__);
+/* harmony import */ var _babel_runtime_helpers_esm_createClass__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! @babel/runtime/helpers/esm/createClass */ "@babel/runtime/helpers/esm/createClass");
+/* harmony import */ var _babel_runtime_helpers_esm_createClass__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(_babel_runtime_helpers_esm_createClass__WEBPACK_IMPORTED_MODULE_1__);
+
+
+
+var Animator = /*#__PURE__*/function () {
+  function Animator(state, next, doWhile) {
+    _babel_runtime_helpers_esm_classCallCheck__WEBPACK_IMPORTED_MODULE_0___default()(this, Animator);
+
+    this.state = state;
+    this.next = next;
+    this["while"] = doWhile;
+    this.requestAnimeId = null;
+  }
+
+  _babel_runtime_helpers_esm_createClass__WEBPACK_IMPORTED_MODULE_1___default()(Animator, [{
+    key: "play",
+    value: function play() {
+      var _this = this;
+
+      this.requestAnimeId = requestAnimationFrame(function () {
+        if (!_this["while"](_this.state)) return _this.stop();
+        _this.state = _this.next(_this.state);
+
+        _this.play();
+      });
+      return this;
+    }
+  }, {
+    key: "stop",
+    value: function stop() {
+      cancelAnimationFrame(this.requestAnimeId);
+      return this;
+    }
+  }], [{
+    key: "builder",
+    value: function builder() {
+      return new AnimatorBuilder();
+    }
+  }]);
+
+  return Animator;
+}();
+
+
+
+var AnimatorBuilder = /*#__PURE__*/function () {
+  function AnimatorBuilder() {
+    _babel_runtime_helpers_esm_classCallCheck__WEBPACK_IMPORTED_MODULE_0___default()(this, AnimatorBuilder);
+
+    this._state = null;
+    this._next = null;
+    this._end = null;
+  }
+
+  _babel_runtime_helpers_esm_createClass__WEBPACK_IMPORTED_MODULE_1___default()(AnimatorBuilder, [{
+    key: "initialState",
+    value: function initialState(state) {
+      this._state = state;
+      return this;
+    }
+  }, {
+    key: "nextState",
+    value: function nextState(next) {
+      this._next = next;
+      return this;
+    }
+  }, {
+    key: "while",
+    value: function _while(end) {
+      this._end = end;
+      return this;
+    }
+  }, {
+    key: "build",
+    value: function build() {
+      var someAreEmpty = [this._state, this._next, this._end].some(function (x) {
+        return x === null || x === undefined;
+      });
+      if (someAreEmpty) throw new Error("Animator properties are missing");
+      return new Animator(this._state, this._next, this._end);
+    }
+  }]);
+
+  return AnimatorBuilder;
+}();
+
+/***/ }),
+
 /***/ "./src/Canvas/main/Canvas.js":
 /*!***********************************!*\
   !*** ./src/Canvas/main/Canvas.js ***!
@@ -1181,7 +1282,7 @@ function Uint8ArrayFactory(array) {
 /*!**********************!*\
   !*** ./src/index.js ***!
   \**********************/
-/*! exports provided: Canvas_old, Canvas2D_old, ImageIO, Canvas, Color, Utils */
+/*! exports provided: Canvas_old, Canvas2D_old, ImageIO, Canvas, Color, Utils, Animator */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -1203,6 +1304,10 @@ __webpack_require__.r(__webpack_exports__);
 
 /* harmony import */ var _Utils_main_Utils__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./Utils/main/Utils */ "./src/Utils/main/Utils.js");
 /* harmony reexport (module object) */ __webpack_require__.d(__webpack_exports__, "Utils", function() { return _Utils_main_Utils__WEBPACK_IMPORTED_MODULE_5__; });
+/* harmony import */ var _Animator_main_Animator__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ./Animator/main/Animator */ "./src/Animator/main/Animator.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "Animator", function() { return _Animator_main_Animator__WEBPACK_IMPORTED_MODULE_6__["default"]; });
+
+
 
 
 
