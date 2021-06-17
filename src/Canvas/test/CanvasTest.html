@@ -36,7 +36,7 @@
 
     test("Test fill", (canvasFactory) => {
       const canvas = canvasFactory(400, 300);
-      canvas.fill(Color.ofRGBA(0, 0, 0));
+      canvas.fill(Color.ofRGBA(0, 0, 255));
       canvas.fill(Color.ofRGBA(255, 0, 0, 100));
     });
 
@@ -46,9 +46,13 @@
     });
 
     test("Test map with coordinates", (canvasFactory) => {
-      const canvas = canvasFactory(400, 300);
+      const width = 400;
+      const height = 300;
+      const canvas = canvasFactory(width, height);
       canvas
-        .map((c, x, y) => Color.ofRGBA((x / 300) * 256, (y / 400) * 256, 0))
+        .map((c, x, y) =>
+          Color.ofRGBA((x / height) * 256, (y / width) * 256, 0)
+        )
         .paint();
     });
   </script>
