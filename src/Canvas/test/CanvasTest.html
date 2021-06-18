@@ -51,9 +51,28 @@
       const canvas = canvasFactory(width, height);
       canvas
         .map((c, x, y) =>
-          Color.ofRGBA((x / height) * 256, (y / width) * 256, 0)
+          Color.ofRGBA((x / (height - 1)) * 255, (y / (width - 1)) * 255, 0)
         )
         .paint();
+    });
+
+    test("Test get and set pxl", (canvasFactory) => {
+      const width = 400;
+      const height = 300;
+      const canvas = canvasFactory(width, height);
+      canvas
+        .fill(Color.ofRGBA(0, 0, 0))
+        .setPxl(100, 300, Color.ofRGBA(255, 0, 0))
+        .setPxl(101, 300, Color.ofRGBA(255, 0, 0))
+        .setPxl(99, 300, Color.ofRGBA(255, 0, 0))
+        .setPxl(100, 301, Color.ofRGBA(255, 0, 0))
+        .setPxl(100, 299, Color.ofRGBA(255, 0, 0));
+      const color = canvas.getPxl(100, 300);
+      canvas.setPxl(200, 300, color).paint();
+      canvas.setPxl(199, 300, color).paint();
+      canvas.setPxl(201, 300, color).paint();
+      canvas.setPxl(200, 301, color).paint();
+      canvas.setPxl(200, 299, color).paint();
     });
   </script>
 </html>

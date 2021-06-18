@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Canvas Test</title>
+    <title>Animator Test</title>
     <script src="../../../dist/index.js"></script>
   </head>
   <body></body>
@@ -35,10 +35,10 @@
     }
 
     test("Test animation", (canvasFactory) => {
-      const width = 400;
+      const width = 600;
       const height = 300;
       const canvas = canvasFactory(width, height);
-      const T = 10;
+      const T = 20;
       Animator.builder()
         .initialState({ time: 0, oldT: new Date().getTime() })
         .nextState(({ time, oldT }) => {
@@ -46,12 +46,11 @@
           const dt = (newT - oldT) * 1e-3;
           canvas
             .map((c, x, y) => {
-              let px = y / width;
-              let py = (height - x) / height;
+              let px = (y * time) / (width - 1);
+              let py = ((height - 1 - x) * time) / (height - 1);
               return Color.ofRGBA(px * 255, py * 255, 0);
             })
             .paint();
-          console.log("time", time);
           return { time: time + dt, oldT: newT };
         })
         .while(({ time }) => time <= T)

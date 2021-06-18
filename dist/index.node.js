@@ -191,21 +191,39 @@ var AnimatorBuilder = /*#__PURE__*/function () {
 /*!***********************************!*\
   !*** ./src/Canvas/main/Canvas.js ***!
   \***********************************/
-/*! exports provided: default */
+/*! exports provided: default, CanvasException */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return Canvas; });
-/* harmony import */ var _babel_runtime_helpers_esm_classCallCheck__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! @babel/runtime/helpers/esm/classCallCheck */ "@babel/runtime/helpers/esm/classCallCheck");
-/* harmony import */ var _babel_runtime_helpers_esm_classCallCheck__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_babel_runtime_helpers_esm_classCallCheck__WEBPACK_IMPORTED_MODULE_0__);
-/* harmony import */ var _babel_runtime_helpers_esm_createClass__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! @babel/runtime/helpers/esm/createClass */ "@babel/runtime/helpers/esm/createClass");
-/* harmony import */ var _babel_runtime_helpers_esm_createClass__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(_babel_runtime_helpers_esm_createClass__WEBPACK_IMPORTED_MODULE_1__);
-/* harmony import */ var _babel_runtime_helpers_esm_defineProperty__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! @babel/runtime/helpers/esm/defineProperty */ "@babel/runtime/helpers/esm/defineProperty");
-/* harmony import */ var _babel_runtime_helpers_esm_defineProperty__WEBPACK_IMPORTED_MODULE_2___default = /*#__PURE__*/__webpack_require__.n(_babel_runtime_helpers_esm_defineProperty__WEBPACK_IMPORTED_MODULE_2__);
-/* harmony import */ var _Color_main_Color__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../../Color/main/Color */ "./src/Color/main/Color.js");
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "CanvasException", function() { return CanvasException; });
+/* harmony import */ var _babel_runtime_helpers_esm_inherits__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! @babel/runtime/helpers/esm/inherits */ "@babel/runtime/helpers/esm/inherits");
+/* harmony import */ var _babel_runtime_helpers_esm_inherits__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_babel_runtime_helpers_esm_inherits__WEBPACK_IMPORTED_MODULE_0__);
+/* harmony import */ var _babel_runtime_helpers_esm_possibleConstructorReturn__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! @babel/runtime/helpers/esm/possibleConstructorReturn */ "@babel/runtime/helpers/esm/possibleConstructorReturn");
+/* harmony import */ var _babel_runtime_helpers_esm_possibleConstructorReturn__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(_babel_runtime_helpers_esm_possibleConstructorReturn__WEBPACK_IMPORTED_MODULE_1__);
+/* harmony import */ var _babel_runtime_helpers_esm_getPrototypeOf__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! @babel/runtime/helpers/esm/getPrototypeOf */ "@babel/runtime/helpers/esm/getPrototypeOf");
+/* harmony import */ var _babel_runtime_helpers_esm_getPrototypeOf__WEBPACK_IMPORTED_MODULE_2___default = /*#__PURE__*/__webpack_require__.n(_babel_runtime_helpers_esm_getPrototypeOf__WEBPACK_IMPORTED_MODULE_2__);
+/* harmony import */ var _babel_runtime_helpers_esm_wrapNativeSuper__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! @babel/runtime/helpers/esm/wrapNativeSuper */ "@babel/runtime/helpers/esm/wrapNativeSuper");
+/* harmony import */ var _babel_runtime_helpers_esm_wrapNativeSuper__WEBPACK_IMPORTED_MODULE_3___default = /*#__PURE__*/__webpack_require__.n(_babel_runtime_helpers_esm_wrapNativeSuper__WEBPACK_IMPORTED_MODULE_3__);
+/* harmony import */ var _babel_runtime_helpers_esm_classCallCheck__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! @babel/runtime/helpers/esm/classCallCheck */ "@babel/runtime/helpers/esm/classCallCheck");
+/* harmony import */ var _babel_runtime_helpers_esm_classCallCheck__WEBPACK_IMPORTED_MODULE_4___default = /*#__PURE__*/__webpack_require__.n(_babel_runtime_helpers_esm_classCallCheck__WEBPACK_IMPORTED_MODULE_4__);
+/* harmony import */ var _babel_runtime_helpers_esm_createClass__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! @babel/runtime/helpers/esm/createClass */ "@babel/runtime/helpers/esm/createClass");
+/* harmony import */ var _babel_runtime_helpers_esm_createClass__WEBPACK_IMPORTED_MODULE_5___default = /*#__PURE__*/__webpack_require__.n(_babel_runtime_helpers_esm_createClass__WEBPACK_IMPORTED_MODULE_5__);
+/* harmony import */ var _babel_runtime_helpers_esm_defineProperty__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! @babel/runtime/helpers/esm/defineProperty */ "@babel/runtime/helpers/esm/defineProperty");
+/* harmony import */ var _babel_runtime_helpers_esm_defineProperty__WEBPACK_IMPORTED_MODULE_6___default = /*#__PURE__*/__webpack_require__.n(_babel_runtime_helpers_esm_defineProperty__WEBPACK_IMPORTED_MODULE_6__);
+/* harmony import */ var _Color_main_Color__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ../../Color/main/Color */ "./src/Color/main/Color.js");
 
 
+
+
+
+
+
+
+function _createSuper(Derived) { var hasNativeReflectConstruct = _isNativeReflectConstruct(); return function _createSuperInternal() { var Super = _babel_runtime_helpers_esm_getPrototypeOf__WEBPACK_IMPORTED_MODULE_2___default()(Derived), result; if (hasNativeReflectConstruct) { var NewTarget = _babel_runtime_helpers_esm_getPrototypeOf__WEBPACK_IMPORTED_MODULE_2___default()(this).constructor; result = Reflect.construct(Super, arguments, NewTarget); } else { result = Super.apply(this, arguments); } return _babel_runtime_helpers_esm_possibleConstructorReturn__WEBPACK_IMPORTED_MODULE_1___default()(this, result); }; }
+
+function _isNativeReflectConstruct() { if (typeof Reflect === "undefined" || !Reflect.construct) return false; if (Reflect.construct.sham) return false; if (typeof Proxy === "function") return true; try { Boolean.prototype.valueOf.call(Reflect.construct(Boolean, [], function () {})); return true; } catch (e) { return false; } }
 
 
 /*
@@ -244,9 +262,9 @@ var Canvas = /*#__PURE__*/function () {
    * @param {*} canvas: DOM element of type canvas
    */
   function Canvas(canvas) {
-    _babel_runtime_helpers_esm_classCallCheck__WEBPACK_IMPORTED_MODULE_0___default()(this, Canvas);
+    _babel_runtime_helpers_esm_classCallCheck__WEBPACK_IMPORTED_MODULE_4___default()(this, Canvas);
 
-    _babel_runtime_helpers_esm_defineProperty__WEBPACK_IMPORTED_MODULE_2___default()(this, "getDom", this.getCanvas);
+    _babel_runtime_helpers_esm_defineProperty__WEBPACK_IMPORTED_MODULE_6___default()(this, "getDom", this.getCanvas);
 
     this.canvas = canvas;
     this.ctx = canvas.getContext("2d");
@@ -255,7 +273,7 @@ var Canvas = /*#__PURE__*/function () {
     this.imgBuffer = this.image.data;
   }
 
-  _babel_runtime_helpers_esm_createClass__WEBPACK_IMPORTED_MODULE_1___default()(Canvas, [{
+  _babel_runtime_helpers_esm_createClass__WEBPACK_IMPORTED_MODULE_5___default()(Canvas, [{
     key: "getCanvas",
     value: function getCanvas() {
       return this.canvas;
@@ -278,6 +296,7 @@ var Canvas = /*#__PURE__*/function () {
       this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
       this.image = this.ctx.getImageData(0, 0, this.canvas.width, this.canvas.height);
       this.imgBuffer = this.image.data;
+      return this;
     }
     /**
      *
@@ -289,19 +308,58 @@ var Canvas = /*#__PURE__*/function () {
     value: function map() {
       var lambda = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : function () {};
       var n = this.imgBuffer.length;
-      var width = this.canvas.width;
-      var w = 4 * width;
+      var w = this.canvas.width;
 
       for (var i = 0; i < n; i += 4) {
-        var x = Math.floor(i / w);
+        var x = Math.floor(i / (4 * w));
         var y = Math.floor(i / 4) % w;
-        var color = lambda(_Color_main_Color__WEBPACK_IMPORTED_MODULE_3__["default"].ofRGBA(this.imgBuffer[i], this.imgBuffer[i + 1], this.imgBuffer[i + 2], this.imgBuffer[i + 3]), x, y);
+        var color = lambda(_Color_main_Color__WEBPACK_IMPORTED_MODULE_7__["default"].ofRGBA(this.imgBuffer[i], this.imgBuffer[i + 1], this.imgBuffer[i + 2], this.imgBuffer[i + 3]), x, y);
         this.imgBuffer[i] = color.red;
         this.imgBuffer[i + 1] = color.green;
         this.imgBuffer[i + 2] = color.blue;
         this.imgBuffer[i + 3] = color.alpha;
       }
 
+      return this;
+    }
+    /**
+     * Return pxl color at (i,j)
+     * @param {*} i: integer \in [0,H-1]
+     * @param {*} j: integer \in [0,W-1]
+     * @returns color
+     */
+
+  }, {
+    key: "getPxl",
+    value: function getPxl(i, j) {
+      var _this$canvas = this.canvas,
+          width = _this$canvas.width,
+          height = _this$canvas.height;
+      if ((i < 0 || i >= height) && (j < 0 || j >= width)) return new CanvasException("pxl out of bounds");
+      var w = width * 4;
+      var index = i * w + 4 * j;
+      return _Color_main_Color__WEBPACK_IMPORTED_MODULE_7__["default"].ofRGBA(this.imgBuffer[index], this.imgBuffer[index + 1], this.imgBuffer[index + 2], this.imgBuffer[index + 3]);
+    }
+    /**
+     * Set pxl color at (i,j)
+     * @param {*} i: integer \in [0,H-1]
+     * @param {*} j: integer \in [0,W-1]
+     * @param {*} color
+     */
+
+  }, {
+    key: "setPxl",
+    value: function setPxl(i, j, color) {
+      var _this$canvas2 = this.canvas,
+          width = _this$canvas2.width,
+          height = _this$canvas2.height;
+      if ((i < 0 || i >= height) && (j < 0 || j >= width)) return;
+      var w = width * 4;
+      var index = i * w + 4 * j;
+      this.imgBuffer[index] = color.red;
+      this.imgBuffer[index + 1] = color.green;
+      this.imgBuffer[index + 2] = color.blue;
+      this.imgBuffer[index + 3] = color.alpha;
       return this;
     }
   }, {
@@ -329,16 +387,16 @@ var Canvas = /*#__PURE__*/function () {
 
 var CanvasBuilder = /*#__PURE__*/function () {
   function CanvasBuilder() {
-    _babel_runtime_helpers_esm_classCallCheck__WEBPACK_IMPORTED_MODULE_0___default()(this, CanvasBuilder);
+    _babel_runtime_helpers_esm_classCallCheck__WEBPACK_IMPORTED_MODULE_4___default()(this, CanvasBuilder);
 
-    _babel_runtime_helpers_esm_defineProperty__WEBPACK_IMPORTED_MODULE_2___default()(this, "_canvas", document.createElement("canvas"));
+    _babel_runtime_helpers_esm_defineProperty__WEBPACK_IMPORTED_MODULE_6___default()(this, "_canvas", document.createElement("canvas"));
 
-    _babel_runtime_helpers_esm_defineProperty__WEBPACK_IMPORTED_MODULE_2___default()(this, "_width", 500);
+    _babel_runtime_helpers_esm_defineProperty__WEBPACK_IMPORTED_MODULE_6___default()(this, "_width", 500);
 
-    _babel_runtime_helpers_esm_defineProperty__WEBPACK_IMPORTED_MODULE_2___default()(this, "_height", 500);
+    _babel_runtime_helpers_esm_defineProperty__WEBPACK_IMPORTED_MODULE_6___default()(this, "_height", 500);
   }
 
-  _babel_runtime_helpers_esm_createClass__WEBPACK_IMPORTED_MODULE_1___default()(CanvasBuilder, [{
+  _babel_runtime_helpers_esm_createClass__WEBPACK_IMPORTED_MODULE_5___default()(CanvasBuilder, [{
     key: "width",
     value: function width(_width) {
       this._width = _width;
@@ -363,6 +421,20 @@ var CanvasBuilder = /*#__PURE__*/function () {
 
   return CanvasBuilder;
 }();
+
+var CanvasException = /*#__PURE__*/function (_Error) {
+  _babel_runtime_helpers_esm_inherits__WEBPACK_IMPORTED_MODULE_0___default()(CanvasException, _Error);
+
+  var _super = _createSuper(CanvasException);
+
+  function CanvasException() {
+    _babel_runtime_helpers_esm_classCallCheck__WEBPACK_IMPORTED_MODULE_4___default()(this, CanvasException);
+
+    return _super.apply(this, arguments);
+  }
+
+  return CanvasException;
+}( /*#__PURE__*/_babel_runtime_helpers_esm_wrapNativeSuper__WEBPACK_IMPORTED_MODULE_3___default()(Error));
 
 /***/ }),
 
@@ -1348,6 +1420,50 @@ module.exports = require("@babel/runtime/helpers/esm/createClass");
 /***/ (function(module, exports) {
 
 module.exports = require("@babel/runtime/helpers/esm/defineProperty");
+
+/***/ }),
+
+/***/ "@babel/runtime/helpers/esm/getPrototypeOf":
+/*!************************************************************!*\
+  !*** external "@babel/runtime/helpers/esm/getPrototypeOf" ***!
+  \************************************************************/
+/*! no static exports found */
+/***/ (function(module, exports) {
+
+module.exports = require("@babel/runtime/helpers/esm/getPrototypeOf");
+
+/***/ }),
+
+/***/ "@babel/runtime/helpers/esm/inherits":
+/*!******************************************************!*\
+  !*** external "@babel/runtime/helpers/esm/inherits" ***!
+  \******************************************************/
+/*! no static exports found */
+/***/ (function(module, exports) {
+
+module.exports = require("@babel/runtime/helpers/esm/inherits");
+
+/***/ }),
+
+/***/ "@babel/runtime/helpers/esm/possibleConstructorReturn":
+/*!***********************************************************************!*\
+  !*** external "@babel/runtime/helpers/esm/possibleConstructorReturn" ***!
+  \***********************************************************************/
+/*! no static exports found */
+/***/ (function(module, exports) {
+
+module.exports = require("@babel/runtime/helpers/esm/possibleConstructorReturn");
+
+/***/ }),
+
+/***/ "@babel/runtime/helpers/esm/wrapNativeSuper":
+/*!*************************************************************!*\
+  !*** external "@babel/runtime/helpers/esm/wrapNativeSuper" ***!
+  \*************************************************************/
+/*! no static exports found */
+/***/ (function(module, exports) {
+
+module.exports = require("@babel/runtime/helpers/esm/wrapNativeSuper");
 
 /***/ })
 

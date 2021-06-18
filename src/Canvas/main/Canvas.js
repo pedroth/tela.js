@@ -71,6 +71,7 @@ export default class Canvas {
       this.canvas.height
     );
     this.imgBuffer = this.image.data;
+    return this;
   }
 
   /**
@@ -79,10 +80,9 @@ export default class Canvas {
    */
   map(lambda = () => {}) {
     const n = this.imgBuffer.length;
-    const { width } = this.canvas;
-    const w = 4 * width;
+    const { width: w } = this.canvas;
     for (let i = 0; i < n; i += 4) {
-      const x = Math.floor(i / w);
+      const x = Math.floor(i / (4 * w));
       const y = Math.floor(i / 4) % w;
       const color = lambda(
         Color.ofRGBA(
@@ -99,6 +99,44 @@ export default class Canvas {
       this.imgBuffer[i + 2] = color.blue;
       this.imgBuffer[i + 3] = color.alpha;
     }
+    return this;
+  }
+
+  /**
+   * Return pxl color at (i,j)
+   * @param {*} i: integer \in [0,H-1]
+   * @param {*} j: integer \in [0,W-1]
+   * @returns color
+   */
+  getPxl(i, j) {
+    const { width, height } = this.canvas;
+    if ((i < 0 || i >= height) && (j < 0 || j >= width))
+      return new CanvasException("pxl out of bounds");
+    const w = width * 4;
+    const index = i * w + 4 * j;
+    return Color.ofRGBA(
+      this.imgBuffer[index],
+      this.imgBuffer[index + 1],
+      this.imgBuffer[index + 2],
+      this.imgBuffer[index + 3]
+    );
+  }
+
+  /**
+   * Set pxl color at (i,j)
+   * @param {*} i: integer \in [0,H-1]
+   * @param {*} j: integer \in [0,W-1]
+   * @param {*} color
+   */
+  setPxl(i, j, color) {
+    const { width, height } = this.canvas;
+    if ((i < 0 || i >= height) && (j < 0 || j >= width)) return;
+    const w = width * 4;
+    const index = i * w + 4 * j;
+    this.imgBuffer[index] = color.red;
+    this.imgBuffer[index + 1] = color.green;
+    this.imgBuffer[index + 2] = color.blue;
+    this.imgBuffer[index + 3] = color.alpha;
     return this;
   }
 
@@ -139,3 +177,5 @@ class CanvasBuilder {
     return new Canvas(this._canvas);
   }
 }
+
+export class CanvasException extends Error {}
