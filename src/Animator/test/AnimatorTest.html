@@ -35,7 +35,7 @@
     }
 
     test("Test animation", (canvasFactory) => {
-      const width = 600;
+      const width = 400;
       const height = 300;
       const canvas = canvasFactory(width, height);
       const T = 20;
@@ -56,8 +56,58 @@
         .while(({ time }) => time <= T)
         .build()
         .play();
-      canvas.fill(Color.ofRGBA(0, 0, 255));
-      canvas.fill(Color.ofRGBA(255, 0, 0, 100));
+    });
+
+    /**
+     * Inspired by https://www.shadertoy.com/view/XtsXRX
+     **/
+    test("Test shader toy", (canvasFactory) => {
+      const width = 400;
+      const height = 300;
+      const canvas = canvasFactory(width, height);
+      const T = 10;
+      Animator.builder()
+        .initialState({ time: 0, oldT: new Date().getTime() })
+        .nextState(({ time, oldT }) => {
+          const newT = new Date().getTime();
+          const dt = (newT - oldT) * 1e-3;
+          canvas
+            .map((c, x, y) => {
+              let u = y / (width - 1);
+              let v = (height - 1 - x) / (height - 1);
+              let wave_color_x = 0.0;
+              let wave_color_y = 0.0;
+              let wave_color_z = 0.0;
+
+              let wave_width = 0.0;
+              u = -3.0 + 2.0 * u;
+              v = -3.0 + 2.0 * v;
+              for (let i = 0.0; i <= 28.0; i++) {
+                v +=
+                  0.2 +
+                  0.9 *
+                    Math.sin(time * 0.4) *
+                    Math.sin(u + i / 3.0 + 3.0 * time);
+                u += 1.7 * Math.sin(time * 0.4);
+                wave_width = Math.abs(
+                  1.0 / (200.0 * Math.abs(Math.cos(time)) * v)
+                );
+                wave_color_x += wave_width * (0.4 + (i + 1.0) / 18.0);
+                wave_color_y += wave_width * (i / 9.0);
+                wave_color_z += wave_width * ((i + 1.0) / 8.0) * 1.9;
+              }
+              return Color.ofRGBA(
+                wave_color_x * 10,
+                wave_color_y * 10,
+                wave_color_z * 10
+              );
+            })
+            .paint();
+          return { time: time + dt, oldT: newT };
+        })
+        .while(({ time }) => time <= T)
+        .build()
+        .play();
     });
   </script>
 </html>
