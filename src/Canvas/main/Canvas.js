@@ -140,6 +140,8 @@ export default class Canvas {
     return this;
   }
 
+  drawLine() {}
+
   paint() {
     this.ctx.putImageData(this.image, 0, 0);
   }

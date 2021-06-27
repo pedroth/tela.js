@@ -9,30 +9,9 @@
   </head>
   <body></body>
   <script>
-    const { Utils, Canvas, Color } = Tela;
-    const { perf } = Utils;
-    /**
-     * Unit test maker
-     * @param {*} title
-     * @param {*} lambda: (width:number, height: number) => {}
-     */
-    function test(title, lambda = () => {}) {
-      let canvas;
-      const canvasFactory = (width, height) => {
-        canvas = Canvas.builder().width(width).height(height).build();
-        return canvas;
-      };
-      const timeInMillis = perf(() => lambda(canvasFactory));
-      const domTest = document.createElement("div");
-      const testTitle = document.createElement("h3");
-      testTitle.innerText = title;
-      domTest.appendChild(testTitle);
-      domTest.appendChild(canvas.getDom());
-      const timeDom = document.createElement("h4");
-      timeDom.innerText = `Test took ${timeInMillis}ms`;
-      domTest.appendChild(timeDom);
-      document.body.appendChild(domTest);
-    }
+    const { Utils, Canvas, Color, Matrix } = Tela;
+    const { perf, test } = Utils;
+    const { vec2 } = Matrix;
 
     test("Test fill", (canvasFactory) => {
       const canvas = canvasFactory(400, 300);
@@ -66,13 +45,51 @@
         .setPxl(101, 300, Color.ofRGBA(255, 0, 0))
         .setPxl(99, 300, Color.ofRGBA(255, 0, 0))
         .setPxl(100, 301, Color.ofRGBA(255, 0, 0))
-        .setPxl(100, 299, Color.ofRGBA(255, 0, 0));
+        .setPxl(100, 299, Color.ofRGBA(255, 0, 0))
+        .paint();
       const color = canvas.getPxl(100, 300);
       canvas.setPxl(200, 300, color).paint();
       canvas.setPxl(199, 300, color).paint();
       canvas.setPxl(201, 300, color).paint();
       canvas.setPxl(200, 301, color).paint();
       canvas.setPxl(200, 299, color).paint();
+      canvas.setPxl(-100, 600).paint();
     });
+
+    // test("Test draw line", () => {
+    //   const width = 400;
+    //   const height = 300;
+    //   const canvas = canvasFactory(width, height);
+    //   const red = (i, j) => Color.ofRGBA(255, 0, 0);
+    //   canvas.drawLine(vec2.of(0, 0), vec2.of(height - 1, width - 1), red);
+    //   canvas.drawLine(vec2.of(-10, 100), vec2.of(100, 500), red);
+    // });
+
+    // test("Test draw triangle", () => {
+    //   const width = 400;
+    //   const height = 300;
+    //   const canvas = canvasFactory(width, height);
+    //   const red = (i, j) => Color.ofRGBA(255, 0, 0);
+    //   const green = (i, j) => Color.ofRGBA(0, 255, 0);
+    //   const blue = (i, j) => Color.ofRGBA(0, 0, 255);
+    //   canvas.drawTriangle(
+    //     vec2.of(0, 0),
+    //     vec2.of(height - 1, 0),
+    //     vec2.of(height - 1, width - 1),
+    //     red
+    //   );
+    //   canvas.drawTriangle(
+    //     vec2.of(height - 1, width - 1),
+    //     vec2.of(0, width - 1),
+    //     vec2.of(0, 0),
+    //     green
+    //   );
+    //   canvas.drawTriangle(
+    //     vec2.of(height - 1, width - 1),
+    //     vec2.of(0, width - 1),
+    //     vec2.of(0, 0),
+    //     green
+    //   );
+    // });
   </script>
 </html>

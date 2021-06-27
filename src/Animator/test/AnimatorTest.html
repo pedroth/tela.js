@@ -10,30 +10,11 @@
   <body></body>
   <script>
     const { Utils, Canvas, Color, Animator } = Tela;
-    const { perf } = Utils;
-    /**
-     * Unit test maker
-     * @param {*} title
-     * @param {*} lambda: (width:number, height: number) => {}
-     */
-    function test(title, lambda = () => {}) {
-      let canvas;
-      const canvasFactory = (width, height) => {
-        canvas = Canvas.builder().width(width).height(height).build();
-        return canvas;
-      };
-      const timeInMillis = perf(() => lambda(canvasFactory));
-      const domTest = document.createElement("div");
-      const testTitle = document.createElement("h3");
-      testTitle.innerText = title;
-      domTest.appendChild(testTitle);
-      domTest.appendChild(canvas.getDom());
-      const timeDom = document.createElement("h4");
-      timeDom.innerText = `Test took ${timeInMillis}ms`;
-      domTest.appendChild(timeDom);
-      document.body.appendChild(domTest);
-    }
+    const { perf, test } = Utils;
 
+    /**
+     * Simple animation shader
+     * */
     test("Test animation", (canvasFactory) => {
       const width = 400;
       const height = 300;
@@ -59,13 +40,15 @@
     });
 
     /**
-     * Inspired by https://www.shadertoy.com/view/XtsXRX
+     * Rotating grid shader
      **/
     test("Test shader toy", (canvasFactory) => {
       const width = 400;
       const height = 300;
       const canvas = canvasFactory(width, height);
-      const T = 10;
+      const T = 20;
+      const step = (threshold) => (x) => x < threshold ? 0 : 1;
+      const mod = (x) => (n) => ((x % n) + n) % n;
       Animator.builder()
         .initialState({ time: 0, oldT: new Date().getTime() })
         .nextState(({ time, oldT }) => {
@@ -75,32 +58,15 @@
             .map((c, x, y) => {
               let u = y / (width - 1);
               let v = (height - 1 - x) / (height - 1);
-              let wave_color_x = 0.0;
-              let wave_color_y = 0.0;
-              let wave_color_z = 0.0;
-
-              let wave_width = 0.0;
-              u = -3.0 + 2.0 * u;
-              v = -3.0 + 2.0 * v;
-              for (let i = 0.0; i <= 28.0; i++) {
-                v +=
-                  0.2 +
-                  0.9 *
-                    Math.sin(time * 0.4) *
-                    Math.sin(u + i / 3.0 + 3.0 * time);
-                u += 1.7 * Math.sin(time * 0.4);
-                wave_width = Math.abs(
-                  1.0 / (200.0 * Math.abs(Math.cos(time)) * v)
-                );
-                wave_color_x += wave_width * (0.4 + (i + 1.0) / 18.0);
-                wave_color_y += wave_width * (i / 9.0);
-                wave_color_z += wave_width * ((i + 1.0) / 8.0) * 1.9;
-              }
-              return Color.ofRGBA(
-                wave_color_x * 10,
-                wave_color_y * 10,
-                wave_color_z * 10
-              );
+              const grid = 10;
+              u *= grid;
+              v *= grid;
+              const t = 0.1 * time;
+              u_t = Math.cos(t) * u + Math.sin(t) * v;
+              v_t = -Math.sin(t) * u + Math.cos(t) * v;
+              const color =
+                (1 - step(0.95)(mod(u_t)(1))) * (1 - step(0.95)(mod(v_t)(1)));
+              return Color.ofRGBA(255 * color, 255 * color, 255 * color);
             })
             .paint();
           return { time: time + dt, oldT: newT };

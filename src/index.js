@@ -5,4 +5,14 @@ import Canvas from "./Canvas/main/Canvas";
 import Color from "./Color/main/Color";
 import * as Utils from "./Utils/main/Utils";
 import Animator from "./Animator/main/Animator";
-export { Canvas_old, Canvas2D_old, ImageIO, Canvas, Color, Utils, Animator };
+import Matrix from "./Matrix/main/Matrix";
+export {
+  Canvas_old,
+  Canvas2D_old,
+  ImageIO,
+  Canvas,
+  Color,
+  Utils,
+  Animator,
+  Matrix,
+};
