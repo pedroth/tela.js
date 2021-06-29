@@ -4,7 +4,8 @@
  *                                                                                      */
 //========================================================================================
 
-const getIndex = (_, m) => (i, j) => j + i * m;
+const getIndexFromCoord = (_, m) => (i, j) => j + i * m;
+const getCoordFromIndex = (_, m) => (k) => [k / m, k % m].map(Math.floor);
 const index2Key = (i, j) => `${i},${j}`;
 const key2Index = (k) => k.split(",").map(Number);
 
@@ -29,7 +30,7 @@ class MatrixBuilder {
   build() {
     const [n, m] = this._size;
     const data = new Float64Array(n * m);
-    const indexer = getIndex(n, m);
+    const indexer = getIndexFromCoord(n, m);
     Object.keys(this.data).forEach((key) => {
       data[indexer(...key2Index(key))] = this.data[key];
     });
@@ -64,7 +65,7 @@ class RowBuilder {
     const rows = this.rows.length;
     const cols = this.dim;
     const data = new Float64Array(rows * cols);
-    const indexF = getIndex(rows, cols);
+    const indexF = getIndexFromCoord(rows, cols);
     for (let i = 0; i < rows; i++) {
       for (let j = 0; j < cols; j++) {
         data[indexF(i, j)] = this.rows[i][j];
@@ -101,7 +102,7 @@ class ColBuilder {
     const rows = this.dim;
     const cols = this.cols.length;
     const data = new Float64Array(rows * cols);
-    const indexF = getIndex(rows, cols);
+    const indexF = getIndexFromCoord(rows, cols);
     for (let i = 0; i < rows; i++) {
       for (let j = 0; j < cols; j++) {
         data[indexF(i, j)] = this.cols[j][i];
@@ -110,6 +111,12 @@ class ColBuilder {
     return new Matrix(data, [rows, cols]);
   }
 }
+
+//========================================================================================
+/*                                                                                      *
+ *                                        MATRIX                                        *
+ *                                                                                      */
+//========================================================================================
 
 export default class Matrix {
   /**
@@ -144,7 +151,7 @@ export default class Matrix {
     const m = this.cols;
     const l = matrix.cols;
     const prod = new Float64Array(n * l);
-    const indexer = getIndex(n, l);
+    const indexer = getIndexFromCoord(n, l);
     for (let i = 0; i < n; i++) {
       for (let j = 0; j < l; j++) {
         let acc = 0;
@@ -156,6 +163,72 @@ export default class Matrix {
     }
 
     return new Matrix(prod, [n, l]);
+  }
+
+  /**
+   *
+   * @param {*} lambda: (number, i, j) => number
+   * @returns Matrix
+   */
+  map(lambda = (x) => x) {
+    const getCoord = getCoordFromIndex(...this.shape);
+    return new Matrix(
+      this.data.map((x, k) => {
+        const [i, j] = getCoord(k);
+        return lambda(x, i, j);
+      }),
+      this.shape
+    );
+  }
+
+  /**
+   *
+   * @param {*} lambda (accumulator, number, i, j) => number
+   * @param {*} identity
+   */
+  reduce(lambda, identity = 0) {
+    const getCoord = getCoordFromIndex(...this.shape);
+    return this.data.reduce((e, x, k) => {
+      const [i, j] = getCoord(k);
+      return lambda(e, x, i, j);
+    }, identity);
+  }
+
+  fold = this.reduce;
+
+  /**
+   *
+   * @param {*} binaryLambda: (number,number) => number
+   */
+  op(matrix, binaryLambda) {
+    const [rows, cols] = this.shape;
+    const [mRows, mCols] = matrix.shape;
+    if (rows !== mRows || cols !== mCols)
+      throw new MatrixError("Matrix must be of same size");
+    return new Matrix(
+      this.data.map((x, i) => binaryLambda(x, matrix.data[i])),
+      this.shape
+    );
+  }
+
+  add(matrix) {
+    return this.op(matrix, (a, b) => a + b);
+  }
+
+  sub(matrix) {
+    return this.op(matrix, (a, b) => a - b);
+  }
+
+  mul(matrix) {
+    return this.op(matrix, (a, b) => a * b);
+  }
+
+  div(matrix) {
+    return this.op(matrix, (a, b) => a / b);
+  }
+
+  scale(real) {
+    return this.map((x) => x * real);
   }
 
   static e = (n) => (i) => {

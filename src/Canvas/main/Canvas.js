@@ -1,5 +1,6 @@
 import Color from "../../Color/main/Color";
-
+import Matrix from "../../Matrix/main/Matrix";
+const { vec2 } = Matrix;
 /*
  Canvas coordinates
 
@@ -140,7 +141,20 @@ export default class Canvas {
     return this;
   }
 
-  drawLine() {}
+  /**
+   *
+   * @param {*} start: 2-Array
+   * @param {*} end: 2-Array
+   * @param {}
+   */
+  drawLine(start, end, shader = (x, y) => Color.ofRGBA(0, 0, 0)) {
+    let line = this._clipLine(start, end);
+    const [p0, p1] = line;
+    const v = p1.sub(p0);
+    const n = v.reduce((e, x) => e + Math.abs(x));
+    for (let i = 0; i < n; i++) {}
+    return this;
+  }
 
   paint() {
     this.ctx.putImageData(this.image, 0, 0);
@@ -148,7 +162,26 @@ export default class Canvas {
 
   //========================================================================================
   /*                                                                                      *
-   *                                   static functions                                   *
+   *                                  Auxiliary functions                                  *
+   *                                                                                      */
+  //========================================================================================
+
+  /**
+   *
+   * @param {*} start: 2-Array<Number>
+   * @param {*} end: 2-Array<Number>
+   * @returns 2-Array<vec2>
+   */
+  _clipLine(start, end) {
+    // both points are inside
+    // one of them is inside
+    // both points are outside
+    //    but intersect the boundary
+  }
+
+  //========================================================================================
+  /*                                                                                      *
+   *                                   Static functions                                   *
    *                                                                                      */
   //========================================================================================
 

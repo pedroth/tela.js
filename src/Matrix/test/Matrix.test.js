@@ -41,3 +41,27 @@ test("test product", () => {
   const expected = Float64Array.from([-1, 0]);
   expect(leftR.prod(v).data).toStrictEqual(expected);
 });
+
+test("test add", () => {
+  const { vec2 } = Matrix;
+  const expected = Float64Array.from([1, 1]);
+  expect(vec2.e0.add(vec2.e1).data).toStrictEqual(expected);
+});
+
+test("test sub", () => {
+  const expected = Float64Array.from([0, 0, 0, 0]);
+  const left = Matrix.rowBuilder().addRow(1, 1).addRow(1, 1).build();
+  const right = Matrix.colBuilder().addCol(1, 1).addCol(1, 1).build();
+  expect(left.sub(right).data).toStrictEqual(expected);
+});
+
+test("test scale", () => {
+  const expected = Float64Array.from([2, 4, 6, 8]);
+  const left = Matrix.rowBuilder().addRow(1, 2).addRow(3, 4).build();
+  expect(left.scale(2).data).toStrictEqual(expected);
+});
+
+test("test reduce", () => {
+  const matrix = Matrix.rowBuilder().addRow(1, 1).addRow(1, 1).build();
+  expect(matrix.reduce((e, x) => e + x)).toBe(4);
+});
