@@ -48,22 +48,24 @@
         .setPxl(100, 299, Color.ofRGBA(255, 0, 0))
         .paint();
       const color = canvas.getPxl(100, 300);
-      canvas.setPxl(200, 300, color).paint();
-      canvas.setPxl(199, 300, color).paint();
-      canvas.setPxl(201, 300, color).paint();
-      canvas.setPxl(200, 301, color).paint();
-      canvas.setPxl(200, 299, color).paint();
-      canvas.setPxl(-100, 600).paint();
+      canvas
+        .setPxl(200, 300, color)
+        .setPxl(199, 300, color)
+        .setPxl(201, 300, color)
+        .setPxl(200, 301, color)
+        .setPxl(200, 299, color)
+        .setPxl(-100, 600, color)
+        .paint();
     });
 
-    // test("Test draw line", () => {
-    //   const width = 400;
-    //   const height = 300;
-    //   const canvas = canvasFactory(width, height);
-    //   const red = (i, j) => Color.ofRGBA(255, 0, 0);
-    //   canvas.drawLine(vec2.of(0, 0), vec2.of(height - 1, width - 1), red);
-    //   canvas.drawLine(vec2.of(-10, 100), vec2.of(100, 500), red);
-    // });
+    test("Test draw line", (canvasFactory) => {
+      const width = 400;
+      const height = 300;
+      const canvas = canvasFactory(width, height);
+      const red = (i, j) => Color.ofRGBA(255, 0, 0);
+      canvas.drawLine([0, 0], [height - 1, width - 1], red);
+      canvas.drawLine([-10, 100], [100, 500], red);
+    });
 
     // test("Test draw triangle", () => {
     //   const width = 400;

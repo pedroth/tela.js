@@ -1,5 +1,6 @@
 import Color from "../../Color/main/Color";
 import Matrix from "../../Matrix/main/Matrix";
+import BBox from "../../BBox/main/BBox";
 const { vec2 } = Matrix;
 /*
  Canvas coordinates
@@ -113,8 +114,7 @@ export default class Canvas {
     const { width, height } = this.canvas;
     if ((i < 0 || i >= height) && (j < 0 || j >= width))
       return new CanvasException("pxl out of bounds");
-    const w = width * 4;
-    const index = i * w + 4 * j;
+    const index = 4 * (i * width + j);
     return Color.ofRGBA(
       this.imgBuffer[index],
       this.imgBuffer[index + 1],
@@ -131,9 +131,8 @@ export default class Canvas {
    */
   setPxl(i, j, color) {
     const { width, height } = this.canvas;
-    if ((i < 0 || i >= height) && (j < 0 || j >= width)) return;
-    const w = width * 4;
-    const index = i * w + 4 * j;
+    if ((i < 0 || i >= height) && (j < 0 || j >= width)) return this;
+    const index = 4 * (i * width + j);
     this.imgBuffer[index] = color.red;
     this.imgBuffer[index + 1] = color.green;
     this.imgBuffer[index + 2] = color.blue;
@@ -148,11 +147,21 @@ export default class Canvas {
    * @param {}
    */
   drawLine(start, end, shader = (x, y) => Color.ofRGBA(0, 0, 0)) {
-    let line = this._clipLine(start, end);
+    const { width, height } = this.canvas;
+    const line = this._clipLine(start, end);
     const [p0, p1] = line;
     const v = p1.sub(p0);
     const n = v.reduce((e, x) => e + Math.abs(x));
-    for (let i = 0; i < n; i++) {}
+    for (let k = 0; k < n; k++) {
+      const x = p0.add(v.scale(k / n)).map(Math.floor);
+      const [i, j] = x.data;
+      const index = 4 * (i * width + j);
+      const color = shader(i, j);
+      this.imgBuffer[index] = color.red;
+      this.imgBuffer[index + 1] = color.green;
+      this.imgBuffer[index + 2] = color.blue;
+      this.imgBuffer[index + 3] = color.alpha;
+    }
     return this;
   }
 
@@ -173,10 +182,104 @@ export default class Canvas {
    * @returns 2-Array<vec2>
    */
   _clipLine(start, end) {
+    const { width, height } = this.canvas;
+    const bbox = new BBox(vec2.ZERO, vec2.of(height, width));
+    const pointStack = [start, end].map((x) => vec2.of(...x));
+    const inStack = [];
+    const outStack = [];
+    for (let i = 0; i < pointStack.length; i++) {
+      const p = pointStack[i];
+      if (bbox.collidesWith(p)) {
+        inStack.push(p);
+      } else {
+        outStack.push(p);
+      }
+    }
     // both points are inside
+    if (inStack.length >= 2) {
+      return inStack;
+    }
     // one of them is inside
-    // both points are outside
-    //    but intersect the boundary
+    if (inStack.length === 1) {
+      const [inPoint] = inStack;
+      const [outPoint] = outStack;
+      return this._getLineCanvasIntersection(inPoint, outPoint);
+    }
+    // both points are outside,need to intersect the boundary
+    return this._getLineCanvasIntersection(...outStack);
+  }
+
+  /**
+   *
+   * @param {*} start: vec2(matrix)
+   * @param {*} end: vec2(matrix)
+   */
+  _getLineCanvasIntersection(start, end) {
+    const { width, height } = this.canvas;
+    const v = end.sub(start);
+    // point and direction of boundary
+    const boundary = [
+      [vec2.ZERO, vec2.of(height, 0)],
+      [vec2.of(height, 0), vec2.of(0, width)],
+      [vec2.of(height, 0).add(vec2.of(0, width)), vec2.of(-height, 0)],
+      [vec2.of(0, width), vec2.of(0, -width)],
+    ];
+    const intersectionSolutions = [];
+    boundary.forEach(([s, d]) => {
+      if (d.get(0) === 0) {
+        const solution = this._solveLowTriMatrix(v, d.get(1), s.sub(start));
+        solution !== undefined && intersectionSolutions.push(solution);
+      } else {
+        const solution = this._solveUpTriMatrix(v, d.get(0), s.sub(start));
+        solution !== undefined && intersectionSolutions.push(solution);
+      }
+    });
+    const validIntersections = [];
+    intersectionSolutions.forEach((solution) => {
+      const [x, y] = [solution.get(0), solution.get(1)];
+      if (0 <= x && x <= 1 && 0 <= y && y <= 1) {
+        validIntersections.push(solution);
+      }
+    });
+    if (validIntersections.length === 0) return [];
+    return validIntersections.map((solution) => {
+      const t = solution.get(0);
+      return start.add(v.scale(t));
+    });
+  }
+
+  /**
+   *
+   * @param {*} v: vec2
+   * @param {*} a: number
+   * @param {*} f: vec2
+   * @returns vec2
+   */
+  _solveLowTriMatrix(v, a, f) {
+    const v1 = v.get(0);
+    const v2 = v.get(1);
+    const v12 = v1 * v2;
+    if (v12 === 0 || v1 === 0) return undefined;
+    const f1 = f.get(0);
+    const f2 = f.get(1);
+    return vec2.of(f1 / v1, (f2 * v1 - a * f1) / v12);
+  }
+
+  /**
+   *
+   * @param {*} v: vec2
+   * @param {*} a: number
+   * @param {*} f: vec2
+   * @returns vec2
+   */
+  _solveUpTriMatrix(v, a, f) {
+    const v1 = v.get(0);
+    const v2 = v.get(1);
+    const av2 = a * v2;
+    if (av2 === 0 || v2 === 0) return undefined;
+    const f1 = f.get(0);
+    const f2 = f.get(1);
+    return vec2.of(f2 / v2, (f1 * v2 - v1 * f2) / av2);
   }
 
   //========================================================================================

@@ -143,10 +143,11 @@ export default class Matrix {
   }
 
   prod(matrix) {
-    if (this.cols !== matrix.rows)
+    if (this.cols !== matrix.rows) {
       throw new MatrixError(
         `Incompatible product size. Left ${this.shape}, right ${matrix.shape}`
       );
+    }
     const n = this.rows;
     const m = this.cols;
     const l = matrix.cols;
@@ -163,6 +164,29 @@ export default class Matrix {
     }
 
     return new Matrix(prod, [n, l]);
+  }
+
+  dot(matrix) {
+    if (this.rows !== matrix.rows)
+      throw new MatrixError(
+        `Incompatible product size. Left ${this.shape}, right ${matrix.shape}`
+      );
+    const n = this.rows;
+    const m = this.cols;
+    const l = matrix.cols;
+    const prod = new Float64Array(m * l);
+    const indexer = getIndexFromCoord(m, l);
+    for (let i = 0; i < m; i++) {
+      for (let j = 0; j < l; j++) {
+        let acc = 0;
+        for (let k = 0; k < n; k++) {
+          acc += this.get(k, i) * matrix.get(k, j);
+        }
+        prod[indexer(i, j)] = acc;
+      }
+    }
+
+    return new Matrix(prod, [m, l]);
   }
 
   /**
@@ -231,6 +255,34 @@ export default class Matrix {
     return this.map((x) => x * real);
   }
 
+  norm() {
+    let acc = 0;
+    for (let i = 0; i < this.data.length; i++) {
+      acc += this.data[i] * this.data[i];
+    }
+    return Math.sqrt(acc);
+  }
+
+  length = this.norm;
+
+  equals(matrix, precision = 1e-6) {
+    if (!(matrix instanceof Matrix)) return false;
+    try {
+      return this.sub(matrix).length() < precision;
+    } catch (error) {
+      return false;
+    }
+  }
+
+  static id = (n, m = n) => {
+    const en = Matrix.e(n);
+    let matrixBuilder = Matrix.colBuilder();
+    for (let i = 0; i < m; i++) {
+      matrixBuilder = matrixBuilder.addCol(...en(i).data);
+    }
+    return matrixBuilder.build();
+  };
+
   static e = (n) => (i) => {
     return new Matrix(
       new Float64Array(n).map((_, j) => (i === j ? 1 : 0)),
@@ -273,6 +325,7 @@ export default class Matrix {
     of: (x = 0, y = 0) => Matrix.vec(x, y),
     e0: Matrix.vec(1, 0),
     e1: Matrix.vec(0, 1),
+    ZERO: Matrix.ZERO(2, 1),
   };
 
   static vec3 = {
@@ -280,6 +333,7 @@ export default class Matrix {
     e0: Matrix.vec(1, 0, 0),
     e1: Matrix.vec(0, 1, 0),
     e2: Matrix.vec(0, 0, 1),
+    ZERO: Matrix.ZERO(3, 1),
   };
 }
 

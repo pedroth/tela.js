@@ -1,4 +1,5 @@
 import Matrix from "../main/Matrix";
+import { perf } from "../../Utils/main/Utils";
 
 test("test basic creation", () => {
   const rowMajor = Float64Array.from([1, 2, 3, 4]);
@@ -42,6 +43,14 @@ test("test product", () => {
   expect(leftR.prod(v).data).toStrictEqual(expected);
 });
 
+test("test dot product", () => {
+  const theta = Math.PI / 4;
+  const cos = Math.cos(theta);
+  const sin = Math.cos(theta);
+  const ortho = Matrix.colBuilder().addCol(cos, sin).addCol(-sin, cos).build();
+  expect(ortho.dot(ortho).equals(Matrix.id(2))).toBe(true);
+});
+
 test("test add", () => {
   const { vec2 } = Matrix;
   const expected = Float64Array.from([1, 1]);
@@ -64,4 +73,38 @@ test("test scale", () => {
 test("test reduce", () => {
   const matrix = Matrix.rowBuilder().addRow(1, 1).addRow(1, 1).build();
   expect(matrix.reduce((e, x) => e + x)).toBe(4);
+});
+
+test("test get performance", () => {
+  const n = 100000;
+  const d = 3;
+  const v = Matrix.vec(1, 2, 3);
+  const u = [1, 2, 3];
+  console.log(
+    "Matrix",
+    perf(() => {
+      for (let i = 0; i < n; i++) {
+        const r = ~~(Math.random() * d);
+        v.get(r);
+      }
+    })
+  );
+  console.log(
+    "Array",
+    perf(() => {
+      for (let i = 0; i < n; i++) {
+        const r = ~~(Math.random() * d);
+        u[r];
+      }
+    })
+  );
+});
+
+test("test equality", () => {
+  const rowM = Matrix.rowBuilder().addRow(1, 2).addRow(3, 4).build();
+  const colM = Matrix.colBuilder().addCol(1, 2).addCol(3, 4).build();
+  const vec = Matrix.vec(1, 2, 3, 4);
+  expect(rowM.equals(rowM)).toBe(true);
+  expect(colM.equals(rowM)).toBe(false);
+  expect(rowM.equals(vec)).toBe(false);
 });
