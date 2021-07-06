@@ -147,7 +147,7 @@ export default class Canvas {
    * @param {}
    */
   drawLine(start, end, shader = (x, y) => Color.ofRGBA(0, 0, 0)) {
-    const { width, height } = this.canvas;
+    const { width, _ } = this.canvas;
     const line = this._clipLine(start, end);
     const [p0, p1] = line;
     const v = p1.sub(p0);
@@ -165,6 +165,10 @@ export default class Canvas {
     return this;
   }
 
+  drawTriangle(p0, p1, p2, shader = (x, y) => Color.ofRGBA(0, 0, 0)) {
+    return this._drawConvexPolygon([p0, p1, p2], shader);
+  }
+
   paint() {
     this.ctx.putImageData(this.image, 0, 0);
   }
@@ -174,6 +178,63 @@ export default class Canvas {
    *                                  Auxiliary functions                                  *
    *                                                                                      */
   //========================================================================================
+
+  /**
+   *
+   * @param {*} arrayOfPoints : Array<2-Array<Number>>
+   * @param {*} shader : (x,y) => color
+   * @returns
+   */
+  _drawConvexPolygon(arrayOfPoints, shader) {
+    const { width, height } = this.canvas;
+    const canvasBox = new BBox(vec2.ZERO, vec2.of(height, width));
+    let boundingBox = BBox.EMPTY;
+    arrayOfPoints.forEach((x) => {
+      boundingBox = boundingBox.add(BBox.ofPoint(...x));
+    });
+    const finalBox = canvasBox.inter(boundingBox);
+    const [xMin, yMin] = finalBox.min.toArray();
+    const [xMax, yMax] = finalBox.max.toArray();
+    const points = arrayOfPoints.map((x) => vec2.of(...x));
+    for (let i = xMin; i < xMax; i++) {
+      for (let j = yMin; j < yMax; j++) {
+        if (this._isInsideConvex(vec2.of(i, j), points)) {
+          const color = shader(i, j);
+          const index = 4 * (i * width + j);
+          this.imgBuffer[index] = color.red;
+          this.imgBuffer[index + 1] = color.green;
+          this.imgBuffer[index + 2] = color.blue;
+          this.imgBuffer[index + 3] = color.alpha;
+        }
+      }
+    }
+    return this;
+  }
+
+  /**
+   *
+   * @param {*} x: vec2
+   * @param {*} points: Array<vec2>
+   * @returns
+   */
+  _isInsideConvex(x, points) {
+    const m = points.length;
+    const v = [];
+    const vDotN = [];
+    for (let i = 0; i < m; i++) {
+      v[i] = points[(i + 1) % m].sub(points[i]);
+      const n = vec2.of(-v[i].get(1), v[i].get(0));
+      const r = x.sub(points[i]);
+      vDotN[i] = r.dot(n).get();
+    }
+    let orientation =
+      v[0].get(0) * v[1].get(1) - v[0].get(1) * v[1].get(0) >= 0 ? 1 : -1;
+    for (let i = 0; i < m; i++) {
+      const myDot = vDotN[i] * orientation;
+      if (myDot < 0) return false;
+    }
+    return true;
+  }
 
   /**
    *
@@ -203,7 +264,7 @@ export default class Canvas {
     if (inStack.length === 1) {
       const [inPoint] = inStack;
       const [outPoint] = outStack;
-      return this._getLineCanvasIntersection(inPoint, outPoint);
+      return [inPoint, ...this._getLineCanvasIntersection(inPoint, outPoint)];
     }
     // both points are outside,need to intersect the boundary
     return this._getLineCanvasIntersection(...outStack);
@@ -221,16 +282,16 @@ export default class Canvas {
     const boundary = [
       [vec2.ZERO, vec2.of(height, 0)],
       [vec2.of(height, 0), vec2.of(0, width)],
-      [vec2.of(height, 0).add(vec2.of(0, width)), vec2.of(-height, 0)],
+      [vec2.of(height, width), vec2.of(-height, 0)],
       [vec2.of(0, width), vec2.of(0, -width)],
     ];
     const intersectionSolutions = [];
     boundary.forEach(([s, d]) => {
       if (d.get(0) === 0) {
-        const solution = this._solveLowTriMatrix(v, d.get(1), s.sub(start));
+        const solution = this._solveLowTriMatrix(v, -d.get(1), s.sub(start));
         solution !== undefined && intersectionSolutions.push(solution);
       } else {
-        const solution = this._solveUpTriMatrix(v, d.get(0), s.sub(start));
+        const solution = this._solveUpTriMatrix(v, -d.get(0), s.sub(start));
         solution !== undefined && intersectionSolutions.push(solution);
       }
     });

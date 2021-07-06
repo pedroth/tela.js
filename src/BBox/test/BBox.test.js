@@ -29,6 +29,12 @@ test("test collision", () => {
   expect(bbox.collidesWith(anotherPoint)).toBe(false);
 });
 
+test("test with empty", () => {
+  const bbox = new BBox(vec2.of(0, 0), vec2.of(1, 1));
+  expect(BBox.EMPTY.add(bbox).equals(bbox)).toBe(true);
+  expect(BBox.EMPTY.sub(bbox).equals(BBox.EMPTY)).toBe(true);
+});
+
 test("test equality", () => {
   const boundingBox = new BBox(vec2.of(0, 0), vec2.of(1, 0));
   const anotherBox = new BBox(vec2.of(1, 0), vec2.of(1, 1));

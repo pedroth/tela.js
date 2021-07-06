@@ -14,6 +14,7 @@ export default class BBox {
    * @param {*} box
    */
   add(box) {
+    if (this === BBox.EMPTY) return box;
     const { min, max } = this;
     return new BBox(min.op(box.min, Math.min), max.op(box.max, Math.max));
   }
@@ -25,6 +26,7 @@ export default class BBox {
    * @param {*} box
    */
   sub(box) {
+    if (this === BBox.EMPTY) return BBox.EMPTY;
     const { min, max } = this;
     const newMin = min.op(box.min, Math.max);
     const newMax = max.op(box.max, Math.min);

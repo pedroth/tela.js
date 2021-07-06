@@ -802,6 +802,7 @@ var BBox = /*#__PURE__*/function () {
   Object(_babel_runtime_helpers_esm_createClass__WEBPACK_IMPORTED_MODULE_1__["default"])(BBox, [{
     key: "add",
     value: function add(box) {
+      if (this === BBox.EMPTY) return box;
       var min = this.min,
           max = this.max;
       return new BBox(min.op(box.min, Math.min), max.op(box.max, Math.max));
@@ -814,6 +815,7 @@ var BBox = /*#__PURE__*/function () {
      * @param {*} box
      */
     function sub(box) {
+      if (this === BBox.EMPTY) return BBox.EMPTY;
       var min = this.min,
           max = this.max;
       var newMin = min.op(box.min, Math.max);
@@ -1066,7 +1068,7 @@ var Canvas = /*#__PURE__*/function () {
       };
       var _this$canvas3 = this.canvas,
           width = _this$canvas3.width,
-          height = _this$canvas3.height;
+          _ = _this$canvas3._;
 
       var line = this._clipLine(start, end);
 
@@ -1097,6 +1099,14 @@ var Canvas = /*#__PURE__*/function () {
       return this;
     }
   }, {
+    key: "drawTriangle",
+    value: function drawTriangle(p0, p1, p2) {
+      var shader = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : function (x, y) {
+        return _Color_main_Color__WEBPACK_IMPORTED_MODULE_9__["default"].ofRGBA(0, 0, 0);
+      };
+      return this._drawConvexPolygon([p0, p1, p2], shader);
+    }
+  }, {
     key: "paint",
     value: function paint() {
       this.ctx.putImageData(this.image, 0, 0);
@@ -1109,6 +1119,85 @@ var Canvas = /*#__PURE__*/function () {
 
     /**
      *
+     * @param {*} arrayOfPoints : Array<2-Array<Number>>
+     * @param {*} shader : (x,y) => color
+     * @returns
+     */
+
+  }, {
+    key: "_drawConvexPolygon",
+    value: function _drawConvexPolygon(arrayOfPoints, shader) {
+      var _this$canvas4 = this.canvas,
+          width = _this$canvas4.width,
+          height = _this$canvas4.height;
+      var canvasBox = new _BBox_main_BBox__WEBPACK_IMPORTED_MODULE_11__["default"](vec2.ZERO, vec2.of(height, width));
+      var boundingBox = _BBox_main_BBox__WEBPACK_IMPORTED_MODULE_11__["default"].EMPTY;
+      arrayOfPoints.forEach(function (x) {
+        boundingBox = boundingBox.add(_BBox_main_BBox__WEBPACK_IMPORTED_MODULE_11__["default"].ofPoint.apply(_BBox_main_BBox__WEBPACK_IMPORTED_MODULE_11__["default"], Object(_babel_runtime_helpers_esm_toConsumableArray__WEBPACK_IMPORTED_MODULE_4__["default"])(x)));
+      });
+      var finalBox = canvasBox.inter(boundingBox);
+
+      var _finalBox$min$toArray = finalBox.min.toArray(),
+          _finalBox$min$toArray2 = Object(_babel_runtime_helpers_esm_slicedToArray__WEBPACK_IMPORTED_MODULE_5__["default"])(_finalBox$min$toArray, 2),
+          xMin = _finalBox$min$toArray2[0],
+          yMin = _finalBox$min$toArray2[1];
+
+      var _finalBox$max$toArray = finalBox.max.toArray(),
+          _finalBox$max$toArray2 = Object(_babel_runtime_helpers_esm_slicedToArray__WEBPACK_IMPORTED_MODULE_5__["default"])(_finalBox$max$toArray, 2),
+          xMax = _finalBox$max$toArray2[0],
+          yMax = _finalBox$max$toArray2[1];
+
+      var points = arrayOfPoints.map(function (x) {
+        return vec2.of.apply(vec2, Object(_babel_runtime_helpers_esm_toConsumableArray__WEBPACK_IMPORTED_MODULE_4__["default"])(x));
+      });
+
+      for (var i = xMin; i < xMax; i++) {
+        for (var j = yMin; j < yMax; j++) {
+          if (this._isInsideConvex(vec2.of(i, j), points)) {
+            var color = shader(i, j);
+            var index = 4 * (i * width + j);
+            this.imgBuffer[index] = color.red;
+            this.imgBuffer[index + 1] = color.green;
+            this.imgBuffer[index + 2] = color.blue;
+            this.imgBuffer[index + 3] = color.alpha;
+          }
+        }
+      }
+
+      return this;
+    }
+    /**
+     *
+     * @param {*} x: vec2
+     * @param {*} points: Array<vec2>
+     * @returns
+     */
+
+  }, {
+    key: "_isInsideConvex",
+    value: function _isInsideConvex(x, points) {
+      var m = points.length;
+      var v = [];
+      var vDotN = [];
+
+      for (var i = 0; i < m; i++) {
+        v[i] = points[(i + 1) % m].sub(points[i]);
+        var n = vec2.of(-v[i].get(1), v[i].get(0));
+        var r = x.sub(points[i]);
+        vDotN[i] = r.dot(n).get();
+      }
+
+      var orientation = v[0].get(0) * v[1].get(1) - v[0].get(1) * v[1].get(0) >= 0 ? 1 : -1;
+
+      for (var _i = 0; _i < m; _i++) {
+        var myDot = vDotN[_i] * orientation;
+        if (myDot < 0) return false;
+      }
+
+      return true;
+    }
+    /**
+     *
      * @param {*} start: 2-Array<Number>
      * @param {*} end: 2-Array<Number>
      * @returns 2-Array<vec2>
@@ -1117,9 +1206,9 @@ var Canvas = /*#__PURE__*/function () {
   }, {
     key: "_clipLine",
     value: function _clipLine(start, end) {
-      var _this$canvas4 = this.canvas,
-          width = _this$canvas4.width,
-          height = _this$canvas4.height;
+      var _this$canvas5 = this.canvas,
+          width = _this$canvas5.width,
+          height = _this$canvas5.height;
       var bbox = new _BBox_main_BBox__WEBPACK_IMPORTED_MODULE_11__["default"](vec2.ZERO, vec2.of(height, width));
       var pointStack = [start, end].map(function (x) {
         return vec2.of.apply(vec2, Object(_babel_runtime_helpers_esm_toConsumableArray__WEBPACK_IMPORTED_MODULE_4__["default"])(x));
@@ -1146,7 +1235,7 @@ var Canvas = /*#__PURE__*/function () {
       if (inStack.length === 1) {
         var inPoint = inStack[0];
         var outPoint = outStack[0];
-        return this._getLineCanvasIntersection(inPoint, outPoint);
+        return [inPoint].concat(Object(_babel_runtime_helpers_esm_toConsumableArray__WEBPACK_IMPORTED_MODULE_4__["default"])(this._getLineCanvasIntersection(inPoint, outPoint)));
       } // both points are outside,need to intersect the boundary
 
 
@@ -1163,12 +1252,12 @@ var Canvas = /*#__PURE__*/function () {
     value: function _getLineCanvasIntersection(start, end) {
       var _this = this;
 
-      var _this$canvas5 = this.canvas,
-          width = _this$canvas5.width,
-          height = _this$canvas5.height;
+      var _this$canvas6 = this.canvas,
+          width = _this$canvas6.width,
+          height = _this$canvas6.height;
       var v = end.sub(start); // point and direction of boundary
 
-      var boundary = [[vec2.ZERO, vec2.of(height, 0)], [vec2.of(height, 0), vec2.of(0, width)], [vec2.of(height, 0).add(vec2.of(0, width)), vec2.of(-height, 0)], [vec2.of(0, width), vec2.of(0, -width)]];
+      var boundary = [[vec2.ZERO, vec2.of(height, 0)], [vec2.of(height, 0), vec2.of(0, width)], [vec2.of(height, width), vec2.of(-height, 0)], [vec2.of(0, width), vec2.of(0, -width)]];
       var intersectionSolutions = [];
       boundary.forEach(function (_ref) {
         var _ref2 = Object(_babel_runtime_helpers_esm_slicedToArray__WEBPACK_IMPORTED_MODULE_5__["default"])(_ref, 2),
@@ -1176,11 +1265,11 @@ var Canvas = /*#__PURE__*/function () {
             d = _ref2[1];
 
         if (d.get(0) === 0) {
-          var solution = _this._solveLowTriMatrix(v, d.get(1), s.sub(start));
+          var solution = _this._solveLowTriMatrix(v, -d.get(1), s.sub(start));
 
           solution !== undefined && intersectionSolutions.push(solution);
         } else {
-          var _solution = _this._solveUpTriMatrix(v, d.get(0), s.sub(start));
+          var _solution = _this._solveUpTriMatrix(v, -d.get(0), s.sub(start));
 
           _solution !== undefined && intersectionSolutions.push(_solution);
         }
@@ -2607,6 +2696,11 @@ var Matrix = /*#__PURE__*/function () {
       } catch (error) {
         return false;
       }
+    }
+  }, {
+    key: "toArray",
+    value: function toArray() {
+      return this.data;
     }
   }], [{
     key: "ZERO",

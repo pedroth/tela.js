@@ -274,6 +274,10 @@ export default class Matrix {
     }
   }
 
+  toArray() {
+    return this.data;
+  }
+
   static id = (n, m = n) => {
     const en = Matrix.e(n);
     let matrixBuilder = Matrix.colBuilder();

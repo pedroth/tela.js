@@ -63,35 +63,27 @@
       const height = 300;
       const canvas = canvasFactory(width, height);
       const red = (i, j) => Color.ofRGBA(255, 0, 0);
-      canvas.drawLine([0, 0], [height - 1, width - 1], red);
-      canvas.drawLine([-10, 100], [100, 500], red);
+      const green = (i, j) => Color.ofRGBA(0, 255, 0);
+      canvas.fill(Color.ofRGBA(0, 0, 0));
+      canvas
+        .drawLine([0, 0], [height - 1, width - 1], red)
+        .drawLine([-10, 100], [100, 500], red)
+        .drawLine([50, 50], [-500, 500], green)
+        .paint();
     });
 
-    // test("Test draw triangle", () => {
-    //   const width = 400;
-    //   const height = 300;
-    //   const canvas = canvasFactory(width, height);
-    //   const red = (i, j) => Color.ofRGBA(255, 0, 0);
-    //   const green = (i, j) => Color.ofRGBA(0, 255, 0);
-    //   const blue = (i, j) => Color.ofRGBA(0, 0, 255);
-    //   canvas.drawTriangle(
-    //     vec2.of(0, 0),
-    //     vec2.of(height - 1, 0),
-    //     vec2.of(height - 1, width - 1),
-    //     red
-    //   );
-    //   canvas.drawTriangle(
-    //     vec2.of(height - 1, width - 1),
-    //     vec2.of(0, width - 1),
-    //     vec2.of(0, 0),
-    //     green
-    //   );
-    //   canvas.drawTriangle(
-    //     vec2.of(height - 1, width - 1),
-    //     vec2.of(0, width - 1),
-    //     vec2.of(0, 0),
-    //     green
-    //   );
-    // });
+    test("Test draw triangle", (canvasFactory) => {
+      const width = 400;
+      const height = 300;
+      const canvas = canvasFactory(width, height);
+      const red = (i, j) => Color.ofRGBA(255, 0, 0);
+      const green = (i, j) => Color.ofRGBA(0, 255, 0);
+      const blue = (i, j) => Color.ofRGBA(0, 0, 255);
+      canvas
+        .drawTriangle([0, 0], [height - 1, 0], [height - 1, width - 1], red)
+        .drawTriangle([height - 1, width - 1], [0, width - 1], [0, 0], green)
+        .drawTriangle([height - 1, width - 1], [0, width - 1], [0, 0], green)
+        .paint();
+    });
   </script>
 </html>

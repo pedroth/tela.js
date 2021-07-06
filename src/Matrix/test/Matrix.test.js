@@ -49,6 +49,7 @@ test("test dot product", () => {
   const sin = Math.cos(theta);
   const ortho = Matrix.colBuilder().addCol(cos, sin).addCol(-sin, cos).build();
   expect(ortho.dot(ortho).equals(Matrix.id(2))).toBe(true);
+  expect(Matrix.vec(1, 2, 3, 4).dot(Matrix.vec(1, 1, 1, 1)).get()).toBe(10);
 });
 
 test("test add", () => {
@@ -107,4 +108,12 @@ test("test equality", () => {
   expect(rowM.equals(rowM)).toBe(true);
   expect(colM.equals(rowM)).toBe(false);
   expect(rowM.equals(vec)).toBe(false);
+});
+
+test("test toArray", () => {
+  const expected = Float64Array.from([1, 2, 3, 4]);
+  const rowM = Matrix.rowBuilder().addRow(1, 2).addRow(3, 4).build();
+  const vec = Matrix.vec(1, 2, 3, 4);
+  expect(rowM.toArray()).toStrictEqual(expected);
+  expect(vec.toArray()).toStrictEqual(expected);
 });
