@@ -30,7 +30,7 @@
       const canvas = canvasFactory(width, height);
       canvas
         .map((c, x, y) =>
-          Color.ofRGBA((x / (height - 1)) * 255, (y / (width - 1)) * 255, 0)
+          Color.ofRGBA((x / (height - 1)) * 255, 0, (y / (width - 1)) * 255)
         )
         .paint();
     });
@@ -82,7 +82,7 @@
       canvas
         .drawTriangle([0, 0], [height - 1, 0], [height - 1, width - 1], red)
         .drawTriangle([height - 1, width - 1], [0, width - 1], [0, 0], green)
-        .drawTriangle([height - 1, width - 1], [0, width - 1], [0, 0], green)
+        .drawTriangle([-100, 50], [height / 2, width / 2], [500, 500], blue)
         .paint();
     });
   </script>

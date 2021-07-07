@@ -147,14 +147,16 @@ export default class Canvas {
    * @param {}
    */
   drawLine(start, end, shader = (x, y) => Color.ofRGBA(0, 0, 0)) {
+    // faster than using vec2
     const { width, _ } = this.canvas;
-    const line = this._clipLine(start, end);
+    const line = this._clipLine(start, end).map((x) => x.toArray());
     const [p0, p1] = line;
-    const v = p1.sub(p0);
-    const n = v.reduce((e, x) => e + Math.abs(x));
+    const v = [p1[0] - p0[0], p1[1] - p0[1]];
+    const n = Math.abs(v[0]) + Math.abs(v[1]);
     for (let k = 0; k < n; k++) {
-      const x = p0.add(v.scale(k / n)).map(Math.floor);
-      const [i, j] = x.data;
+      const s = k / n;
+      const x = [p0[0] + v[0] * s, p0[1] + v[1] * s].map(Math.floor);
+      const [i, j] = x;
       const index = 4 * (i * width + j);
       const color = shader(i, j);
       this.imgBuffer[index] = color.red;
@@ -195,10 +197,10 @@ export default class Canvas {
     const finalBox = canvasBox.inter(boundingBox);
     const [xMin, yMin] = finalBox.min.toArray();
     const [xMax, yMax] = finalBox.max.toArray();
-    const points = arrayOfPoints.map((x) => vec2.of(...x));
+
     for (let i = xMin; i < xMax; i++) {
       for (let j = yMin; j < yMax; j++) {
-        if (this._isInsideConvex(vec2.of(i, j), points)) {
+        if (this._isInsideConvex([i, j], arrayOfPoints)) {
           const color = shader(i, j);
           const index = 4 * (i * width + j);
           this.imgBuffer[index] = color.red;
@@ -213,8 +215,8 @@ export default class Canvas {
 
   /**
    *
-   * @param {*} x: vec2
-   * @param {*} points: Array<vec2>
+   * @param {*} x: 2-Array<Number>
+   * @param {*} points: Array<2-Array<Number>>
    * @returns
    */
   _isInsideConvex(x, points) {
@@ -222,13 +224,15 @@ export default class Canvas {
     const v = [];
     const vDotN = [];
     for (let i = 0; i < m; i++) {
-      v[i] = points[(i + 1) % m].sub(points[i]);
-      const n = vec2.of(-v[i].get(1), v[i].get(0));
-      const r = x.sub(points[i]);
-      vDotN[i] = r.dot(n).get();
+      const p1 = points[(i + 1) % m];
+      const p0 = points[i];
+      v[i] = [p1[0] - p0[0], p1[1] - p0[1]];
+      const vi = v[i];
+      const n = [-vi[1], vi[0]];
+      const r = [x[0] - p0[0], x[1] - p0[1]];
+      vDotN[i] = r[0] * n[0] + r[1] * n[1];
     }
-    let orientation =
-      v[0].get(0) * v[1].get(1) - v[0].get(1) * v[1].get(0) >= 0 ? 1 : -1;
+    let orientation = v[0][0] * v[1][1] - v[0][1] * v[1][0] >= 0 ? 1 : -1;
     for (let i = 0; i < m; i++) {
       const myDot = vDotN[i] * orientation;
       if (myDot < 0) return false;
@@ -240,7 +244,7 @@ export default class Canvas {
    *
    * @param {*} start: 2-Array<Number>
    * @param {*} end: 2-Array<Number>
-   * @returns 2-Array<vec2>
+   * @returns 2-Array<2-Array<Number>>
    */
   _clipLine(start, end) {
     const { width, height } = this.canvas;
