@@ -10,16 +10,19 @@
   <body></body>
   <script>
     const { Utils, Canvas, Color, Animator } = Tela;
-    const { perf, test } = Utils;
+    const { perf, testBuilder } = Utils;
+    const test = testBuilder(() => {
+      const width = 400;
+      const height = 300;
+      return Canvas.builder().width(width).height(height).build();
+    });
 
     /**
      * Simple animation shader
      * */
-    test("Test animation", (canvasFactory) => {
-      const width = 400;
-      const height = 300;
-      const canvas = canvasFactory(width, height);
+    test("Test animation", (canvas) => {
       const T = 20;
+      const { width, height } = canvas.canvas;
       Animator.builder()
         .initialState({ time: 0, oldT: new Date().getTime() })
         .nextState(({ time, oldT }) => {
@@ -42,11 +45,9 @@
     /**
      * Rotating grid shader
      **/
-    test("Test shader toy", (canvasFactory) => {
-      const width = 400;
-      const height = 300;
-      const canvas = canvasFactory(width, height);
+    test("Test shader toy", (canvas) => {
       const T = 20;
+      const { width, height } = canvas;
       const step = (threshold) => (x) => x < threshold ? 0 : 1;
       const mod = (x) => (n) => ((x % n) + n) % n;
       Animator.builder()

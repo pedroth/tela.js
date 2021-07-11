@@ -51,6 +51,13 @@ export default class Canvas {
 
   getDom = this.getCanvas;
 
+  get width() {
+    return this.canvas.width;
+  }
+
+  get height() {
+    return this.canvas.height;
+  }
   //========================================================================================
   /*                                                                                      *
    *                                 side effects function                                *
@@ -167,6 +174,14 @@ export default class Canvas {
     return this;
   }
 
+  /**
+   *
+   * @param {*} p0 : 2-array<number>
+   * @param {*} p1 : 2-array<number>
+   * @param {*} p2 : 2-array<number>
+   * @param {*} shader : (number, number) => Color
+   * @returns
+   */
   drawTriangle(p0, p1, p2, shader = (x, y) => Color.ofRGBA(0, 0, 0)) {
     return this._drawConvexPolygon([p0, p1, p2], shader);
   }
@@ -358,18 +373,18 @@ export default class Canvas {
   }
 }
 
-class CanvasBuilder {
+export class CanvasBuilder {
   _canvas = document.createElement("canvas");
   _width = 500;
   _height = 500;
   constructor() {}
 
-  width(width) {
+  width(width = this._width) {
     this._width = width;
     return this;
   }
 
-  height(height) {
+  height(height = this._height) {
     this._height = height;
     return this;
   }

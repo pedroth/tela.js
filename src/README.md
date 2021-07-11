@@ -8,7 +8,7 @@ Graphic library from scratch, with reference implementation of computer graphics
   - images
   - videos
   - interactive displays
-  - other telas.js
+  - other telas.js/Canvas
 - Support 2d graphics
   - 2d camera
   - alpha composing
@@ -18,7 +18,7 @@ Graphic library from scratch, with reference implementation of computer graphics
   - z-buffering
   - shaders
 - Path trancing
-- GenerateMulti-resolution images
+- Dynamic resolution images
 - Scene/Geometry manager
 - Import Image textures
 - Import sprites

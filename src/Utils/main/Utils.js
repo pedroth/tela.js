@@ -5,24 +5,29 @@ export const perf = (lambda) => {
 };
 
 /**
- * Unit test maker
- * @param {*} title
- * @param {*} lambda: (width:number, height: number) => {}
+ *
+ * @param {*} canvasBuilder : () => canvas
+ * @returns
  */
-export function test(title, lambda = () => {}) {
-  let canvas;
-  const canvasFactory = (width, height) => {
-    canvas = Canvas.builder().width(width).height(height).build();
-    return canvas;
+export const testBuilder =
+  (canvasBuilder = canvasFactory) =>
+  /**
+   * Unit test maker
+   * @param {*} title
+   * @param {*} lambda: (canvas) => {}
+   */
+  (title, lambda = () => {}) => {
+    let canvas = canvasBuilder();
+    const timeInMillis = perf(() => lambda(canvas));
+    const domTest = document.createElement("div");
+    const testTitle = document.createElement("h3");
+    testTitle.innerText = title;
+    domTest.appendChild(testTitle);
+    domTest.appendChild(canvas.getDom());
+    const timeDom = document.createElement("h4");
+    timeDom.innerText = `Test took ${timeInMillis}ms`;
+    domTest.appendChild(timeDom);
+    document.body.appendChild(domTest);
   };
-  const timeInMillis = perf(() => lambda(canvasFactory));
-  const domTest = document.createElement("div");
-  const testTitle = document.createElement("h3");
-  testTitle.innerText = title;
-  domTest.appendChild(testTitle);
-  domTest.appendChild(canvas.getDom());
-  const timeDom = document.createElement("h4");
-  timeDom.innerText = `Test took ${timeInMillis}ms`;
-  domTest.appendChild(timeDom);
-  document.body.appendChild(domTest);
-}
+
+const canvasFactory = () => Canvas.builder().width(500).height(500).build();
