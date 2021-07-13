@@ -68,7 +68,7 @@ export default class Canvas {
    * Update color of canvas
    * @param {*} color: Color
    */
-  fill(color) {
+  fill(color = Color.ofRGBA(255, 255, 255)) {
     this.ctx.fillStyle = `rgba(${color.red}, ${color.green}, ${color.blue}, ${
       color.alpha / 255.0
     })`;

@@ -9,7 +9,8 @@
   </head>
   <body></body>
   <script>
-    const { Utils, Canvas, Color, Animator } = Tela;
+    const { Utils, Canvas, Canvas2d, Color, Animator, Matrix } = Tela;
+    const { vec2 } = Matrix;
     const { perf, testBuilder } = Utils;
     const test = testBuilder(() => {
       const width = 400;
@@ -70,6 +71,58 @@
               return Color.ofRGBA(255 * color, 255 * color, 255 * color);
             })
             .paint();
+          return { time: time + dt, oldT: newT };
+        })
+        .while(({ time }) => time <= T)
+        .build()
+        .play();
+    });
+
+    testBuilder(() => {
+      const width = 400;
+      const height = 300;
+      return Canvas2d.builder().width(width).height(height).build();
+    })("Test wave physics", (canvas) => {
+      const T = 100;
+      const n = 100;
+      const friction = 0.1;
+      const gravity = -0.01;
+      const amp = 0.5;
+      const waveSpeed = 1;
+      const freq = 0.3;
+      let rope = [...new Array(100)].map((x, i) => (i === 0 ? 0.8 : 0));
+      let ropeSpeed = [...new Array(100)].map((x, i) => 0);
+      Animator.builder()
+        .initialState({ time: 0, oldT: new Date().getTime() })
+        .nextState(({ time, oldT }) => {
+          const newT = new Date().getTime();
+          const dt = (newT - oldT) * 1e-3;
+          let xi = -1;
+          const delta = 2 / n;
+          canvas.fill();
+          for (let i = 0; i < n - 1; i++) {
+            const xii = xi + delta;
+            canvas.drawLine([xi, rope[i]], [xii, rope[i + 1]], (i, j) =>
+              Color.ofRGBA(0, 0, 0)
+            );
+            xi = xii;
+          }
+          canvas.paint();
+          // update speed
+          for (let i = 1; i < n - 1; i++) {
+            const laplacian =
+              (-2 * rope[i] + rope[i + 1] + rope[i - 1]) / delta;
+            ropeSpeed[i] =
+              ropeSpeed[i] +
+              dt * (waveSpeed * laplacian + gravity - friction * ropeSpeed[i]);
+          }
+          // update position
+          // update boundary
+          rope[0] = time < 2 ? amp * Math.sin(2 * Math.PI * freq * time) : 0;
+          rope[n - 1] = 0;
+          for (let i = 1; i < n - 1; i++) {
+            rope[i] = rope[i] + ropeSpeed[i] * dt;
+          }
           return { time: time + dt, oldT: newT };
         })
         .while(({ time }) => time <= T)
