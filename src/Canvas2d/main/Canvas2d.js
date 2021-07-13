@@ -14,9 +14,9 @@ export default class Canvas2d extends Canvas {
   }
 
   map(lambda = () => {}) {
-    return super.map((i, j) => {
+    return super.map((c, i, j) => {
       const [x, y] = this.forwardCoord(i, j);
-      return lambda(x, y);
+      return lambda(c, x, y);
     });
   }
 
@@ -25,34 +25,59 @@ export default class Canvas2d extends Canvas {
     return super.getPxl(i, j);
   }
 
-  setPxl(x, y, color) {}
+  setPxl(x, y, color) {
+    const [i, j] = this.inverseCoord(x, y);
+    return super.setPxl(i, j, color);
+  }
 
   drawLine(start, end, shader) {
+    const startPos = this.inverseCoord(...start);
+    const endPos = this.inverseCoord(...end);
     return super.drawLine(startPos, endPos, shader);
   }
 
   drawTriangle(p0, p1, p2, shader) {
-    return super.drawTriangle(p0, p1, p2, shader);
+    const q0 = this.inverseCoord(...p0);
+    const q1 = this.inverseCoord(...p1);
+    const q2 = this.inverseCoord(...p2);
+    return super.drawTriangle(q0, q1, q2, shader);
   }
 
   /**
    * Map from camera coord to canvas coord
    */
-  inverseCoord(x, y) {}
+  inverseCoord(x, y) {
+    const { min, max } = this.camera;
+    const { width, height } = this.canvas;
+    const [minX, minY] = min.data;
+    const [maxX, maxY] = max.data;
+    return [
+      (-(y - maxY) * (height - 1)) / (maxY - minY),
+      ((x - minX) * (width - 1)) / (maxX - minX),
+    ].map(Math.floor);
+  }
 
   /**
    * Map from canvas coord to camera coord
    */
-  forwardCoord(i, j) {}
+  forwardCoord(i, j) {
+    const { min, max } = this.camera;
+    const { width, height } = this.canvas;
+    const [minX, minY] = min.data;
+    const [maxX, maxY] = max.data;
+    return [
+      minX + ((maxX - minX) * j) / (width - 1),
+      maxY + ((minY - maxY) * i) / (height - 1),
+    ];
+  }
 
-  builder() {
+  static builder() {
     return new Canvas2dBuilder();
   }
 }
 
 export class Canvas2dBuilder extends CanvasBuilder {
   _camera = new BBox(vec2.of(-1, -1), vec2.of(1, 1));
-  constructor() {}
 
   camera(bbox = this._camera) {
     this._camera = bbox;

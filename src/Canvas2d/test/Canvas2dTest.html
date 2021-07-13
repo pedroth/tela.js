@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Canvas Test</title>
+    <title>Canvas2d Test</title>
     <script src="../../../dist/index.js"></script>
   </head>
   <body></body>
@@ -18,7 +18,7 @@
       return Canvas2d.builder()
         .width(width)
         .height(height)
-        .camera(new BBox(vec2.of(0, 0), vec2.of(1, 1)))
+        .camera(new BBox(vec2.of(-1, -1), vec2.of(1, 1)))
         .build();
     });
 
@@ -32,7 +32,9 @@
     });
 
     test("Test map with coordinates", (canvas) => {
-      canvas.map((c, x, y) => Color.ofRGBA(x * 255, y * 255, 0)).paint();
+      canvas
+        .map((c, x, y) => Color.ofRGBA((x + 1) * 255, (y + 1) * 255, 0))
+        .paint();
     });
 
     test("Test get and set pxl", (canvas) => {
@@ -52,7 +54,7 @@
       canvas
         .drawLine([0, 0], [1, 1], red)
         .drawLine([-1, 0.5], [0.5, 5], red)
-        .drawLine([0.5, 0.5], [-5, 5], green)
+        .drawLine([0.5, 0.5], [-5, 2.5], green)
         .paint();
     });
 
@@ -61,8 +63,8 @@
       const green = (i, j) => Color.ofRGBA(0, 255, 0);
       const blue = (i, j) => Color.ofRGBA(0, 0, 255);
       canvas
-        .drawTriangle([0, 0], [1, 0], [1, 1], red)
-        .drawTriangle([1, 1], [0, 1], [0, 0], green)
+        .drawTriangle([-1, -1], [1, -1], [1, 1], red)
+        .drawTriangle([1, 1], [-1, 1], [-1, -1], green)
         .drawTriangle([-1, 0.1], [1 / 2, 1 / 2], [3, 3], blue)
         .paint();
     });

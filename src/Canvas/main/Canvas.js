@@ -338,11 +338,11 @@ export default class Canvas {
   _solveLowTriMatrix(v, a, f) {
     const v1 = v.get(0);
     const v2 = v.get(1);
-    const v12 = v1 * v2;
-    if (v12 === 0 || v1 === 0) return undefined;
+    const av1 = a * v1;
+    if (av1 === 0 || v1 === 0) return undefined;
     const f1 = f.get(0);
     const f2 = f.get(1);
-    return vec2.of(f1 / v1, (f2 * v1 - a * f1) / v12);
+    return vec2.of(f1 / v1, (f2 * v1 - v2 * f1) / av1);
   }
 
   /**
