@@ -78,6 +78,7 @@
         .play();
     });
 
+    // Rope simulation
     testBuilder(() => {
       const width = 400;
       const height = 300;
@@ -86,11 +87,11 @@
       const T = 100;
       const n = 50;
       const friction = 0.1;
-      const gravity = -0.01;
+      const gravity = -0.09;
       const amp = 0.5;
-      const waveSpeed = 1;
+      const waveSpeed = 2;
       const freq = 0.3;
-      const stopWaveTime = 3;
+      const stopWaveTime = 10;
       let rope = [...new Array(100)].map((x, i) => (i === 0 ? 0.8 : 0));
       let ropeSpeed = [...new Array(100)].map((x, i) => 0);
       Animator.builder()

@@ -157,6 +157,7 @@ export default class Canvas {
     // faster than using vec2
     const { width, _ } = this.canvas;
     const line = this._clipLine(start, end).map((x) => x.toArray());
+    if (line.length === 0) return;
     const [p0, p1] = line;
     const v = [p1[0] - p0[0], p1[1] - p0[1]];
     const n = Math.abs(v[0]) + Math.abs(v[1]);
