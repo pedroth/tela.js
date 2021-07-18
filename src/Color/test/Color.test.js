@@ -12,3 +12,8 @@ test("test get rgba", () => {
   expect(c.blue).toStrictEqual(3);
   expect(c.alpha).toStrictEqual(255);
 });
+
+test("test equals", () => {
+  expect(Color.ofRGBA(1, 2, 3).equals(Color.ofRGBA(1, 2, 3))).toBe(true);
+  expect(Color.ofRGBA(1, 2, 1).equals(Color.ofRGBA(1, 2, 3))).toBe(false);
+});

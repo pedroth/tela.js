@@ -1,37 +1,39 @@
+import Color from "../../Color/main/Color";
 import ImageBuffer from "../main/ImageBuffer";
 
 test("test creation", () => {
-  // const img = new ImageBuffer({ width: 100, height: 100 });
-  // expect(img.data.length).toBe(100 * 100 * 4);
+  const img = ImageBuffer.builder().width(100).height(100).build();
+  expect(img.data.length).toBe(100 * 100 * 4);
 });
 
 test("test get and set", () => {
-  // const img = new ImageBuffer({ width: 100, height: 100 });
-  // img.set(10, 10, [255, 0, 0, 255]);
-  // img.set(200, 10, [0, 255, 0, 255]);
-  // expect(img.get(10, 10)).toStrictEqual([255, 0, 0, 255]);
-  // expect(img.get(200, 10)).toBe(undefined);
+  const img = ImageBuffer.builder().width(100).height(100).build();
+  const red = Color.RED;
+  const green = Color.GREEN;
+  img.setPxl(10, 10, red);
+  img.setPxl(200, 10, green);
+  expect(img.getPxl(10, 10).equals(red)).toBe(true);
+  expect(img.getPxl(200, 10)).toBe(undefined);
 });
 
-test("test lazy set", () => {
-  // const img = new ImageBuffer({ width: 100, height: 100 });
-  // img
-  //   .setter()
-  //   .region([50, 50], [100, 100], (i, j) => [
-  //     255 * (i / 100),
-  //     0,
-  //     255 * (j / 100),
-  //     255,
-  //   ])
-  //   .point(10, 12, [100, 0, 0, 255])
-  //   .set();
-  // expect(img.get(50, 50)).toStrictEqual([
-  //   255 * (50 / 100),
-  //   0,
-  //   255 * (50 / 100),
-  //   255,
-  // ]);
-  // expect(img.get(100, 99)).toStrictEqual([255, 0, 255 * (99 / 100), 255]);
-  // expect(img.get(10, 12)).toStrictEqual([100, 0, 0, 255]);
-  // expect(img.get(-1, 12)).toStrictEqual([100, 0, 0, 255]);
+test("test map", () => {
+  const img = ImageBuffer.builder().width(2).height(2).build();
+  const nextImg = img.map((c, x, y) => Color.ofRGBA(x * 255, y * 255, 0));
+  console.log(nextImg.data);
+  expect(nextImg.data).toStrictEqual(
+    Uint8Array.from([
+      0, 0, 0, 255, 0, 255, 0, 255, 255, 0, 0, 255, 255, 255, 0, 255,
+    ])
+  );
+});
+
+test("test draw line", () => {
+  const img = ImageBuffer.builder().width(2).height(2).build();
+  const nextImg = img.map((c, x, y) => Color.ofRGBA(x * 255, y * 255, 0));
+  console.log(nextImg.data);
+  expect(nextImg.data).toStrictEqual(
+    Uint8Array.from([
+      0, 0, 0, 255, 0, 255, 0, 255, 255, 0, 0, 255, 255, 255, 0, 255,
+    ])
+  );
 });

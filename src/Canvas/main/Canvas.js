@@ -35,14 +35,14 @@ Note that f(H - 1, W - 1, C - 1) = C * W * H - 1.
 export default class Canvas {
   /**
    *
-   * @param {*} canvas: DOM element of type canvas
+   * @param {canvasDOM} canvas: DOM element of type canvas
    */
   constructor(canvas) {
     this.canvas = canvas;
     this.ctx = canvas.getContext("2d");
     this.image = this.ctx.getImageData(0, 0, canvas.width, canvas.height);
     // width * height * 4 array of integers
-    this.imgBuffer = this.image.data;
+    this.data = this.image.data;
   }
 
   getCanvas() {
@@ -66,7 +66,8 @@ export default class Canvas {
 
   /**
    * Update color of canvas
-   * @param {*} color: Color
+   * @param {Color} color
+   * @returns {Canvas}
    */
   fill(color = Color.ofRGBA(255, 255, 255)) {
     this.ctx.fillStyle = `rgba(${color.red}, ${color.green}, ${color.blue}, ${
@@ -79,48 +80,48 @@ export default class Canvas {
       this.canvas.width,
       this.canvas.height
     );
-    this.imgBuffer = this.image.data;
+    this.data = this.image.data;
     return this;
   }
 
   /**
    *
-   * @param {*} lambda: (Color,x:number,y:number) => Color
+   * @param {(Color, Number, Number) => Color} lambda
+   * @returns {Canvas}
    */
   map(lambda = () => {}) {
-    const n = this.imgBuffer.length;
+    const n = this.data.length;
     const { width: w } = this.canvas;
     for (let i = 0; i < n; i += 4) {
       const x = Math.floor(i / (4 * w));
       const y = Math.floor(i / 4) % w;
       const color = lambda(
         Color.ofRGBA(
-          this.imgBuffer[i],
-          this.imgBuffer[i + 1],
-          this.imgBuffer[i + 2],
-          this.imgBuffer[i + 3]
+          this.data[i],
+          this.data[i + 1],
+          this.data[i + 2],
+          this.data[i + 3]
         ),
         x,
         y
       );
-      this.imgBuffer[i] = color.red;
-      this.imgBuffer[i + 1] = color.green;
-      this.imgBuffer[i + 2] = color.blue;
-      this.imgBuffer[i + 3] = color.alpha;
+      this.data[i] = color.red;
+      this.data[i + 1] = color.green;
+      this.data[i + 2] = color.blue;
+      this.data[i + 3] = color.alpha;
     }
     return this;
   }
 
   /**
    * Return pxl color at (i,j)
-   * @param {*} i: integer \in [0,H-1]
-   * @param {*} j: integer \in [0,W-1]
-   * @returns color
+   * @param {Number} i: integer \in [0,H-1]
+   * @param {Number} j: integer \in [0,W-1]
+   * @returns {Color}
    */
   getPxl(i, j) {
     const { width, height } = this.canvas;
-    if ((i < 0 || i >= height) && (j < 0 || j >= width))
-      return new CanvasException("pxl out of bounds");
+    if (i < 0 || i >= height || j < 0 || j >= width) return undefined;
     const index = 4 * (i * width + j);
     return Color.ofRGBA(
       this.imgBuffer[index],
@@ -129,29 +130,28 @@ export default class Canvas {
       this.imgBuffer[index + 3]
     );
   }
-
   /**
    * Set pxl color at (i,j)
-   * @param {*} i: integer \in [0,H-1]
-   * @param {*} j: integer \in [0,W-1]
-   * @param {*} color
+   * @param {Number} i: integer \in [0,H-1]
+   * @param {Number} j: integer \in [0,W-1]
+   * @param {Color} color
    */
   setPxl(i, j, color) {
     const { width, height } = this.canvas;
-    if ((i < 0 || i >= height) && (j < 0 || j >= width)) return this;
+    if (i < 0 || i >= height || j < 0 || j >= width) return this;
     const index = 4 * (i * width + j);
-    this.imgBuffer[index] = color.red;
-    this.imgBuffer[index + 1] = color.green;
-    this.imgBuffer[index + 2] = color.blue;
-    this.imgBuffer[index + 3] = color.alpha;
+    this.data[index] = color.red;
+    this.data[index + 1] = color.green;
+    this.data[index + 2] = color.blue;
+    this.data[index + 3] = color.alpha;
     return this;
   }
 
   /**
    *
-   * @param {*} start: 2-Array
-   * @param {*} end: 2-Array
-   * @param {}
+   * @param {Array<Number>} start: 2-Array
+   * @param {Array<Number>} end: 2-Array
+   * @param {Canvas}
    */
   drawLine(start, end, shader = (x, y) => Color.ofRGBA(0, 0, 0)) {
     // faster than using vec2
@@ -167,20 +167,20 @@ export default class Canvas {
       const [i, j] = x;
       const index = 4 * (i * width + j);
       const color = shader(i, j);
-      this.imgBuffer[index] = color.red;
-      this.imgBuffer[index + 1] = color.green;
-      this.imgBuffer[index + 2] = color.blue;
-      this.imgBuffer[index + 3] = color.alpha;
+      this.data[index] = color.red;
+      this.data[index + 1] = color.green;
+      this.data[index + 2] = color.blue;
+      this.data[index + 3] = color.alpha;
     }
     return this;
   }
 
   /**
    *
-   * @param {*} p0 : 2-array<number>
-   * @param {*} p1 : 2-array<number>
-   * @param {*} p2 : 2-array<number>
-   * @param {*} shader : (number, number) => Color
+   * @param {Array<Number>} p0 : 2-array<number>
+   * @param {Array<Number>} p1 : 2-array<number>
+   * @param {Array<Number>} p2 : 2-array<number>
+   * @param {(Number, Number) => Color} shader : (number, number) => Color
    * @returns
    */
   drawTriangle(p0, p1, p2, shader = (x, y) => Color.ofRGBA(0, 0, 0)) {
@@ -219,10 +219,10 @@ export default class Canvas {
         if (this._isInsideConvex([i, j], arrayOfPoints)) {
           const color = shader(i, j);
           const index = 4 * (i * width + j);
-          this.imgBuffer[index] = color.red;
-          this.imgBuffer[index + 1] = color.green;
-          this.imgBuffer[index + 2] = color.blue;
-          this.imgBuffer[index + 3] = color.alpha;
+          this.data[index] = color.red;
+          this.data[index + 1] = color.green;
+          this.data[index + 2] = color.blue;
+          this.data[index + 3] = color.alpha;
         }
       }
     }
@@ -396,5 +396,3 @@ export class CanvasBuilder {
     return new Canvas(this._canvas);
   }
 }
-
-export class CanvasException extends Error {}
