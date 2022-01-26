@@ -15,6 +15,13 @@ export default class Animator {
     return this;
   }
 
+  run() {
+    while (this.while(this.state)) {
+      this.state = this.next(this.state);
+    }
+    return this;
+  }
+
   stop() {
     cancelAnimationFrame(this.requestAnimeId);
     return this;

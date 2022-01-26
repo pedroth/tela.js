@@ -57,11 +57,11 @@ class RowBuilder {
   }
 
   build() {
-    if (this.rows.length > 0) return this.#buildWithRows();
+    if (this.rows.length > 0) return this._buildWithRows();
     throw new MatrixError("Building empty matrix");
   }
 
-  #buildWithRows() {
+  _buildWithRows() {
     const rows = this.rows.length;
     const cols = this.dim;
     const data = new Float64Array(rows * cols);
@@ -121,8 +121,8 @@ class ColBuilder {
 export default class Matrix {
   /**
    *
-   * @param {*} data: Float64Array; Matrix data in major row format
-   * @param {*} shape: 2-array [rows,columns]
+   * @param {Float64Array} data: Matrix data in major row format
+   * @param {Array} shape: 2-array [rows,columns]
    */
   constructor(data, shape) {
     this.data = data;
@@ -303,6 +303,14 @@ export default class Matrix {
 
   static ZERO(n, m = 1) {
     return Matrix.builder().size(n, m).build();
+  }
+
+  static random(n, m = 1) {
+    const data = new Float64Array(n * m);
+    for (let i = 0; i < data.length; i++) {
+      data[i] = Math.random();
+    }
+    return new Matrix(data, [n, m]);
   }
 
   static builder() {

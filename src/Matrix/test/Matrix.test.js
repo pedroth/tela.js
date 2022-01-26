@@ -77,28 +77,25 @@ test("test reduce", () => {
 });
 
 test("test get performance", () => {
-  const n = 100000;
-  const d = 3;
-  const v = Matrix.vec(1, 2, 3);
-  const u = [1, 2, 3];
-  console.log(
-    "Matrix",
-    perf(() => {
-      for (let i = 0; i < n; i++) {
-        const r = ~~(Math.random() * d);
-        v.get(r);
-      }
-    })
-  );
-  console.log(
-    "Array",
-    perf(() => {
-      for (let i = 0; i < n; i++) {
-        const r = ~~(Math.random() * d);
-        u[r];
-      }
-    })
-  );
+  const n = 100000000;
+  const d = n;
+  const v = Matrix.random(d);
+  const u = new Float64Array(d).map(Math.random);
+  const matrixPerf = perf(() => {
+    for (let i = 0; i < n; i++) {
+      const r = ~~(Math.random() * d);
+      v.get(r);
+    }
+  });
+  const arrayPerf = perf(() => {
+    for (let i = 0; i < n; i++) {
+      const r = ~~(Math.random() * d);
+      u[r];
+    }
+  });
+  console.log("Matrix", matrixPerf);
+  console.log("Array", arrayPerf);
+  console.log("matrix / array", matrixPerf / arrayPerf)
 });
 
 test("test equality", () => {

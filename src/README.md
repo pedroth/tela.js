@@ -4,7 +4,7 @@ Graphic engine from scratch in javascript, with reference implementation of comp
 
 # What is a graphic engine?
 
-- A graphic engine, is something that enables the creation of images with a computer. Graphic engines generate images in 2D space, although is possible to visualize higher dimensions using projections to the plane. Famous projections to 3D space include perspective and orthographic projection. Using basic primitives, such as lines and triangles we are able to render the real world. By being able to generate images so quickly, it is possible to generate movies and interactive applications.
+A graphic engine, is something that enables the creation of images with a computer. An Image is in a abstract sense a function from the plane to the space of colors. Through the usage of basic primitives, such as lines and triangles the engine is capable of rendering the real world. A graphic engine is also able to generate movies by creating a sequence of images.
 
 # Features
 
@@ -41,6 +41,8 @@ Graphic engine from scratch in javascript, with reference implementation of comp
   - Image composition
   - Scene / Geometry manager
   - Modular architecture
+
+# Usage
 
 # Dependencies
 
