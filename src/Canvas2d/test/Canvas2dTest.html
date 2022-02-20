@@ -23,8 +23,8 @@
     });
 
     test("Test fill", (canvas) => {
-      canvas.fill(Color.ofRGBA(0, 0, 255));
-      canvas.fill(Color.ofRGBA(255, 0, 0, 100));
+      canvas.fill(Color.ofRGBA(0, 0, 1));
+      canvas.fill(Color.ofRGBA(1, 0, 0, 0.1));
     });
 
     test("Test map", (canvas) => {
@@ -32,15 +32,13 @@
     });
 
     test("Test map with coordinates", (canvas) => {
-      canvas
-        .map((c, x, y) => Color.ofRGBA((x + 1) * 255, (y + 1) * 255, 0))
-        .paint();
+      canvas.map((c, x, y) => Color.ofRGBA(x + 1, y + 1, 0)).paint();
     });
 
     test("Test get and set pxl", (canvas) => {
       canvas
         .fill(Color.ofRGBA(0, 0, 0))
-        .setPxl(0.25, 0.4, Color.ofRGBA(255, 0, 0))
+        .setPxl(0.25, 0.4, Color.ofRGBA(1, 0, 0))
         .paint();
       const color = canvas.getPxl(0.25, 0.4);
       canvas.setPxl(0.75, 0.4, color).setPxl(-1, 3, color).paint();
@@ -48,8 +46,8 @@
 
     test("Test draw line", (canvas) => {
       const { width, height } = canvas.canvas;
-      const red = (i, j) => Color.ofRGBA(255, 0, 0);
-      const green = (i, j) => Color.ofRGBA(0, 255, 0);
+      const red = (i, j) => Color.ofRGBA(1, 0, 0);
+      const green = (i, j) => Color.ofRGBA(0, 1, 0);
       canvas.fill(Color.ofRGBA(0, 0, 0));
       canvas
         .drawLine([0, 0], [1, 1], red)
@@ -59,9 +57,9 @@
     });
 
     test("Test draw triangle", (canvas) => {
-      const red = (i, j) => Color.ofRGBA(255, 0, 0);
-      const green = (i, j) => Color.ofRGBA(0, 255, 0);
-      const blue = (i, j) => Color.ofRGBA(0, 0, 255);
+      const red = (i, j) => Color.ofRGBA(1, 0, 0);
+      const green = (i, j) => Color.ofRGBA(0, 1, 0);
+      const blue = (i, j) => Color.ofRGBA(0, 0, 1);
       canvas
         .drawTriangle([-1, -1], [1, -1], [1, 1], red)
         .drawTriangle([1, 1], [-1, 1], [-1, -1], green)
