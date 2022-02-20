@@ -59,7 +59,7 @@ class ImageBuffer {
       return undefined;
     }
     const index = 4 * (i * width + j);
-    return Color.ofRGBA(
+    return Color.ofRGBARaw(
       this.data[index],
       this.data[index + 1],
       this.data[index + 2],
@@ -101,7 +101,7 @@ class ImageBuffer {
       const x = Math.floor(i / (4 * w));
       const y = Math.floor(i / 4) % w;
       const color = lambda(
-        Color.ofRGBA(
+        Color.ofRGBARaw(
           this.data[i],
           this.data[i + 1],
           this.data[i + 2],

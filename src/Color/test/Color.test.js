@@ -1,15 +1,15 @@
 import Color from "../main/Color";
 
 test("test creation", () => {
-  const c = Color.ofRGBA(255, 255, 255);
+  const c = Color.ofRGBA(1, 1, 1);
   expect(c.getRGBA()).toStrictEqual(Uint8Array.from([255, 255, 255, 255]));
 });
 
 test("test get rgba", () => {
-  const c = Color.ofRGBA(1, 2, 3);
-  expect(c.red).toStrictEqual(1);
-  expect(c.green).toStrictEqual(2);
-  expect(c.blue).toStrictEqual(3);
+  const c = Color.ofRGBA(0.1, 0.2, 0.3);
+  expect(c.red).toStrictEqual(Math.floor(0.1 * 255));
+  expect(c.green).toStrictEqual(Math.floor(0.2 * 255));
+  expect(c.blue).toStrictEqual(Math.floor(0.3 * 255));
   expect(c.alpha).toStrictEqual(255);
 });
 

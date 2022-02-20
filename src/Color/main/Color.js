@@ -1,3 +1,5 @@
+const MAX_8BIT = 255;
+
 export default class Color {
   /**
    *
@@ -41,7 +43,16 @@ export default class Color {
     return true;
   }
 
-  static ofRGBA(red = 0, green = 0, blue = 0, alpha = 255) {
+  static ofRGBA(red = 0, green = 0, blue = 0, alpha = 1) {
+    const rgba = new Uint8Array(4);
+    rgba[0] = red * MAX_8BIT;
+    rgba[1] = green * MAX_8BIT;
+    rgba[2] = blue * MAX_8BIT;
+    rgba[3] = alpha * MAX_8BIT;
+    return new Color(rgba);
+  }
+
+  static ofRGBARaw(red = 0, green = 0, blue = 0, alpha = 255) {
     const rgba = new Uint8Array(4);
     rgba[0] = red;
     rgba[1] = green;
@@ -55,9 +66,9 @@ export default class Color {
     return Color.ofRGBA(r(), r(), r(), r());
   }
 
-  static RED = Color.ofRGBA(255, 0, 0);
-  static GREEN = Color.ofRGBA(0, 255, 0);
-  static BLUE = Color.ofRGBA(0, 0, 255);
+  static RED = Color.ofRGBA(1, 0, 0);
+  static GREEN = Color.ofRGBA(0, 1, 0);
+  static BLUE = Color.ofRGBA(0, 0, 1);
   static BLACK = Color.ofRGBA(0, 0, 0);
-  static WHITE = Color.ofRGBA(255, 255, 255);
+  static WHITE = Color.ofRGBA(1, 1, 1);
 }

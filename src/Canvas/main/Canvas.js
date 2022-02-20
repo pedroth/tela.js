@@ -15,8 +15,6 @@ const { vec2 } = Matrix;
  v x
 
  H-1
- */
-
 /*
 
 The point xe_1 + ye_2 corresponds to a point in the middle of a pxl.
@@ -96,7 +94,7 @@ export default class Canvas {
       const x = Math.floor(i / (4 * w));
       const y = Math.floor(i / 4) % w;
       const color = lambda(
-        Color.ofRGBA(
+        Color.ofRGBARaw(
           this.data[i],
           this.data[i + 1],
           this.data[i + 2],
@@ -123,7 +121,7 @@ export default class Canvas {
     const { width, height } = this.canvas;
     if (i < 0 || i >= height || j < 0 || j >= width) return undefined;
     const index = 4 * (i * width + j);
-    return Color.ofRGBA(
+    return Color.ofRGBARaw(
       this.imgBuffer[index],
       this.imgBuffer[index + 1],
       this.imgBuffer[index + 2],

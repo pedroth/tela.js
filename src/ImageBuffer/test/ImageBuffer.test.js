@@ -18,8 +18,7 @@ test("test get and set", () => {
 
 test("test map", () => {
   const img = ImageBuffer.builder().width(2).height(2).build();
-  const nextImg = img.map((c, x, y) => Color.ofRGBA(x * 255, y * 255, 0));
-  console.log(nextImg.data);
+  const nextImg = img.map((c, x, y) => Color.ofRGBA(x, y, 0));
   expect(nextImg.data).toStrictEqual(
     Uint8Array.from([
       0, 0, 0, 255, 0, 255, 0, 255, 255, 0, 0, 255, 255, 255, 0, 255,
@@ -29,8 +28,7 @@ test("test map", () => {
 
 test("test draw line", () => {
   const img = ImageBuffer.builder().width(2).height(2).build();
-  const nextImg = img.map((c, x, y) => Color.ofRGBA(x * 255, y * 255, 0));
-  console.log(nextImg.data);
+  const nextImg = img.map((c, x, y) => Color.ofRGBA(x, y, 0));
   expect(nextImg.data).toStrictEqual(
     Uint8Array.from([
       0, 0, 0, 255, 0, 255, 0, 255, 255, 0, 0, 255, 255, 255, 0, 255,

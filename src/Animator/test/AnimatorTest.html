@@ -1,194 +1,282 @@
 <!DOCTYPE html>
 <html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Animator Test</title>
+    <script src="../../../dist/index.js"></script>
+  </head>
 
-<head>
-  <meta charset="UTF-8" />
-  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Animator Test</title>
-  <script src="../../../dist/index.js"></script>
-</head>
+  <body></body>
+  <script>
+    const { Utils, Canvas, Canvas2d, Color, Animator, Matrix, BBox } = Tela;
+    const { vec2 } = Matrix;
+    const { perf, testBuilder } = Utils;
+    const test = testBuilder(() => {
+      const width = 400;
+      const height = 300;
+      return Canvas.builder().width(width).height(height).build();
+    });
 
-<body></body>
-<script>
-  const { Utils, Canvas, Canvas2d, Color, Animator, Matrix, BBox } = Tela;
-  const { vec2 } = Matrix;
-  const { perf, testBuilder } = Utils;
-  const test = testBuilder(() => {
-    const width = 400;
-    const height = 300;
-    return Canvas.builder().width(width).height(height).build();
-  });
+    /**
+     * Simple animation shader
+     * */
+    // test("Test animation", (canvas) => {
+    //   const T = 20;
+    //   const { width, height } = canvas.canvas;
+    //   Animator.builder()
+    //     .initialState({ time: 0, oldT: new Date().getTime() })
+    //     .nextState(({ time, oldT }) => {
+    //       const newT = new Date().getTime();
+    //       const dt = (newT - oldT) * 1e-3;
+    //       canvas
+    //         .map((c, x, y) => {
+    //           let px = (y * time) / (width - 1);
+    //           let py = ((height - 1 - x) * time) / (height - 1);
+    //           return Color.ofRGBA(px * 255, py * 255, 0);
+    //         })
+    //         .paint();
+    //       return { time: time + dt, oldT: newT };
+    //     })
+    //     .while(({ time }) => time <= T)
+    //     .build()
+    //     .play();
+    // });
 
-  /**
-   * Simple animation shader
-   * */
-  test("Test animation", (canvas) => {
-    const T = 20;
-    const { width, height } = canvas.canvas;
-    Animator.builder()
-      .initialState({ time: 0, oldT: new Date().getTime() })
-      .nextState(({ time, oldT }) => {
-        const newT = new Date().getTime();
-        const dt = (newT - oldT) * 1e-3;
-        canvas
-          .map((c, x, y) => {
-            let px = (y * time) / (width - 1);
-            let py = ((height - 1 - x) * time) / (height - 1);
-            return Color.ofRGBA(px * 255, py * 255, 0);
-          })
-          .paint();
-        return { time: time + dt, oldT: newT };
-      })
-      .while(({ time }) => time <= T)
-      .build()
-      .play();
-  });
+    /**
+     * Rotating grid shader
+     **/
+    // test("Test shader toy", (canvas) => {
+    //   const T = 20;
+    //   const { width, height } = canvas;
+    //   const step = (threshold) => (x) => x < threshold ? 0 : 1;
+    //   const mod = (x) => (n) => ((x % n) + n) % n;
+    //   Animator.builder()
+    //     .initialState({ time: 0, oldT: new Date().getTime() })
+    //     .nextState(({ time, oldT }) => {
+    //       const newT = new Date().getTime();
+    //       const dt = (newT - oldT) * 1e-3;
+    //       canvas
+    //         .map((c, x, y) => {
+    //           let u = y / (width - 1);
+    //           let v = (height - 1 - x) / (height - 1);
+    //           const grid = 10;
+    //           u *= grid;
+    //           v *= grid;
+    //           const t = 0.1 * time;
+    //           u_t = Math.cos(t) * u + Math.sin(t) * v;
+    //           v_t = -Math.sin(t) * u + Math.cos(t) * v;
+    //           const color =
+    //             (1 - step(0.95)(mod(u_t)(1))) * (1 - step(0.95)(mod(v_t)(1)));
+    //           return Color.ofRGBA(255 * color, 255 * color, 255 * color);
+    //         })
+    //         .paint();
+    //       return { time: time + dt, oldT: newT };
+    //     })
+    //     .while(({ time }) => time <= T)
+    //     .build()
+    //     .play();
+    // });
 
-  /**
-   * Rotating grid shader
-   **/
-  test("Test shader toy", (canvas) => {
-    const T = 20;
-    const { width, height } = canvas;
-    const step = (threshold) => (x) => x < threshold ? 0 : 1;
-    const mod = (x) => (n) => ((x % n) + n) % n;
-    Animator.builder()
-      .initialState({ time: 0, oldT: new Date().getTime() })
-      .nextState(({ time, oldT }) => {
-        const newT = new Date().getTime();
-        const dt = (newT - oldT) * 1e-3;
-        canvas
-          .map((c, x, y) => {
-            let u = y / (width - 1);
-            let v = (height - 1 - x) / (height - 1);
-            const grid = 10;
-            u *= grid;
-            v *= grid;
-            const t = 0.1 * time;
-            u_t = Math.cos(t) * u + Math.sin(t) * v;
-            v_t = -Math.sin(t) * u + Math.cos(t) * v;
-            const color =
-              (1 - step(0.95)(mod(u_t)(1))) * (1 - step(0.95)(mod(v_t)(1)));
-            return Color.ofRGBA(255 * color, 255 * color, 255 * color);
-          })
-          .paint();
-        return { time: time + dt, oldT: newT };
-      })
-      .while(({ time }) => time <= T)
-      .build()
-      .play();
-  });
+    // Rope simulation
+    // testBuilder(() => {
+    //   const width = 400;
+    //   const height = 300;
+    //   return Canvas2d.builder().width(width).height(height).build();
+    // })("Test rope physics", (canvas) => {
+    //   const T = 100;
+    //   const n = 30;
+    //   const delta = 2 / n;
+    //   const deltaRec = 1 / delta;
+    //   const friction = 0.1;
+    //   const gravity = -0.09;
+    //   const amp = 0.5;
+    //   const waveSpeed = 2;
+    //   const freq = 0.3;
+    //   const stopWaveTime = 10;
+    //   let rope = [...new Array(n)].map((x, i) => (i === 0 ? 0.8 : 0));
+    //   let ropeSpeed = [...new Array(n)].map((x, i) => 0);
+    //   Animator.builder()
+    //     .initialState({ time: 0, oldT: new Date().getTime() })
+    //     .nextState(({ time, oldT }) => {
+    //       const newT = new Date().getTime();
+    //       const dt = (newT - oldT) * 1e-3;
+    //       let xi = -1;
+    //       canvas.fill();
+    //       // draw rope
+    //       for (let i = 0; i < n - 1; i++) {
+    //         const xii = xi + delta;
+    //         canvas.drawLine([xi, rope[i]], [xii, rope[i + 1]], (i, j) =>
+    //           Color.ofRGBA(0, 0, 0)
+    //         );
+    //         xi = xii;
+    //       }
+    //       canvas.paint();
+    //       /**
+    //        * Sympletic integration
+    //        **/
+    //       // update speed
+    //       for (let i = 1; i < n - 1; i++) {
+    //         const laplacian = (+ rope[i + 1] + rope[i - 1] - 2 * rope[i]) * deltaRec;
+    //         ropeSpeed[i] = ropeSpeed[i] + dt * (waveSpeed * laplacian + gravity - friction * ropeSpeed[i]);
+    //       }
+    //       // update position
+    //       // update boundary
+    //       rope[0] = time < stopWaveTime ? amp * Math.sin(2 * Math.PI * freq * time) : 0;
+    //       rope[n - 1] = 0;
+    //       for (let i = 1; i < n - 1; i++) {
+    //         rope[i] = rope[i] + ropeSpeed[i] * dt;
+    //       }
 
-  // Rope simulation
-  testBuilder(() => {
-    const width = 400;
-    const height = 300;
-    return Canvas2d.builder().width(width).height(height).build();
-  })("Test rope physics", (canvas) => {
-    const T = 100;
-    const n = 30;
-    const delta = 2 / n;
-    const deltaRec = 1 / delta;
-    const friction = 0.1;
-    const gravity = -0.09;
-    const amp = 0.5;
-    const waveSpeed = 2;
-    const freq = 0.3;
-    const stopWaveTime = 10;
-    let rope = [...new Array(n)].map((x, i) => (i === 0 ? 0.8 : 0));
-    let ropeSpeed = [...new Array(n)].map((x, i) => 0);
-    Animator.builder()
-      .initialState({ time: 0, oldT: new Date().getTime() })
-      .nextState(({ time, oldT }) => {
-        const newT = new Date().getTime();
-        const dt = (newT - oldT) * 1e-3;
-        let xi = -1;
-        canvas.fill();
-        // draw rope
-        for (let i = 0; i < n - 1; i++) {
-          const xii = xi + delta;
-          canvas.drawLine([xi, rope[i]], [xii, rope[i + 1]], (i, j) =>
-            Color.ofRGBA(0, 0, 0)
-          );
-          xi = xii;
-        }
-        canvas.paint();
-        /**
-         * Sympletic integration
-         **/
-        // update speed
-        for (let i = 1; i < n - 1; i++) {
-          const laplacian = (-2 * rope[i] + rope[i + 1] + rope[i - 1]) * deltaRec;
-          ropeSpeed[i] = ropeSpeed[i] + dt * (waveSpeed * laplacian + gravity - friction * ropeSpeed[i]);
-        }
-        // update position
-        // update boundary
-        rope[0] = time < stopWaveTime ? amp * Math.sin(2 * Math.PI * freq * time) : 0;
-        rope[n - 1] = 0;
-        for (let i = 1; i < n - 1; i++) {
-          rope[i] = rope[i] + ropeSpeed[i] * dt;
-        }
+    //       return { time: time + dt, oldT: newT };
+    //     })
+    //     .while(({ time }) => time <= T)
+    //     .build()
+    //     .play();
+    // });
 
-        return { time: time + dt, oldT: newT };
-      })
-      .while(({ time }) => time <= T)
-      .build()
-      .play();
-  });
-
-  // wave shader simulation
-  testBuilder(() => {
-    const width = 100;
-    const height = 100;
-    return Canvas2d.builder().width(width).height(height).camera(new BBox(vec2.ZERO, vec2.of(1, 1))).build();
-  })("Test wave physics", (canvas) => {
-    const { width, height } = canvas;
-    const T = 100;
-    const dt = 0.1;
-    const N = Math.floor(T / dt)
-
-    worker = location.port === ""
-      ? new Worker("/tela.js/src/Animator/test/waveWorker.js")
-      : new Worker("/src/Animator/test/waveWorker.js");
-
-    worker.onmessage = ({ data }) => {
-      const { waveSnapshots } = data;
-      // render pre-computed waves
-      Animator.builder()
-        .initialState({ time: 0, oldT: new Date().getTime(), n: 0 })
-        .nextState(({ time, oldT, n }) => {
+    // wave simulation
+    testBuilder(() => {
+      const width = 100;
+      const height = 100;
+      return Canvas2d.builder()
+        .width(width)
+        .height(height)
+        .camera(new BBox(vec2.ZERO, vec2.of(1, 1)))
+        .build();
+    })("Test wave simulation", (canvas) => {
+      const mod = (n, m) => ((n % m) + m) % m;
+      const { width, height } = canvas;
+      const n = width;
+      const d2xRec = n * n;
+      const T = 100;
+      const friction = 0.1;
+      const amp = 100;
+      const waveScalarSpeed = 10;
+      const wave = [...new Array(height)].map((_, i) =>
+        new Float64Array(width).map((_, j) => {
+          const x = (j - width / 2) / width;
+          const y = (i - height / 2) / height;
+          return amp * Math.exp(-100 * (x * x + y * y));
+        })
+      );
+      const waveSpeed = [...new Array(height)].map(
+        () => new Float64Array(width)
+      );
+      const animation = Animator.builder()
+        .initialState({ time: 0, oldT: new Date().getTime() })
+        .nextState(({ time, oldT }) => {
           const newT = new Date().getTime();
-          const deltaT = Math.min((newT - oldT) * 1e-3, dt);
-          const indexT = Math.floor(time / deltaT);
-          const { wave, waveSpeed, maxWave, minWave, maxAbsSpeed } = waveSnapshots[n % N];
-          console.debug(maxWave, minWave, maxAbsSpeed)
+          const dt = (newT - oldT) * 1e-3;
+
+          let maxWave = Number.MIN_VALUE;
+          let minWave = Number.MAX_VALUE;
+          let maxAbsSpeed = Number.MIN_VALUE;
+          for (let i = 0; i < height; i++) {
+            for (let j = 0; j < width; j++) {
+              /**
+               * Sympletic integration
+               */
+              // update speed
+              const laplacian =
+                wave[i][mod(j + 1, width)] +
+                wave[i][mod(j - 1, width)] +
+                wave[mod(i + 1, height)][j] +
+                wave[mod(i - 1, height)][j] -
+                4 * wave[i][j];
+              const acceleration =
+                waveScalarSpeed * laplacian - friction * waveSpeed[i][j];
+              waveSpeed[i][j] = waveSpeed[i][j] + dt * acceleration;
+              // update position
+              wave[i][j] = wave[i][j] + dt * waveSpeed[i][j];
+
+              // get max min values of wave
+              maxWave = maxWave <= wave[i][j] ? wave[i][j] : maxWave;
+              minWave = minWave > wave[i][j] ? wave[i][j] : minWave;
+              const absSpeed = Math.abs(waveSpeed[i][j]);
+              maxAbsSpeed = maxAbsSpeed <= absSpeed ? absSpeed : maxAbsSpeed;
+            }
+          }
           canvas
             .map((c, x, y) => {
               let xi = Math.floor(x * (width - 1));
               let yi = Math.floor(y * (height - 1));
               const redColor = (wave[yi][xi] - minWave) / (maxWave - minWave);
-              const blueColor = 1 - (wave[yi][xi] - minWave) / (maxWave - minWave);
+              const blueColor =
+                1 - (wave[yi][xi] - minWave) / (maxWave - minWave);
               const greenColor = Math.abs(waveSpeed[yi][xi]) / maxAbsSpeed;
-              return Color.ofRGBA(255 * redColor, 255 * greenColor, 255 * blueColor);
+              return Color.ofRGBA(redColor, greenColor, blueColor);
             })
             .paint();
-          return { time: time + deltaT, oldT: newT, n: n + 1 };
+          return { time: time + dt, oldT: newT };
         })
-        .while(({ n }) => n < N)
-        .build()
-        .play();
-    }
+        .while(({ time }) => time <= T)
+        .build();
+      setTimeout(() => {
+        animation.play();
+      }, 1);
+    });
 
-    worker.postMessage({
-      T,
-      dt,
-      width, height,
-      amp: 100,
-      friction: 0.1,
-      waveScalarSpeed: 10,
-    })
-  });
-</script>
+    // wave shader simulation
+    testBuilder(() => {
+      const width = 100;
+      const height = 100;
+      return Canvas2d.builder()
+        .width(width)
+        .height(height)
+        .camera(new BBox(vec2.ZERO, vec2.of(1, 1)))
+        .build();
+    })("Test wave physics", (canvas) => {
+      const { width, height } = canvas;
+      const T = 100;
+      const dt = 0.1;
+      const N = Math.floor(T / dt);
 
+      worker =
+        location.port === ""
+          ? new Worker("/tela.js/src/Animator/test/waveWorker.js")
+          : new Worker("/src/Animator/test/waveWorker.js");
+
+      worker.onmessage = ({ data }) => {
+        const { waveSnapshots } = data;
+        // render pre-computed waves
+        Animator.builder()
+          .initialState({ time: 0, oldT: new Date().getTime(), n: 0 })
+          .nextState(({ time, oldT, n }) => {
+            const newT = new Date().getTime();
+            const deltaT = Math.min((newT - oldT) * 1e-3, dt);
+            const indexT = Math.floor(time / deltaT);
+            const { wave, waveSpeed, maxWave, minWave, maxAbsSpeed } =
+              waveSnapshots[n % N];
+            console.debug(maxWave, minWave, maxAbsSpeed);
+            canvas
+              .map((c, x, y) => {
+                let xi = Math.floor(x * (width - 1));
+                let yi = Math.floor(y * (height - 1));
+                const redColor = (wave[yi][xi] - minWave) / (maxWave - minWave);
+                const blueColor =
+                  1 - (wave[yi][xi] - minWave) / (maxWave - minWave);
+                const greenColor = Math.abs(waveSpeed[yi][xi]) / maxAbsSpeed;
+                return Color.ofRGBA(redColor, greenColor, blueColor);
+              })
+              .paint();
+            return { time: time + deltaT, oldT: newT, n: n + 1 };
+          })
+          .while(({ n }) => n < N)
+          .build()
+          .play();
+      };
+
+      worker.postMessage({
+        T,
+        dt,
+        width,
+        height,
+        amp: 100,
+        friction: 0.1,
+        waveScalarSpeed: 10,
+      });
+    });
+  </script>
 </html>
