@@ -1,9 +1,8 @@
-let window = {};
-if (location.port === "") importScripts("/tela.js/dist/index.js");
-else importScripts("/dist/index.js");
+const isGithub = location.host === "pedroth.github.io";
+const BASE_URL = isGithub ? "/tela.js" : ""
 
-const { Animator } = window.Tela;
-
+await import(BASE_URL + "/dist/index.js");
+const {Animator} = Tela;
 const mod = (n, m) => ((n % m) + m) % m;
 
 const waveSimulation = ({

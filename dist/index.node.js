@@ -1,2 +1,2486 @@
-!function(t){var e={};function n(r){if(e[r])return e[r].exports;var i=e[r]={i:r,l:!1,exports:{}};return t[r].call(i.exports,i,i.exports,n),i.l=!0,i.exports}n.m=t,n.c=e,n.d=function(t,e,r){n.o(t,e)||Object.defineProperty(t,e,{enumerable:!0,get:r})},n.r=function(t){"undefined"!=typeof Symbol&&Symbol.toStringTag&&Object.defineProperty(t,Symbol.toStringTag,{value:"Module"}),Object.defineProperty(t,"__esModule",{value:!0})},n.t=function(t,e){if(1&e&&(t=n(t)),8&e)return t;if(4&e&&"object"==typeof t&&t&&t.__esModule)return t;var r=Object.create(null);if(n.r(r),Object.defineProperty(r,"default",{enumerable:!0,value:t}),2&e&&"string"!=typeof t)for(var i in t)n.d(r,i,function(e){return t[e]}.bind(null,i));return r},n.n=function(t){var e=t&&t.__esModule?function(){return t.default}:function(){return t};return n.d(e,"a",e),e},n.o=function(t,e){return Object.prototype.hasOwnProperty.call(t,e)},n.p="",n(n.s=11)}([function(t,e){t.exports=require("@babel/runtime/helpers/esm/defineProperty")},function(t,e){t.exports=require("@babel/runtime/helpers/esm/slicedToArray")},function(t,e){t.exports=require("@babel/runtime/helpers/esm/classCallCheck")},function(t,e){t.exports=require("@babel/runtime/helpers/esm/createClass")},function(t,e){t.exports=require("@babel/runtime/helpers/esm/toConsumableArray")},function(t,e){t.exports=require("@babel/runtime/helpers/esm/getPrototypeOf")},function(t,e){t.exports=require("@babel/runtime/helpers/esm/get")},function(t,e){t.exports=require("@babel/runtime/helpers/esm/inherits")},function(t,e){t.exports=require("@babel/runtime/helpers/esm/possibleConstructorReturn")},function(t,e){t.exports=require("@babel/runtime/helpers/esm/wrapNativeSuper")},function(t,e){t.exports=require("@babel/runtime/helpers/esm/assertThisInitialized")},function(t,e,n){"use strict";n.r(e),n.d(e,"Canvas_old",(function(){return y})),n.d(e,"Canvas2D_old",(function(){return b})),n.d(e,"ImageIO",(function(){return a})),n.d(e,"Canvas",(function(){return J})),n.d(e,"Canvas2d",(function(){return lt})),n.d(e,"Color",(function(){return S})),n.d(e,"Utils",(function(){return r})),n.d(e,"Animator",(function(){return rt})),n.d(e,"Matrix",(function(){return V})),n.d(e,"BBox",(function(){return X}));var r={};n.r(r),n.d(r,"perf",(function(){return tt})),n.d(r,"testBuilder",(function(){return et}));var i={getImageCanvas:function(t){var e=document.createElement("canvas");e.width=t.width,e.height=t.height;var n=e.getContext("2d");return n.fillStyle="rgba(0, 0, 0, 0)",n.globalCompositeOperation="source-over",n.fillRect(0,0,e.width,e.height),n.drawImage(t,0,0),e},getDataFromImage:function(t){return canvas=i.getImageCanvas(t),canvas.getContext("2d").getImageData(0,0,t.width,t.height)},loadImage:function(t){var e=new Image;return e.src=t,e.isReady=!1,e.onload=function(){return e.isReady=!0},e},generateImageReadyPredicate:function(t){return function(){return t.isReady}}},a=i;function o(t,e){var n=[];return n[0]=t[0]+e[0],n[1]=t[1]+e[1],n}function u(t){var e=[];return e[0]=Math.floor(t[0]),e[1]=Math.floor(t[1]),e}function s(t,e){var n=[];return n[0]=t[0]-e[0],n[1]=t[1]-e[1],n}function h(t,e){return t[0]*e[0]+t[1]*e[1]}function c(t){return h(t,t)}function l(t){return Math.sqrt(h(t,t))}function f(t,e){var n=[];return n[0]=Math.min(t[0],e[0]),n[1]=Math.min(t[1],e[1]),n}function v(t,e){var n=[];return n[0]=Math.max(t[0],e[0]),n[1]=Math.max(t[1],e[1]),n}function d(t,e,n){var r=n[1]/t[1];return[r,(-t[0]*r+n[0])/e]}function p(t,e,n){var r=n[0]/t[0];return[r,(-t[1]*r+n[1])/e]}var g,m=function(t){this.canvas=t,this.ctx=t.getContext("2d"),this.image=this.ctx.getImageData(0,0,t.width,t.height),this.imageData=this.image.data};m.prototype.getSize=function(){return[this.canvas.height,this.canvas.width]},m.prototype.paintImage=function(){this.ctx.putImageData(this.image,0,0)},m.prototype.getCanvas=function(){return this.canvas},m.prototype.clearImage=function(t){this.useCanvasCtx((function(e){var n=e.getSize();e.ctx.fillStyle="rgba("+t[0]+","+t[1]+","+t[2]+","+t[3]+")",e.ctx.globalCompositeOperation="source-over",e.ctx.fillRect(0,0,n[1],n[0])}),!0)},m.prototype.useCanvasCtx=function(t){var e=arguments.length>1&&void 0!==arguments[1]&&arguments[1];e||this.ctx.putImageData(this.image,0,0),t(this),this.image=this.ctx.getImageData(0,0,this.canvas.width,this.canvas.height),this.imageData=this.image.data},m.prototype.getImageIndex=function(t){return 4*(this.canvas.width*t[0]+t[1])},m.prototype.getPxl=function(t){var e=this.getImageIndex(t);return[this.imageData[e],this.imageData[e+1],this.imageData[e+2],this.imageData[e+3]]},m.prototype.drawPxl=function(t,e){var n=this.getImageIndex(t);this.imageData[n]=e[0],this.imageData[n+1]=e[1],this.imageData[n+2]=e[2],this.imageData[n+3]=e[3]},m.prototype.drawLine=function(t,e,n){n.points=[t,e];var r=[];r.push(t),r.push(e);for(var i=[],a=[],o=0;o<r.length;o++){0<=(f=r[o])[0]&&f[0]<this.canvas.height&&0<=f[1]&&f[1]<this.canvas.width?i.push(f):a.push(f)}if(2!=i.length){var u=[],c=[e[0]-t[0],e[1]-t[1]];u.push(d(c,-(this.canvas.height-1),[-t[0],-t[1]])),u.push(p(c,-(this.canvas.width-1),[this.canvas.height-1-t[0],-t[1]])),u.push(d(c,this.canvas.height-1,[this.canvas.height-1-t[0],this.canvas.width-1-t[1]])),u.push(p(c,this.canvas.width-1,[-t[0],this.canvas.width-1-t[1]]));var l=[];for(o=0;o<u.length;o++){var f;0<=(f=u[o])[0]&&f[0]<=1&&0<=f[1]&&f[1]<=1&&l.push(f)}if(0!=l.length)if(i.length>0){var v=[t[0]+l[0][0]*c[0],t[1]+l[0][0]*c[1]];this.drawLineInt(i.pop(),v,n)}else{var g=[t[0]+l[0][0]*c[0],t[1]+l[0][0]*c[1]];for(o=1;o<l.length;o++){if(h(c=s(v=[t[0]+l[o][0]*c[0],t[1]+l[o][0]*c[1]],g),c)>.001)return void this.drawLineInt(g,v,n)}this.drawLineInt(g,g,n)}}else this.drawLineInt(i[0],i[1],n)},m.prototype.drawLineInt=function(t,e,n){t=u(t),e=u(e);var r=[-1,0,1],i=r.length,a=i*i,c=[];c[0]=t[0],c[1]=t[1];var l=s(e,t),f=[];for(f[0]=-l[1],f[1]=l[0],n(c,n.points,this);c[0]!==e[0]||c[1]!==e[1];){for(var v=Number.MAX_VALUE,d=[],p=0;p<a;p++){var g=r[p%i],m=r[Math.floor(p/i)],y=s(o(c,[g,m]),t),w=Math.abs(h(y,f))-h(y,l);v>w&&(v=w,d=[g,m])}n(c=o(c,d),n.points,this)}n(c,n.points,this)},m.prototype.drawPolygon=function(t,e){for(var n=arguments.length>2&&void 0!==arguments[2]?arguments[2]:m.isInsidePolygon,r=[[Number.MAX_VALUE,Number.MAX_VALUE],[Number.MIN_VALUE,Number.MIN_VALUE]],i=0;i<t.length;i++)r[0]=f(t[i],r[0]),r[1]=v(t[i],r[1]);var a=this.getSize(),o=s(a,[1,1]),h=[0,0];r[0]=u(f(o,v(h,r[0]))),r[1]=u(f(o,v(h,r[1])));for(var c=r[0][0];c<r[1][0];c++)for(var l=r[0][1];l<r[1][1];l++){var d=[c,l];n(d,t)&&e(d,t,this)}},m.prototype.drawTriangle=function(t,e,n,r){var i=[t,e,n];this.drawPolygon(i,r,m.isInsideConvex)},m.prototype.drawQuad=function(t,e,n,r,i){this.drawPolygon([t,e,n,r],i)},m.prototype.drawImage=function(t,e){"isReady"in t&&!t.isReady||this.useCanvasCtx((function(n){return n.ctx.drawImage(t,e[1],e[0])}))},m.prototype.drawCircle=function(t,e,n){var r=function(t,e){var n=[];return n[0]=t[0]*e,n[1]=t[1]*e,n}([1,1],e),i=[s(t,r),o(t,r)],a=this.getSize();i[0]=u(f(s(a,[1,1]),v([0,0],i[0]))),i[1]=u(f(s(a,[1,1]),v([0,0],i[1])));for(var h=i[0][0];h<=i[1][0];h++)for(var c=i[0][1];c<=i[1][1];c++){var l=[h,c];this.isInsideCircle(l,t,e)&&n(l,[t,e],this)}},m.prototype.isInsideCircle=function(t,e,n){return c(s(t,e))<=n*n},m.prototype.addEventListener=function(t,e,n){this.canvas.addEventListener(t,e,n)},m.prototype.drawString=function(t,e,n){this.useCanvasCtx((function(r){n(r.ctx),r.ctx.fillText(e,t[1],t[0])}))},m.isInsidePolygon=function(t,e){for(var n=[],r=0,i=e.length,a=0;a<i;a++)n[0]=s(e[(a+1)%i],t),n[1]=s(e[a],t),r+=Math.acos(h(n[0],n[1])/(l(n[0])*l(n[1])));return Math.abs(r-2*Math.PI)<.001},m.isInsideConvex=function(t,e){for(var n=e.length,r=[],i=[],a=0;a<n;a++){r[a]=s(e[(a+1)%n],e[a]);var o=[-r[a][1],r[a][0]],u=s(t,e[a]);i[a]=h(u,o)}var c=r[0][0]*r[1][1]-r[0][1]*r[1][0]>0?1:-1;for(a=0;a<n;a++){if(i[a]*c<0)return!1}return!0},m.simpleShader=function(t){return function(e,n,r){return r.drawPxl(e,t)}},m.colorShader=function(t){return m.interpolateTriangleShader((function(e,n,r,i){for(var a=[0,0,0,0],o=0;o<n.length;o++)a[0]=a[0]+t[o][0]*i[o],a[1]=a[1]+t[o][1]*i[o],a[2]=a[2]+t[o][2]*i[o],a[3]=a[3]+t[o][3]*i[o];r.drawPxl(e,a)}))},m.interpolateQuadShader=function(t){return function(e,n,r){var i=[n[0],n[1],n[2]],a=[n[2],n[3],n[0]],o=m.triangleBaryCoord(e,i);o[0]>0&&o[1]>0&&o[2]>0&&Math.abs(o[0]+o[1]+o[2]-1)<1e-10?t(e,n,r,[o[0],o[1],o[2],0]):(o=m.triangleBaryCoord(e,a),t(e,n,r,[o[2],0,o[0],o[1]]))}},m.interpolateTriangleShader=function(t){return function(e,n,r){var i=m.triangleBaryCoord(e,n);t(e,n,r,i)}},m.interpolateLineShader=function(t){return function(e,n,r){var i=s(n[1],n[0]),a=s(e,n[0]),o=c(i),u=h(a,i);t(e,n,r,0==o?0:u/o)}},m.quadTextureShader=function(t,e){var n=arguments.length>2&&void 0!==arguments[2]?arguments[2]:m.bilinearInterpolation,r=null,i=function(i,h,c,l){t.isReady&&null!=r||(r=new m(a.getImageCanvas(t)));for(var d=r,p=d.getSize(),g=[0,0],y=0;y<e.length;y++)g[0]=g[0]+e[y][0]*l[y],g[1]=g[1]+e[y][1]*l[y];var w=[(1-g[1])*(p[1]-1),(p[0]-1)*g[0]],b=u(w=v([0,0],f(s([p[0],p[1]],[1,1]),w))),x=[d.getPxl(b),d.getPxl(o(b,[1,0])),d.getPxl(o(b,[1,1])),d.getPxl(o(b,[0,1]))],k=n(x,s(w,b));c.drawPxl(i,k)};return m.interpolateQuadShader(i)},m.triangleCache=(g=[],{constains:function(t){return null!=g[t%3]},get:function(t){return g[t%3]},set:function(t,e){return g[t%3]=e}}),m.triangleHash=function(t){return[t[0][0],t[1][0],t[2][0],t[0][1],t[1][1],t[2][1]].reduce((function(t,e){return 31*t+e}),1)},m.triangleBaryCoord=function(t,e){var n=m.triangleHash(e),r=[t[0]-e[0][0],t[1]-e[0][1]];if(!m.triangleCache.constains(n)){var i=[e[1][0]-e[0][0],e[1][1]-e[0][1]],a=[e[2][0]-e[0][0],e[2][1]-e[0][1]],o=i[0]*a[1]-i[1]*a[0];m.triangleCache.set(n,{triangle:e,u:i.map((function(t){return t/o})),v:a.map((function(t){return t/o})),det:o,hash:n})}var u=m.triangleCache.get(n),s=u.u,h=u.v;if(0==u.det)return[0,0,0];var c=[h[1]*r[0]-h[0]*r[1],s[0]*r[1]-s[1]*r[0]];return[1-c[0]-c[1],c[0],c[1]]},m.bilinearInterpolation=function(t,e){for(var n=[],r=0;r<t.length;r++){var i=t[0][r]+(t[3][r]-t[0][r])*e[1],a=i+(t[1][r]+(t[2][r]-t[1][r])*e[1]-i)*e[0];n.push(a)}return n},m.createCanvas=function(t,e){var n=document.createElement("canvas");return n.setAttribute("width",t[0]),n.setAttribute("height",t[1]),document.getElementById(e).appendChild(n),n};var y=m,w=function(t,e){if(y.call(this,t),2!=e.length||2!=e[0].length&&2!=e[1].length)throw"camera space must be 2-dim array with 2-dim arrays representing an interval";this.cameraSpace=e};(w.prototype=Object.create(y.prototype)).constructor=w,w.prototype.integerTransform=function(t){return[-(this.canvas.height-1)/(this.cameraSpace[1][1]-this.cameraSpace[1][0])*(t[1]-this.cameraSpace[1][1]),(this.canvas.width-1)/(this.cameraSpace[0][1]-this.cameraSpace[0][0])*(t[0]-this.cameraSpace[0][0])]},w.prototype.inverseTransform=function(t){return[this.cameraSpace[0][0]+(this.cameraSpace[0][1]-this.cameraSpace[0][0])/(this.canvas.width-1)*t[1],this.cameraSpace[1][1]-(this.cameraSpace[1][1]-this.cameraSpace[1][0])/(this.canvas.height-1)*t[0]]},w.prototype.drawLine=function(t,e,n){var r=this.integerTransform(t),i=this.integerTransform(e);y.prototype.drawLine.call(this,r,i,n)},w.prototype.drawTriangle=function(t,e,n,r){var i=this.integerTransform(t),a=this.integerTransform(e),o=this.integerTransform(n);y.prototype.drawTriangle.call(this,i,a,o,r)},w.prototype.drawQuad=function(t,e,n,r,i){var a=this.integerTransform(t),o=this.integerTransform(e),u=this.integerTransform(n),s=this.integerTransform(r);y.prototype.drawQuad.call(this,a,o,u,s,i)},w.prototype.drawCircle=function(t,e,n){var r=this.integerTransform(t),i=this.integerTransform([e,0])[1]-this.integerTransform([0,0])[1];y.prototype.drawCircle.call(this,r,i,n)},w.prototype.drawImage=function(t,e){y.prototype.drawImage.call(this,t,this.integerTransform(e))},w.prototype.drawString=function(t,e,n){var r=this.integerTransform(t);y.prototype.drawString.call(this,r,e,n)},w.prototype.setCamera=function(t){if(2!=t.length||2!=t[0].length&&2!=t[1].length)throw"camera space must be 2-dim array with 2-dim arrays representing an interval";this.cameraSpace=t};var b=w,x=n(4),k=n.n(x),C=n(1),_=n.n(C),I=n(2),A=n.n(I),R=n(3),M=n.n(R),T=n(0),E=n.n(T),S=function(){function t(e){A()(this,t),this.rgba=e}return M()(t,[{key:"getRGBA",value:function(){return this.rgba}},{key:"red",get:function(){return this.rgba[0]}},{key:"green",get:function(){return this.rgba[1]}},{key:"blue",get:function(){return this.rgba[2]}},{key:"alpha",get:function(){return this.rgba[3]}},{key:"equals",value:function(t){for(var e=0;e<this.rgba.length;e++)if(this.rgba[e]!==t.rgba[e])return!1;return!0}}],[{key:"ofRGBA",value:function(){var e=arguments.length>0&&void 0!==arguments[0]?arguments[0]:0,n=arguments.length>1&&void 0!==arguments[1]?arguments[1]:0,r=arguments.length>2&&void 0!==arguments[2]?arguments[2]:0,i=arguments.length>3&&void 0!==arguments[3]?arguments[3]:1,a=new Uint8Array(4);return a[0]=255*e,a[1]=255*n,a[2]=255*r,a[3]=255*i,new t(a)}},{key:"ofRGBARaw",value:function(){var e=arguments.length>0&&void 0!==arguments[0]?arguments[0]:0,n=arguments.length>1&&void 0!==arguments[1]?arguments[1]:0,r=arguments.length>2&&void 0!==arguments[2]?arguments[2]:0,i=arguments.length>3&&void 0!==arguments[3]?arguments[3]:255,a=new Uint8Array(4);return a[0]=e,a[1]=n,a[2]=r,a[3]=i,new t(a)}},{key:"random",value:function(){var e=function(){return 256*Math.random()};return t.ofRGBA(e(),e(),e(),e())}}]),t}();E()(S,"RED",S.ofRGBA(1,0,0)),E()(S,"GREEN",S.ofRGBA(0,1,0)),E()(S,"BLUE",S.ofRGBA(0,0,1)),E()(S,"BLACK",S.ofRGBA(0,0,0)),E()(S,"WHITE",S.ofRGBA(1,1,1));var P=n(7),B=n.n(P),L=n(8),q=n.n(L),D=n(5),O=n.n(D),z=n(9),G=n.n(z);function F(t){var e=function(){if("undefined"==typeof Reflect||!Reflect.construct)return!1;if(Reflect.construct.sham)return!1;if("function"==typeof Proxy)return!0;try{return Boolean.prototype.valueOf.call(Reflect.construct(Boolean,[],(function(){}))),!0}catch(t){return!1}}();return function(){var n,r=O()(t);if(e){var i=O()(this).constructor;n=Reflect.construct(r,arguments,i)}else n=r.apply(this,arguments);return q()(this,n)}}var U=function(t,e){return function(t,n){return n+t*e}},N=function(t,e){return function(t){return[t/e,t%e].map(Math.floor)}},j=function(){function t(){A()(this,t),this._size=[],this.data={}}return M()(t,[{key:"size",value:function(t){var e=arguments.length>1&&void 0!==arguments[1]?arguments[1]:1;return this._size=[t,e],this}},{key:"set",value:function(t,e,n){if(0===this._size.length)throw new H("Setting value to empty matrix");return this.data[function(t,e){return"".concat(t,",").concat(e)}(t,e)]=n,this}},{key:"build",value:function(){var t=this,e=_()(this._size,2),n=e[0],r=e[1],i=new Float64Array(n*r),a=U(0,r);return Object.keys(this.data).forEach((function(e){var n;i[a.apply(void 0,k()((n=e,n.split(",").map(Number))))]=t.data[e]})),new V(i,this._size)}}]),t}(),Z=function(){function t(){A()(this,t),this.rows=[],this.dim=0}return M()(t,[{key:"addRow",value:function(){for(var t=arguments.length,e=new Array(t),n=0;n<t;n++)e[n]=arguments[n];if(0===this.dim&&(this.dim=e.length),this.dim!==e.length)throw new H("Added row of different dimension, actual dim is ".concat(this.dim));return this.rows.push(e),this}},{key:"build",value:function(){if(this.rows.length>0)return this._buildWithRows();throw new H("Building empty matrix")}},{key:"_buildWithRows",value:function(){for(var t=this.rows.length,e=this.dim,n=new Float64Array(t*e),r=U(0,e),i=0;i<t;i++)for(var a=0;a<e;a++)n[r(i,a)]=this.rows[i][a];return new V(n,[t,e])}}]),t}(),Y=new WeakSet,W=function(){function t(){A()(this,t),Y.add(this),this.cols=[],this.dim=0}return M()(t,[{key:"addCol",value:function(){for(var t=arguments.length,e=new Array(t),n=0;n<t;n++)e[n]=arguments[n];if(0===this.dim&&(this.dim=e.length),this.dim!==e.length)throw new H("Added col of different dimension, actual dim is ".concat(this.dim));return this.cols.push(e),this}},{key:"build",value:function(){if(this.cols.length>0)return function(t,e,n){if(!e.has(t))throw new TypeError("attempted to get private field on non-instance");return n}(this,Y,Q).call(this);throw new H("Building empty matrix")}}]),t}();function Q(){for(var t=this.dim,e=this.cols.length,n=new Float64Array(t*e),r=U(0,e),i=0;i<t;i++)for(var a=0;a<e;a++)n[r(i,a)]=this.cols[a][i];return new V(n,[t,e])}var V=function(){function t(e,n){A()(this,t),E()(this,"fold",this.reduce),E()(this,"length",this.norm),this.data=e,this.shape=n}return M()(t,[{key:"rows",get:function(){return this.shape[0]}},{key:"cols",get:function(){return this.shape[1]}},{key:"get",value:function(){var t=arguments.length>0&&void 0!==arguments[0]?arguments[0]:0,e=arguments.length>1&&void 0!==arguments[1]?arguments[1]:0,n=_()(this.shape,2),r=(n[0],n[1]);return this.data[e+t*r]}},{key:"prod",value:function(e){if(this.cols!==e.rows)throw new H("Incompatible product size. Left ".concat(this.shape,", right ").concat(e.shape));for(var n=this.rows,r=this.cols,i=e.cols,a=new Float64Array(n*i),o=U(0,i),u=0;u<n;u++)for(var s=0;s<i;s++){for(var h=0,c=0;c<r;c++)h+=this.get(u,c)*e.get(c,s);a[o(u,s)]=h}return new t(a,[n,i])}},{key:"dot",value:function(e){if(this.rows!==e.rows)throw new H("Incompatible product size. Left ".concat(this.shape,", right ").concat(e.shape));for(var n=this.rows,r=this.cols,i=e.cols,a=new Float64Array(r*i),o=U(0,i),u=0;u<r;u++)for(var s=0;s<i;s++){for(var h=0,c=0;c<n;c++)h+=this.get(c,u)*e.get(c,s);a[o(u,s)]=h}return new t(a,[r,i])}},{key:"map",value:function(){var e=arguments.length>0&&void 0!==arguments[0]?arguments[0]:function(t){return t},n=N.apply(void 0,k()(this.shape));return new t(this.data.map((function(t,r){var i=n(r),a=_()(i,2),o=a[0],u=a[1];return e(t,o,u)})),this.shape)}},{key:"reduce",value:function(t){var e=arguments.length>1&&void 0!==arguments[1]?arguments[1]:0,n=N.apply(void 0,k()(this.shape));return this.data.reduce((function(e,r,i){var a=n(i),o=_()(a,2),u=o[0],s=o[1];return t(e,r,u,s)}),e)}},{key:"op",value:function(e,n){var r=_()(this.shape,2),i=r[0],a=r[1],o=_()(e.shape,2),u=o[0],s=o[1];if(i!==u||a!==s)throw new H("Matrix must be of same size");return new t(this.data.map((function(t,r){return n(t,e.data[r])})),this.shape)}},{key:"add",value:function(t){return this.op(t,(function(t,e){return t+e}))}},{key:"sub",value:function(t){return this.op(t,(function(t,e){return t-e}))}},{key:"mul",value:function(t){return this.op(t,(function(t,e){return t*e}))}},{key:"div",value:function(t){return this.op(t,(function(t,e){return t/e}))}},{key:"scale",value:function(t){return this.map((function(e){return e*t}))}},{key:"norm",value:function(){for(var t=0,e=0;e<this.data.length;e++)t+=this.data[e]*this.data[e];return Math.sqrt(t)}},{key:"equals",value:function(e){var n=arguments.length>1&&void 0!==arguments[1]?arguments[1]:1e-6;if(!(e instanceof t))return!1;try{return this.sub(e).length()<n}catch(t){return!1}}},{key:"toArray",value:function(){return this.data}}],[{key:"ZERO",value:function(e){var n=arguments.length>1&&void 0!==arguments[1]?arguments[1]:1;return t.builder().size(e,n).build()}},{key:"random",value:function(e){for(var n=arguments.length>1&&void 0!==arguments[1]?arguments[1]:1,r=new Float64Array(e*n),i=0;i<r.length;i++)r[i]=Math.random();return new t(r,[e,n])}},{key:"builder",value:function(){return new j}},{key:"rowBuilder",value:function(){return new Z}},{key:"colBuilder",value:function(){return new W}},{key:"vec",value:function(){var t;return(t=new W).addCol.apply(t,arguments).build()}},{key:"cov",value:function(){var t;return(t=new Z).addRow.apply(t,arguments).build()}}]),t}();E()(V,"id",(function(t){for(var e=arguments.length>1&&void 0!==arguments[1]?arguments[1]:t,n=V.e(t),r=V.colBuilder(),i=0;i<e;i++){var a;r=(a=r).addCol.apply(a,k()(n(i).data))}return r.build()})),E()(V,"e",(function(t){return function(e){return new V(new Float64Array(t).map((function(t,n){return e===n?1:0})),[t,1])}})),E()(V,"dx",(function(t){return function(e){return new V(new Float64Array(t).map((function(t,n){return e===n?1:0})),[1,t])}})),E()(V,"vec2",{of:function(){var t=arguments.length>0&&void 0!==arguments[0]?arguments[0]:0,e=arguments.length>1&&void 0!==arguments[1]?arguments[1]:0;return V.vec(t,e)},e0:V.vec(1,0),e1:V.vec(0,1),ZERO:V.ZERO(2,1)}),E()(V,"vec3",{of:function(){var t=arguments.length>0&&void 0!==arguments[0]?arguments[0]:0,e=arguments.length>1&&void 0!==arguments[1]?arguments[1]:0,n=arguments.length>2&&void 0!==arguments[2]?arguments[2]:0;return V.vec(t,e,n)},e0:V.vec(1,0,0),e1:V.vec(0,1,0),e2:V.vec(0,0,1),ZERO:V.ZERO(3,1)});var H=function(t){B()(n,t);var e=F(n);function n(){return A()(this,n),e.apply(this,arguments)}return n}(G()(Error)),X=function(){function t(e,n){if(A()(this,t),E()(this,"union",this.add),E()(this,"inter",this.sub),this.isEmpty=void 0===e||void 0===n,this.isEmpty)return this;this.min=e.op(n,Math.min),this.max=n.op(e,Math.max),this.center=e.add(n).scale(.5),this.diagonal=n.sub(e)}return M()(t,[{key:"add",value:function(e){if(this===t.EMPTY)return e;var n=this.min,r=this.max;return new t(n.op(e.min,Math.min),r.op(e.max,Math.max))}},{key:"sub",value:function(e){if(this===t.EMPTY)return t.EMPTY;var n=this.min,r=this.max,i=n.op(e.min,Math.max),a=r.op(e.max,Math.min);return a.sub(i).data.every((function(t){return t>=0}))?new t(i,a):t.EMPTY}},{key:"move",value:function(e){return new t(this.min.add(e),this.max.add(e))}},{key:"collidesWith",value:function(e){for(var n=this,r=[{type:t,action:function(){return!n.sub(e).isEmpty}},{type:V,action:function(){return!n.sub(new t(e,e)).isEmpty}}],i=0;i<r.length;i++)if(e instanceof r[i].type)return r[i].action()}},{key:"equals",value:function(e){return e instanceof t&&(this==t.EMPTY||this.min.equals(e.min)&&this.max.equals(e.max))}}],[{key:"ofPoint",value:function(){var e=V.vec.apply(V,arguments);return new t(e,e)}}]),t}();E()(X,"EMPTY",new X);var K=V.vec2,J=function(){function t(e){A()(this,t),E()(this,"getDom",this.getCanvas),this.canvas=e,this.ctx=e.getContext("2d"),this.image=this.ctx.getImageData(0,0,e.width,e.height),this.data=this.image.data}return M()(t,[{key:"getCanvas",value:function(){return this.canvas}},{key:"width",get:function(){return this.canvas.width}},{key:"height",get:function(){return this.canvas.height}},{key:"fill",value:function(){var t=arguments.length>0&&void 0!==arguments[0]?arguments[0]:S.ofRGBA(255,255,255);return this.ctx.fillStyle="rgba(".concat(t.red,", ").concat(t.green,", ").concat(t.blue,", ").concat(t.alpha/255,")"),this.ctx.fillRect(0,0,this.canvas.width,this.canvas.height),this.image=this.ctx.getImageData(0,0,this.canvas.width,this.canvas.height),this.data=this.image.data,this}},{key:"map",value:function(){for(var t=arguments.length>0&&void 0!==arguments[0]?arguments[0]:function(){},e=this.data.length,n=this.canvas.width,r=0;r<e;r+=4){var i=Math.floor(r/(4*n)),a=Math.floor(r/4)%n,o=t(S.ofRGBARaw(this.data[r],this.data[r+1],this.data[r+2],this.data[r+3]),i,a);this.data[r]=o.red,this.data[r+1]=o.green,this.data[r+2]=o.blue,this.data[r+3]=o.alpha}return this}},{key:"getPxl",value:function(t,e){var n=this.canvas,r=n.width,i=n.height;if(!(t<0||t>=i||e<0||e>=r)){var a=4*(t*r+e);return S.ofRGBARaw(this.imgBuffer[a],this.imgBuffer[a+1],this.imgBuffer[a+2],this.imgBuffer[a+3])}}},{key:"setPxl",value:function(t,e,n){var r=this.canvas,i=r.width,a=r.height;if(t<0||t>=a||e<0||e>=i)return this;var o=4*(t*i+e);return this.data[o]=n.red,this.data[o+1]=n.green,this.data[o+2]=n.blue,this.data[o+3]=n.alpha,this}},{key:"drawLine",value:function(t,e){var n=arguments.length>2&&void 0!==arguments[2]?arguments[2]:function(t,e){return S.ofRGBA(0,0,0)},r=this.canvas,i=r.width,a=(r._,this._clipLine(t,e).map((function(t){return t.toArray()})));if(0!==a.length){for(var o=_()(a,2),u=o[0],s=o[1],h=[s[0]-u[0],s[1]-u[1]],c=Math.abs(h[0])+Math.abs(h[1]),l=0;l<c;l++){var f=l/c,v=[u[0]+h[0]*f,u[1]+h[1]*f].map(Math.floor),d=_()(v,2),p=d[0],g=d[1],m=4*(p*i+g),y=n(p,g);this.data[m]=y.red,this.data[m+1]=y.green,this.data[m+2]=y.blue,this.data[m+3]=y.alpha}return this}}},{key:"drawTriangle",value:function(t,e,n){var r=arguments.length>3&&void 0!==arguments[3]?arguments[3]:function(t,e){return S.ofRGBA(0,0,0)};return this._drawConvexPolygon([t,e,n],r)}},{key:"paint",value:function(){this.ctx.putImageData(this.image,0,0)}},{key:"_drawConvexPolygon",value:function(t,e){var n=this.canvas,r=n.width,i=n.height,a=new X(K.ZERO,K.of(i,r)),o=X.EMPTY;t.forEach((function(t){o=o.add(X.ofPoint.apply(X,k()(t)))}));for(var u=a.inter(o),s=u.min.toArray(),h=_()(s,2),c=h[0],l=h[1],f=u.max.toArray(),v=_()(f,2),d=v[0],p=v[1],g=c;g<d;g++)for(var m=l;m<p;m++)if(this._isInsideConvex([g,m],t)){var y=e(g,m),w=4*(g*r+m);this.data[w]=y.red,this.data[w+1]=y.green,this.data[w+2]=y.blue,this.data[w+3]=y.alpha}return this}},{key:"_isInsideConvex",value:function(t,e){for(var n=e.length,r=[],i=[],a=0;a<n;a++){var o=e[(a+1)%n],u=e[a];r[a]=[o[0]-u[0],o[1]-u[1]];var s=r[a],h=[-s[1],s[0]],c=[t[0]-u[0],t[1]-u[1]];i[a]=c[0]*h[0]+c[1]*h[1]}for(var l=r[0][0]*r[1][1]-r[0][1]*r[1][0]>=0?1:-1,f=0;f<n;f++){if(i[f]*l<0)return!1}return!0}},{key:"_clipLine",value:function(t,e){for(var n=this.canvas,r=n.width,i=n.height,a=new X(K.ZERO,K.of(i,r)),o=[t,e].map((function(t){return K.of.apply(K,k()(t))})),u=[],s=[],h=0;h<o.length;h++){var c=o[h];a.collidesWith(c)?u.push(c):s.push(c)}if(u.length>=2)return u;if(1===u.length){var l=u[0],f=s[0];return[l].concat(k()(this._getLineCanvasIntersection(l,f)))}return this._getLineCanvasIntersection.apply(this,s)}},{key:"_getLineCanvasIntersection",value:function(t,e){var n=this,r=this.canvas,i=r.width,a=r.height,o=e.sub(t),u=[[K.ZERO,K.of(a,0)],[K.of(a,0),K.of(0,i)],[K.of(a,i),K.of(-a,0)],[K.of(0,i),K.of(0,-i)]],s=[];u.forEach((function(e){var r=_()(e,2),i=r[0],a=r[1];if(0===a.get(0)){var u=n._solveLowTriMatrix(o,-a.get(1),i.sub(t));void 0!==u&&s.push(u)}else{var h=n._solveUpTriMatrix(o,-a.get(0),i.sub(t));void 0!==h&&s.push(h)}}));var h=[];return s.forEach((function(t){var e=[t.get(0),t.get(1)],n=e[0],r=e[1];0<=n&&n<=1&&0<=r&&r<=1&&h.push(t)})),0===h.length?[]:h.map((function(e){var n=e.get(0);return t.add(o.scale(n))}))}},{key:"_solveLowTriMatrix",value:function(t,e,n){var r=t.get(0),i=t.get(1),a=e*r;if(0!==a&&0!==r){var o=n.get(0),u=n.get(1);return K.of(o/r,(u*r-i*o)/a)}}},{key:"_solveUpTriMatrix",value:function(t,e,n){var r=t.get(0),i=t.get(1),a=e*i;if(0!==a&&0!==i){var o=n.get(0),u=n.get(1);return K.of(u/i,(o*i-r*u)/a)}}}],[{key:"builder",value:function(){return new $}}]),t}(),$=function(){function t(){A()(this,t),E()(this,"_canvas",document.createElement("canvas")),E()(this,"_width",500),E()(this,"_height",500)}return M()(t,[{key:"width",value:function(){var t=arguments.length>0&&void 0!==arguments[0]?arguments[0]:this._width;return this._width=t,this}},{key:"height",value:function(){var t=arguments.length>0&&void 0!==arguments[0]?arguments[0]:this._height;return this._height=t,this}},{key:"build",value:function(){return this._canvas.setAttribute("width",this._width),this._canvas.setAttribute("height",this._height),new J(this._canvas)}}]),t}(),tt=function(t){var e=performance.now();return t(),performance.now()-e},et=function(){var t=arguments.length>0&&void 0!==arguments[0]?arguments[0]:nt;return function(e){var n=arguments.length>1&&void 0!==arguments[1]?arguments[1]:function(){},r=t(),i=tt((function(){return n(r)})),a=document.createElement("div"),o=document.createElement("h3");o.innerText=e,a.appendChild(o),a.appendChild(r.getDom());var u=document.createElement("h4");u.innerText="Test took ".concat(i,"ms"),a.appendChild(u),document.body.appendChild(a)}},nt=function(){return Canvas.builder().width(500).height(500).build()},rt=function(){function t(e,n,r){A()(this,t),this.state=e,this.next=n,this.while=r,this.requestAnimeId=null}return M()(t,[{key:"play",value:function(){var t=this;return this.requestAnimeId=requestAnimationFrame((function(){if(!t.while(t.state))return t.stop();t.state=t.next(t.state),t.play()})),this}},{key:"run",value:function(){for(;this.while(this.state);)this.state=this.next(this.state);return this}},{key:"stop",value:function(){return cancelAnimationFrame(this.requestAnimeId),this}}],[{key:"builder",value:function(){return new it}}]),t}(),it=function(){function t(){A()(this,t),this._state=null,this._next=null,this._end=null}return M()(t,[{key:"initialState",value:function(t){return this._state=t,this}},{key:"nextState",value:function(t){return this._next=t,this}},{key:"while",value:function(t){return this._end=t,this}},{key:"build",value:function(){if([this._state,this._next,this._end].some((function(t){return null==t})))throw new Error("Animator properties are missing");return new rt(this._state,this._next,this._end)}}]),t}(),at=n(10),ot=n.n(at),ut=n(6),st=n.n(ut);function ht(t){var e=function(){if("undefined"==typeof Reflect||!Reflect.construct)return!1;if(Reflect.construct.sham)return!1;if("function"==typeof Proxy)return!0;try{return Boolean.prototype.valueOf.call(Reflect.construct(Boolean,[],(function(){}))),!0}catch(t){return!1}}();return function(){var n,r=O()(t);if(e){var i=O()(this).constructor;n=Reflect.construct(r,arguments,i)}else n=r.apply(this,arguments);return q()(this,n)}}var ct=V.vec2,lt=function(t){B()(n,t);var e=ht(n);function n(t,r){var i;return A()(this,n),(i=e.call(this,t)).camera=r,i}return M()(n,[{key:"setCamera",value:function(t){this.camera=t}},{key:"map",value:function(){var t=this,e=arguments.length>0&&void 0!==arguments[0]?arguments[0]:function(){};return st()(O()(n.prototype),"map",this).call(this,(function(n,r,i){var a=t.forwardCoord(r,i),o=_()(a,2),u=o[0],s=o[1];return e(n,u,s)}))}},{key:"getPxl",value:function(t,e){var r=this.inverseCoord(t,e),i=_()(r,2),a=i[0],o=i[1];return st()(O()(n.prototype),"getPxl",this).call(this,a,o)}},{key:"setPxl",value:function(t,e,r){var i=this.inverseCoord(t,e),a=_()(i,2),o=a[0],u=a[1];return st()(O()(n.prototype),"setPxl",this).call(this,o,u,r)}},{key:"drawLine",value:function(t,e,r){var i=this.inverseCoord.apply(this,k()(t)),a=this.inverseCoord.apply(this,k()(e));return st()(O()(n.prototype),"drawLine",this).call(this,i,a,r)}},{key:"drawTriangle",value:function(t,e,r,i){var a=this.inverseCoord.apply(this,k()(t)),o=this.inverseCoord.apply(this,k()(e)),u=this.inverseCoord.apply(this,k()(r));return st()(O()(n.prototype),"drawTriangle",this).call(this,a,o,u,i)}},{key:"inverseCoord",value:function(t,e){var n=this.camera,r=n.min,i=n.max,a=this.canvas,o=a.width,u=a.height,s=_()(r.data,2),h=s[0],c=s[1],l=_()(i.data,2),f=l[0],v=l[1];return[-(e-v)*(u-1)/(v-c),(t-h)*(o-1)/(f-h)].map(Math.floor)}},{key:"forwardCoord",value:function(t,e){var n=this.camera,r=n.min,i=n.max,a=this.canvas,o=a.width,u=a.height,s=_()(r.data,2),h=s[0],c=s[1],l=_()(i.data,2),f=l[0],v=l[1];return[h+(f-h)*e/(o-1),v+(c-v)*t/(u-1)]}}],[{key:"builder",value:function(){return new ft}}]),n}(J),ft=function(t){B()(n,t);var e=ht(n);function n(){var t;A()(this,n);for(var r=arguments.length,i=new Array(r),a=0;a<r;a++)i[a]=arguments[a];return t=e.call.apply(e,[this].concat(i)),E()(ot()(t),"_camera",new X(ct.of(-1,-1),ct.of(1,1))),t}return M()(n,[{key:"camera",value:function(){var t=arguments.length>0&&void 0!==arguments[0]?arguments[0]:this._camera;return this._camera=t,this}},{key:"build",value:function(){var t=st()(O()(n.prototype),"build",this).call(this);return new lt(t.canvas,this._camera)}}]),n}($)}]);
+/******/ (() => { // webpackBootstrap
+/******/ 	"use strict";
+/******/ 	var __webpack_modules__ = ({
+
+/***/ "./src/Animator/main/Animator.js":
+/*!***************************************!*\
+  !*** ./src/Animator/main/Animator.js ***!
+  \***************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (/* binding */ Animator)
+/* harmony export */ });
+/* harmony import */ var _babel_runtime_helpers_esm_classCallCheck__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! @babel/runtime/helpers/esm/classCallCheck */ "@babel/runtime/helpers/esm/classCallCheck");
+/* harmony import */ var _babel_runtime_helpers_esm_classCallCheck__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_babel_runtime_helpers_esm_classCallCheck__WEBPACK_IMPORTED_MODULE_0__);
+/* harmony import */ var _babel_runtime_helpers_esm_createClass__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! @babel/runtime/helpers/esm/createClass */ "@babel/runtime/helpers/esm/createClass");
+/* harmony import */ var _babel_runtime_helpers_esm_createClass__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(_babel_runtime_helpers_esm_createClass__WEBPACK_IMPORTED_MODULE_1__);
+
+
+var Animator = /*#__PURE__*/function () {
+  function Animator(state, next, doWhile) {
+    _babel_runtime_helpers_esm_classCallCheck__WEBPACK_IMPORTED_MODULE_0___default()(this, Animator);
+    this.state = state;
+    this.next = next;
+    this["while"] = doWhile;
+    this.requestAnimeId = null;
+  }
+  _babel_runtime_helpers_esm_createClass__WEBPACK_IMPORTED_MODULE_1___default()(Animator, [{
+    key: "play",
+    value: function play() {
+      var _this = this;
+      this.requestAnimeId = requestAnimationFrame(function () {
+        if (!_this["while"](_this.state)) return _this.stop();
+        _this.state = _this.next(_this.state);
+        _this.play();
+      });
+      return this;
+    }
+  }, {
+    key: "run",
+    value: function run() {
+      while (this["while"](this.state)) {
+        this.state = this.next(this.state);
+      }
+      return this;
+    }
+  }, {
+    key: "stop",
+    value: function stop() {
+      cancelAnimationFrame(this.requestAnimeId);
+      return this;
+    }
+  }], [{
+    key: "builder",
+    value: function builder() {
+      return new AnimatorBuilder();
+    }
+  }]);
+  return Animator;
+}();
+
+var AnimatorBuilder = /*#__PURE__*/function () {
+  function AnimatorBuilder() {
+    _babel_runtime_helpers_esm_classCallCheck__WEBPACK_IMPORTED_MODULE_0___default()(this, AnimatorBuilder);
+    this._state = null;
+    this._next = null;
+    this._end = null;
+  }
+  _babel_runtime_helpers_esm_createClass__WEBPACK_IMPORTED_MODULE_1___default()(AnimatorBuilder, [{
+    key: "initialState",
+    value: function initialState(state) {
+      this._state = state;
+      return this;
+    }
+  }, {
+    key: "nextState",
+    value: function nextState(next) {
+      this._next = next;
+      return this;
+    }
+  }, {
+    key: "while",
+    value: function _while(end) {
+      this._end = end;
+      return this;
+    }
+  }, {
+    key: "build",
+    value: function build() {
+      var someAreEmpty = [this._state, this._next, this._end].some(function (x) {
+        return x === null || x === undefined;
+      });
+      if (someAreEmpty) throw new Error("Animator properties are missing");
+      return new Animator(this._state, this._next, this._end);
+    }
+  }]);
+  return AnimatorBuilder;
+}();
+
+/***/ }),
+
+/***/ "./src/BBox/main/BBox.js":
+/*!*******************************!*\
+  !*** ./src/BBox/main/BBox.js ***!
+  \*******************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (/* binding */ BBox)
+/* harmony export */ });
+/* harmony import */ var _babel_runtime_helpers_esm_classCallCheck__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! @babel/runtime/helpers/esm/classCallCheck */ "@babel/runtime/helpers/esm/classCallCheck");
+/* harmony import */ var _babel_runtime_helpers_esm_classCallCheck__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_babel_runtime_helpers_esm_classCallCheck__WEBPACK_IMPORTED_MODULE_0__);
+/* harmony import */ var _babel_runtime_helpers_esm_createClass__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! @babel/runtime/helpers/esm/createClass */ "@babel/runtime/helpers/esm/createClass");
+/* harmony import */ var _babel_runtime_helpers_esm_createClass__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(_babel_runtime_helpers_esm_createClass__WEBPACK_IMPORTED_MODULE_1__);
+/* harmony import */ var _babel_runtime_helpers_esm_defineProperty__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! @babel/runtime/helpers/esm/defineProperty */ "@babel/runtime/helpers/esm/defineProperty");
+/* harmony import */ var _babel_runtime_helpers_esm_defineProperty__WEBPACK_IMPORTED_MODULE_2___default = /*#__PURE__*/__webpack_require__.n(_babel_runtime_helpers_esm_defineProperty__WEBPACK_IMPORTED_MODULE_2__);
+/* harmony import */ var _Matrix_main_Matrix__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../../Matrix/main/Matrix */ "./src/Matrix/main/Matrix.js");
+
+
+
+var _class;
+
+var BBox = /*#__PURE__*/function () {
+  function BBox(min, max) {
+    _babel_runtime_helpers_esm_classCallCheck__WEBPACK_IMPORTED_MODULE_0___default()(this, BBox);
+    _babel_runtime_helpers_esm_defineProperty__WEBPACK_IMPORTED_MODULE_2___default()(this, "union", this.add);
+    _babel_runtime_helpers_esm_defineProperty__WEBPACK_IMPORTED_MODULE_2___default()(this, "inter", this.sub);
+    this.isEmpty = min === undefined || max === undefined;
+    if (this.isEmpty) return this;
+    this.min = min.op(max, Math.min);
+    this.max = max.op(min, Math.max);
+    this.center = min.add(max).scale(1 / 2);
+    this.diagonal = max.sub(min);
+  }
+  /**
+   * Union of boxes
+   * @param {*} box
+   */
+  _babel_runtime_helpers_esm_createClass__WEBPACK_IMPORTED_MODULE_1___default()(BBox, [{
+    key: "add",
+    value: function add(box) {
+      if (this === BBox.EMPTY) return box;
+      var min = this.min,
+        max = this.max;
+      return new BBox(min.op(box.min, Math.min), max.op(box.max, Math.max));
+    }
+  }, {
+    key: "sub",
+    value:
+    /**
+     * Intersection of boxes
+     * @param {*} box
+     */
+    function sub(box) {
+      if (this === BBox.EMPTY) return BBox.EMPTY;
+      var min = this.min,
+        max = this.max;
+      var newMin = min.op(box.min, Math.max);
+      var newMax = max.op(box.max, Math.min);
+      var newDiag = newMax.sub(newMin);
+      var isAllPositive = newDiag.data.every(function (x) {
+        return x >= 0;
+      });
+      return !isAllPositive ? BBox.EMPTY : new BBox(newMin, newMax);
+    }
+  }, {
+    key: "move",
+    value: function move(vector) {
+      return new BBox(this.min.add(vector), this.max.add(vector));
+    }
+  }, {
+    key: "collidesWith",
+    value: function collidesWith(box) {
+      var _this = this;
+      var actionByTypes = [{
+        type: BBox,
+        action: function action() {
+          return !_this.sub(box).isEmpty;
+        }
+      }, {
+        type: _Matrix_main_Matrix__WEBPACK_IMPORTED_MODULE_3__["default"],
+        action: function action() {
+          return !_this.sub(new BBox(box, box)).isEmpty;
+        }
+      }];
+      for (var i = 0; i < actionByTypes.length; i++) {
+        if (box instanceof actionByTypes[i].type) {
+          return actionByTypes[i].action();
+        }
+      }
+    }
+  }, {
+    key: "equals",
+    value: function equals(box) {
+      if (!(box instanceof BBox)) return false;
+      if (this == BBox.EMPTY) return true;
+      return this.min.equals(box.min) && this.max.equals(box.max);
+    }
+  }], [{
+    key: "ofPoint",
+    value: function ofPoint() {
+      var point = _Matrix_main_Matrix__WEBPACK_IMPORTED_MODULE_3__["default"].vec.apply(_Matrix_main_Matrix__WEBPACK_IMPORTED_MODULE_3__["default"], arguments);
+      return new BBox(point, point);
+    }
+  }]);
+  return BBox;
+}();
+_class = BBox;
+_babel_runtime_helpers_esm_defineProperty__WEBPACK_IMPORTED_MODULE_2___default()(BBox, "EMPTY", new _class());
+
+
+/***/ }),
+
+/***/ "./src/Canvas/main/Canvas.js":
+/*!***********************************!*\
+  !*** ./src/Canvas/main/Canvas.js ***!
+  \***********************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   CanvasBuilder: () => (/* binding */ CanvasBuilder),
+/* harmony export */   "default": () => (/* binding */ Canvas)
+/* harmony export */ });
+/* harmony import */ var _babel_runtime_helpers_esm_toConsumableArray__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! @babel/runtime/helpers/esm/toConsumableArray */ "@babel/runtime/helpers/esm/toConsumableArray");
+/* harmony import */ var _babel_runtime_helpers_esm_toConsumableArray__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_babel_runtime_helpers_esm_toConsumableArray__WEBPACK_IMPORTED_MODULE_0__);
+/* harmony import */ var _babel_runtime_helpers_esm_slicedToArray__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! @babel/runtime/helpers/esm/slicedToArray */ "@babel/runtime/helpers/esm/slicedToArray");
+/* harmony import */ var _babel_runtime_helpers_esm_slicedToArray__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(_babel_runtime_helpers_esm_slicedToArray__WEBPACK_IMPORTED_MODULE_1__);
+/* harmony import */ var _babel_runtime_helpers_esm_classCallCheck__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! @babel/runtime/helpers/esm/classCallCheck */ "@babel/runtime/helpers/esm/classCallCheck");
+/* harmony import */ var _babel_runtime_helpers_esm_classCallCheck__WEBPACK_IMPORTED_MODULE_2___default = /*#__PURE__*/__webpack_require__.n(_babel_runtime_helpers_esm_classCallCheck__WEBPACK_IMPORTED_MODULE_2__);
+/* harmony import */ var _babel_runtime_helpers_esm_createClass__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! @babel/runtime/helpers/esm/createClass */ "@babel/runtime/helpers/esm/createClass");
+/* harmony import */ var _babel_runtime_helpers_esm_createClass__WEBPACK_IMPORTED_MODULE_3___default = /*#__PURE__*/__webpack_require__.n(_babel_runtime_helpers_esm_createClass__WEBPACK_IMPORTED_MODULE_3__);
+/* harmony import */ var _babel_runtime_helpers_esm_defineProperty__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! @babel/runtime/helpers/esm/defineProperty */ "@babel/runtime/helpers/esm/defineProperty");
+/* harmony import */ var _babel_runtime_helpers_esm_defineProperty__WEBPACK_IMPORTED_MODULE_4___default = /*#__PURE__*/__webpack_require__.n(_babel_runtime_helpers_esm_defineProperty__WEBPACK_IMPORTED_MODULE_4__);
+/* harmony import */ var _Color_main_Color__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../../Color/main/Color */ "./src/Color/main/Color.js");
+/* harmony import */ var _Matrix_main_Matrix__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ../../Matrix/main/Matrix */ "./src/Matrix/main/Matrix.js");
+/* harmony import */ var _BBox_main_BBox__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ../../BBox/main/BBox */ "./src/BBox/main/BBox.js");
+
+
+
+
+
+
+
+
+var vec2 = _Matrix_main_Matrix__WEBPACK_IMPORTED_MODULE_6__["default"].vec2;
+/*
+ Canvas coordinates
+
+ 0                  W-1
+ +-------------> y
+ |
+ |
+ |       *
+ |
+ |
+ v x
+
+ H-1
+/*
+
+The point xe_1 + ye_2 corresponds to a point in the middle of a pxl.
+
+The canvas data is an array of length colors(C) * width(W) * height(H). Is a 3D-array.
+The index is a number in [0, C * W * H - 1].
+Having (x, y, z) where z is the color axis, the formula to index the array is :
+
+f(x, y, z) = C * W * x + C * y + z.
+
+Where x in [0, H - 1], y in [0, W - 1] and z in [0, C - 1].
+
+Note that f(H - 1, W - 1, C - 1) = C * W * H - 1.
+*/
+var Canvas = /*#__PURE__*/function () {
+  /**
+   *
+   * @param {canvasDOM} canvas: DOM element of type canvas
+   */
+  function Canvas(canvas) {
+    _babel_runtime_helpers_esm_classCallCheck__WEBPACK_IMPORTED_MODULE_2___default()(this, Canvas);
+    _babel_runtime_helpers_esm_defineProperty__WEBPACK_IMPORTED_MODULE_4___default()(this, "getDom", this.getCanvas);
+    this.canvas = canvas;
+    this.ctx = canvas.getContext("2d", {
+      willReadFrequently: true
+    });
+    this.image = this.ctx.getImageData(0, 0, canvas.width, canvas.height);
+    // width * height * 4 array of integers
+    this.data = this.image.data;
+  }
+  _babel_runtime_helpers_esm_createClass__WEBPACK_IMPORTED_MODULE_3___default()(Canvas, [{
+    key: "getCanvas",
+    value: function getCanvas() {
+      return this.canvas;
+    }
+  }, {
+    key: "width",
+    get: function get() {
+      return this.canvas.width;
+    }
+  }, {
+    key: "height",
+    get: function get() {
+      return this.canvas.height;
+    }
+    //========================================================================================
+    /*                                                                                      *
+     *                                 side effects function                                *
+     *                                                                                      */
+    //========================================================================================
+
+    /**
+     * Update color of canvas
+     * @param {Color} color
+     * @returns {Canvas}
+     */
+  }, {
+    key: "fill",
+    value: function fill() {
+      var color = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : _Color_main_Color__WEBPACK_IMPORTED_MODULE_5__["default"].ofRGBARaw(255, 255, 255);
+      this.ctx.fillStyle = "rgba(".concat(color.red, ", ").concat(color.green, ", ").concat(color.blue, ", ").concat(color.alpha / 255.0, ")");
+      console.log(this.ctx.fillStyle);
+      this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+      this.image = this.ctx.getImageData(0, 0, this.canvas.width, this.canvas.height);
+      this.data = this.image.data;
+      return this;
+    }
+
+    /**
+     *
+     * @param {(Color, Number, Number) => Color} lambda
+     * @returns {Canvas}
+     */
+  }, {
+    key: "map",
+    value: function map() {
+      var lambda = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : function () {};
+      var n = this.data.length;
+      var w = this.canvas.width;
+      for (var i = 0; i < n; i += 4) {
+        var x = Math.floor(i / (4 * w));
+        var y = Math.floor(i / 4) % w;
+        var color = lambda(_Color_main_Color__WEBPACK_IMPORTED_MODULE_5__["default"].ofRGBARaw(this.data[i], this.data[i + 1], this.data[i + 2], this.data[i + 3]), x, y);
+        this.data[i] = color.red;
+        this.data[i + 1] = color.green;
+        this.data[i + 2] = color.blue;
+        this.data[i + 3] = color.alpha;
+      }
+      return this;
+    }
+
+    /**
+     * Return pxl color at (i,j)
+     * @param {Number} i: integer \in [0,H-1]
+     * @param {Number} j: integer \in [0,W-1]
+     * @returns {Color}
+     */
+  }, {
+    key: "getPxl",
+    value: function getPxl(i, j) {
+      var _this$canvas = this.canvas,
+        width = _this$canvas.width,
+        height = _this$canvas.height;
+      if (i < 0 || i >= height || j < 0 || j >= width) return undefined;
+      var index = 4 * (i * width + j);
+      return _Color_main_Color__WEBPACK_IMPORTED_MODULE_5__["default"].ofRGBARaw(this.imgBuffer[index], this.imgBuffer[index + 1], this.imgBuffer[index + 2], this.imgBuffer[index + 3]);
+    }
+    /**
+     * Set pxl color at (i,j)
+     * @param {Number} i: integer \in [0,H-1]
+     * @param {Number} j: integer \in [0,W-1]
+     * @param {Color} color
+     */
+  }, {
+    key: "setPxl",
+    value: function setPxl(i, j, color) {
+      var _this$canvas2 = this.canvas,
+        width = _this$canvas2.width,
+        height = _this$canvas2.height;
+      if (i < 0 || i >= height || j < 0 || j >= width) return this;
+      var index = 4 * (i * width + j);
+      this.data[index] = color.red;
+      this.data[index + 1] = color.green;
+      this.data[index + 2] = color.blue;
+      this.data[index + 3] = color.alpha;
+      return this;
+    }
+
+    /**
+     *
+     * @param {Array<Number>} start: 2-Array
+     * @param {Array<Number>} end: 2-Array
+     * @param {Canvas}
+     */
+  }, {
+    key: "drawLine",
+    value: function drawLine(start, end) {
+      var shader = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : function (x, y) {
+        return _Color_main_Color__WEBPACK_IMPORTED_MODULE_5__["default"].ofRGBA(0, 0, 0);
+      };
+      // faster than using vec2
+      var _this$canvas3 = this.canvas,
+        width = _this$canvas3.width,
+        _ = _this$canvas3._;
+      var line = this._clipLine(start, end).map(function (x) {
+        return x.toArray();
+      });
+      if (line.length === 0) return;
+      var _line = _babel_runtime_helpers_esm_slicedToArray__WEBPACK_IMPORTED_MODULE_1___default()(line, 2),
+        p0 = _line[0],
+        p1 = _line[1];
+      var v = [p1[0] - p0[0], p1[1] - p0[1]];
+      var n = Math.abs(v[0]) + Math.abs(v[1]);
+      for (var k = 0; k < n; k++) {
+        var s = k / n;
+        var x = [p0[0] + v[0] * s, p0[1] + v[1] * s].map(Math.floor);
+        var _x = _babel_runtime_helpers_esm_slicedToArray__WEBPACK_IMPORTED_MODULE_1___default()(x, 2),
+          i = _x[0],
+          j = _x[1];
+        var index = 4 * (i * width + j);
+        var color = shader(i, j);
+        this.data[index] = color.red;
+        this.data[index + 1] = color.green;
+        this.data[index + 2] = color.blue;
+        this.data[index + 3] = color.alpha;
+      }
+      return this;
+    }
+
+    /**
+     *
+     * @param {Array<Number>} p0 : 2-array<number>
+     * @param {Array<Number>} p1 : 2-array<number>
+     * @param {Array<Number>} p2 : 2-array<number>
+     * @param {(Number, Number) => Color} shader : (number, number) => Color
+     * @returns
+     */
+  }, {
+    key: "drawTriangle",
+    value: function drawTriangle(p0, p1, p2) {
+      var shader = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : function (x, y) {
+        return _Color_main_Color__WEBPACK_IMPORTED_MODULE_5__["default"].ofRGBA(0, 0, 0);
+      };
+      return this._drawConvexPolygon([p0, p1, p2], shader);
+    }
+  }, {
+    key: "paint",
+    value: function paint() {
+      this.ctx.putImageData(this.image, 0, 0);
+    }
+
+    //========================================================================================
+    /*                                                                                      *
+     *                                  Auxiliary functions                                  *
+     *                                                                                      */
+    //========================================================================================
+
+    /**
+     *
+     * @param {*} arrayOfPoints : Array<2-Array<Number>>
+     * @param {*} shader : (x,y) => color
+     * @returns
+     */
+  }, {
+    key: "_drawConvexPolygon",
+    value: function _drawConvexPolygon(arrayOfPoints, shader) {
+      var _this$canvas4 = this.canvas,
+        width = _this$canvas4.width,
+        height = _this$canvas4.height;
+      var canvasBox = new _BBox_main_BBox__WEBPACK_IMPORTED_MODULE_7__["default"](vec2.ZERO, vec2.of(height, width));
+      var boundingBox = _BBox_main_BBox__WEBPACK_IMPORTED_MODULE_7__["default"].EMPTY;
+      arrayOfPoints.forEach(function (x) {
+        boundingBox = boundingBox.add(_BBox_main_BBox__WEBPACK_IMPORTED_MODULE_7__["default"].ofPoint.apply(_BBox_main_BBox__WEBPACK_IMPORTED_MODULE_7__["default"], _babel_runtime_helpers_esm_toConsumableArray__WEBPACK_IMPORTED_MODULE_0___default()(x)));
+      });
+      var finalBox = canvasBox.inter(boundingBox);
+      var _finalBox$min$toArray = finalBox.min.toArray(),
+        _finalBox$min$toArray2 = _babel_runtime_helpers_esm_slicedToArray__WEBPACK_IMPORTED_MODULE_1___default()(_finalBox$min$toArray, 2),
+        xMin = _finalBox$min$toArray2[0],
+        yMin = _finalBox$min$toArray2[1];
+      var _finalBox$max$toArray = finalBox.max.toArray(),
+        _finalBox$max$toArray2 = _babel_runtime_helpers_esm_slicedToArray__WEBPACK_IMPORTED_MODULE_1___default()(_finalBox$max$toArray, 2),
+        xMax = _finalBox$max$toArray2[0],
+        yMax = _finalBox$max$toArray2[1];
+      for (var i = xMin; i < xMax; i++) {
+        for (var j = yMin; j < yMax; j++) {
+          if (this._isInsideConvex([i, j], arrayOfPoints)) {
+            var color = shader(i, j);
+            var index = 4 * (i * width + j);
+            this.data[index] = color.red;
+            this.data[index + 1] = color.green;
+            this.data[index + 2] = color.blue;
+            this.data[index + 3] = color.alpha;
+          }
+        }
+      }
+      return this;
+    }
+
+    /**
+     *
+     * @param {*} x: 2-Array<Number>
+     * @param {*} points: Array<2-Array<Number>>
+     * @returns
+     */
+  }, {
+    key: "_isInsideConvex",
+    value: function _isInsideConvex(x, points) {
+      var m = points.length;
+      var v = [];
+      var vDotN = [];
+      for (var i = 0; i < m; i++) {
+        var p1 = points[(i + 1) % m];
+        var p0 = points[i];
+        v[i] = [p1[0] - p0[0], p1[1] - p0[1]];
+        var vi = v[i];
+        var n = [-vi[1], vi[0]];
+        var r = [x[0] - p0[0], x[1] - p0[1]];
+        vDotN[i] = r[0] * n[0] + r[1] * n[1];
+      }
+      var orientation = v[0][0] * v[1][1] - v[0][1] * v[1][0] >= 0 ? 1 : -1;
+      for (var _i = 0; _i < m; _i++) {
+        var myDot = vDotN[_i] * orientation;
+        if (myDot < 0) return false;
+      }
+      return true;
+    }
+
+    /**
+     *
+     * @param {*} start: 2-Array<Number>
+     * @param {*} end: 2-Array<Number>
+     * @returns 2-Array<2-Array<Number>>
+     */
+  }, {
+    key: "_clipLine",
+    value: function _clipLine(start, end) {
+      var _this$canvas5 = this.canvas,
+        width = _this$canvas5.width,
+        height = _this$canvas5.height;
+      var bbox = new _BBox_main_BBox__WEBPACK_IMPORTED_MODULE_7__["default"](vec2.ZERO, vec2.of(height, width));
+      var pointStack = [start, end].map(function (x) {
+        return vec2.of.apply(vec2, _babel_runtime_helpers_esm_toConsumableArray__WEBPACK_IMPORTED_MODULE_0___default()(x));
+      });
+      var inStack = [];
+      var outStack = [];
+      for (var i = 0; i < pointStack.length; i++) {
+        var p = pointStack[i];
+        if (bbox.collidesWith(p)) {
+          inStack.push(p);
+        } else {
+          outStack.push(p);
+        }
+      }
+      // both points are inside
+      if (inStack.length >= 2) {
+        return inStack;
+      }
+      // one of them is inside
+      if (inStack.length === 1) {
+        var inPoint = inStack[0];
+        var outPoint = outStack[0];
+        return [inPoint].concat(_babel_runtime_helpers_esm_toConsumableArray__WEBPACK_IMPORTED_MODULE_0___default()(this._getLineCanvasIntersection(inPoint, outPoint)));
+      }
+      // both points are outside,need to intersect the boundary
+      return this._getLineCanvasIntersection.apply(this, outStack);
+    }
+
+    /**
+     *
+     * @param {*} start: vec2(matrix)
+     * @param {*} end: vec2(matrix)
+     */
+  }, {
+    key: "_getLineCanvasIntersection",
+    value: function _getLineCanvasIntersection(start, end) {
+      var _this = this;
+      var _this$canvas6 = this.canvas,
+        width = _this$canvas6.width,
+        height = _this$canvas6.height;
+      var v = end.sub(start);
+      // point and direction of boundary
+      var boundary = [[vec2.ZERO, vec2.of(height, 0)], [vec2.of(height, 0), vec2.of(0, width)], [vec2.of(height, width), vec2.of(-height, 0)], [vec2.of(0, width), vec2.of(0, -width)]];
+      var intersectionSolutions = [];
+      boundary.forEach(function (_ref) {
+        var _ref2 = _babel_runtime_helpers_esm_slicedToArray__WEBPACK_IMPORTED_MODULE_1___default()(_ref, 2),
+          s = _ref2[0],
+          d = _ref2[1];
+        if (d.get(0) === 0) {
+          var solution = _this._solveLowTriMatrix(v, -d.get(1), s.sub(start));
+          solution !== undefined && intersectionSolutions.push(solution);
+        } else {
+          var _solution = _this._solveUpTriMatrix(v, -d.get(0), s.sub(start));
+          _solution !== undefined && intersectionSolutions.push(_solution);
+        }
+      });
+      var validIntersections = [];
+      intersectionSolutions.forEach(function (solution) {
+        var _ref3 = [solution.get(0), solution.get(1)],
+          x = _ref3[0],
+          y = _ref3[1];
+        if (0 <= x && x <= 1 && 0 <= y && y <= 1) {
+          validIntersections.push(solution);
+        }
+      });
+      if (validIntersections.length === 0) return [];
+      return validIntersections.map(function (solution) {
+        var t = solution.get(0);
+        return start.add(v.scale(t));
+      });
+    }
+
+    /**
+     *
+     * @param {*} v: vec2
+     * @param {*} a: number
+     * @param {*} f: vec2
+     * @returns vec2
+     */
+  }, {
+    key: "_solveLowTriMatrix",
+    value: function _solveLowTriMatrix(v, a, f) {
+      var v1 = v.get(0);
+      var v2 = v.get(1);
+      var av1 = a * v1;
+      if (av1 === 0 || v1 === 0) return undefined;
+      var f1 = f.get(0);
+      var f2 = f.get(1);
+      return vec2.of(f1 / v1, (f2 * v1 - v2 * f1) / av1);
+    }
+
+    /**
+     *
+     * @param {*} v: vec2
+     * @param {*} a: number
+     * @param {*} f: vec2
+     * @returns vec2
+     */
+  }, {
+    key: "_solveUpTriMatrix",
+    value: function _solveUpTriMatrix(v, a, f) {
+      var v1 = v.get(0);
+      var v2 = v.get(1);
+      var av2 = a * v2;
+      if (av2 === 0 || v2 === 0) return undefined;
+      var f1 = f.get(0);
+      var f2 = f.get(1);
+      return vec2.of(f2 / v2, (f1 * v2 - v1 * f2) / av2);
+    }
+
+    //========================================================================================
+    /*                                                                                      *
+     *                                   Static functions                                   *
+     *                                                                                      */
+    //========================================================================================
+  }], [{
+    key: "builder",
+    value: function builder() {
+      return new CanvasBuilder();
+    }
+  }]);
+  return Canvas;
+}();
+
+var CanvasBuilder = /*#__PURE__*/function () {
+  function CanvasBuilder() {
+    _babel_runtime_helpers_esm_classCallCheck__WEBPACK_IMPORTED_MODULE_2___default()(this, CanvasBuilder);
+    _babel_runtime_helpers_esm_defineProperty__WEBPACK_IMPORTED_MODULE_4___default()(this, "_canvas", document.createElement("canvas"));
+    _babel_runtime_helpers_esm_defineProperty__WEBPACK_IMPORTED_MODULE_4___default()(this, "_width", 500);
+    _babel_runtime_helpers_esm_defineProperty__WEBPACK_IMPORTED_MODULE_4___default()(this, "_height", 500);
+  }
+  _babel_runtime_helpers_esm_createClass__WEBPACK_IMPORTED_MODULE_3___default()(CanvasBuilder, [{
+    key: "width",
+    value: function width() {
+      var _width = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : this._width;
+      this._width = _width;
+      return this;
+    }
+  }, {
+    key: "height",
+    value: function height() {
+      var _height = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : this._height;
+      this._height = _height;
+      return this;
+    }
+  }, {
+    key: "build",
+    value: function build() {
+      this._canvas.setAttribute("width", this._width);
+      this._canvas.setAttribute("height", this._height);
+      return new Canvas(this._canvas);
+    }
+  }]);
+  return CanvasBuilder;
+}();
+
+/***/ }),
+
+/***/ "./src/Canvas2d/main/Canvas2d.js":
+/*!***************************************!*\
+  !*** ./src/Canvas2d/main/Canvas2d.js ***!
+  \***************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   Canvas2dBuilder: () => (/* binding */ Canvas2dBuilder),
+/* harmony export */   "default": () => (/* binding */ Canvas2d)
+/* harmony export */ });
+/* harmony import */ var _babel_runtime_helpers_esm_assertThisInitialized__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! @babel/runtime/helpers/esm/assertThisInitialized */ "@babel/runtime/helpers/esm/assertThisInitialized");
+/* harmony import */ var _babel_runtime_helpers_esm_assertThisInitialized__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_babel_runtime_helpers_esm_assertThisInitialized__WEBPACK_IMPORTED_MODULE_0__);
+/* harmony import */ var _babel_runtime_helpers_esm_defineProperty__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! @babel/runtime/helpers/esm/defineProperty */ "@babel/runtime/helpers/esm/defineProperty");
+/* harmony import */ var _babel_runtime_helpers_esm_defineProperty__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(_babel_runtime_helpers_esm_defineProperty__WEBPACK_IMPORTED_MODULE_1__);
+/* harmony import */ var _babel_runtime_helpers_esm_toConsumableArray__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! @babel/runtime/helpers/esm/toConsumableArray */ "@babel/runtime/helpers/esm/toConsumableArray");
+/* harmony import */ var _babel_runtime_helpers_esm_toConsumableArray__WEBPACK_IMPORTED_MODULE_2___default = /*#__PURE__*/__webpack_require__.n(_babel_runtime_helpers_esm_toConsumableArray__WEBPACK_IMPORTED_MODULE_2__);
+/* harmony import */ var _babel_runtime_helpers_esm_slicedToArray__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! @babel/runtime/helpers/esm/slicedToArray */ "@babel/runtime/helpers/esm/slicedToArray");
+/* harmony import */ var _babel_runtime_helpers_esm_slicedToArray__WEBPACK_IMPORTED_MODULE_3___default = /*#__PURE__*/__webpack_require__.n(_babel_runtime_helpers_esm_slicedToArray__WEBPACK_IMPORTED_MODULE_3__);
+/* harmony import */ var _babel_runtime_helpers_esm_classCallCheck__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! @babel/runtime/helpers/esm/classCallCheck */ "@babel/runtime/helpers/esm/classCallCheck");
+/* harmony import */ var _babel_runtime_helpers_esm_classCallCheck__WEBPACK_IMPORTED_MODULE_4___default = /*#__PURE__*/__webpack_require__.n(_babel_runtime_helpers_esm_classCallCheck__WEBPACK_IMPORTED_MODULE_4__);
+/* harmony import */ var _babel_runtime_helpers_esm_createClass__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! @babel/runtime/helpers/esm/createClass */ "@babel/runtime/helpers/esm/createClass");
+/* harmony import */ var _babel_runtime_helpers_esm_createClass__WEBPACK_IMPORTED_MODULE_5___default = /*#__PURE__*/__webpack_require__.n(_babel_runtime_helpers_esm_createClass__WEBPACK_IMPORTED_MODULE_5__);
+/* harmony import */ var _babel_runtime_helpers_esm_get__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! @babel/runtime/helpers/esm/get */ "@babel/runtime/helpers/esm/get");
+/* harmony import */ var _babel_runtime_helpers_esm_get__WEBPACK_IMPORTED_MODULE_6___default = /*#__PURE__*/__webpack_require__.n(_babel_runtime_helpers_esm_get__WEBPACK_IMPORTED_MODULE_6__);
+/* harmony import */ var _babel_runtime_helpers_esm_inherits__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! @babel/runtime/helpers/esm/inherits */ "@babel/runtime/helpers/esm/inherits");
+/* harmony import */ var _babel_runtime_helpers_esm_inherits__WEBPACK_IMPORTED_MODULE_7___default = /*#__PURE__*/__webpack_require__.n(_babel_runtime_helpers_esm_inherits__WEBPACK_IMPORTED_MODULE_7__);
+/* harmony import */ var _babel_runtime_helpers_esm_possibleConstructorReturn__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! @babel/runtime/helpers/esm/possibleConstructorReturn */ "@babel/runtime/helpers/esm/possibleConstructorReturn");
+/* harmony import */ var _babel_runtime_helpers_esm_possibleConstructorReturn__WEBPACK_IMPORTED_MODULE_8___default = /*#__PURE__*/__webpack_require__.n(_babel_runtime_helpers_esm_possibleConstructorReturn__WEBPACK_IMPORTED_MODULE_8__);
+/* harmony import */ var _babel_runtime_helpers_esm_getPrototypeOf__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! @babel/runtime/helpers/esm/getPrototypeOf */ "@babel/runtime/helpers/esm/getPrototypeOf");
+/* harmony import */ var _babel_runtime_helpers_esm_getPrototypeOf__WEBPACK_IMPORTED_MODULE_9___default = /*#__PURE__*/__webpack_require__.n(_babel_runtime_helpers_esm_getPrototypeOf__WEBPACK_IMPORTED_MODULE_9__);
+/* harmony import */ var _BBox_main_BBox__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(/*! ../../BBox/main/BBox */ "./src/BBox/main/BBox.js");
+/* harmony import */ var _Canvas_main_Canvas__WEBPACK_IMPORTED_MODULE_11__ = __webpack_require__(/*! ../../Canvas/main/Canvas */ "./src/Canvas/main/Canvas.js");
+/* harmony import */ var _Matrix_main_Matrix__WEBPACK_IMPORTED_MODULE_12__ = __webpack_require__(/*! ../../Matrix/main/Matrix */ "./src/Matrix/main/Matrix.js");
+
+
+
+
+
+
+
+
+
+
+function _createSuper(Derived) { var hasNativeReflectConstruct = _isNativeReflectConstruct(); return function _createSuperInternal() { var Super = _babel_runtime_helpers_esm_getPrototypeOf__WEBPACK_IMPORTED_MODULE_9___default()(Derived), result; if (hasNativeReflectConstruct) { var NewTarget = _babel_runtime_helpers_esm_getPrototypeOf__WEBPACK_IMPORTED_MODULE_9___default()(this).constructor; result = Reflect.construct(Super, arguments, NewTarget); } else { result = Super.apply(this, arguments); } return _babel_runtime_helpers_esm_possibleConstructorReturn__WEBPACK_IMPORTED_MODULE_8___default()(this, result); }; }
+function _isNativeReflectConstruct() { if (typeof Reflect === "undefined" || !Reflect.construct) return false; if (Reflect.construct.sham) return false; if (typeof Proxy === "function") return true; try { Boolean.prototype.valueOf.call(Reflect.construct(Boolean, [], function () {})); return true; } catch (e) { return false; } }
+
+
+
+var vec2 = _Matrix_main_Matrix__WEBPACK_IMPORTED_MODULE_12__["default"].vec2;
+var Canvas2d = /*#__PURE__*/function (_Canvas) {
+  _babel_runtime_helpers_esm_inherits__WEBPACK_IMPORTED_MODULE_7___default()(Canvas2d, _Canvas);
+  var _super = _createSuper(Canvas2d);
+  function Canvas2d(canvas, camera) {
+    var _this;
+    _babel_runtime_helpers_esm_classCallCheck__WEBPACK_IMPORTED_MODULE_4___default()(this, Canvas2d);
+    _this = _super.call(this, canvas);
+    _this.camera = camera;
+    return _this;
+  }
+  _babel_runtime_helpers_esm_createClass__WEBPACK_IMPORTED_MODULE_5___default()(Canvas2d, [{
+    key: "setCamera",
+    value: function setCamera(bbox) {
+      this.camera = bbox;
+    }
+  }, {
+    key: "map",
+    value: function map() {
+      var _this2 = this;
+      var lambda = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : function () {};
+      return _babel_runtime_helpers_esm_get__WEBPACK_IMPORTED_MODULE_6___default()(_babel_runtime_helpers_esm_getPrototypeOf__WEBPACK_IMPORTED_MODULE_9___default()(Canvas2d.prototype), "map", this).call(this, function (c, i, j) {
+        var _this2$forwardCoord = _this2.forwardCoord(i, j),
+          _this2$forwardCoord2 = _babel_runtime_helpers_esm_slicedToArray__WEBPACK_IMPORTED_MODULE_3___default()(_this2$forwardCoord, 2),
+          x = _this2$forwardCoord2[0],
+          y = _this2$forwardCoord2[1];
+        return lambda(c, x, y);
+      });
+    }
+  }, {
+    key: "getPxl",
+    value: function getPxl(x, y) {
+      var _this$inverseCoord = this.inverseCoord(x, y),
+        _this$inverseCoord2 = _babel_runtime_helpers_esm_slicedToArray__WEBPACK_IMPORTED_MODULE_3___default()(_this$inverseCoord, 2),
+        i = _this$inverseCoord2[0],
+        j = _this$inverseCoord2[1];
+      return _babel_runtime_helpers_esm_get__WEBPACK_IMPORTED_MODULE_6___default()(_babel_runtime_helpers_esm_getPrototypeOf__WEBPACK_IMPORTED_MODULE_9___default()(Canvas2d.prototype), "getPxl", this).call(this, i, j);
+    }
+  }, {
+    key: "setPxl",
+    value: function setPxl(x, y, color) {
+      var _this$inverseCoord3 = this.inverseCoord(x, y),
+        _this$inverseCoord4 = _babel_runtime_helpers_esm_slicedToArray__WEBPACK_IMPORTED_MODULE_3___default()(_this$inverseCoord3, 2),
+        i = _this$inverseCoord4[0],
+        j = _this$inverseCoord4[1];
+      return _babel_runtime_helpers_esm_get__WEBPACK_IMPORTED_MODULE_6___default()(_babel_runtime_helpers_esm_getPrototypeOf__WEBPACK_IMPORTED_MODULE_9___default()(Canvas2d.prototype), "setPxl", this).call(this, i, j, color);
+    }
+  }, {
+    key: "drawLine",
+    value: function drawLine(start, end, shader) {
+      var startPos = this.inverseCoord.apply(this, _babel_runtime_helpers_esm_toConsumableArray__WEBPACK_IMPORTED_MODULE_2___default()(start));
+      var endPos = this.inverseCoord.apply(this, _babel_runtime_helpers_esm_toConsumableArray__WEBPACK_IMPORTED_MODULE_2___default()(end));
+      return _babel_runtime_helpers_esm_get__WEBPACK_IMPORTED_MODULE_6___default()(_babel_runtime_helpers_esm_getPrototypeOf__WEBPACK_IMPORTED_MODULE_9___default()(Canvas2d.prototype), "drawLine", this).call(this, startPos, endPos, shader);
+    }
+  }, {
+    key: "drawTriangle",
+    value: function drawTriangle(p0, p1, p2, shader) {
+      var q0 = this.inverseCoord.apply(this, _babel_runtime_helpers_esm_toConsumableArray__WEBPACK_IMPORTED_MODULE_2___default()(p0));
+      var q1 = this.inverseCoord.apply(this, _babel_runtime_helpers_esm_toConsumableArray__WEBPACK_IMPORTED_MODULE_2___default()(p1));
+      var q2 = this.inverseCoord.apply(this, _babel_runtime_helpers_esm_toConsumableArray__WEBPACK_IMPORTED_MODULE_2___default()(p2));
+      return _babel_runtime_helpers_esm_get__WEBPACK_IMPORTED_MODULE_6___default()(_babel_runtime_helpers_esm_getPrototypeOf__WEBPACK_IMPORTED_MODULE_9___default()(Canvas2d.prototype), "drawTriangle", this).call(this, q0, q1, q2, shader);
+    }
+
+    /**
+     * Map from camera coord to canvas coord
+     */
+  }, {
+    key: "inverseCoord",
+    value: function inverseCoord(x, y) {
+      var _this$camera = this.camera,
+        min = _this$camera.min,
+        max = _this$camera.max;
+      var _this$canvas = this.canvas,
+        width = _this$canvas.width,
+        height = _this$canvas.height;
+      var _min$data = _babel_runtime_helpers_esm_slicedToArray__WEBPACK_IMPORTED_MODULE_3___default()(min.data, 2),
+        minX = _min$data[0],
+        minY = _min$data[1];
+      var _max$data = _babel_runtime_helpers_esm_slicedToArray__WEBPACK_IMPORTED_MODULE_3___default()(max.data, 2),
+        maxX = _max$data[0],
+        maxY = _max$data[1];
+      return [-(y - maxY) * (height - 1) / (maxY - minY), (x - minX) * (width - 1) / (maxX - minX)].map(Math.floor);
+    }
+
+    /**
+     * Map from canvas coord to camera coord
+     */
+  }, {
+    key: "forwardCoord",
+    value: function forwardCoord(i, j) {
+      var _this$camera2 = this.camera,
+        min = _this$camera2.min,
+        max = _this$camera2.max;
+      var _this$canvas2 = this.canvas,
+        width = _this$canvas2.width,
+        height = _this$canvas2.height;
+      var _min$data2 = _babel_runtime_helpers_esm_slicedToArray__WEBPACK_IMPORTED_MODULE_3___default()(min.data, 2),
+        minX = _min$data2[0],
+        minY = _min$data2[1];
+      var _max$data2 = _babel_runtime_helpers_esm_slicedToArray__WEBPACK_IMPORTED_MODULE_3___default()(max.data, 2),
+        maxX = _max$data2[0],
+        maxY = _max$data2[1];
+      return [minX + (maxX - minX) * j / (width - 1), maxY + (minY - maxY) * i / (height - 1)];
+    }
+  }], [{
+    key: "builder",
+    value: function builder() {
+      return new Canvas2dBuilder();
+    }
+  }]);
+  return Canvas2d;
+}(_Canvas_main_Canvas__WEBPACK_IMPORTED_MODULE_11__["default"]);
+
+var Canvas2dBuilder = /*#__PURE__*/function (_CanvasBuilder) {
+  _babel_runtime_helpers_esm_inherits__WEBPACK_IMPORTED_MODULE_7___default()(Canvas2dBuilder, _CanvasBuilder);
+  var _super2 = _createSuper(Canvas2dBuilder);
+  function Canvas2dBuilder() {
+    var _this3;
+    _babel_runtime_helpers_esm_classCallCheck__WEBPACK_IMPORTED_MODULE_4___default()(this, Canvas2dBuilder);
+    for (var _len = arguments.length, args = new Array(_len), _key = 0; _key < _len; _key++) {
+      args[_key] = arguments[_key];
+    }
+    _this3 = _super2.call.apply(_super2, [this].concat(args));
+    _babel_runtime_helpers_esm_defineProperty__WEBPACK_IMPORTED_MODULE_1___default()(_babel_runtime_helpers_esm_assertThisInitialized__WEBPACK_IMPORTED_MODULE_0___default()(_this3), "_camera", new _BBox_main_BBox__WEBPACK_IMPORTED_MODULE_10__["default"](vec2.of(-1, -1), vec2.of(1, 1)));
+    return _this3;
+  }
+  _babel_runtime_helpers_esm_createClass__WEBPACK_IMPORTED_MODULE_5___default()(Canvas2dBuilder, [{
+    key: "camera",
+    value: function camera() {
+      var bbox = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : this._camera;
+      this._camera = bbox;
+      return this;
+    }
+  }, {
+    key: "build",
+    value: function build() {
+      var canvasBase = _babel_runtime_helpers_esm_get__WEBPACK_IMPORTED_MODULE_6___default()(_babel_runtime_helpers_esm_getPrototypeOf__WEBPACK_IMPORTED_MODULE_9___default()(Canvas2dBuilder.prototype), "build", this).call(this);
+      return new Canvas2d(canvasBase.canvas, this._camera);
+    }
+  }]);
+  return Canvas2dBuilder;
+}(_Canvas_main_Canvas__WEBPACK_IMPORTED_MODULE_11__.CanvasBuilder);
+
+/***/ }),
+
+/***/ "./src/Canvas_old/main/Canvas.js":
+/*!***************************************!*\
+  !*** ./src/Canvas_old/main/Canvas.js ***!
+  \***************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
+/* harmony export */ });
+/* harmony import */ var _ImageIO__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./ImageIO */ "./src/Canvas_old/main/ImageIO.js");
+
+/*
+ Canvas coordinates
+
+ 0                  W-1
+ +-------------> y
+ |
+ |
+ |       *
+ |
+ |
+ v x
+
+ H-1
+ */
+
+/*
+
+The point xe_1 + ye_2 corresponds to a point in the middle of a pxl.
+
+The canvas data is an array of length colors(C) * width(W) * height(H). Is a 3D-array.
+The index is a number in [0, C * W * H - 1].
+Having (x, y, z) where z is the color axis, the formula to index the array is :
+
+f(x, y, z) = C * W * x + C * y + z.
+
+Where x in [0, H - 1], y in [0, W - 1] and z in [0, C - 1].
+
+Note that f(H - 1, W - 1, C - 1) = C * W * H - 1.
+*/
+
+// Auxiliary functions
+function scale(u, r) {
+  var ans = [];
+  ans[0] = u[0] * r;
+  ans[1] = u[1] * r;
+  return ans;
+}
+function add(u, v) {
+  var ans = [];
+  ans[0] = u[0] + v[0];
+  ans[1] = u[1] + v[1];
+  return ans;
+}
+function floor(x) {
+  var ans = [];
+  ans[0] = Math.floor(x[0]);
+  ans[1] = Math.floor(x[1]);
+  return ans;
+}
+function diff(u, v) {
+  var ans = [];
+  ans[0] = u[0] - v[0];
+  ans[1] = u[1] - v[1];
+  return ans;
+}
+function dot(u, v) {
+  return u[0] * v[0] + u[1] * v[1];
+}
+function squareNorm(x) {
+  return dot(x, x);
+}
+function norm(x) {
+  return Math.sqrt(dot(x, x));
+}
+function min(u, v) {
+  var ans = [];
+  ans[0] = Math.min(u[0], v[0]);
+  ans[1] = Math.min(u[1], v[1]);
+  return ans;
+}
+function max(u, v) {
+  var ans = [];
+  ans[0] = Math.max(u[0], v[0]);
+  ans[1] = Math.max(u[1], v[1]);
+  return ans;
+}
+
+/**
+ * return solution to : [ u_0 , h] x = z_0
+ *
+ *                       [ u_1,  0] y = z_1
+ */
+function solve2by2UpperTriMatrix(u, h, z) {
+  var aux = z[1] / u[1];
+  return [aux, (-u[0] * aux + z[0]) / h];
+}
+/**
+ * return solution to : [ u_0 , 0] x = z_0
+ *
+ *                       [ u_1,  w] y = z_1
+ */
+function solve2by2LowerTriMatrix(u, w, z) {
+  var aux = z[0] / u[0];
+  return [aux, (-u[1] * aux + z[1]) / w];
+}
+
+// Canvas
+var Canvas = function Canvas(canvas) {
+  this.canvas = canvas;
+  this.ctx = canvas.getContext("2d");
+  this.image = this.ctx.getImageData(0, 0, canvas.width, canvas.height);
+  // width * height * 4 array of integers
+  this.imageData = this.image.data;
+};
+
+/**
+ * Returns a two vector with Height as first coordinate and Width as second. [Height, Width].
+ */
+Canvas.prototype.getSize = function () {
+  return [this.canvas.height, this.canvas.width];
+};
+
+/**
+ *  Draw update image on canvas.
+ */
+Canvas.prototype.paintImage = function () {
+  this.ctx.putImageData(this.image, 0, 0);
+};
+Canvas.prototype.getCanvas = function () {
+  return this.canvas;
+};
+
+/**
+ * Clear Image with @rgba color.
+ *
+ * @param rgba
+ */
+Canvas.prototype.clearImage = function (rgba) {
+  this.useCanvasCtx(function (canvas) {
+    var size = canvas.getSize();
+    canvas.ctx.fillStyle = "rgba(" + rgba[0] + "," + rgba[1] + "," + rgba[2] + "," + rgba[3] + ")";
+    canvas.ctx.globalCompositeOperation = "source-over";
+    canvas.ctx.fillRect(0, 0, size[1], size[0]);
+  }, true);
+};
+Canvas.prototype.useCanvasCtx = function (lambda) {
+  var isClearImage = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : false;
+  if (!isClearImage) {
+    this.ctx.putImageData(this.image, 0, 0);
+  }
+  lambda(this);
+  this.image = this.ctx.getImageData(0, 0, this.canvas.width, this.canvas.height);
+  this.imageData = this.image.data;
+};
+Canvas.prototype.getImageIndex = function (x) {
+  return 4 * (this.canvas.width * x[0] + x[1]);
+};
+Canvas.prototype.getPxl = function (x) {
+  var index = this.getImageIndex(x);
+  return [this.imageData[index], this.imageData[index + 1], this.imageData[index + 2], this.imageData[index + 3]];
+};
+Canvas.prototype.drawPxl = function (x, rgb) {
+  var index = this.getImageIndex(x);
+  this.imageData[index] = rgb[0];
+  this.imageData[index + 1] = rgb[1];
+  this.imageData[index + 2] = rgb[2];
+  this.imageData[index + 3] = rgb[3];
+};
+
+/*
+ * x1     :   2-dim array
+ * x2     :   2-dim array
+ * shader :   is a function that receives a 2-dim array and a line (array with 2 points) and returns a rgba 4-dim array
+ */
+Canvas.prototype.drawLine = function (x1, x2, shader) {
+  // add points before clip
+  shader.points = [x1, x2];
+
+  // do clipping
+  var stack = [];
+  stack.push(x1);
+  stack.push(x2);
+  var inStack = [];
+  var outStack = [];
+  for (var i = 0; i < stack.length; i++) {
+    var x = stack[i];
+    if (0 <= x[0] && x[0] < this.canvas.height && 0 <= x[1] && x[1] < this.canvas.width) {
+      inStack.push(x);
+    } else {
+      outStack.push(x);
+    }
+  }
+  // both points are inside canvas
+  if (inStack.length == 2) {
+    this.drawLineInt(inStack[0], inStack[1], shader);
+    return;
+  }
+  //intersecting line with canvas
+  var intersectionSolutions = [];
+  var v = [x2[0] - x1[0], x2[1] - x1[1]];
+  // Let s \in [0,1]
+  // line intersection with [0, 0]^T + [H - 1, 0]^T s
+  intersectionSolutions.push(solve2by2UpperTriMatrix(v, -(this.canvas.height - 1), [-x1[0], -x1[1]]));
+  // line intersection with [H - 1, 0]^T + [0, W - 1]^T s
+  intersectionSolutions.push(solve2by2LowerTriMatrix(v, -(this.canvas.width - 1), [this.canvas.height - 1 - x1[0], -x1[1]]));
+  // line intersection with [H - 1, W - 1]^T + [-(H - 1), 0]^T s
+  intersectionSolutions.push(solve2by2UpperTriMatrix(v, this.canvas.height - 1, [this.canvas.height - 1 - x1[0], this.canvas.width - 1 - x1[1]]));
+  // line intersection with [0, W - 1]^T + [0, -(W - 1)]^T s
+  intersectionSolutions.push(solve2by2LowerTriMatrix(v, this.canvas.width - 1, [-x1[0], this.canvas.width - 1 - x1[1]]));
+  var validIntersection = [];
+  for (var i = 0; i < intersectionSolutions.length; i++) {
+    var x = intersectionSolutions[i];
+    if (0 <= x[0] && x[0] <= 1 && 0 <= x[1] && x[1] <= 1) {
+      validIntersection.push(x);
+    }
+  }
+  if (validIntersection.length == 0) return;
+
+  //it can be shown that at this point there is at least one valid intersection.
+  if (inStack.length > 0) {
+    var p = [x1[0] + validIntersection[0][0] * v[0], x1[1] + validIntersection[0][0] * v[1]];
+    this.drawLineInt(inStack.pop(), p, shader);
+    return;
+  }
+  var p0 = [x1[0] + validIntersection[0][0] * v[0], x1[1] + validIntersection[0][0] * v[1]];
+  for (var i = 1; i < validIntersection.length; i++) {
+    var p = [x1[0] + validIntersection[i][0] * v[0], x1[1] + validIntersection[i][0] * v[1]];
+    var v = diff(p, p0);
+    if (dot(v, v) > 1e-3) {
+      this.drawLineInt(p0, p, shader);
+      return;
+    }
+  }
+  this.drawLineInt(p0, p0, shader);
+};
+Canvas.prototype.drawLineInt = function (x1, x2, shader) {
+  x1 = floor(x1);
+  x2 = floor(x2);
+  var index = [-1, 0, 1];
+  var n = index.length;
+  var nn = n * n;
+  var x = [];
+  x[0] = x1[0];
+  x[1] = x1[1];
+  var tangent = diff(x2, x1);
+  var normal = [];
+  normal[0] = -tangent[1];
+  normal[1] = tangent[0];
+  shader(x, shader.points, this);
+  while (x[0] !== x2[0] || x[1] !== x2[1]) {
+    var fmin = Number.MAX_VALUE;
+    var minDir = [];
+    for (var k = 0; k < nn; k++) {
+      var i = index[k % n];
+      var j = index[Math.floor(k / n)];
+      var nextX = add(x, [i, j]);
+      var v = diff(nextX, x1);
+      var f = Math.abs(dot(v, normal)) - dot(v, tangent);
+      if (fmin > f) {
+        fmin = f;
+        minDir = [i, j];
+      }
+    }
+    x = add(x, minDir);
+    shader(x, shader.points, this);
+  }
+  shader(x, shader.points, this);
+};
+Canvas.prototype.drawPolygon = function (array, shader) {
+  var isInsidePoly = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : Canvas.isInsidePolygon;
+  var upperBox = [[Number.MAX_VALUE, Number.MAX_VALUE], [Number.MIN_VALUE, Number.MIN_VALUE]];
+  for (var _i = 0; _i < array.length; _i++) {
+    upperBox[0] = min(array[_i], upperBox[0]);
+    upperBox[1] = max(array[_i], upperBox[1]);
+  }
+  var size = this.getSize();
+  var clampedSize = diff(size, [1, 1]);
+  var zeros = [0, 0];
+  upperBox[0] = floor(min(clampedSize, max(zeros, upperBox[0])));
+  upperBox[1] = floor(min(clampedSize, max(zeros, upperBox[1])));
+  for (var i = upperBox[0][0]; i < upperBox[1][0]; i++) {
+    for (var j = upperBox[0][1]; j < upperBox[1][1]; j++) {
+      var x = [i, j];
+      if (isInsidePoly(x, array)) {
+        shader(x, array, this);
+      }
+    }
+  }
+};
+
+/*
+ * x1     :   2-dim array
+ * x2     :   2-dim array
+ * x3     :   2-dim array
+ * shader :   is a function that receives a 2-dim array and a triangle (array with 3 points) and returns a rgba 4-dim array
+ */
+Canvas.prototype.drawTriangle = function (x1, x2, x3, shader) {
+  var array = [x1, x2, x3];
+  this.drawPolygon(array, shader, Canvas.isInsideConvex);
+};
+
+/* x1     :   2-dim array
+ * x2     :   2-dim array
+ * x3     :   2-dim array
+ * x4     :   2-dim array
+ * shader :   is a function that receives a 2-dim array and returns a rgba 4-dim array
+ */
+Canvas.prototype.drawQuad = function (x1, x2, x3, x4, shader) {
+  this.drawPolygon([x1, x2, x3, x4], shader);
+};
+Canvas.prototype.drawImage = function (img, x) {
+  if ("isReady" in img && !img.isReady) return;
+  this.useCanvasCtx(function (canvas) {
+    return canvas.ctx.drawImage(img, x[1], x[0]);
+  });
+};
+Canvas.prototype.drawCircle = function (x, r, shader) {
+  var corner = scale([1, 1], r);
+  var upperBox = [diff(x, corner), add(x, corner)];
+  var size = this.getSize();
+  upperBox[0] = floor(min(diff(size, [1, 1]), max([0, 0], upperBox[0])));
+  upperBox[1] = floor(min(diff(size, [1, 1]), max([0, 0], upperBox[1])));
+  for (var i = upperBox[0][0]; i <= upperBox[1][0]; i++) {
+    for (var j = upperBox[0][1]; j <= upperBox[1][1]; j++) {
+      var p = [i, j];
+      if (this.isInsideCircle(p, x, r)) {
+        shader(p, [x, r], this);
+      }
+    }
+  }
+};
+Canvas.prototype.isInsideCircle = function (p, x, r) {
+  return squareNorm(diff(p, x)) <= r * r;
+};
+Canvas.prototype.addEventListener = function (key, lambda, useCapture) {
+  this.canvas.addEventListener(key, lambda, useCapture);
+};
+Canvas.prototype.drawString = function (x, string, contextShader) {
+  this.useCanvasCtx(function (canvas) {
+    contextShader(canvas.ctx);
+    canvas.ctx.fillText(string, x[1], x[0]);
+  });
+};
+
+// Static functions
+
+// slower than isInsideConvex method
+Canvas.isInsidePolygon = function (x, array) {
+  var v = [];
+  var theta = 0;
+  var n = array.length;
+  for (var i = 0; i < n; i++) {
+    v[0] = diff(array[(i + 1) % n], x);
+    v[1] = diff(array[i], x);
+    theta += Math.acos(dot(v[0], v[1]) / (norm(v[0]) * norm(v[1])));
+  }
+  return Math.abs(theta - 2 * Math.PI) < 1e-3;
+};
+Canvas.isInsideConvex = function (x, array) {
+  var m = array.length;
+  var v = [];
+  var vDotN = [];
+  for (var i = 0; i < m; i++) {
+    v[i] = diff(array[(i + 1) % m], array[i]);
+    var n = [-v[i][1], v[i][0]];
+    var r = diff(x, array[i]);
+    vDotN[i] = dot(r, n);
+  }
+  var orientation = v[0][0] * v[1][1] - v[0][1] * v[1][0] > 0 ? 1 : -1;
+  for (var i = 0; i < m; i++) {
+    var myDot = vDotN[i] * orientation;
+    if (myDot < 0) return false;
+  }
+  return true;
+};
+Canvas.simpleShader = function (color) {
+  return function (x, element, canvas) {
+    return canvas.drawPxl(x, color);
+  };
+};
+Canvas.colorShader = function (colors) {
+  var auxShader = function auxShader(x, poly, canvas, alpha) {
+    var interpolateColors = [0, 0, 0, 0];
+    for (var i = 0; i < poly.length; i++) {
+      interpolateColors[0] = interpolateColors[0] + colors[i][0] * alpha[i];
+      interpolateColors[1] = interpolateColors[1] + colors[i][1] * alpha[i];
+      interpolateColors[2] = interpolateColors[2] + colors[i][2] * alpha[i];
+      interpolateColors[3] = interpolateColors[3] + colors[i][3] * alpha[i];
+    }
+    canvas.drawPxl(x, interpolateColors);
+  };
+  return Canvas.interpolateTriangleShader(auxShader);
+};
+Canvas.interpolateQuadShader = function (shader) {
+  return function (x, quad, canvas) {
+    var t1 = [quad[0], quad[1], quad[2]];
+    var t2 = [quad[2], quad[3], quad[0]];
+    var alpha = Canvas.triangleBaryCoord(x, t1);
+    if (alpha[0] > 0 && alpha[1] > 0 && alpha[2] > 0 && Math.abs(alpha[0] + alpha[1] + alpha[2] - 1) < 1e-10) {
+      shader(x, quad, canvas, [alpha[0], alpha[1], alpha[2], 0]);
+    } else {
+      alpha = Canvas.triangleBaryCoord(x, t2);
+      shader(x, quad, canvas, [alpha[2], 0, alpha[0], alpha[1]]);
+    }
+  };
+};
+Canvas.interpolateTriangleShader = function (shader) {
+  return function (x, triangle, canvas) {
+    var alpha = Canvas.triangleBaryCoord(x, triangle);
+    shader(x, triangle, canvas, alpha);
+  };
+};
+Canvas.interpolateLineShader = function (shader) {
+  return function (x, line, canvas) {
+    var v = diff(line[1], line[0]);
+    var z = diff(x, line[0]);
+    var vnorm = squareNorm(v);
+    var projection = dot(z, v);
+    var t = vnorm == 0.0 ? 0 : projection / vnorm;
+    shader(x, line, canvas, t);
+  };
+};
+
+/**
+ * img: html loaded image.
+ * quadTexCoord: [0, 1]^{2 * 4}, texture coordinates
+ */
+Canvas.quadTextureShader = function (img, quadTexCoord) {
+  var interpolation = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : Canvas.bilinearInterpolation;
+  var imageCache = null;
+  var imageShader = function imageShader(x, quad, canvas, alpha) {
+    if (!img.isReady || imageCache == null) imageCache = new Canvas(_ImageIO__WEBPACK_IMPORTED_MODULE_0__["default"].getImageCanvas(img));
+    var imageCanvas = imageCache;
+    var imgSize = imageCanvas.getSize();
+    var interpolateTexCoord = [0, 0];
+    for (var _i2 = 0; _i2 < quadTexCoord.length; _i2++) {
+      interpolateTexCoord[0] = interpolateTexCoord[0] + quadTexCoord[_i2][0] * alpha[_i2];
+      interpolateTexCoord[1] = interpolateTexCoord[1] + quadTexCoord[_i2][1] * alpha[_i2];
+    }
+    var i = [(1 - interpolateTexCoord[1]) * (imgSize[1] - 1), (imgSize[0] - 1) * interpolateTexCoord[0]];
+    // bound coordinates
+    i = max([0, 0], min(diff([imgSize[0], imgSize[1]], [1, 1]), i));
+    // pxl lower corner
+    var j = floor(i);
+    var cornerColors = [imageCanvas.getPxl(j), imageCanvas.getPxl(add(j, [1, 0])), imageCanvas.getPxl(add(j, [1, 1])), imageCanvas.getPxl(add(j, [0, 1]))];
+    var finalColor = interpolation(cornerColors, diff(i, j));
+    canvas.drawPxl(x, finalColor);
+  };
+  return Canvas.interpolateQuadShader(imageShader);
+};
+Canvas.triangleCache = function () {
+  var hashMap = [];
+  var size = 3;
+  return {
+    constains: function constains(triangleHash) {
+      return hashMap[triangleHash % size] != undefined;
+    },
+    get: function get(triangleHash) {
+      return hashMap[triangleHash % size];
+    },
+    set: function set(triangleHash, value) {
+      return hashMap[triangleHash % size] = value;
+    }
+  };
+}(); //{triangle: null, u: [], v:[], det:null, hash:null}
+
+Canvas.triangleHash = function (triangle) {
+  var array = [triangle[0][0], triangle[1][0], triangle[2][0], triangle[0][1], triangle[1][1], triangle[2][1]];
+  return array.reduce(function (h, x) {
+    return 31 * h + x;
+  }, 1);
+};
+Canvas.triangleBaryCoord = function (x, triangle) {
+  var hash = Canvas.triangleHash(triangle);
+  var y = [x[0] - triangle[0][0], x[1] - triangle[0][1]];
+  if (!Canvas.triangleCache.constains(hash)) {
+    var _u = [triangle[1][0] - triangle[0][0], triangle[1][1] - triangle[0][1]];
+    var _v = [triangle[2][0] - triangle[0][0], triangle[2][1] - triangle[0][1]];
+    var _det = _u[0] * _v[1] - _u[1] * _v[0];
+    Canvas.triangleCache.set(hash, {
+      triangle: triangle,
+      u: _u.map(function (x) {
+        return x / _det;
+      }),
+      v: _v.map(function (x) {
+        return x / _det;
+      }),
+      det: _det,
+      hash: hash
+    });
+  }
+  var cache = Canvas.triangleCache.get(hash);
+  var u = cache.u;
+  var v = cache.v;
+  var det = cache.det;
+  if (det == 0) return [0, 0, 0];
+  var alpha = [v[1] * y[0] - v[0] * y[1], u[0] * y[1] - u[1] * y[0]];
+  return [1 - alpha[0] - alpha[1], alpha[0], alpha[1]];
+};
+
+/**
+ * values \in R^{k * 4}
+ * x \in [0,1]^2
+ */
+Canvas.bilinearInterpolation = function (values, x) {
+  var acc = [];
+  for (var k = 0; k < values.length; k++) {
+    var f03 = values[0][k] + (values[3][k] - values[0][k]) * x[1];
+    var f12 = values[1][k] + (values[2][k] - values[1][k]) * x[1];
+    var f = f03 + (f12 - f03) * x[0];
+    acc.push(f);
+  }
+  return acc;
+};
+/**
+ * size: is an array with width and height of a HTML5 Canvas.
+ * domId: DOM element where the canvas will be added
+ *
+ * returns Canvas object from the generated html canvas.
+ */
+Canvas.createCanvas = function (size, domId) {
+  var canvas = document.createElement("canvas");
+  canvas.setAttribute("width", size[0]);
+  canvas.setAttribute("height", size[1]);
+  document.getElementById(domId).appendChild(canvas);
+  return canvas;
+};
+/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (Canvas);
+
+/***/ }),
+
+/***/ "./src/Canvas_old/main/Canvas2D.js":
+/*!*****************************************!*\
+  !*** ./src/Canvas_old/main/Canvas2D.js ***!
+  \*****************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
+/* harmony export */ });
+/* harmony import */ var _Canvas__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./Canvas */ "./src/Canvas_old/main/Canvas.js");
+
+
+//Note that we can switch from heritage to composition, think about that
+
+// cameraSpace : 2-dim array with two 2-dim arrays that are intervals [a,b] | a < b
+var Canvas2D = function Canvas2D(canvas, cameraSpace) {
+  _Canvas__WEBPACK_IMPORTED_MODULE_0__["default"].call(this, canvas);
+  if (cameraSpace.length != 2 || cameraSpace[0].length != 2 && cameraSpace[1].length != 2) {
+    throw "camera space must be 2-dim array with 2-dim arrays representing an interval";
+  }
+  this.cameraSpace = cameraSpace;
+};
+Canvas2D.prototype = Object.create(_Canvas__WEBPACK_IMPORTED_MODULE_0__["default"].prototype);
+Canvas2D.prototype.constructor = Canvas2D;
+
+/* x : 2-dim array in camera space coordinates
+ * returns : 2-dim array in integer coordinates
+ */
+Canvas2D.prototype.integerTransform = function (x) {
+  var xint = -(this.canvas.height - 1) / (this.cameraSpace[1][1] - this.cameraSpace[1][0]) * (x[1] - this.cameraSpace[1][1]);
+  var yint = (this.canvas.width - 1) / (this.cameraSpace[0][1] - this.cameraSpace[0][0]) * (x[0] - this.cameraSpace[0][0]);
+  return [xint, yint];
+};
+
+/* x : 2-dim array in integer coordinates
+ * returns : 2-dim array in camera space coordinates
+ */
+Canvas2D.prototype.inverseTransform = function (x) {
+  var xt = this.cameraSpace[0][0] + (this.cameraSpace[0][1] - this.cameraSpace[0][0]) / (this.canvas.width - 1) * x[1];
+  var yt = this.cameraSpace[1][1] - (this.cameraSpace[1][1] - this.cameraSpace[1][0]) / (this.canvas.height - 1) * x[0];
+  return [xt, yt];
+};
+
+/* x1     :   2-dim array
+ * x2     :   2-dim array
+ * shader :   is a function that receives a 2-dim array and returns a rgba 4-dim array
+ */
+Canvas2D.prototype.drawLine = function (x1, x2, shader) {
+  var y1 = this.integerTransform(x1);
+  var y2 = this.integerTransform(x2);
+  _Canvas__WEBPACK_IMPORTED_MODULE_0__["default"].prototype.drawLine.call(this, y1, y2, shader);
+};
+
+/* x1     :   2-dim array
+ * x2     :   2-dim array
+ * x3     :   2-dim array
+ * shader :   is a function that receives a 2-dim array and returns a rgba 4-dim array
+ */
+Canvas2D.prototype.drawTriangle = function (x1, x2, x3, shader) {
+  var y1 = this.integerTransform(x1);
+  var y2 = this.integerTransform(x2);
+  var y3 = this.integerTransform(x3);
+  _Canvas__WEBPACK_IMPORTED_MODULE_0__["default"].prototype.drawTriangle.call(this, y1, y2, y3, shader);
+};
+
+/* x1     :   2-dim array
+ * x2     :   2-dim array
+ * x3     :   2-dim array
+ * x4     :   2-dim array
+ * shader :   is a function that receives a 2-dim array and returns a rgba 4-dim array
+ */
+Canvas2D.prototype.drawQuad = function (x1, x2, x3, x4, shader) {
+  var y1 = this.integerTransform(x1);
+  var y2 = this.integerTransform(x2);
+  var y3 = this.integerTransform(x3);
+  var y4 = this.integerTransform(x4);
+  _Canvas__WEBPACK_IMPORTED_MODULE_0__["default"].prototype.drawQuad.call(this, y1, y2, y3, y4, shader);
+};
+Canvas2D.prototype.drawCircle = function (x, r, shader) {
+  // it assumes squared canvas, for now ...
+  var y = this.integerTransform(x);
+  var z = this.integerTransform([r, 0])[1] - this.integerTransform([0, 0])[1];
+  _Canvas__WEBPACK_IMPORTED_MODULE_0__["default"].prototype.drawCircle.call(this, y, z, shader);
+};
+Canvas2D.prototype.drawImage = function (img, x) {
+  _Canvas__WEBPACK_IMPORTED_MODULE_0__["default"].prototype.drawImage.call(this, img, this.integerTransform(x));
+};
+Canvas2D.prototype.drawString = function (x, string, contextShader) {
+  var y = this.integerTransform(x);
+  _Canvas__WEBPACK_IMPORTED_MODULE_0__["default"].prototype.drawString.call(this, y, string, contextShader);
+};
+
+// camera : 2-dim array with two 2-dim arrays that are intervals [a,b] | a < b
+Canvas2D.prototype.setCamera = function (camera) {
+  if (camera.length != 2 || camera[0].length != 2 && camera[1].length != 2) {
+    throw "camera space must be 2-dim array with 2-dim arrays representing an interval";
+  }
+  this.cameraSpace = camera;
+};
+/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (Canvas2D);
+
+/***/ }),
+
+/***/ "./src/Canvas_old/main/ImageIO.js":
+/*!****************************************!*\
+  !*** ./src/Canvas_old/main/ImageIO.js ***!
+  \****************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
+/* harmony export */ });
+var ImageIO = {
+  // empty object
+};
+
+/**
+ * img : html image
+ */
+ImageIO.getImageCanvas = function (img) {
+  var canvasAux = document.createElement("canvas");
+  canvasAux.width = img.width;
+  canvasAux.height = img.height;
+  var contextAux = canvasAux.getContext("2d");
+  contextAux.fillStyle = "rgba(0, 0, 0, 0)";
+  contextAux.globalCompositeOperation = "source-over";
+  contextAux.fillRect(0, 0, canvasAux.width, canvasAux.height);
+  contextAux.drawImage(img, 0, 0);
+  return canvasAux;
+};
+
+/**
+ * img : html image
+ */
+ImageIO.getDataFromImage = function (img) {
+  canvas = ImageIO.getImageCanvas(img);
+  return canvas.getContext("2d").getImageData(0, 0, img.width, img.height);
+};
+ImageIO.loadImage = function (src) {
+  var img = new Image();
+  img.src = src;
+  img.isReady = false;
+  img.onload = function () {
+    return img.isReady = true;
+  };
+  return img;
+};
+ImageIO.generateImageReadyPredicate = function (img) {
+  return function () {
+    return img.isReady;
+  };
+};
+/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (ImageIO);
+
+/***/ }),
+
+/***/ "./src/Color/main/Color.js":
+/*!*********************************!*\
+  !*** ./src/Color/main/Color.js ***!
+  \*********************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (/* binding */ Color)
+/* harmony export */ });
+/* harmony import */ var _babel_runtime_helpers_esm_classCallCheck__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! @babel/runtime/helpers/esm/classCallCheck */ "@babel/runtime/helpers/esm/classCallCheck");
+/* harmony import */ var _babel_runtime_helpers_esm_classCallCheck__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_babel_runtime_helpers_esm_classCallCheck__WEBPACK_IMPORTED_MODULE_0__);
+/* harmony import */ var _babel_runtime_helpers_esm_createClass__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! @babel/runtime/helpers/esm/createClass */ "@babel/runtime/helpers/esm/createClass");
+/* harmony import */ var _babel_runtime_helpers_esm_createClass__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(_babel_runtime_helpers_esm_createClass__WEBPACK_IMPORTED_MODULE_1__);
+/* harmony import */ var _babel_runtime_helpers_esm_defineProperty__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! @babel/runtime/helpers/esm/defineProperty */ "@babel/runtime/helpers/esm/defineProperty");
+/* harmony import */ var _babel_runtime_helpers_esm_defineProperty__WEBPACK_IMPORTED_MODULE_2___default = /*#__PURE__*/__webpack_require__.n(_babel_runtime_helpers_esm_defineProperty__WEBPACK_IMPORTED_MODULE_2__);
+
+
+
+var _class;
+var MAX_8BIT = 255;
+var Color = /*#__PURE__*/function () {
+  /**
+   *
+   * @param {Uint8Array} rgba
+   */
+  function Color(rgba) {
+    _babel_runtime_helpers_esm_classCallCheck__WEBPACK_IMPORTED_MODULE_0___default()(this, Color);
+    this.rgba = rgba;
+  }
+  _babel_runtime_helpers_esm_createClass__WEBPACK_IMPORTED_MODULE_1___default()(Color, [{
+    key: "getRGBA",
+    value: function getRGBA() {
+      return this.rgba;
+    }
+  }, {
+    key: "red",
+    get: function get() {
+      return this.rgba[0];
+    }
+  }, {
+    key: "green",
+    get: function get() {
+      return this.rgba[1];
+    }
+  }, {
+    key: "blue",
+    get: function get() {
+      return this.rgba[2];
+    }
+  }, {
+    key: "alpha",
+    get: function get() {
+      return this.rgba[3];
+    }
+  }, {
+    key: "redRaw",
+    get: function get() {
+      return this.red * MAX_8BIT;
+    }
+  }, {
+    key: "greenRaw",
+    get: function get() {
+      return this.green * MAX_8BIT;
+    }
+  }, {
+    key: "blueRaw",
+    get: function get() {
+      return this.blue * MAX_8BIT;
+    }
+
+    /**
+     *
+     * @param {Color} color
+     * @returns {Boolean}
+     */
+  }, {
+    key: "equals",
+    value: function equals(color) {
+      for (var i = 0; i < this.rgba.length; i++) {
+        if (this.rgba[i] !== color.rgba[i]) {
+          return false;
+        }
+      }
+      return true;
+    }
+  }], [{
+    key: "ofRGBA",
+    value: function ofRGBA() {
+      var red = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 0;
+      var green = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 0;
+      var blue = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : 0;
+      var alpha = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : 1;
+      var rgba = new Uint8Array(4);
+      rgba[0] = red * MAX_8BIT;
+      rgba[1] = green * MAX_8BIT;
+      rgba[2] = blue * MAX_8BIT;
+      rgba[3] = alpha * MAX_8BIT;
+      return new Color(rgba);
+    }
+  }, {
+    key: "ofRGBARaw",
+    value: function ofRGBARaw() {
+      var red = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 0;
+      var green = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 0;
+      var blue = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : 0;
+      var alpha = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : 255;
+      var rgba = new Uint8Array(4);
+      rgba[0] = red;
+      rgba[1] = green;
+      rgba[2] = blue;
+      rgba[3] = alpha;
+      return new Color(rgba);
+    }
+  }, {
+    key: "random",
+    value: function random() {
+      var r = function r() {
+        return Math.random() * 256;
+      };
+      return Color.ofRGBA(r(), r(), r(), r());
+    }
+  }]);
+  return Color;
+}();
+_class = Color;
+_babel_runtime_helpers_esm_defineProperty__WEBPACK_IMPORTED_MODULE_2___default()(Color, "RED", _class.ofRGBA(1, 0, 0));
+_babel_runtime_helpers_esm_defineProperty__WEBPACK_IMPORTED_MODULE_2___default()(Color, "GREEN", _class.ofRGBA(0, 1, 0));
+_babel_runtime_helpers_esm_defineProperty__WEBPACK_IMPORTED_MODULE_2___default()(Color, "BLUE", _class.ofRGBA(0, 0, 1));
+_babel_runtime_helpers_esm_defineProperty__WEBPACK_IMPORTED_MODULE_2___default()(Color, "BLACK", _class.ofRGBA(0, 0, 0));
+_babel_runtime_helpers_esm_defineProperty__WEBPACK_IMPORTED_MODULE_2___default()(Color, "WHITE", _class.ofRGBA(1, 1, 1));
+
+
+/***/ }),
+
+/***/ "./src/Matrix/main/Matrix.js":
+/*!***********************************!*\
+  !*** ./src/Matrix/main/Matrix.js ***!
+  \***********************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   MatrixError: () => (/* binding */ MatrixError),
+/* harmony export */   "default": () => (/* binding */ Matrix)
+/* harmony export */ });
+/* harmony import */ var _babel_runtime_helpers_esm_inherits__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! @babel/runtime/helpers/esm/inherits */ "@babel/runtime/helpers/esm/inherits");
+/* harmony import */ var _babel_runtime_helpers_esm_inherits__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_babel_runtime_helpers_esm_inherits__WEBPACK_IMPORTED_MODULE_0__);
+/* harmony import */ var _babel_runtime_helpers_esm_possibleConstructorReturn__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! @babel/runtime/helpers/esm/possibleConstructorReturn */ "@babel/runtime/helpers/esm/possibleConstructorReturn");
+/* harmony import */ var _babel_runtime_helpers_esm_possibleConstructorReturn__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(_babel_runtime_helpers_esm_possibleConstructorReturn__WEBPACK_IMPORTED_MODULE_1__);
+/* harmony import */ var _babel_runtime_helpers_esm_getPrototypeOf__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! @babel/runtime/helpers/esm/getPrototypeOf */ "@babel/runtime/helpers/esm/getPrototypeOf");
+/* harmony import */ var _babel_runtime_helpers_esm_getPrototypeOf__WEBPACK_IMPORTED_MODULE_2___default = /*#__PURE__*/__webpack_require__.n(_babel_runtime_helpers_esm_getPrototypeOf__WEBPACK_IMPORTED_MODULE_2__);
+/* harmony import */ var _babel_runtime_helpers_esm_wrapNativeSuper__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! @babel/runtime/helpers/esm/wrapNativeSuper */ "@babel/runtime/helpers/esm/wrapNativeSuper");
+/* harmony import */ var _babel_runtime_helpers_esm_wrapNativeSuper__WEBPACK_IMPORTED_MODULE_3___default = /*#__PURE__*/__webpack_require__.n(_babel_runtime_helpers_esm_wrapNativeSuper__WEBPACK_IMPORTED_MODULE_3__);
+/* harmony import */ var _babel_runtime_helpers_esm_defineProperty__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! @babel/runtime/helpers/esm/defineProperty */ "@babel/runtime/helpers/esm/defineProperty");
+/* harmony import */ var _babel_runtime_helpers_esm_defineProperty__WEBPACK_IMPORTED_MODULE_4___default = /*#__PURE__*/__webpack_require__.n(_babel_runtime_helpers_esm_defineProperty__WEBPACK_IMPORTED_MODULE_4__);
+/* harmony import */ var _babel_runtime_helpers_esm_toConsumableArray__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! @babel/runtime/helpers/esm/toConsumableArray */ "@babel/runtime/helpers/esm/toConsumableArray");
+/* harmony import */ var _babel_runtime_helpers_esm_toConsumableArray__WEBPACK_IMPORTED_MODULE_5___default = /*#__PURE__*/__webpack_require__.n(_babel_runtime_helpers_esm_toConsumableArray__WEBPACK_IMPORTED_MODULE_5__);
+/* harmony import */ var _babel_runtime_helpers_esm_slicedToArray__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! @babel/runtime/helpers/esm/slicedToArray */ "@babel/runtime/helpers/esm/slicedToArray");
+/* harmony import */ var _babel_runtime_helpers_esm_slicedToArray__WEBPACK_IMPORTED_MODULE_6___default = /*#__PURE__*/__webpack_require__.n(_babel_runtime_helpers_esm_slicedToArray__WEBPACK_IMPORTED_MODULE_6__);
+/* harmony import */ var _babel_runtime_helpers_esm_classCallCheck__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! @babel/runtime/helpers/esm/classCallCheck */ "@babel/runtime/helpers/esm/classCallCheck");
+/* harmony import */ var _babel_runtime_helpers_esm_classCallCheck__WEBPACK_IMPORTED_MODULE_7___default = /*#__PURE__*/__webpack_require__.n(_babel_runtime_helpers_esm_classCallCheck__WEBPACK_IMPORTED_MODULE_7__);
+/* harmony import */ var _babel_runtime_helpers_esm_createClass__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! @babel/runtime/helpers/esm/createClass */ "@babel/runtime/helpers/esm/createClass");
+/* harmony import */ var _babel_runtime_helpers_esm_createClass__WEBPACK_IMPORTED_MODULE_8___default = /*#__PURE__*/__webpack_require__.n(_babel_runtime_helpers_esm_createClass__WEBPACK_IMPORTED_MODULE_8__);
+
+
+
+
+
+
+
+
+
+var _class2;
+function _createSuper(Derived) { var hasNativeReflectConstruct = _isNativeReflectConstruct(); return function _createSuperInternal() { var Super = _babel_runtime_helpers_esm_getPrototypeOf__WEBPACK_IMPORTED_MODULE_2___default()(Derived), result; if (hasNativeReflectConstruct) { var NewTarget = _babel_runtime_helpers_esm_getPrototypeOf__WEBPACK_IMPORTED_MODULE_2___default()(this).constructor; result = Reflect.construct(Super, arguments, NewTarget); } else { result = Super.apply(this, arguments); } return _babel_runtime_helpers_esm_possibleConstructorReturn__WEBPACK_IMPORTED_MODULE_1___default()(this, result); }; }
+function _isNativeReflectConstruct() { if (typeof Reflect === "undefined" || !Reflect.construct) return false; if (Reflect.construct.sham) return false; if (typeof Proxy === "function") return true; try { Boolean.prototype.valueOf.call(Reflect.construct(Boolean, [], function () {})); return true; } catch (e) { return false; } }
+function _classPrivateMethodInitSpec(obj, privateSet) { _checkPrivateRedeclaration(obj, privateSet); privateSet.add(obj); }
+function _checkPrivateRedeclaration(obj, privateCollection) { if (privateCollection.has(obj)) { throw new TypeError("Cannot initialize the same private elements twice on an object"); } }
+function _classPrivateMethodGet(receiver, privateSet, fn) { if (!privateSet.has(receiver)) { throw new TypeError("attempted to get private field on non-instance"); } return fn; }
+//========================================================================================
+/*                                                                                      *
+ *                              MATRIX UTILS (order counts)                             *
+ *                                                                                      */
+//========================================================================================
+
+var getIndexFromCoord = function getIndexFromCoord(_, m) {
+  return function (i, j) {
+    return j + i * m;
+  };
+};
+var getCoordFromIndex = function getCoordFromIndex(_, m) {
+  return function (k) {
+    return [k / m, k % m].map(Math.floor);
+  };
+};
+var index2Key = function index2Key(i, j) {
+  return "".concat(i, ",").concat(j);
+};
+var key2Index = function key2Index(k) {
+  return k.split(",").map(Number);
+};
+var MatrixBuilder = /*#__PURE__*/function () {
+  function MatrixBuilder() {
+    _babel_runtime_helpers_esm_classCallCheck__WEBPACK_IMPORTED_MODULE_7___default()(this, MatrixBuilder);
+    this._size = [];
+    this.data = {};
+  }
+  _babel_runtime_helpers_esm_createClass__WEBPACK_IMPORTED_MODULE_8___default()(MatrixBuilder, [{
+    key: "size",
+    value: function size(n) {
+      var m = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 1;
+      this._size = [n, m];
+      return this;
+    }
+  }, {
+    key: "set",
+    value: function set(i, j, v) {
+      if (this._size.length === 0) throw new MatrixError("Setting value to empty matrix");
+      this.data[index2Key(i, j)] = v;
+      return this;
+    }
+  }, {
+    key: "build",
+    value: function build() {
+      var _this = this;
+      var _this$_size = _babel_runtime_helpers_esm_slicedToArray__WEBPACK_IMPORTED_MODULE_6___default()(this._size, 2),
+        n = _this$_size[0],
+        m = _this$_size[1];
+      var data = new Float64Array(n * m);
+      var indexer = getIndexFromCoord(n, m);
+      Object.keys(this.data).forEach(function (key) {
+        data[indexer.apply(void 0, _babel_runtime_helpers_esm_toConsumableArray__WEBPACK_IMPORTED_MODULE_5___default()(key2Index(key)))] = _this.data[key];
+      });
+      return new Matrix(data, this._size);
+    }
+  }]);
+  return MatrixBuilder;
+}();
+var RowBuilder = /*#__PURE__*/function () {
+  function RowBuilder() {
+    _babel_runtime_helpers_esm_classCallCheck__WEBPACK_IMPORTED_MODULE_7___default()(this, RowBuilder);
+    this.rows = [];
+    this.dim = 0;
+  }
+  _babel_runtime_helpers_esm_createClass__WEBPACK_IMPORTED_MODULE_8___default()(RowBuilder, [{
+    key: "addRow",
+    value: function addRow() {
+      for (var _len = arguments.length, array = new Array(_len), _key = 0; _key < _len; _key++) {
+        array[_key] = arguments[_key];
+      }
+      if (this.dim === 0) {
+        this.dim = array.length;
+      }
+      if (this.dim !== array.length) throw new MatrixError("Added row of different dimension, actual dim is ".concat(this.dim));
+      this.rows.push(array);
+      return this;
+    }
+  }, {
+    key: "build",
+    value: function build() {
+      if (this.rows.length > 0) return this._buildWithRows();
+      throw new MatrixError("Building empty matrix");
+    }
+  }, {
+    key: "_buildWithRows",
+    value: function _buildWithRows() {
+      var rows = this.rows.length;
+      var cols = this.dim;
+      var data = new Float64Array(rows * cols);
+      var indexF = getIndexFromCoord(rows, cols);
+      for (var i = 0; i < rows; i++) {
+        for (var j = 0; j < cols; j++) {
+          data[indexF(i, j)] = this.rows[i][j];
+        }
+      }
+      return new Matrix(data, [rows, cols]);
+    }
+  }]);
+  return RowBuilder;
+}();
+var _buildWithCols = /*#__PURE__*/new WeakSet();
+var ColBuilder = /*#__PURE__*/function () {
+  function ColBuilder() {
+    _babel_runtime_helpers_esm_classCallCheck__WEBPACK_IMPORTED_MODULE_7___default()(this, ColBuilder);
+    _classPrivateMethodInitSpec(this, _buildWithCols);
+    this.cols = [];
+    this.dim = 0;
+  }
+  _babel_runtime_helpers_esm_createClass__WEBPACK_IMPORTED_MODULE_8___default()(ColBuilder, [{
+    key: "addCol",
+    value: function addCol() {
+      for (var _len2 = arguments.length, array = new Array(_len2), _key2 = 0; _key2 < _len2; _key2++) {
+        array[_key2] = arguments[_key2];
+      }
+      if (this.dim === 0) {
+        this.dim = array.length;
+      }
+      if (this.dim !== array.length) throw new MatrixError("Added col of different dimension, actual dim is ".concat(this.dim));
+      this.cols.push(array);
+      return this;
+    }
+  }, {
+    key: "build",
+    value: function build() {
+      if (this.cols.length > 0) return _classPrivateMethodGet(this, _buildWithCols, _buildWithCols2).call(this);
+      throw new MatrixError("Building empty matrix");
+    }
+  }]);
+  return ColBuilder;
+}(); //========================================================================================
+/*                                                                                      *
+ *                                        MATRIX                                        *
+ *                                                                                      */
+//========================================================================================
+function _buildWithCols2() {
+  var rows = this.dim;
+  var cols = this.cols.length;
+  var data = new Float64Array(rows * cols);
+  var indexF = getIndexFromCoord(rows, cols);
+  for (var i = 0; i < rows; i++) {
+    for (var j = 0; j < cols; j++) {
+      data[indexF(i, j)] = this.cols[j][i];
+    }
+  }
+  return new Matrix(data, [rows, cols]);
+}
+var Matrix = /*#__PURE__*/function () {
+  /**
+   *
+   * @param {Float64Array} data: Matrix data in major row format
+   * @param {Array} shape: 2-array [rows,columns]
+   */
+  function Matrix(data, shape) {
+    _babel_runtime_helpers_esm_classCallCheck__WEBPACK_IMPORTED_MODULE_7___default()(this, Matrix);
+    _babel_runtime_helpers_esm_defineProperty__WEBPACK_IMPORTED_MODULE_4___default()(this, "fold", this.reduce);
+    _babel_runtime_helpers_esm_defineProperty__WEBPACK_IMPORTED_MODULE_4___default()(this, "length", this.norm);
+    this.data = data;
+    this.shape = shape;
+  }
+  _babel_runtime_helpers_esm_createClass__WEBPACK_IMPORTED_MODULE_8___default()(Matrix, [{
+    key: "rows",
+    get: function get() {
+      return this.shape[0];
+    }
+  }, {
+    key: "cols",
+    get: function get() {
+      return this.shape[1];
+    }
+  }, {
+    key: "get",
+    value: function get() {
+      var i = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 0;
+      var j = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 0;
+      var _this$shape = _babel_runtime_helpers_esm_slicedToArray__WEBPACK_IMPORTED_MODULE_6___default()(this.shape, 2),
+        _ = _this$shape[0],
+        cols = _this$shape[1];
+      return this.data[j + i * cols];
+    }
+  }, {
+    key: "prod",
+    value: function prod(matrix) {
+      if (this.cols !== matrix.rows) {
+        throw new MatrixError("Incompatible product size. Left ".concat(this.shape, ", right ").concat(matrix.shape));
+      }
+      var n = this.rows;
+      var m = this.cols;
+      var l = matrix.cols;
+      var prod = new Float64Array(n * l);
+      var indexer = getIndexFromCoord(n, l);
+      for (var i = 0; i < n; i++) {
+        for (var j = 0; j < l; j++) {
+          var acc = 0;
+          for (var k = 0; k < m; k++) {
+            acc += this.get(i, k) * matrix.get(k, j);
+          }
+          prod[indexer(i, j)] = acc;
+        }
+      }
+      return new Matrix(prod, [n, l]);
+    }
+  }, {
+    key: "dot",
+    value: function dot(matrix) {
+      if (this.rows !== matrix.rows) throw new MatrixError("Incompatible product size. Left ".concat(this.shape, ", right ").concat(matrix.shape));
+      var n = this.rows;
+      var m = this.cols;
+      var l = matrix.cols;
+      var prod = new Float64Array(m * l);
+      var indexer = getIndexFromCoord(m, l);
+      for (var i = 0; i < m; i++) {
+        for (var j = 0; j < l; j++) {
+          var acc = 0;
+          for (var k = 0; k < n; k++) {
+            acc += this.get(k, i) * matrix.get(k, j);
+          }
+          prod[indexer(i, j)] = acc;
+        }
+      }
+      return new Matrix(prod, [m, l]);
+    }
+
+    /**
+     *
+     * @param {*} lambda: (number, i, j) => number
+     * @returns Matrix
+     */
+  }, {
+    key: "map",
+    value: function map() {
+      var lambda = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : function (x) {
+        return x;
+      };
+      var getCoord = getCoordFromIndex.apply(void 0, _babel_runtime_helpers_esm_toConsumableArray__WEBPACK_IMPORTED_MODULE_5___default()(this.shape));
+      return new Matrix(this.data.map(function (x, k) {
+        var _getCoord = getCoord(k),
+          _getCoord2 = _babel_runtime_helpers_esm_slicedToArray__WEBPACK_IMPORTED_MODULE_6___default()(_getCoord, 2),
+          i = _getCoord2[0],
+          j = _getCoord2[1];
+        return lambda(x, i, j);
+      }), this.shape);
+    }
+
+    /**
+     *
+     * @param {*} lambda (accumulator, number, i, j) => number
+     * @param {*} identity
+     */
+  }, {
+    key: "reduce",
+    value: function reduce(lambda) {
+      var identity = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 0;
+      var getCoord = getCoordFromIndex.apply(void 0, _babel_runtime_helpers_esm_toConsumableArray__WEBPACK_IMPORTED_MODULE_5___default()(this.shape));
+      return this.data.reduce(function (e, x, k) {
+        var _getCoord3 = getCoord(k),
+          _getCoord4 = _babel_runtime_helpers_esm_slicedToArray__WEBPACK_IMPORTED_MODULE_6___default()(_getCoord3, 2),
+          i = _getCoord4[0],
+          j = _getCoord4[1];
+        return lambda(e, x, i, j);
+      }, identity);
+    }
+  }, {
+    key: "op",
+    value:
+    /**
+     *
+     * @param {*} binaryLambda: (number,number) => number
+     */
+    function op(matrix, binaryLambda) {
+      var _this$shape2 = _babel_runtime_helpers_esm_slicedToArray__WEBPACK_IMPORTED_MODULE_6___default()(this.shape, 2),
+        rows = _this$shape2[0],
+        cols = _this$shape2[1];
+      var _matrix$shape = _babel_runtime_helpers_esm_slicedToArray__WEBPACK_IMPORTED_MODULE_6___default()(matrix.shape, 2),
+        mRows = _matrix$shape[0],
+        mCols = _matrix$shape[1];
+      if (rows !== mRows || cols !== mCols) throw new MatrixError("Matrix must be of same size");
+      return new Matrix(this.data.map(function (x, i) {
+        return binaryLambda(x, matrix.data[i]);
+      }), this.shape);
+    }
+  }, {
+    key: "add",
+    value: function add(matrix) {
+      return this.op(matrix, function (a, b) {
+        return a + b;
+      });
+    }
+  }, {
+    key: "sub",
+    value: function sub(matrix) {
+      return this.op(matrix, function (a, b) {
+        return a - b;
+      });
+    }
+  }, {
+    key: "mul",
+    value: function mul(matrix) {
+      return this.op(matrix, function (a, b) {
+        return a * b;
+      });
+    }
+  }, {
+    key: "div",
+    value: function div(matrix) {
+      return this.op(matrix, function (a, b) {
+        return a / b;
+      });
+    }
+  }, {
+    key: "scale",
+    value: function scale(real) {
+      return this.map(function (x) {
+        return x * real;
+      });
+    }
+  }, {
+    key: "norm",
+    value: function norm() {
+      var acc = 0;
+      for (var i = 0; i < this.data.length; i++) {
+        acc += this.data[i] * this.data[i];
+      }
+      return Math.sqrt(acc);
+    }
+  }, {
+    key: "equals",
+    value: function equals(matrix) {
+      var precision = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 1e-6;
+      if (!(matrix instanceof Matrix)) return false;
+      try {
+        return this.sub(matrix).length() < precision;
+      } catch (error) {
+        return false;
+      }
+    }
+  }, {
+    key: "toArray",
+    value: function toArray() {
+      return this.data;
+    }
+  }], [{
+    key: "ZERO",
+    value: function ZERO(n) {
+      var m = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 1;
+      return Matrix.builder().size(n, m).build();
+    }
+  }, {
+    key: "random",
+    value: function random(n) {
+      var m = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 1;
+      var data = new Float64Array(n * m);
+      for (var i = 0; i < data.length; i++) {
+        data[i] = Math.random();
+      }
+      return new Matrix(data, [n, m]);
+    }
+  }, {
+    key: "builder",
+    value: function builder() {
+      return new MatrixBuilder();
+    }
+  }, {
+    key: "rowBuilder",
+    value: function rowBuilder() {
+      return new RowBuilder();
+    }
+  }, {
+    key: "colBuilder",
+    value: function colBuilder() {
+      return new ColBuilder();
+    }
+  }, {
+    key: "vec",
+    value: function vec() {
+      var _ColBuilder;
+      return (_ColBuilder = new ColBuilder()).addCol.apply(_ColBuilder, arguments).build();
+    }
+  }, {
+    key: "cov",
+    value: function cov() {
+      var _RowBuilder;
+      return (_RowBuilder = new RowBuilder()).addRow.apply(_RowBuilder, arguments).build();
+    }
+  }]);
+  return Matrix;
+}();
+_class2 = Matrix;
+_babel_runtime_helpers_esm_defineProperty__WEBPACK_IMPORTED_MODULE_4___default()(Matrix, "id", function (n) {
+  var m = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : n;
+  var en = _class2.e(n);
+  var matrixBuilder = _class2.colBuilder();
+  for (var i = 0; i < m; i++) {
+    var _matrixBuilder;
+    matrixBuilder = (_matrixBuilder = matrixBuilder).addCol.apply(_matrixBuilder, _babel_runtime_helpers_esm_toConsumableArray__WEBPACK_IMPORTED_MODULE_5___default()(en(i).data));
+  }
+  return matrixBuilder.build();
+});
+_babel_runtime_helpers_esm_defineProperty__WEBPACK_IMPORTED_MODULE_4___default()(Matrix, "e", function (n) {
+  return function (i) {
+    return new _class2(new Float64Array(n).map(function (_, j) {
+      return i === j ? 1 : 0;
+    }), [n, 1]);
+  };
+});
+_babel_runtime_helpers_esm_defineProperty__WEBPACK_IMPORTED_MODULE_4___default()(Matrix, "dx", function (n) {
+  return function (i) {
+    return new _class2(new Float64Array(n).map(function (_, j) {
+      return i === j ? 1 : 0;
+    }), [1, n]);
+  };
+});
+_babel_runtime_helpers_esm_defineProperty__WEBPACK_IMPORTED_MODULE_4___default()(Matrix, "vec2", {
+  of: function of() {
+    var x = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 0;
+    var y = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 0;
+    return _class2.vec(x, y);
+  },
+  e0: _class2.vec(1, 0),
+  e1: _class2.vec(0, 1),
+  ZERO: _class2.ZERO(2, 1)
+});
+_babel_runtime_helpers_esm_defineProperty__WEBPACK_IMPORTED_MODULE_4___default()(Matrix, "vec3", {
+  of: function of() {
+    var x = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 0;
+    var y = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 0;
+    var z = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : 0;
+    return _class2.vec(x, y, z);
+  },
+  e0: _class2.vec(1, 0, 0),
+  e1: _class2.vec(0, 1, 0),
+  e2: _class2.vec(0, 0, 1),
+  ZERO: _class2.ZERO(3, 1)
+});
+
+var MatrixError = /*#__PURE__*/function (_Error) {
+  _babel_runtime_helpers_esm_inherits__WEBPACK_IMPORTED_MODULE_0___default()(MatrixError, _Error);
+  var _super = _createSuper(MatrixError);
+  function MatrixError() {
+    _babel_runtime_helpers_esm_classCallCheck__WEBPACK_IMPORTED_MODULE_7___default()(this, MatrixError);
+    return _super.apply(this, arguments);
+  }
+  return _babel_runtime_helpers_esm_createClass__WEBPACK_IMPORTED_MODULE_8___default()(MatrixError);
+}( /*#__PURE__*/_babel_runtime_helpers_esm_wrapNativeSuper__WEBPACK_IMPORTED_MODULE_3___default()(Error));
+
+/***/ }),
+
+/***/ "./src/Utils/main/Utils.js":
+/*!*********************************!*\
+  !*** ./src/Utils/main/Utils.js ***!
+  \*********************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   perf: () => (/* binding */ perf),
+/* harmony export */   testBuilder: () => (/* binding */ testBuilder)
+/* harmony export */ });
+var perf = function perf(lambda) {
+  var t = performance.now();
+  lambda();
+  return performance.now() - t;
+};
+
+/**
+ *
+ * @param {*} canvasBuilder : () => canvas
+ * @returns
+ */
+var testBuilder = function testBuilder() {
+  var canvasBuilder = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : canvasFactory;
+  return (
+    /**
+     * Unit test maker
+     * @param {*} title
+     * @param {*} lambda: (canvas) => {}
+     */
+    function (title) {
+      var lambda = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : function () {};
+      var canvas = canvasBuilder();
+      var timeInMillis = perf(function () {
+        return lambda(canvas);
+      });
+      var domTest = document.createElement("div");
+      var testTitle = document.createElement("h3");
+      testTitle.innerText = title;
+      domTest.appendChild(testTitle);
+      domTest.appendChild(canvas.getDom());
+      var timeDom = document.createElement("h4");
+      timeDom.innerText = "Test took ".concat(timeInMillis, "ms");
+      domTest.appendChild(timeDom);
+      document.body.appendChild(domTest);
+    }
+  );
+};
+var canvasFactory = function canvasFactory() {
+  return Canvas.builder().width(500).height(500).build();
+};
+
+/***/ }),
+
+/***/ "@babel/runtime/helpers/esm/assertThisInitialized":
+/*!*******************************************************************!*\
+  !*** external "@babel/runtime/helpers/esm/assertThisInitialized" ***!
+  \*******************************************************************/
+/***/ ((module) => {
+
+module.exports = require("@babel/runtime/helpers/esm/assertThisInitialized");
+
+/***/ }),
+
+/***/ "@babel/runtime/helpers/esm/classCallCheck":
+/*!************************************************************!*\
+  !*** external "@babel/runtime/helpers/esm/classCallCheck" ***!
+  \************************************************************/
+/***/ ((module) => {
+
+module.exports = require("@babel/runtime/helpers/esm/classCallCheck");
+
+/***/ }),
+
+/***/ "@babel/runtime/helpers/esm/createClass":
+/*!*********************************************************!*\
+  !*** external "@babel/runtime/helpers/esm/createClass" ***!
+  \*********************************************************/
+/***/ ((module) => {
+
+module.exports = require("@babel/runtime/helpers/esm/createClass");
+
+/***/ }),
+
+/***/ "@babel/runtime/helpers/esm/defineProperty":
+/*!************************************************************!*\
+  !*** external "@babel/runtime/helpers/esm/defineProperty" ***!
+  \************************************************************/
+/***/ ((module) => {
+
+module.exports = require("@babel/runtime/helpers/esm/defineProperty");
+
+/***/ }),
+
+/***/ "@babel/runtime/helpers/esm/get":
+/*!*************************************************!*\
+  !*** external "@babel/runtime/helpers/esm/get" ***!
+  \*************************************************/
+/***/ ((module) => {
+
+module.exports = require("@babel/runtime/helpers/esm/get");
+
+/***/ }),
+
+/***/ "@babel/runtime/helpers/esm/getPrototypeOf":
+/*!************************************************************!*\
+  !*** external "@babel/runtime/helpers/esm/getPrototypeOf" ***!
+  \************************************************************/
+/***/ ((module) => {
+
+module.exports = require("@babel/runtime/helpers/esm/getPrototypeOf");
+
+/***/ }),
+
+/***/ "@babel/runtime/helpers/esm/inherits":
+/*!******************************************************!*\
+  !*** external "@babel/runtime/helpers/esm/inherits" ***!
+  \******************************************************/
+/***/ ((module) => {
+
+module.exports = require("@babel/runtime/helpers/esm/inherits");
+
+/***/ }),
+
+/***/ "@babel/runtime/helpers/esm/possibleConstructorReturn":
+/*!***********************************************************************!*\
+  !*** external "@babel/runtime/helpers/esm/possibleConstructorReturn" ***!
+  \***********************************************************************/
+/***/ ((module) => {
+
+module.exports = require("@babel/runtime/helpers/esm/possibleConstructorReturn");
+
+/***/ }),
+
+/***/ "@babel/runtime/helpers/esm/slicedToArray":
+/*!***********************************************************!*\
+  !*** external "@babel/runtime/helpers/esm/slicedToArray" ***!
+  \***********************************************************/
+/***/ ((module) => {
+
+module.exports = require("@babel/runtime/helpers/esm/slicedToArray");
+
+/***/ }),
+
+/***/ "@babel/runtime/helpers/esm/toConsumableArray":
+/*!***************************************************************!*\
+  !*** external "@babel/runtime/helpers/esm/toConsumableArray" ***!
+  \***************************************************************/
+/***/ ((module) => {
+
+module.exports = require("@babel/runtime/helpers/esm/toConsumableArray");
+
+/***/ }),
+
+/***/ "@babel/runtime/helpers/esm/wrapNativeSuper":
+/*!*************************************************************!*\
+  !*** external "@babel/runtime/helpers/esm/wrapNativeSuper" ***!
+  \*************************************************************/
+/***/ ((module) => {
+
+module.exports = require("@babel/runtime/helpers/esm/wrapNativeSuper");
+
+/***/ })
+
+/******/ 	});
+/************************************************************************/
+/******/ 	// The module cache
+/******/ 	var __webpack_module_cache__ = {};
+/******/ 	
+/******/ 	// The require function
+/******/ 	function __webpack_require__(moduleId) {
+/******/ 		// Check if module is in cache
+/******/ 		var cachedModule = __webpack_module_cache__[moduleId];
+/******/ 		if (cachedModule !== undefined) {
+/******/ 			return cachedModule.exports;
+/******/ 		}
+/******/ 		// Create a new module (and put it into the cache)
+/******/ 		var module = __webpack_module_cache__[moduleId] = {
+/******/ 			// no module.id needed
+/******/ 			// no module.loaded needed
+/******/ 			exports: {}
+/******/ 		};
+/******/ 	
+/******/ 		// Execute the module function
+/******/ 		__webpack_modules__[moduleId](module, module.exports, __webpack_require__);
+/******/ 	
+/******/ 		// Return the exports of the module
+/******/ 		return module.exports;
+/******/ 	}
+/******/ 	
+/************************************************************************/
+/******/ 	/* webpack/runtime/compat get default export */
+/******/ 	(() => {
+/******/ 		// getDefaultExport function for compatibility with non-harmony modules
+/******/ 		__webpack_require__.n = (module) => {
+/******/ 			var getter = module && module.__esModule ?
+/******/ 				() => (module['default']) :
+/******/ 				() => (module);
+/******/ 			__webpack_require__.d(getter, { a: getter });
+/******/ 			return getter;
+/******/ 		};
+/******/ 	})();
+/******/ 	
+/******/ 	/* webpack/runtime/define property getters */
+/******/ 	(() => {
+/******/ 		// define getter functions for harmony exports
+/******/ 		__webpack_require__.d = (exports, definition) => {
+/******/ 			for(var key in definition) {
+/******/ 				if(__webpack_require__.o(definition, key) && !__webpack_require__.o(exports, key)) {
+/******/ 					Object.defineProperty(exports, key, { enumerable: true, get: definition[key] });
+/******/ 				}
+/******/ 			}
+/******/ 		};
+/******/ 	})();
+/******/ 	
+/******/ 	/* webpack/runtime/hasOwnProperty shorthand */
+/******/ 	(() => {
+/******/ 		__webpack_require__.o = (obj, prop) => (Object.prototype.hasOwnProperty.call(obj, prop))
+/******/ 	})();
+/******/ 	
+/******/ 	/* webpack/runtime/make namespace object */
+/******/ 	(() => {
+/******/ 		// define __esModule on exports
+/******/ 		__webpack_require__.r = (exports) => {
+/******/ 			if(typeof Symbol !== 'undefined' && Symbol.toStringTag) {
+/******/ 				Object.defineProperty(exports, Symbol.toStringTag, { value: 'Module' });
+/******/ 			}
+/******/ 			Object.defineProperty(exports, '__esModule', { value: true });
+/******/ 		};
+/******/ 	})();
+/******/ 	
+/************************************************************************/
+var __webpack_exports__ = {};
+// This entry need to be wrapped in an IIFE because it need to be isolated against other modules in the chunk.
+(() => {
+/*!**********************!*\
+  !*** ./src/index.js ***!
+  \**********************/
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   Animator: () => (/* reexport safe */ _Animator_main_Animator__WEBPACK_IMPORTED_MODULE_6__["default"]),
+/* harmony export */   BBox: () => (/* reexport safe */ _BBox_main_BBox__WEBPACK_IMPORTED_MODULE_9__["default"]),
+/* harmony export */   Canvas: () => (/* reexport safe */ _Canvas_main_Canvas__WEBPACK_IMPORTED_MODULE_3__["default"]),
+/* harmony export */   Canvas2D_old: () => (/* reexport safe */ _Canvas_old_main_Canvas2D__WEBPACK_IMPORTED_MODULE_1__["default"]),
+/* harmony export */   Canvas2d: () => (/* reexport safe */ _Canvas2d_main_Canvas2d__WEBPACK_IMPORTED_MODULE_8__["default"]),
+/* harmony export */   Canvas_old: () => (/* reexport safe */ _Canvas_old_main_Canvas__WEBPACK_IMPORTED_MODULE_0__["default"]),
+/* harmony export */   Color: () => (/* reexport safe */ _Color_main_Color__WEBPACK_IMPORTED_MODULE_4__["default"]),
+/* harmony export */   ImageIO: () => (/* reexport safe */ _Canvas_old_main_ImageIO__WEBPACK_IMPORTED_MODULE_2__["default"]),
+/* harmony export */   Matrix: () => (/* reexport safe */ _Matrix_main_Matrix__WEBPACK_IMPORTED_MODULE_7__["default"]),
+/* harmony export */   Utils: () => (/* reexport module object */ _Utils_main_Utils__WEBPACK_IMPORTED_MODULE_5__)
+/* harmony export */ });
+/* harmony import */ var _Canvas_old_main_Canvas__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./Canvas_old/main/Canvas */ "./src/Canvas_old/main/Canvas.js");
+/* harmony import */ var _Canvas_old_main_Canvas2D__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./Canvas_old/main/Canvas2D */ "./src/Canvas_old/main/Canvas2D.js");
+/* harmony import */ var _Canvas_old_main_ImageIO__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./Canvas_old/main/ImageIO */ "./src/Canvas_old/main/ImageIO.js");
+/* harmony import */ var _Canvas_main_Canvas__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./Canvas/main/Canvas */ "./src/Canvas/main/Canvas.js");
+/* harmony import */ var _Color_main_Color__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./Color/main/Color */ "./src/Color/main/Color.js");
+/* harmony import */ var _Utils_main_Utils__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./Utils/main/Utils */ "./src/Utils/main/Utils.js");
+/* harmony import */ var _Animator_main_Animator__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ./Animator/main/Animator */ "./src/Animator/main/Animator.js");
+/* harmony import */ var _Matrix_main_Matrix__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ./Matrix/main/Matrix */ "./src/Matrix/main/Matrix.js");
+/* harmony import */ var _Canvas2d_main_Canvas2d__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ./Canvas2d/main/Canvas2d */ "./src/Canvas2d/main/Canvas2d.js");
+/* harmony import */ var _BBox_main_BBox__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! ./BBox/main/BBox */ "./src/BBox/main/BBox.js");
+
+
+
+
+
+
+
+
+
+
+
+})();
+
+/******/ })()
+;
 //# sourceMappingURL=index.node.js.map
