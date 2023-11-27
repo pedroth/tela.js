@@ -29,6 +29,16 @@ export default class Color {
     return this.rgba[3];
   }
 
+  get redRaw(){
+    return this.red * MAX_8BIT;
+  }
+  get greenRaw(){
+    return this.green * MAX_8BIT;
+  }
+  get blueRaw(){
+    return this.blue * MAX_8BIT;
+  }
+
   /**
    *
    * @param {Color} color

@@ -37,7 +37,9 @@ export default class Canvas {
    */
   constructor(canvas) {
     this.canvas = canvas;
-    this.ctx = canvas.getContext("2d");
+    this.ctx = canvas.getContext("2d", {
+      willReadFrequently: true
+    });
     this.image = this.ctx.getImageData(0, 0, canvas.width, canvas.height);
     // width * height * 4 array of integers
     this.data = this.image.data;
@@ -67,10 +69,10 @@ export default class Canvas {
    * @param {Color} color
    * @returns {Canvas}
    */
-  fill(color = Color.ofRGBA(255, 255, 255)) {
-    this.ctx.fillStyle = `rgba(${color.red}, ${color.green}, ${color.blue}, ${
-      color.alpha / 255.0
-    })`;
+  fill(color = Color.ofRGBARaw(255, 255, 255)) {
+    this.ctx.fillStyle = `rgba(${color.red}, ${color.green}, ${color.blue}, ${color.alpha / 255.0
+      })`;
+    console.log(this.ctx.fillStyle);
     this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
     this.image = this.ctx.getImageData(
       0,
@@ -87,7 +89,7 @@ export default class Canvas {
    * @param {(Color, Number, Number) => Color} lambda
    * @returns {Canvas}
    */
-  map(lambda = () => {}) {
+  map(lambda = () => { }) {
     const n = this.data.length;
     const { width: w } = this.canvas;
     for (let i = 0; i < n; i += 4) {
@@ -376,7 +378,7 @@ export class CanvasBuilder {
   _canvas = document.createElement("canvas");
   _width = 500;
   _height = 500;
-  constructor() {}
+  constructor() { }
 
   width(width = this._width) {
     this._width = width;
