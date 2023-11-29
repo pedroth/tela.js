@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Animator Test</title>
+    <script src="../../../dist/index.js"></script>
+  </head>
+
+  <body></body>
+  <script>
+    const { Utils, Canvas, Canvas2d, Color, Animator, Matrix, BBox } = Tela;
+    const { vec2 } = Matrix;
+    const { perf, testBuilder } = Utils;
+    const test = testBuilder(() => {
+      const width = 400;
+      const height = 300;
+      return Canvas
+      .builder()
+      .width(width)
+      .height(height)
+      .build();
+    });
+
+    
+     // wave shader simulation
+     testBuilder(() => {
+      const width = 100;
+      const height = 100;
+      return Canvas2d.builder()
+        .width(width)
+        .height(height)
+        .camera(new BBox(vec2.ZERO, vec2.of(1, 1)))
+        .build();
+    })("Test wave physics", (canvas) => {
+      const { width, height } = canvas;
+      const T = 100;
+      const dt = 0.1;
+      const N = Math.floor(T / dt);
+
+      const isGithub = location.host === "pedroth.github.io";
+      worker = isGithub
+          ? new Worker("/tela.js/src/Animator/test/waveWorker.js", {type:"module"})
+          : new Worker("/src/Animator/test/waveWorker.js", {type: "module"});
+
+      worker.onmessage = ({ data }) => {
+        const { waveSnapshots } = data;
+        // render pre-computed waves
+        Animator.builder()
+          .initialState({ time: 0, oldT: new Date().getTime(), n: 0 })
+          .nextState(({ time, oldT, n }) => {
+            const newT = new Date().getTime();
+            const deltaT = Math.min((newT - oldT) * 1e-3, dt);
+            const indexT = Math.floor(time / deltaT);
+            const { wave, waveSpeed, maxWave, minWave, maxAbsSpeed } =
+              waveSnapshots[n % N];
+            console.debug(maxWave, minWave, maxAbsSpeed);
+            canvas
+              .map((c, x, y) => {
+                let xi = Math.floor(x * (width - 1));
+                let yi = Math.floor(y * (height - 1));
+                const redColor = (wave[yi][xi] - minWave) / (maxWave - minWave);
+                const blueColor =
+                  1 - (wave[yi][xi] - minWave) / (maxWave - minWave);
+                const greenColor = Math.abs(waveSpeed[yi][xi]) / maxAbsSpeed;
+                return Color.ofRGBA(redColor, greenColor, blueColor);
+              })
+              .paint();
+            return { time: time + deltaT, oldT: newT, n: n + 1 };
+          })
+          .while(({ n }) => n < N)
+          .build()
+          .play();
+      };
+
+      worker.postMessage({
+        T,
+        dt,
+        width,
+        height,
+        amp: 100,
+        friction: 0.1,
+        waveScalarSpeed: 10,
+      });
+    });
+  </script>
+</html>

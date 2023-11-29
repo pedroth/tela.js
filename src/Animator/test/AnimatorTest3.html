@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Animator Test</title>
+  <script src="../../../dist/index.js"></script>
+</head>
+
+<body></body>
+<script>
+  const { Utils, Canvas, Canvas2d, Color, Animator, Matrix, BBox } = Tela;
+  const { vec2 } = Matrix;
+  const { perf, testBuilder } = Utils;
+  const test = testBuilder(() => {
+    const width = 400;
+    const height = 300;
+    return Canvas
+      .builder()
+      .width(width)
+      .height(height)
+      .build();
+  });
+
+
+  // Rope simulation
+  testBuilder(() => {
+    const width = 400;
+    const height = 300;
+    return Canvas2d.builder().width(width).height(height).build();
+  })("Test rope physics", (canvas) => {
+    const T = 100;
+    const n = 30;
+    const delta = 2 / n;
+    const deltaRec = 1 / delta;
+    const friction = 0.1;
+    const gravity = -0.09;
+    const amp = 0.5;
+    const waveSpeed = 2;
+    const freq = 0.3;
+    const stopWaveTime = 10;
+    let rope = [...new Array(n)].map((x, i) => (i === 0 ? 0.8 : 0));
+    let ropeSpeed = [...new Array(n)].map((x, i) => 0);
+    Animator.builder()
+      .initialState({ time: 0, oldT: new Date().getTime() })
+      .nextState(({ time, oldT }) => {
+        const newT = new Date().getTime();
+        const dt = (newT - oldT) * 1e-3;
+        let xi = -1;
+        canvas.fill();
+        // draw rope
+        for (let i = 0; i < n - 1; i++) {
+          const xii = xi + delta;
+          canvas.drawLine([xi, rope[i]], [xii, rope[i + 1]], (i, j) =>
+            Color.ofRGBA(0, 0, 0)
+          );
+          xi = xii;
+        }
+        canvas.paint();
+        /**
+         * Sympletic integration
+         **/
+        // update speed
+        for (let i = 1; i < n - 1; i++) {
+          const laplacian = (+ rope[i + 1] + rope[i - 1] - 2 * rope[i]) * deltaRec;
+          ropeSpeed[i] = ropeSpeed[i] + dt * (waveSpeed * laplacian + gravity - friction * ropeSpeed[i]);
+        }
+        // update position
+        // update boundary
+        rope[0] = time < stopWaveTime ? amp * Math.sin(2 * Math.PI * freq * time) : 0;
+        rope[n - 1] = 0;
+        for (let i = 1; i < n - 1; i++) {
+          rope[i] = rope[i] + ropeSpeed[i] * dt;
+        }
+
+        return { time: time + dt, oldT: newT };
+      })
+      .while(({ time }) => time <= T)
+      .build()
+      .play();
+  });
+</script>
+
+</html>
