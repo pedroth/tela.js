@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Animator Test</title>
+  <script src="../../../dist/index.js"></script>
+</head>
+
+<body></body>
+<script>
+  const { Utils, Canvas, Canvas2d, Color, Animator, Matrix, BBox } = Tela;
+  const { vec2 } = Matrix;
+  const { perf, testBuilder } = Utils;
+  const test = testBuilder(() => {
+    const width = 400;
+    const height = 300;
+    return Canvas.builder().width(width).height(height).build();
+  });
+
+  /**
+   * Rotating grid shader
+   **/
+  test("Test shader toy", (canvas) => {
+    const T = 20;
+    const { width, height } = canvas;
+    const step = (threshold) => (x) => x < threshold ? 0 : 1;
+    const mod = (x) => (n) => ((x % n) + n) % n;
+    Animator.builder()
+      .initialState({ time: 0, oldT: new Date().getTime() })
+      .nextState(({ time, oldT }) => {
+        const newT = new Date().getTime();
+        const dt = (newT - oldT) * 1e-3;
+        canvas
+          .map((c, x, y) => {
+            let u = y / (width - 1);
+            let v = (height - 1 - x) / (height - 1);
+            const grid = 10;
+            u *= grid;
+            v *= grid;
+            const t = 0.1 * time;
+            u_t = Math.cos(t) * u + Math.sin(t) * v;
+            v_t = -Math.sin(t) * u + Math.cos(t) * v;
+            const color =
+              (1 - step(0.95)(mod(u_t)(1))) * (1 - step(0.95)(mod(v_t)(1)));
+            return Color.ofRGBA(color, color, color);
+          })
+          .paint();
+        return { time: time + dt, oldT: newT };
+      })
+      .while(({ time }) => time <= T)
+      .build()
+      .play();
+  });
+</script>
+
+</html>
