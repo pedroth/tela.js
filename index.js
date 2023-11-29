@@ -204,8 +204,8 @@ async function input() {
 
 function output() {
     const canvasDOM = DOM.of("canvas")
-        .attr(`width`, 640)
-        .attr(`height`, 480)
+        .attr(`width`, 640/2)
+        .attr(`height`, 480/2)
         .style("margin: auto; width: 71%")
         .event("click", () => {
             toggleFullScreen(canvasDOM.build());

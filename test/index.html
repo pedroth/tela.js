@@ -29,23 +29,27 @@
 <script type="module">
     import DOM from "../src/DomBuilder.js";
     const range = (n, i = 0) => n === 0 ? [] : [i].concat(range(n - 1, i + 1));
+
+    async function createIframeDateWith(path) {
+        
+    }
+
     (async () => {
-        const iframes = range(4)
+        const iframes = range(5)
             .map(i => {
                 const container = DOM.of("div");
                 const details = DOM.of("details")
                     .appendChild(
                         DOM.of("summary")
-                            .inner(`Test ${i + 1}`),
+                            .inner(`Test ${i}`),
                         container
                     )
+                const iframe = DOM.of("iframe");
+                iframe.element.createElement("div");
+                iframe.element.body.appendChild()
                 details.event("toggle", ({target: detailElem}) => {
                     if (detailElem.open) {
-                        container
-                            .appendChild(
-                                DOM.of("iframe")
-                                    .attr("src", `./test${i + 1}.html`)
-                            )
+                        container.appendChild(iframe);
                     }
                 })
                 return details;

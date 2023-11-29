@@ -1,6 +1,7 @@
 (canvas, logger) => {
-    const width = canvas.width;
-    const height = canvas.height;
+    const width = 640;
+    const height = 480;
+    canvas.resize(width, height);
     const time = 1;
     canvas
         .map((x, y) => {

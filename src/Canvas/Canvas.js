@@ -54,6 +54,16 @@ export default class Canvas {
     return this;
   }
 
+  resize(width, height) {
+    this._canvas.width = width;
+    this._canvas.height = height;
+    this._width = this._canvas.width;
+    this._height = this._canvas.height;
+    this._ctx = this._canvas.getContext("2d", { willReadFrequently: true });
+    this._imageData = this._ctx.getImageData(0, 0, this._width, this._height);
+    this._image = this._imageData.data;
+  }
+
   static ofSize(width, height) {
     const canvas = document.createElement('canvas');
     canvas.setAttribute('width', width);
