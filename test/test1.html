@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Canvas Test</title>
+</head>
+
+<body>
+    <div>FPS: <span id="fps"></span></div>
+
+</body>
+<script type="module">
+    import { Animator, Canvas, Color } from "/dist/web/index.js";
+    const width = 750;
+    const height = 500;
+    const canvas = Canvas.ofSize(width, height);
+    document.body.appendChild(canvas.DOM);
+    const T = 20;
+    let meanAverage = 0;
+    Animator.builder()
+        .initialState({ time: 0, oldT: new Date().getTime(), it: 1 })
+        .nextState(({ time, oldT, it }) => {
+            const newT = new Date().getTime();
+            const dt = (newT - oldT) * 1e-3;
+            meanAverage = meanAverage + (dt - meanAverage) / it;
+            document.getElementById("fps").innerText = String(1 / meanAverage);
+            canvas
+                .map((x, y) => {
+                    let px = (x * time) / (width - 1);
+                    let py = (y * time) / (height - 1);
+                    return Color.ofRGB(px % 1, py % 1, 0);
+                })
+            return { time: time + dt, oldT: newT, it: it + 1 };
+        })
+        .while(({ time }) => time <= T)
+        .build()
+        .play();
+</script>
+
+</html>

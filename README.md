@@ -4,24 +4,30 @@ Graphic library from scratch, with reference implementation of computer graphics
 
 ## Purpose
 
-The propose of a graphic engine is to be able to generate images in a computational way. This includes drawing geometrical figures, in the plane and in the space. Visualization of further dimensions are only available through [slices of 4th dimensional object](https://www.youtube.com/watch?v=zxphFdRDjxM), or through animations of objects.
+The propose of a graphic engine is to be able to generate images in a computational way. The engine should also be capable to create videos and interactive demos or games. In this engine I want to be able to render complex scenes with dynamic objects with realistic or cartoonish appearance.
 
-# Main Features
+# Table of Contents
 
-- Draw basic geometrical objects (aka [Simplices](https://en.wikipedia.org/wiki/Simplex)):
-  - Draw 2D objects
-  - Draw 3D objects
-  - Generate images
-  - Generate video
-  - Interactive application
-  - Different resolutions
+- [Quick start](#quick-start)
+- [Playground](#playground)
+- [Main features](#main-features)
 
-# Usage
+# Playground
 
-# Import
+https://pedroth.github.io/tela.js/
 
-## Via HTML
+# Main features
 
-## Via Bundlers
+- Generate image (desktop /  browser)
+    - Voxels (?)
+    - Different resolutions
+    - Point clouds / splatting
+    - Signed distance functions, implicit functions
+    - Draw geometrical objects (aka [Simplices][simplex])
+    - Path tracing: Shadows, Refraction, Global illumination, etc. 
+- Generate video (desktop /  browser)
+- Interactive application (browser)
+- Serve
 
-## Via Node
+
+[simplex]: https://en.wikipedia.org/wiki/Simplex

@@ -1,0 +1,129 @@
+/* Normal screens */
+:root {
+    --primary-color: rgb(52, 152, 219);
+    --secondary-color: rgb(231, 76, 60);
+    --tertiary-color: rgb(60, 231, 63);
+    --background-color: rgb(24, 24, 24);
+    --background-color-light: rgb(255, 255, 255);
+    --text-color: rgba(255, 255, 255, 0.9);
+    --text-color-light: rgba(24, 24, 24, 0.9);
+    --fast-transition: 0.3s;
+    --faster-transition: 0.1s;
+}
+
+/* GENERAL  */
+
+html {
+    scroll-behavior: smooth;
+    height: 100vh;
+    width: 100vw;
+}
+
+body {
+    background-color: var(--background-color);
+    color: var(--text-color);
+    font-size: 1.25rem;
+    font-weight: 400;
+    overflow-x: hidden;
+    font-family: Arial, Helvetica, sans-serif;
+}
+
+main {
+    height: inherit;
+}
+
+select {
+    border-radius: 0.25rem;
+    padding: 0.25rem
+}
+
+dialog {
+    border-radius: 0.5rem;
+    background-color: var(--background-color);
+    color: var(--text-color);
+}
+
+dialog button {
+    border: none;
+    background: inherit;
+    color: inherit;
+    width: 2.5rem;
+    transition: all 0.25s ease-in-out;
+}
+
+/* IDS */
+
+#root {
+    opacity: 0.1;
+    transition: opacity var(--fast-transition) ease-in-out;
+    margin-left: auto;
+    margin-right: auto;
+    height: 100%;
+    width: 100%;
+    min-width: 333px;
+}
+
+#root.loaded {
+    opacity: 1;
+}
+
+/* Classes */
+
+.divider {
+    background-color: #151515;
+    cursor: ew-resize;
+    width: 10px;
+}
+
+/* Utils */
+
+.y-overflow {
+    overflow-y: auto;
+}
+
+.x-overflow {
+    overflow-x: auto;
+}
+
+.flex {
+    display: flex;
+}
+
+.column {
+    flex-direction: column;
+}
+
+.row {
+    flex-direction: row;
+}
+
+.wrap {
+    flex-wrap: wrap;
+}
+
+.spaced-items {
+    justify-content: space-evenly;
+}
+
+.center {
+    text-align: center;
+}
+
+.margin {
+    margin: 0 1rem;
+}
+
+.grow {
+    flex-grow: 1;
+}
+
+.smooth-border {
+    border-radius: 0.25rem;
+}
+
+.margin {
+    margin: 0.5rem
+}
+
+/* Small screens */
+@media (max-width: 800px) {}
