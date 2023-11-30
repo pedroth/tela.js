@@ -11,7 +11,6 @@ const SVG_TAGS = [
   "rect",
 ];
 
-
 class DomBuilder {
   constructor(element) {
     this.element = element;

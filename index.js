@@ -218,8 +218,10 @@ function exampleSelector() {
     });
     return DOM.of("div")
         .addClass("margin flex")
+        .style("margin-bottom: 0.25rem")
         .appendChild(
             DOM.of("span")
+                .style("margin-right: 0.5rem")
                 .inner("Example:"),
             select
         )
