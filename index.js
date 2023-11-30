@@ -171,7 +171,7 @@ const getIframeDefaultBody = () => `
     #canvasContainer {
         margin: auto;
         display: flex;
-        width: 89%;
+        width: 73%;
     }
 
     #canvas {
@@ -183,6 +183,8 @@ const getIframeDefaultBody = () => `
         border-radius: 0.25rem;
         max-height: 10rem;
         overflow-y: auto;
+        width: 73%;
+        margin: 1rem auto;
     }
 </style>
 <div id="root">
@@ -272,7 +274,7 @@ async function input() {
 function output() {
     const iframe = DOM.of("iframe")
         .addClass("margin")
-        .style("height:inherit;width:89%;border:none;");
+        .style("height:inherit;width:97%;border:none");
     AppState.outputIframe = some(iframe);
     const iframeEl = iframe.element;
     iframe.event("load", () => {
