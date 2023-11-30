@@ -1,10 +1,14 @@
 (canvas, logger) => {
-    const width = canvas.width;
-    const height = canvas.height;
+    // resize incoming canvas:Canvas object.
+    const width = 640;
+    const height = 480;
+    canvas.resize(width, height);
+    // utils
     const T = 20;
     let meanAverage = 0;
     const step = (threshold) => (x) => x < threshold ? 0 : 1;
     const mod = (x) => (n) => ((x % n) + n) % n;
+    
     Animator
         .builder()
         .initialState({

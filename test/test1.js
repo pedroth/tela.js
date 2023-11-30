@@ -1,8 +1,12 @@
 (canvas, logger) => {
-    const width = canvas.width;
-    const height = canvas.height;
+    // resize incoming canvas:Canvas object.
+    const width = 640;
+    const height = 480;
+    canvas.resize(width, height);
+    // util variables
     const T = 20;
     let meanAverage = 0;
+    // Using Animator from tela.js
     Animator
         .builder()
         .initialState({

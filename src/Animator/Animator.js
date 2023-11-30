@@ -12,6 +12,7 @@ export default class Animator {
       this.state = this.next(this.state);
       this.play();
     });
+    Animator.globalAnimationIds.push(this.requestAnimeId);
     return this;
   }
 
@@ -26,6 +27,8 @@ export default class Animator {
     cancelAnimationFrame(this.requestAnimeId);
     return this;
   }
+
+  static globalAnimationIds = [];
 
   static builder() {
     return new AnimatorBuilder();

@@ -7,7 +7,6 @@ const { DOM, Canvas, Animator, Color } = await import(SOURCE + "/dist/web/index.
  *                                         UTILS                                        *
  *                                                                                      */
 //========================================================================================
-
 function toggleFullScreen(elem) {
     if (!document.fullscreenElement &&    // alternative standard method
         !document.mozFullScreenElement &&
@@ -24,6 +23,8 @@ function toggleFullScreen(elem) {
         }
     }
 }
+
+const MAGIC_CODE_LINE_NUMBER_OFFSET = toggleFullScreen.toString().split("\n").length + 10;
 
 async function svg(url) {
     const data = await fetch(SOURCE + url);
@@ -78,10 +79,26 @@ function modalAlert(title, message) {
     modal.element.showModal()
 }
 
-function codeErrorAlert(message) {
-    AppState.errorBoundary.forEach(errorBoundary => {
-        errorBoundary.inner(message);
+function printErrorInCode(errorMessage, lineNumber) {
+    lineNumber = lineNumber - MAGIC_CODE_LINE_NUMBER_OFFSET;
+    const decorations = AppState.editor.map(editor => {
+        return editor.createDecorationsCollection([
+            {
+                // eslint-disable-next-line no-undef
+                range: new monaco.Range(lineNumber, 1, lineNumber, 1),
+                options: {
+                    isWholeLine: true,
+                    className: 'monaco-line-error',
+                    hoverMessage: {
+                        value: errorMessage,
+                        isTrusted: true
+                    }
+                }
+            },
+        ]);
     })
+        .orElse({ clear: () => { } });
+    return decorations;
 }
 
 export function some(x) {
@@ -114,6 +131,67 @@ export function maybe(x) {
  *                                          UI                                          *
  *                                                                                      */
 //========================================================================================
+
+const getIframeDefaultBody = () => `
+<style>
+    :root {
+        --primary-color: rgb(52, 152, 219);
+        --secondary-color: rgb(231, 76, 60);
+        --tertiary-color: rgb(60, 231, 63);
+        --background-color: rgb(24, 24, 24);
+        --background-color-light: rgb(255, 255, 255);
+        --text-color: rgba(255, 255, 255, 0.9);
+        --text-color-light: rgba(24, 24, 24, 0.9);
+        --fast-transition: 0.3s;
+        --faster-transition: 0.1s;
+    }
+    
+    /* GENERAL  */
+    
+    html {
+        scroll-behavior: smooth;
+        height: 100vh;
+        width: 100vw;
+    }
+    
+    body {
+        background-color: var(--background-color);
+        color: var(--text-color);
+        font-size: 1.25rem;
+        font-weight: 400;
+        overflow-x: hidden;
+        font-family: Arial, Helvetica, sans-serif;
+    }
+
+    #root {
+        display: flex;
+        flex-direction:column;
+    }
+
+    #canvasContainer {
+        margin: auto;
+        display: flex;
+        width: 89%;
+    }
+
+    #canvas {
+        flex-grow: 1;
+    }
+
+    #logger {
+        background-color: rgba(0,0,0, 0.75);
+        border-radius: 0.25rem;
+        max-height: 10rem;
+        overflow-y: auto;
+    }
+</style>
+<div id="root">
+    <div id="canvasContainer">
+        <canvas id="canvas"></canvas>
+    </div>
+    <p id="logger"></p>
+</div>
+`;
 
 function exampleSelector() {
     const select = DOM.of("select")
@@ -182,47 +260,33 @@ async function input() {
     });
     editor.onDidChangeModelContent(
         debounce(() => {
-            AppState.errorBoundary.forEach(errorBoundary => errorBoundary.inner(""));
             const newInput = editor.getValue();
             TelaLocalStorage.setItem("input", newInput);
             execCode(newInput);
         })
     );
     AppState.editor = some(editor);
-
-    const errorBoundary = DOM.of("p").style("color: red;font-size:medium;margin: auto 1rem; position: relative; bottom: 2rem");
-    container.appendChild(errorBoundary);
-    AppState.errorBoundary = some(errorBoundary);
-    const resizeObserver = new ResizeObserver(entries => {
-        for (let entry of entries) {
-            errorBoundary.element.style.width = entry.contentRect.width + "px";
-        }
-    });
-    resizeObserver.observe(container.build());
-    return container;
+    return container.addClass("grow margin");
 }
 
 function output() {
-    const canvasDOM = DOM.of("canvas")
-        .attr(`width`, 640/2)
-        .attr(`height`, 480/2)
-        .style("margin: auto; width: 71%")
-        .event("click", () => {
-            toggleFullScreen(canvasDOM.build());
+    const iframe = DOM.of("iframe")
+        .addClass("margin")
+        .style("height:inherit;width:89%;border:none;");
+    AppState.outputIframe = some(iframe);
+    const iframeEl = iframe.element;
+    iframe.event("load", () => {
+        iframeEl.contentDocument.body.innerHTML = getIframeDefaultBody();
+        iframeEl.contentWindow.addEventListener("error", (e) => {
+            AppState.lineDecorations = some(printErrorInCode(e.message, e.lineno));
+            iframeEl.contentDocument.getElementById("root").innerHTML = `
+                <p style="color: red">Error:${e.message} at line ${e.lineno - MAGIC_CODE_LINE_NUMBER_OFFSET}</p>
+            `;
         })
-    const log = DOM.of("pre")
-        .style("background-color: rgba(0,0,0, 0.75); border-radius: 0.25rem;")
-        .addClass("y-overflow grow")
-    AppState.logger = some(createLogger(log));
-    AppState.canvas = some(canvasDOM);
+    })
     return DOM.of("div")
-        .addClass("flex column y-overflow")
-        .appendChild(
-            DOM.of("div")
-                .addClass("grow center flex")
-                .appendChild(canvasDOM),
-            log
-        )
+        .appendChild(iframe)
+        .addClass("grow margin flex");
 }
 
 /**
@@ -298,14 +362,19 @@ async function main() {
     const container = DOM.of("main")
         .addClass("flex spaced-items");
     const editor = (await input())
-        .addClass("grow margin");
     const divider = DOM.of("div")
         .addClass("divider");
-    const out = output()
-        .addClass("grow margin");
-
-    createDraggableResizeHandler(editor.build(), divider.build(), out.build());
-    onResize(container, editor, out);
+    const out = output();
+    createDraggableResizeHandler(
+        editor.build(),
+        divider.build(),
+        out.build()
+    );
+    onResize(
+        container,
+        editor,
+        out
+    );
     window.addEventListener(
         "resize",
         () => onResize(container, editor, out)
@@ -367,9 +436,8 @@ const examples = [
 
 const AppState = {
     editor: none(),
-    logger: none(),
-    canvas: none(),
-    errorBoundary: none()
+    lineDecorations: none(),
+    outputIframe: none(),
 }
 
 function getExampleFromPath(path) {
@@ -377,33 +445,45 @@ function getExampleFromPath(path) {
 }
 
 function execCode(code) {
-    try {
-        AppState.canvas.forEach(
-            canvas =>
-                AppState.logger.forEach(logger => {
-                    eval(code)(Canvas.ofDOM(canvas.build()), logger);
-                })
-        )
-    } catch (e) {
-        codeErrorAlert(`Caught exception while running playground: ${e.message}`);
-    }
+    AppState
+        .outputIframe
+        .forEach(iframe => {
+            AppState.lineDecorations.forEach(decorations => decorations.clear())
+            DOM.of(iframe.element.contentDocument.body)
+                .removeChildren()
+                .inner(getIframeDefaultBody());
+            // seems like the only way to run a script inside iframe
+            const script = DOM.of("script").build();
+            script.type = "module";
+            script.textContent = `
+            import {Canvas, DOM, Color, Animator} from "/dist/web/index.js"
+            Animator.globalAnimationIds.forEach(id => {
+                window.cancelAnimationFrame(id)
+            });
+            ${toggleFullScreen.toString()}
+            const canvasDOM = document.getElementsByTagName("canvas")[0];
+            const canvas = Canvas.ofDOM(canvasDOM);
+            canvasDOM.addEventListener('click', () => {
+                toggleFullScreen(canvasDOM);
+            });
+            (${code})(
+                canvas, 
+                {
+                    print: (message) => {
+                        document.getElementById("logger").innerText = message
+                    }, 
+                    log: (message) => {
+                        document.getElementById("logger").innerText +=  \`\${message}\\n\`
+                    }
+                }
+            )
+            `;
+            iframe.element.contentDocument.body.appendChild(script);
+        })
 }
 
 function getSelectedExample() {
     return TelaLocalStorage.getItem("selectedExample") || "Simple shader";
-}
-
-function createLogger(logDOM) {
-    return {
-        log: message => {
-            let log = logDOM.element.innerText;
-            log = [log, message].join("\n");
-            logDOM.inner(log);
-        },
-        print: (message) => {
-            logDOM.inner(message);
-        }
-    }
 }
 
 (async () => {

@@ -75,6 +75,11 @@ dialog button {
     width: 10px;
 }
 
+.monaco-line-error {
+	/* Make sure to use transparent colors for the selection to work */
+	background: rgba(255, 0, 0, 0.25);
+}
+
 /* Utils */
 
 .y-overflow {
@@ -110,7 +115,7 @@ dialog button {
 }
 
 .margin {
-    margin: 0 1rem;
+    margin: auto;
 }
 
 .grow {
@@ -120,10 +125,5 @@ dialog button {
 .smooth-border {
     border-radius: 0.25rem;
 }
-
-.margin {
-    margin: 0.5rem
-}
-
 /* Small screens */
 @media (max-width: 800px) {}

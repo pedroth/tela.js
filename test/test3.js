@@ -1,6 +1,10 @@
+// Based on https://www.shadertoy.com/view/mtyGWy
 (canvas, logger) => {
-    const width = canvas.width;
-    const height = canvas.height;
+    // resize incoming canvas:Canvas object.
+    const width = 640 / 2;
+    const height = 480 / 2;
+    canvas.resize(width, height);
+    // utils
     const T = 20;
     let meanAverage = 0;
     function palette(t) {

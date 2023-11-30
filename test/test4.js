@@ -1,22 +1,31 @@
 (canvas, logger) => {
-    const width = canvas.width;
-    const height = canvas.height;
+    // resize incoming canvas:Canvas object.
+    const width = 100;
+    const height = 100;
+    canvas.resize(width, height);
+    // utils
     let meanAverage = 0;
     const T = 100;
+    const amp = 10;
+    const spread = 200;
     const friction = 0.1;
-    const amp = 100;
     const waveScalarSpeed = 20;
     const mod = (n, m) => ((n % m) + m) % m;
     const wave = [...new Array(height)].map((_, i) =>
         new Float64Array(width).map((_, j) => {
             const x = (j - width / 2) / width;
             const y = (i - height / 2) / height;
-            return amp * Math.exp(-200 * (x * x + y * y));
+            return (
+                amp * Math.exp(-spread * ((x - 0.25) * (x - 0.25) + y * y)) +
+                amp * Math.exp(-spread * ((x + 0.25) * (x + 0.25) + y * y)) +
+                amp * Math.exp(-spread * (x * x + (y-0.25) * (y-0.25)))
+            );
         })
     );
     const waveSpeed = [...new Array(height)].map(
         () => new Float64Array(width)
     );
+    // start animation
     Animator
         .builder()
         .initialState({
