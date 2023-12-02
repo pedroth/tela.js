@@ -28,6 +28,8 @@
   },
   "devDependencies": {
     "bun-types": "latest",
-    "eslint": "^8.50.0"
+    "child_process": "^1.0.2",
+    "eslint": "^8.50.0",
+    "ffmpeg.js": "^4.2.9003"
   }
 }

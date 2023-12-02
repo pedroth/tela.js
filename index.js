@@ -418,23 +418,23 @@ async function renderUI() {
 const examples = [
     {
         title: "Simple shader",
-        path: "/test/test0.js"
+        path: "/test/Canvas/test0.js"
     },
     {
         title: "Simple animation shader",
-        path: "/test/test1.js"
+        path: "/test/Canvas/test1.js"
     },
     {
         title: "Rotating grid shader",
-        path: "/test/test2.js"
+        path: "/test/Canvas/test2.js"
     },
     {
         title: "Amazing effects shader",
-        path: "/test/test3.js"
+        path: "/test/Canvas/test3.js"
     },
     {
         title: "Wave simulation",
-        path: "/test/test4.js"
+        path: "/test/Canvas/test4.js"
     }
 ];
 
