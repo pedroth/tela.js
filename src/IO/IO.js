@@ -2,31 +2,24 @@ import { writeFileSync, unlinkSync } from "fs";
 import { execSync } from "child_process";
 
 export function saveImageToFile(fileAddress, image) {
-    const w = image.width;
-    const h = image.height;
-    const imageData = image.toArray();
-    writeFileFromImageData(fileAddress, imageData, w, h);
-}
-
-export function saveVideoToFile(fileAddress, streamWithImages) {
-    const w = image.width;
-    const h = image.height;
-    const imageData = image.toArray();
-    writeFileFromImageData(fileAddress, imageData, w, h);
-}
-
-function writeFileFromImageData(address, imageData, w, h) {
-    const lastDotIndex = address.lastIndexOf(".");
-    const imageName = address.slice(0, lastDotIndex);
-    const extension = address.slice(lastDotIndex + 1);
-    const ppmName = `${imageName}.ppm`;
-    const ppmData = createPPMFromImageData(imageData, w, h);
-    writeFileSync(ppmName, ppmData);
-    createImageFromPPM(ppmName, imageName, extension);
+    const {fileName, extension} = getFileNameAndExtensionFromAddress(fileAddress);
+    const ppmName = `${fileName}.ppm`;
+    writeFileSync(ppmName, createPPMFromFromImage(image));
+    execSync(`ffmpeg -i ${ppmName} ${fileName}.${extension}`);
     unlinkSync(ppmName)
 }
 
-function createPPMFromImageData(pixelData, width, height) {
+function getFileNameAndExtensionFromAddress(address) { 
+    const lastDotIndex = address.lastIndexOf(".");
+    const fileName = address.slice(0, lastDotIndex);
+    const extension = address.slice(lastDotIndex + 1);
+    return {fileName, extension};
+}
+
+function createPPMFromFromImage(image) {
+    const width = image.width;
+    const height = image.height;
+    const pixelData = image.toArray();
     const MAX_8_BIT = 255;
     let file = `P3\n${width} ${height}\n${MAX_8_BIT}\n`;
     for (let i = 0; i < pixelData.length; i += 4) {
@@ -35,7 +28,17 @@ function createPPMFromImageData(pixelData, width, height) {
     return file;
 }
 
-async function createImageFromPPM(ppmName, imageName, extension) {
-    const command = `ffmpeg -i ${ppmName} ${imageName}.${extension}`;
-    execSync(command);
-}
+// export function saveStreamToFile(fileAddress, streamWithImages, imageGetter= s => s.image) {
+//     const {fileName, extension} = getFileNameAndExtensionFromAddress(fileAddress);
+//     let ite = 0;
+//     return {
+//         until: streamStatePredicate => {
+//             while(!streamStatePredicate(streamStatePredicate.head)) {
+//                 const image = imageGetter(streamWithImages);
+//                 saveImageToFile(`${videoName}_${ite++}.png`);
+//             }
+//             execSync(`ffmpeg -i ${videoName}`);
+//         }
+//     }
+// }
+
