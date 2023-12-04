@@ -3,3 +3,7 @@ export function measureTime(lambda) {
     lambda()
     return 1e-3 * (performance.now() - t);
 }
+
+export function compose(f, g) {
+    return x => f(g(x));
+}

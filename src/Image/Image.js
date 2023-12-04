@@ -1,7 +1,4 @@
-import { unlinkSync, writeFileSync } from "fs";
-import Color from "../Color/Color";
-import { execSync } from "child_process";
-
+import Color from "../Color/Color.js";
 export default class Image {
 
     constructor(width, height) {
@@ -43,7 +40,7 @@ export default class Image {
         return this;
     }
 
-    saveTo(address) {
+    toArray() {
         const w = this._width;
         const h = this._height;
         const imageData = new Uint8Array(this._width * this._height * 4);
@@ -59,18 +56,7 @@ export default class Image {
                 imageData[index + 3] = 255;
             }
         }
-
-        const imageName = address.split(".png")[0];
-        const ppmName = `${imageName}.ppm`;
-        try {
-            const ppmData = createPPMFileFromImageData(imageData, w, h);
-            writeFileSync(ppmName, ppmData);
-            execSync(`ffmpeg -i ${ppmName} ${imageName}.png`)
-            unlinkSync(ppmName)
-            console.log('PNG file created successfully');
-        }catch(e) {
-            console.log("Caught error while creating image");
-        }
+        return imageData;
     }
 
     static ofSize(width, height) {
@@ -98,20 +84,4 @@ export default class Image {
                 return canvas.get(x, y);
             })
     }
-}
-
-
-//========================================================================================
-/*                                                                                      *
- *                                        PRIVATE                                       *
- *                                                                                      */
-//========================================================================================
-
-function createPPMFileFromImageData(pixelData, width, height) {
-    const MAX_8_BIT = 255;
-    let file = `P3\n${width} ${height}\n${MAX_8_BIT}\n`;
-    for (let i = 0; i < pixelData.length; i += 4) {
-        file += `${pixelData[i]} ${pixelData[i + 1]} ${pixelData[i + 2]}\n`;
-    }
-    return file;
 }

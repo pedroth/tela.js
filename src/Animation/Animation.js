@@ -1,25 +1,18 @@
-export default class Animator {
+import Stream from "../Stream/Stream.js";
+
+export default class Animation {
   constructor(state, next, doWhile) {
-    this.state = state;
-    this.next = next;
+    this.animation = new Stream(state, next);
     this.while = doWhile;
     this.requestAnimeId = null;
   }
 
-  play() {
+  play(stream = this.animation) {
     this.requestAnimeId = requestAnimationFrame(() => {
-      if (!this.while(this.state)) return this.stop();
-      this.state = this.next(this.state);
-      this.play();
+      if (!this.while(stream.head)) return this.stop();
+      this.play(stream.tail);
     });
-    Animator.globalAnimationIds.push(this.requestAnimeId);
-    return this;
-  }
-
-  run() {
-    while (this.while(this.state)) {
-      this.state = this.next(this.state);
-    }
+    Animation.globalAnimationIds.push(this.requestAnimeId);
     return this;
   }
 
@@ -31,11 +24,11 @@ export default class Animator {
   static globalAnimationIds = [];
 
   static builder() {
-    return new AnimatorBuilder();
+    return new AnimationBuilder();
   }
 }
 
-class AnimatorBuilder {
+class AnimationBuilder {
   constructor() {
     this._state = null;
     this._next = null;
@@ -47,6 +40,7 @@ class AnimatorBuilder {
     return this;
   }
 
+  // next: currentState => NextState
   nextState(next) {
     this._next = next;
     return this;
@@ -61,7 +55,7 @@ class AnimatorBuilder {
     const someAreEmpty = [this._state, this._next, this._end].some(
       (x) => x === null || x === undefined
     );
-    if (someAreEmpty) throw new Error("Animator properties are missing");
-    return new Animator(this._state, this._next, this._end);
+    if (someAreEmpty) throw new Error("Animation properties are missing");
+    return new Animation(this._state, this._next, this._end);
   }
 }

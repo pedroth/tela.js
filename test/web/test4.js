@@ -18,7 +18,7 @@
             return (
                 amp * Math.exp(-spread * ((x - 0.25) * (x - 0.25) + y * y)) +
                 amp * Math.exp(-spread * ((x + 0.25) * (x + 0.25) + y * y)) +
-                amp * Math.exp(-spread * (x * x + (y-0.25) * (y-0.25)))
+                amp * Math.exp(-spread * (x * x + (y - 0.25) * (y - 0.25)))
             );
         })
     );
@@ -26,7 +26,7 @@
         () => new Float64Array(width)
     );
     // start animation
-    Animator
+    Animation
         .builder()
         .initialState({
             it: 1,

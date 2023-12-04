@@ -1,7 +1,7 @@
 const isGithub = window.location.host === "pedroth.github.io";
 const SOURCE = isGithub ? "/tela.js" : ""
 // eslint-disable-next-line no-unused-vars
-const { DOM, Canvas, Animator, Color } = await import(SOURCE + "/dist/web/index.js")
+const { DOM } = await import(SOURCE + "/dist/web/index.js")
 //========================================================================================
 /*                                                                                      *
  *                                         UTILS                                        *
@@ -418,23 +418,23 @@ async function renderUI() {
 const examples = [
     {
         title: "Simple shader",
-        path: "/test/Canvas/test0.js"
+        path: "/test/web/test0.js"
     },
     {
         title: "Simple animation shader",
-        path: "/test/Canvas/test1.js"
+        path: "/test/web/test1.js"
     },
     {
         title: "Rotating grid shader",
-        path: "/test/Canvas/test2.js"
+        path: "/test/web/test2.js"
     },
     {
         title: "Amazing effects shader",
-        path: "/test/Canvas/test3.js"
+        path: "/test/web/test3.js"
     },
     {
         title: "Wave simulation",
-        path: "/test/Canvas/test4.js"
+        path: "/test/web/test4.js"
     }
 ];
 
@@ -460,8 +460,8 @@ function execCode(code) {
             const script = DOM.of("script").build();
             script.type = "module";
             script.textContent = `
-            import {Canvas, DOM, Color, Animator} from "/dist/web/index.js"
-            Animator.globalAnimationIds.forEach(id => {
+            import {Canvas, DOM, Color, Animation} from "/dist/web/index.js"
+            Animation.globalAnimationIds.forEach(id => {
                 window.cancelAnimationFrame(id)
             });
             ${toggleFullScreen.toString()}

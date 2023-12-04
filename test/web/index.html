@@ -27,7 +27,7 @@
 
 </body>
 <script type="module">
-    import DOM from "../src/DomBuilder.js";
+    import { DOM } from "../../dist/web/index.js";
     const range = (n, i = 0) => n === 0 ? [] : [i].concat(range(n - 1, i + 1));
     function toggleFullScreen(elem) {
         if (!document.fullscreenElement &&    // alternative standard method
@@ -63,7 +63,7 @@
                         const script = DOM.of("script").build();
                         script.type = "module";
                         script.textContent = `
-                        import {Canvas, DOM, Color, Animator} from "/dist/web/index.js"
+                        import {Canvas, DOM, Color, Animation} from "/dist/web/index.js"
                         ${toggleFullScreen.toString()}
                         const canvasDOM = document.getElementsByTagName("canvas")[0];
                         const canvas = Canvas.ofDOM(canvasDOM);
@@ -95,7 +95,7 @@
                                 .inner(`Test ${i}`),
                             container
                         )
-                    const iframe = await createIframeSrcWith(`/test/test${i}.js`);
+                    const iframe = await createIframeSrcWith(`/test/web/test${i}.js`);
                     details.event("toggle", ({ target: detailElem }) => {
                         if (detailElem.open) {
                             container.appendChild(iframe);

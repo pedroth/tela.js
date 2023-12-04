@@ -14,10 +14,11 @@ console.log(build);
 // eslint-disable-next-line no-undef
 const buildNode = await Bun.build({
     entrypoints: [
-        "./src/index.js",
+        "./src/index.node.js",
     ],
     outdir: "./dist/node/",
     target: "node",
+    naming: "index.js"
     // minify: true,
     // sourcemap: "external",
     // splitting: true // not working

@@ -10,7 +10,7 @@
         .map((x, y) => {
             let px = (x * alpha) / (width - 1);
             let py = (y * alpha) / (height - 1);
-            return Color.ofRGB(px % 1, py % 1, 0);
+            return Color.ofRGB(px, py, 0);
         })
 
 }
