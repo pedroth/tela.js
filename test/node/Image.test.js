@@ -1,7 +1,7 @@
 import { Color, Image } from "../../dist/node/index.js";
 import { IO } from "../../dist/node/index.js";
 
-const { saveImageToFile } = IO;
+const { saveImageToFile, saveV } = IO;
 
 const width = 640;
 const height = 480;
@@ -19,7 +19,7 @@ saveImageToFile(
 )
 
 saveImageToFile(
-    "./test1.png",
+    "./test1.jpeg",
     Image.ofSize(width, height)
         .map((x, y) => {
             let u = x / (width - 1);

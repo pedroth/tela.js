@@ -5,27 +5,28 @@ export function saveImageToFile(fileAddress, image) {
     const w = image.width;
     const h = image.height;
     const imageData = image.toArray();
-    createPNGFromImageData(fileAddress, imageData, w, h);
+    writeFileFromImageData(fileAddress, imageData, w, h);
 }
 
 export function saveVideoToFile(fileAddress, streamWithImages) {
     const w = image.width;
     const h = image.height;
     const imageData = image.toArray();
-    createPNGFromImageData(fileAddress, imageData, w, h);
+    writeFileFromImageData(fileAddress, imageData, w, h);
 }
 
-function createPNGFromImageData(address, imageData, w, h) {
-    const imageName = address.split(".png")[0];
+function writeFileFromImageData(address, imageData, w, h) {
+    const lastDotIndex = address.lastIndexOf(".");
+    const imageName = address.slice(0, lastDotIndex);
+    const extension = address.slice(lastDotIndex + 1);
     const ppmName = `${imageName}.ppm`;
-    const ppmData = createPPMFileFromImageData(imageData, w, h);
+    const ppmData = createPPMFromImageData(imageData, w, h);
     writeFileSync(ppmName, ppmData);
-    createPNGFromPPM(ppmName, imageName);
+    createImageFromPPM(ppmName, imageName, extension);
     unlinkSync(ppmName)
-    console.log('PNG file created successfully');
 }
 
-function createPPMFileFromImageData(pixelData, width, height) {
+function createPPMFromImageData(pixelData, width, height) {
     const MAX_8_BIT = 255;
     let file = `P3\n${width} ${height}\n${MAX_8_BIT}\n`;
     for (let i = 0; i < pixelData.length; i += 4) {
@@ -34,7 +35,7 @@ function createPPMFileFromImageData(pixelData, width, height) {
     return file;
 }
 
-async function createPNGFromPPM(ppmName, imageName) {
-    const command = `ffmpeg -i ${ppmName} ${imageName}.png`;
+async function createImageFromPPM(ppmName, imageName, extension) {
+    const command = `ffmpeg -i ${ppmName} ${imageName}.${extension}`;
     execSync(command);
 }
