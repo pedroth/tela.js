@@ -24,7 +24,7 @@
   "scripts": {
     "build": "bun run clean; bun bundle.js",
     "buildDev": "bun build --watch bundle.js",
-    "clean": "rm -fr node_modules; rm -fr dist/"
+    "clean": "rm -fr node_modules; rm -fr dist/; rm *.png *.jpeg *.ppm *.webm *.mp4"
   },
   "devDependencies": {
     "bun-types": "latest",
