@@ -127,6 +127,21 @@ class Canvas {
     this._imageData = this._ctx.getImageData(0, 0, this._width, this._height);
     this._image = this._imageData.data;
   }
+  startVideoRecorder() {
+    let responseBlob;
+    const canvasSnapshots = [];
+    const stream = this._canvas.captureStream();
+    const recorder = new MediaRecorder(stream);
+    recorder.addEventListener("dataavailable", (e) => canvasSnapshots.push(e.data));
+    recorder.start();
+    recorder.onstop = () => responseBlob = new Blob(canvasSnapshots, { type: "video/webm" });
+    return {
+      stop: () => new Promise((re) => {
+        recorder.stop();
+        setTimeout(() => re(responseBlob));
+      })
+    };
+  }
   static ofSize(width, height) {
     const canvas = document.createElement("canvas");
     canvas.setAttribute("width", width);

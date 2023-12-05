@@ -8,7 +8,20 @@
     let meanAverage = 0;
     const step = (threshold) => (x) => x < threshold ? 0 : 1;
     const mod = (x) => (n) => ((x % n) + n) % n;
-    
+
+    // record video
+    const recorder = canvas.startVideoRecorder();
+    setTimeout(async () => {
+        const blob = await recorder.stop();
+        const src = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.download = 'Rotating Shader.webm';
+        a.href = src;
+        a.textContent = 'download the video';
+        document.body.appendChild(a);
+    }, T * 1000)
+
+    // setting animation
     Animation
         .builder()
         .initialState({
