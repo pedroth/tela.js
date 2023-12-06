@@ -43,17 +43,19 @@ export default class Vec {
     this._n = this._vec.length;
   }
 
-  get n() { return this._n; }
-  get dim() { return this._n; }
-  get len() { return this._n; }
-  get size() { return this._n; }
+  get n() {
+    return this._n;
+  }
+
+  get dim() {
+    return this._n;
+  }
+
+  size = () => this._n;
+  shape = () => [this._n];
 
   clone() {
     return new Vec(COPY_VEC(this._vec));
-  }
-
-  copy() {
-    return this.clone();
   }
 
   /**index starts at zero */
@@ -164,20 +166,29 @@ export default class Vec {
   }
 
   static fromArray(array) {
-    return new Vec(array);
+    if (array.length === 2) return Vector2.fromArray(array);
+    if (array.length === 3) return Vector3.fromArray(array);
+    return new Vec(_sanitize_input(array, BUILD_VEC(array.length)));
   }
 
   static of(...values) {
-    return new Vec(values);
+    if (values.length === 2) return Vector2.of(...values);
+    if (values.length === 3) return Vector3.of(...values);
+    return new Vec(_sanitize_input(values, BUILD_VEC(values.length)));
   }
 
-  static ZERO = (n) => new Vec(BUILD_VEC(n));
+  static ZERO = (n) =>
+    n === 3 ? new Vector3() : n === 2 ? new Vector2() : new Vec(BUILD_VEC(n));
 
   static ONES = (n) => {
+    if (n === 2) return Vector2.ONES;
+    if (n === 3) return Vector3.ONES;
     return Vec.ZERO(n).map(() => 1);
   };
 
   static e = (n) => (i) => {
+    if (n === 2) return Vector2.e(i);
+    if (n === 3) return Vector3.e(i);
     const vec = BUILD_VEC(n);
     if (i >= 0 && i < n) {
       vec[i] = 1;
@@ -186,6 +197,8 @@ export default class Vec {
   };
 
   static RANDOM = (n) => {
+    if (n === 2) return Vector2.RANDOM();
+    if (n === 3) return Vector3.RANDOM();
     const v = BUILD_VEC(n);
     for (let i = 0; i < n; i++) {
       v[i] = Math.random();
@@ -195,5 +208,290 @@ export default class Vec {
 }
 
 export const BUILD_VEC = (n) => new ARRAY_TYPES.Float64Array(n);
-export const COPY_VEC = (array) => array.slice();
-export class VectorException extends Error { }
+export const COPY_VEC = (array) => ARRAY_TYPES.Float64Array.from(array);
+export class VectorException extends Error {}
+
+export const Vec3 = (x = 0, y = 0, z = 0) => new Vector3(x, y, z);
+export const Vec2 = (x = 0, y = 0) => new Vector2(x, y);
+
+class Vector3 {
+  constructor(x = 0, y = 0, z = 0) {
+    this.x = x;
+    this.y = y;
+    this.z = z;
+  }
+
+  get n() {
+    return 3;
+  }
+
+  get dim() {
+    return 3;
+  }
+
+  size = () => 3;
+  shape = () => [3];
+
+  clone() {
+    return new Vector3(this.x, this.y, this.z);
+  }
+
+  /**index starts at zero */
+  get(i) {
+    if (i === 0) return this.x;
+    if (i === 1) return this.y;
+    if (i === 2) return this.z;
+  }
+
+  toArray() {
+    return [this.x, this.y, this.z];
+  }
+
+  toString() {
+    return "[" + this.toArray().join(", ") + "]";
+  }
+
+  serialize() {
+    return this.toArray().join(", ");
+  }
+
+  add(u) {
+    return this.op(u, (a, b) => a + b);
+  }
+
+  sub(u) {
+    return this.op(u, (a, b) => a - b);
+  }
+
+  mul(u) {
+    return this.op(u, (a, b) => a * b);
+  }
+
+  div(u) {
+    return this.op(u, (a, b) => a / b);
+  }
+
+  dot(u) {
+    return this.x * u.x + this.y * u.y + this.z * u.z;
+  }
+
+  squareLength() {
+    return this.dot(this);
+  }
+
+  length() {
+    return Math.sqrt(this.dot(this));
+  }
+
+  normalize() {
+    return this.scale(1 / this.length());
+  }
+
+  scale(r) {
+    return this.map((z) => z * r);
+  }
+
+  map(lambda) {
+    return new Vector3(lambda(this.x), lambda(this.y), lambda(this.z));
+  }
+
+  /**
+   *
+   * @param {*} y: Vec
+   * @param {*} operation: (a,b) => op(a,b)
+   */
+  op(u, operation) {
+    return new Vector3(
+      operation(this.x, u.x),
+      operation(this.y, u.y),
+      operation(this.z, u.z)
+    );
+  }
+
+  reduce(fold, init = 0) {
+    let acc = init;
+    acc = fold(acc, this.x);
+    acc = fold(acc, this.y);
+    acc = fold(acc, this.z);
+    return acc;
+  }
+
+  fold = this.reduce;
+  foldLeft = this.fold;
+
+  equals(u, precision = 1e-5) {
+    if (!(u instanceof Vector3)) return false;
+    return this.sub(u).length() < precision;
+  }
+
+  take(n = 0, m = 3) {
+    const array = [this.x, this.y, this.z].slice(n, m);
+    if (array.length === 2) return Vector2.fromArray(array);
+    if (array.length === 3) return Vector3.fromArray(array);
+    return Vec.fromArray(array);
+  }
+
+  findIndex(predicate) {
+    if (predicate(this.x)) return 0;
+    if (predicate(this.y)) return 1;
+    if (predicate(this.z)) return 2;
+    return -1;
+  }
+
+  static fromArray(array) {
+    return new Vector3(...array);
+  }
+
+  static of(...values) {
+    return new Vector3(...values);
+  }
+
+  static e = (i) => {
+    if (i === 0) return new Vector3(1, 0, 0);
+    if (i === 1) return new Vector3(0, 1, 0);
+    if (i === 2) return new Vector3(0, 0, 1);
+    return new Vec3();
+  };
+
+  static RANDOM = () => {
+    return new Vector3(Math.random(), Math.random(), Math.random());
+  };
+
+  static ONES = new Vector3(1, 1, 1);
+}
+
+class Vector2 {
+  constructor(x = 0, y = 0) {
+    this.x = x;
+    this.y = y;
+  }
+
+  get n() {
+    return 2;
+  }
+
+  get dim() {
+    return 2;
+  }
+
+  size = () => 2;
+  shape = () => [2];
+
+  clone() {
+    return new Vector2(this.x, this.y);
+  }
+
+  /**index starts at zero */
+  get(i) {
+    if (i === 0) return this.x;
+    if (i === 1) return this.y;
+  }
+
+  toArray() {
+    return [this.x, this.y];
+  }
+
+  toString() {
+    return "[" + this.toArray().join(", ") + "]";
+  }
+
+  serialize() {
+    return this.toArray().join(", ");
+  }
+
+  add(u) {
+    return this.op(u, (a, b) => a + b);
+  }
+
+  sub(u) {
+    return this.op(u, (a, b) => a - b);
+  }
+
+  mul(u) {
+    return this.op(u, (a, b) => a * b);
+  }
+
+  div(u) {
+    return this.op(u, (a, b) => a / b);
+  }
+
+  dot(u) {
+    return this.x * u.x + this.y * u.y;
+  }
+
+  squareLength() {
+    return this.dot(this);
+  }
+
+  length() {
+    return Math.sqrt(this.dot(this));
+  }
+
+  normalize() {
+    return this.scale(1 / this.length());
+  }
+
+  scale(r) {
+    return this.map((z) => z * r);
+  }
+
+  map(lambda) {
+    return new Vector2(lambda(this.x), lambda(this.y));
+  }
+
+  /**
+   *
+   * @param {*} y: Vec
+   * @param {*} operation: (a,b) => op(a,b)
+   */
+  op(u, operation) {
+    return new Vector2(operation(this.x, u.x), operation(this.y, u.y));
+  }
+
+  reduce(fold, init = 0) {
+    let acc = init;
+    acc = fold(acc, this.x);
+    acc = fold(acc, this.y);
+    return acc;
+  }
+
+  fold = this.reduce;
+  foldLeft = this.fold;
+
+  equals(u, precision = 1e-5) {
+    if (!(u instanceof Vector2)) return false;
+    return this.sub(u).length() < precision;
+  }
+
+  take(n = 0, m = 2) {
+    const array = [this.x, this.y].slice(n, m);
+    if (array.length === 2) return Vector2.fromArray(array);
+    return Vec.fromArray(array);
+  }
+
+  findIndex(predicate) {
+    if (predicate(this.x)) return 0;
+    if (predicate(this.y)) return 1;
+    return -1;
+  }
+
+  static fromArray(array) {
+    return new Vector2(...array);
+  }
+
+  static of(...values) {
+    return new Vector2(...values);
+  }
+
+  static e = (i) => {
+    if (i === 0) return new Vector2(1, 0);
+    if (i === 1) return new Vector2(0, 1);
+    return new Vector2();
+  };
+
+  static RANDOM = () => {
+    return new Vector2(Math.random(), Math.random());
+  };
+
+  static ONES = new Vector2(1, 1);
+}

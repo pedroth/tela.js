@@ -12,6 +12,8 @@ The propose of a graphic engine is to be able to generate images in a computatio
 - [Playground](#playground)
 - [Main features](#main-features)
 
+# Quick start
+
 # Playground
 
 https://pedroth.github.io/tela.js/
@@ -24,10 +26,11 @@ https://pedroth.github.io/tela.js/
     - Point clouds / splatting
     - Signed distance functions, implicit functions
     - Draw geometrical objects (aka [Simplices][simplex])
-    - Path tracing: Shadows, Refraction, Global illumination, etc. 
-- Generate video (desktop /  browser)
+    - Path tracing: Shadows, Refraction, Global illumination, etc.
+    - Draw with shaders like code
+- Generate image/video (desktop /  browser)
 - Interactive application (browser)
-- Serve
+- Draw svgs(which includes text/formulas)
 
 
 [simplex]: https://en.wikipedia.org/wiki/Simplex

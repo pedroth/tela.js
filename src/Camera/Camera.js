@@ -1,17 +1,23 @@
 import Scene from "./Scene.js";
-import Vec from "../Vector/Vector.js";
+import { Vec3, Vec2, BUILD_VEC } from "./Vec.js";
 
 export default class Camera {
+  /**
+   *
+   * @param {Number} distanceToPlane
+   * @param {Number} alpha radians > 0
+   * @param {Vec3} param
+   */
   constructor({
-    distanceToPlane = 1,
+    eye = Vec3(2, 0, 0),
     alpha = Math.PI / 4,
-    eye = Vec.of(2, 0, 0),
-    param = Vec.of(2, 0, 0),
-    focalPoint = Vec.of(0, 0, 0),
+    distanceToPlane = 1,
+    param = Vec3(2, 0, 0),
+    focalPoint = Vec3(0, 0, 0),
   }) {
     this.distanceToPlane = distanceToPlane;
     this.alpha = alpha;
-    // Vec.of(rho, theta, phi)
+    // Vec3(rho, theta, phi)
     this.param = param;
     this.focalPoint = focalPoint;
     this.eye = eye;
@@ -27,13 +33,13 @@ export default class Camera {
 
     this.basis = [];
     // z - axis
-    this.basis[2] = Vec.of(-cosP * cosT, -cosP * sinT, -sinP);
+    this.basis[2] = Vec3(-cosP * cosT, -cosP * sinT, -sinP);
     // y - axis
-    this.basis[1] = Vec.of(-sinP * cosT, -sinP * sinT, cosP);
+    this.basis[1] = Vec3(-sinP * cosT, -sinP * sinT, cosP);
     // x -axis
-    this.basis[0] = Vec.of(-sinT, cosT, 0);
+    this.basis[0] = Vec3(-sinT, cosT, 0);
 
-    const sphereCoordinates = Vec.of(
+    const sphereCoordinates = Vec3(
       rho * cosP * cosT,
       rho * cosP * sinT,
       rho * sinP
@@ -68,6 +74,13 @@ export default class Camera {
   }
 }
 
+/**
+ *
+ * @param {Vec3} vertexOut
+ * @param {Vec3} vertexIn
+ * @param {Camera} camera
+ * @returns {Array3}
+ */
 function intersectImagePlaneInCameraSpace(vertexOut, vertexIn, camera) {
   const { distanceToPlane } = camera;
   const v = vertexOut.sub(vertexIn);
