@@ -24,7 +24,7 @@ function toggleFullScreen(elem) {
     }
 }
 
-const MAGIC_CODE_LINE_NUMBER_OFFSET = toggleFullScreen.toString().split("\n").length + 10;
+const MAGIC_CODE_LINE_NUMBER_OFFSET = toggleFullScreen.toString().split("\n").length + 25;
 
 async function svg(url) {
     const data = await fetch(SOURCE + url);
@@ -474,17 +474,22 @@ function execCode(code) {
             canvasDOM.addEventListener('click', () => {
                 toggleFullScreen(canvasDOM);
             });
-            (${code})(
-                canvas, 
-                {
-                    print: (message) => {
-                        document.getElementById("logger").innerText = message
-                    }, 
-                    log: (message) => {
-                        document.getElementById("logger").innerText +=  \`\${message}\\n\`
-                    }
+            const logger = {
+                print: (message) => {
+                    document.getElementById("logger").innerText = message
+                }, 
+                log: (message) => {
+                    document.getElementById("logger").innerText +=  \`\${message}\\n\`
                 }
-            )
+            }
+            const fps = (() => {
+                let meanAverage = 0;
+                return (dt, it) => {
+                    meanAverage = meanAverage + (dt - meanAverage) / it;
+                    logger.print("FPS: " + (1 / meanAverage));
+                }
+            })();
+            (${code})(canvas, fps)
             `;
             iframe.element.contentDocument.body.appendChild(script);
         })

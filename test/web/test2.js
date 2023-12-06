@@ -1,11 +1,10 @@
-(canvas, logger) => {
+(canvas, fps) => {
     // resize incoming canvas:Canvas object.
     const width = 640;
     const height = 480;
     canvas.resize(width, height);
     // utils
     const T = 20;
-    let meanAverage = 0;
     const step = (threshold) => (x) => x < threshold ? 0 : 1;
     const mod = (x) => (n) => ((x % n) + n) % n;
 
@@ -36,8 +35,7 @@
         }) => {
             const newT = new Date().getTime();
             const dt = (newT - oldT) * 1e-3;
-            meanAverage = meanAverage + (dt - meanAverage) / it;
-            logger.print("FPS: " + (1 / meanAverage));
+            fps(dt, it);
             canvas
                 .map((x, y) => {
                     let u = x / (width - 1);

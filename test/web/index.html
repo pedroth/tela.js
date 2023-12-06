@@ -70,7 +70,22 @@
                         canvasDOM.addEventListener('click', () => {
                             toggleFullScreen(canvasDOM);
                         });
-                        (${canvasFunction})(canvas, {print: (message) => {document.getElementById("logger").innerText = message}, log: () => {document.getElementById("logger").innerText += message}})
+                        const logger = {
+                            print: (message) => {
+                                document.getElementById("logger").innerText = message
+                            }, 
+                            log: (message) => {
+                                document.getElementById("logger").innerText +=  \`\${message}\\n\`
+                            }
+                        }
+                        const fps = (() => {
+                            let meanAverage = 0;
+                            return (dt, it) => {
+                                meanAverage = meanAverage + (dt - meanAverage) / it;
+                                logger.print("FPS: " + (1 / meanAverage));
+                            }
+                        })();
+                        (${canvasFunction})(canvas, fps)
                         `;
                         iframe.element.contentDocument.body.appendChild(script);
                         iframe.element.contentWindow.addEventListener("error", (e) => {

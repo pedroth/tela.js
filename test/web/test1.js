@@ -1,11 +1,10 @@
-(canvas, logger) => {
+(canvas, fps) => {
     // resize incoming canvas:Canvas object.
     const width = 640;
     const height = 480;
     canvas.resize(width, height);
     // util variables
     const T = 20;
-    let meanAverage = 0;
     // Using Animation from tela.js
     Animation
         .builder()
@@ -21,8 +20,7 @@
         }) => {
             const newT = new Date().getTime();
             const dt = (newT - oldT) * 1e-3;
-            meanAverage = meanAverage + (dt - meanAverage) / it;
-            logger.print("FPS: " + (1 / meanAverage));
+            fps(dt, it);
             canvas
                 .map((x, y) => {
                     let px = (x * time) / width;

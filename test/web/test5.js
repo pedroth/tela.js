@@ -1,14 +1,12 @@
-(canvas, logger) => {
+(canvas, fps) => {
     // resize incoming canvas:Canvas object.
     const width = 100;
     const height = 100;
     canvas.resize(width, height);
 
     // utils
-    let meanAverage = 0;
     const T = 100;
     const amp = 10;
-    const spread = 200;
     const friction = 1;
     const waveScalarSpeed = 50;
     const mod = (n, m) => ((n % m) + m) % m;
@@ -20,7 +18,6 @@
     );
 
     let mousedown = false;
-
     canvas.onMouseDown(() => {
         mousedown = true;
     })
@@ -31,11 +28,11 @@
         if (!mousedown) return;
         const i = mod(y - height + 1, height);
         const j = mod(x, width);
-        let steps = [-1,0,1];
+        let steps = [-1, 0, 1];
         //steps = [-2,-1,0,1,2]; // uncomment this line for bigger paint brush
         const n = steps.length;
         const nn = n * n;
-        for(let k = 0; k < nn; k++) {
+        for (let k = 0; k < nn; k++) {
             const u = Math.floor(k / n)
             const v = k % n
             wave[mod(i + steps[u], height)][mod(j + steps[v], width)] = amp;
@@ -57,13 +54,11 @@
         }) => {
             const newT = new Date().getTime();
             const dt = (newT - oldT) * 1e-3;
-            meanAverage = meanAverage + (dt - meanAverage) / it;
-            logger.print("FPS: " + (1 / meanAverage));
+            fps(dt, it)
 
             let maxWave = Number.MIN_VALUE;
             let minWave = Number.MAX_VALUE;
             let maxAbsSpeed = Number.MIN_VALUE;
-
             // update wave
             for (let i = 0; i < height; i++) {
                 for (let j = 0; j < width; j++) {

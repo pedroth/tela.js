@@ -1,12 +1,11 @@
 // Based on https://www.shadertoy.com/view/mtyGWy
-(canvas, logger) => {
+(canvas, fps) => {
     // resize incoming canvas:Canvas object.
     const width = 640 / 2;
     const height = 480 / 2;
     canvas.resize(width, height);
     // utils
     const T = 20;
-    let meanAverage = 0;
     function palette(t) {
         let a = [0.5, 0.5, 0.5];
         let b = [0.5, 0.5, 0.5];
@@ -28,8 +27,7 @@
         }) => {
             const newT = new Date().getTime();
             const dt = (newT - oldT) * 1e-3;
-            meanAverage = meanAverage + (dt - meanAverage) / it;
-            logger.print("FPS: " + (1 / meanAverage));
+            fps(dt, it);
             canvas.map((x, y) => {
                 let u = (2 * x - width) / height
                 let v = (2 * y - height) / height;

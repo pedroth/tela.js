@@ -1,10 +1,9 @@
-(canvas, logger) => {
+(canvas, fps) => {
     // resize incoming canvas:Canvas object.
     const width = 100;
     const height = 100;
     canvas.resize(width, height);
     // utils
-    let meanAverage = 0;
     const T = 100;
     const amp = 10;
     const spread = 200;
@@ -40,13 +39,11 @@
         }) => {
             const newT = new Date().getTime();
             const dt = (newT - oldT) * 1e-3;
-            meanAverage = meanAverage + (dt - meanAverage) / it;
-            logger.print("FPS: " + (1 / meanAverage));
+            fps(dt, it)
 
             let maxWave = Number.MIN_VALUE;
             let minWave = Number.MAX_VALUE;
             let maxAbsSpeed = Number.MIN_VALUE;
-
             // update wave
             for (let i = 0; i < height; i++) {
                 for (let j = 0; j < width; j++) {
