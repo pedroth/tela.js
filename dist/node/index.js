@@ -76,6 +76,18 @@ class AnimationBuilder {
 }
 
 // src/Utils/Utils.jsjs
+var handleMouse = function(canvas, lambda) {
+  return (event) => {
+    const h = canvas.height;
+    const w = canvas.width;
+    const rect = canvas._canvas.getBoundingClientRect();
+    const mx = (event.clientX - rect.left) / rect.width, my = (event.clientY - rect.top) / rect.height;
+    const x = Math.floor(mx * w);
+    const y = Math.floor(h - 1 - my * h);
+    return lambda(x, y);
+  };
+};
+
 class Canvas {
   constructor(canvas) {
     this._canvas = canvas;
@@ -116,6 +128,21 @@ class Canvas {
   }
   paint() {
     this._ctx.putImageData(this._imageData, 0, 0);
+    return this;
+  }
+  onMouseDown(lambda) {
+    this._canvas.addEventListener("mousedown", handleMouse(this, lambda), false);
+    this._canvas.addEventListener("touchstart", handleMouse(this, lambda), false);
+    return this;
+  }
+  onMouseUp(lambda) {
+    this._canvas.addEventListener("mouseup", handleMouse(this, lambda), false);
+    this._canvas.addEventListener("touchend", handleMouse(this, lambda), false);
+    return this;
+  }
+  onMouseMove(lambda) {
+    this._canvas.addEventListener("mousemove", handleMouse(this, lambda), false);
+    this._canvas.addEventListener("touchmove", handleMouse(this, lambda), false);
     return this;
   }
   resize(width, height) {

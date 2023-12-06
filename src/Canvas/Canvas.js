@@ -54,6 +54,24 @@ export default class Canvas {
     return this;
   }
 
+  onMouseDown(lambda) {
+    this._canvas.addEventListener("mousedown", handleMouse(this, lambda), false);
+    this._canvas.addEventListener("touchstart", handleMouse(this, lambda), false);
+    return this;
+  }
+
+  onMouseUp(lambda) {
+    this._canvas.addEventListener("mouseup", handleMouse(this, lambda), false);
+    this._canvas.addEventListener("touchend", handleMouse(this, lambda), false);
+    return this;
+  }
+
+  onMouseMove(lambda) {
+    this._canvas.addEventListener("mousemove", handleMouse(this, lambda), false);
+    this._canvas.addEventListener("touchmove", handleMouse(this, lambda), false);
+    return this;
+  }
+
   resize(width, height) {
     this._canvas.width = width;
     this._canvas.height = height;
@@ -102,5 +120,18 @@ export default class Canvas {
       .map((x, y) => {
         return image.get(x, y);
       })
+  }
+}
+
+function handleMouse(canvas, lambda) {
+  return event => {
+    const h = canvas.height;
+    const w = canvas.width;
+    const rect = canvas._canvas.getBoundingClientRect();
+    // different coordinates from canvas DOM image data
+    const mx = (event.clientX - rect.left) / rect.width, my = (event.clientY - rect.top) / rect.height;
+    const x = Math.floor(mx * w);
+    const y = Math.floor(h - 1 - my * h);
+    return lambda(x, y);
   }
 }

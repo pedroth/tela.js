@@ -3,28 +3,45 @@
     const width = 100;
     const height = 100;
     canvas.resize(width, height);
+
     // utils
     let meanAverage = 0;
     const T = 100;
     const amp = 10;
     const spread = 200;
-    const friction = 0.1;
-    const waveScalarSpeed = 10;
+    const friction = 1;
+    const waveScalarSpeed = 50;
     const mod = (n, m) => ((n % m) + m) % m;
-    const wave = [...new Array(height)].map((_, i) =>
-        new Float64Array(width).map((_, j) => {
-            const x = (j - width / 2) / width;
-            const y = (i - height / 2) / height;
-            return (
-                amp * Math.exp(-spread * ((x - 0.25) * (x - 0.25) + y * y)) +
-                amp * Math.exp(-spread * ((x + 0.25) * (x + 0.25) + y * y)) +
-                amp * Math.exp(-spread * (x * x + (y - 0.25) * (y - 0.25)))
-            );
-        })
+    const wave = [...new Array(height)].map(
+        () => new Float64Array(width)
     );
     const waveSpeed = [...new Array(height)].map(
         () => new Float64Array(width)
     );
+
+    let mousedown = false;
+
+    canvas.onMouseDown(() => {
+        mousedown = true;
+    })
+    canvas.onMouseUp(() => {
+        mousedown = false;
+    })
+    canvas.onMouseMove((x, y) => {
+        if (!mousedown) return;
+        const i = mod(y - height + 1, height);
+        const j = mod(x, width);
+        let steps = [-1,0,1];
+        //steps = [-2,-1,0,1,2]; // uncomment this line for bigger paint brush
+        const n = steps.length;
+        const nn = n * n;
+        for(let k = 0; k < nn; k++) {
+            const u = Math.floor(k / n)
+            const v = k % n
+            wave[mod(i + steps[u], height)][mod(j + steps[v], width)] = amp;
+        }
+    })
+
     // start animation
     Animation
         .builder()
@@ -90,7 +107,7 @@
                 time: time + dt,
             };
         })
-        .while(({ time }) => time <= T)
+        .while(() => true)
         .build()
         .play();
 }

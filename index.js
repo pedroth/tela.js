@@ -435,6 +435,10 @@ const examples = [
     {
         title: "Wave simulation",
         path: "/test/web/test4.js"
+    },
+    {
+        title: "Wave Interaction",
+        path: "/test/web/test5.js"
     }
 ];
 
