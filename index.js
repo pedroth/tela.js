@@ -1,7 +1,8 @@
 const isGithub = window.location.host === "pedroth.github.io";
 const SOURCE = isGithub ? "/tela.js" : ""
 // eslint-disable-next-line no-unused-vars
-const { DOM } = await import(SOURCE + "/dist/web/index.js")
+const { DOM, Monads } = await import(SOURCE + "/dist/web/index.js")
+const { some, none, maybe } = Monads;
 //========================================================================================
 /*                                                                                      *
  *                                         UTILS                                        *
@@ -99,31 +100,6 @@ function printErrorInCode(errorMessage, lineNumber) {
     })
         .orElse({ clear: () => { } });
     return decorations;
-}
-
-export function some(x) {
-    return {
-        map: f => maybe(f(x)),
-        orElse: () => x,
-        forEach: (f) => f(x),
-        flatMap: f => f(x)
-    }
-}
-
-export function none() {
-    return {
-        map: () => none(),
-        orElse: f => f(),
-        forEach: () => { },
-        flatMap: () => none()
-    }
-}
-
-export function maybe(x) {
-    if (x) {
-        return some(x);
-    }
-    return none(x)
 }
 
 //========================================================================================
@@ -439,6 +415,18 @@ const examples = [
     {
         title: "Wave Interaction",
         path: "/test/web/test5.js"
+    },
+    {
+        title: "3 points",
+        path: "/test/web/test6.js"
+    },
+    {
+        title: "Point cloud bunny",
+        path: "/test/web/test7.js"
+    },
+    {
+        title: "SDF test",
+        path: "/test/web/test8.js"
     }
 ];
 
@@ -464,7 +452,7 @@ function execCode(code) {
             const script = DOM.of("script").build();
             script.type = "module";
             script.textContent = `
-            import {Canvas, DOM, Color, Animation} from "/dist/web/index.js"
+            import {Canvas, DOM, Color, Animation, Scene, Camera, Vec2, Vec3, Vec, Box, Point} from "/dist/web/index.js"
             Animation.globalAnimationIds.forEach(id => {
                 window.cancelAnimationFrame(id)
             });
@@ -476,10 +464,10 @@ function execCode(code) {
             });
             const logger = {
                 print: (message) => {
-                    document.getElementById("logger").innerText = message
+                    document.getElementById("logger").innerText = message;
                 }, 
                 log: (message) => {
-                    document.getElementById("logger").innerText +=  \`\${message}\\n\`
+                    document.getElementById("logger").innerText +=  \`\${message}\\n\`;
                 }
             }
             const fps = (() => {
@@ -489,7 +477,7 @@ function execCode(code) {
                     logger.print("FPS: " + (1 / meanAverage));
                 }
             })();
-            (${code})(canvas, fps)
+            (${code})(canvas, fps, logger)
             `;
             iframe.element.contentDocument.body.appendChild(script);
         })

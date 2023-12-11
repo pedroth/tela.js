@@ -9,7 +9,7 @@ var __export = (target, all) => {
     });
 };
 
-// src/Utils/Utils.jsjs
+// src/Monads/Monads.js
 class Stream {
   constructor(initialState, updateStateFunction) {
     this._head = initialState;
@@ -23,7 +23,7 @@ class Stream {
   }
 }
 
-// src/Utils/Utils.jsjsilder.
+// src/Monads/Monads.jsilder.
 class Animation {
   constructor(state, next, doWhile) {
     this.animation = new Stream(state, next);
@@ -75,7 +75,7 @@ class AnimationBuilder {
   }
 }
 
-// src/Utils/Utils.jsjs
+// src/Monads/Monads.js
 var handleMouse = function(canvas, lambda) {
   return (event) => {
     const h = canvas.height;
@@ -145,6 +145,9 @@ class Canvas {
     this._canvas.addEventListener("touchmove", handleMouse(this, lambda), false);
     return this;
   }
+  onMouseWheel(lambda) {
+    this._canvas.addEventListener("wheel", lambda, false);
+  }
   resize(width, height) {
     this._canvas.width = width;
     this._canvas.height = height;
@@ -190,7 +193,7 @@ class Canvas {
   }
 }
 
-// src/Utils/Utils.js
+// src/Monads/Monads.
 var MAX_8BIT = 255;
 
 class Color {
@@ -237,7 +240,7 @@ class Color {
   static WHITE = Color.ofRGB(1, 1, 1);
 }
 
-// src/Utils/Utils.jsjsilder.js
+// src/Monads/Monads.jsilder.js
 var isElement = function(o) {
   return typeof HTMLElement === "object" ? o instanceof HTMLElement : o && typeof o === "object" && o !== null && o.nodeType === 1 && typeof o.nodeName === "string";
 };
@@ -329,7 +332,7 @@ class DomBuilder {
 }
 var DomBuilder_default = DomBuilder;
 
-// src/Utils/Utils.js
+// src/Monads/Monads.
 class Image {
   constructor(width, height) {
     this._width = width;
@@ -399,7 +402,591 @@ class Image {
   }
 }
 
-// src/Utils/Utils.js
+// src/Monads/Monads.js
+var _sanitize_input = function(arrayIn, arrayOut) {
+  for (let i = 0;i < arrayIn.length; i++) {
+    const z = arrayIn[i];
+    const zIsNumber = z !== null && z !== undefined && typeof z === "number";
+    arrayOut[i] = zIsNumber ? z : 0;
+  }
+  return arrayOut;
+};
+var sameSizeOrError = function(a, b) {
+  if (a.n === b.n) {
+    return true;
+  }
+  throw new VectorException("Vector must have same size");
+};
+var ARRAY_TYPES = {
+  Float32Array,
+  Float64Array
+};
+
+class Vec {
+  constructor(array) {
+    this._vec = array;
+    this._n = this._vec.length;
+  }
+  get n() {
+    return this._n;
+  }
+  get dim() {
+    return this._n;
+  }
+  size = () => this._n;
+  shape = () => [this._n];
+  clone() {
+    return new Vec(COPY_VEC(this._vec));
+  }
+  get(i) {
+    return this._vec[i];
+  }
+  toArray() {
+    return COPY_VEC(this._vec);
+  }
+  toString() {
+    return "[" + this._vec.join(", ") + "]";
+  }
+  serialize() {
+    return this._vec.join(", ");
+  }
+  add(u) {
+    return this.op(u, (a, b) => a + b);
+  }
+  sub(u) {
+    return this.op(u, (a, b) => a - b);
+  }
+  mul(u) {
+    return this.op(u, (a, b) => a * b);
+  }
+  div(u) {
+    return this.op(u, (a, b) => a / b);
+  }
+  dot(u) {
+    let acc = 0;
+    for (let i = 0;i < this._n; i++) {
+      acc += this._vec[i] * u._vec[i];
+    }
+    return acc;
+  }
+  squareLength() {
+    return this.dot(this);
+  }
+  length() {
+    return Math.sqrt(this.dot(this));
+  }
+  normalize() {
+    return this.scale(1 / this.length());
+  }
+  scale(r) {
+    return this.map((z) => z * r);
+  }
+  map(lambda) {
+    const ans = BUILD_VEC(this._n);
+    for (let i = 0;i < this._n; i++) {
+      ans[i] = lambda(this._vec[i], i);
+    }
+    return new Vec(ans);
+  }
+  op(u, operation) {
+    sameSizeOrError(this, u);
+    const ans = BUILD_VEC(this._n);
+    for (let i = 0;i < this._n; i++) {
+      ans[i] = operation(this._vec[i], u._vec[i]);
+    }
+    return new Vec(ans);
+  }
+  reduce(fold, init = 0) {
+    let acc = init;
+    for (let i = 0;i < this._n; i++) {
+      acc = fold(acc, this._vec[i], i);
+    }
+    return acc;
+  }
+  fold = this.reduce;
+  foldLeft = this.fold;
+  equals(u, precision = 0.00001) {
+    if (!(u instanceof Vec))
+      return false;
+    return this.sub(u).length() < precision;
+  }
+  take(n = 0, m = this._vec.length) {
+    return new Vec(this._vec.slice(n, m));
+  }
+  findIndex(predicate) {
+    for (let i = 0;i < this._n; i++) {
+      if (predicate(this._vec[i]))
+        return i;
+    }
+    return -1;
+  }
+  static fromArray(array) {
+    if (array.length === 2)
+      return Vector2.fromArray(array);
+    if (array.length === 3)
+      return Vector3.fromArray(array);
+    return new Vec(_sanitize_input(array, BUILD_VEC(array.length)));
+  }
+  static of(...values) {
+    if (values.length === 2)
+      return Vector2.of(...values);
+    if (values.length === 3)
+      return Vector3.of(...values);
+    return new Vec(_sanitize_input(values, BUILD_VEC(values.length)));
+  }
+  static ZERO = (n) => n === 3 ? new Vector3 : n === 2 ? new Vector2 : new Vec(BUILD_VEC(n));
+  static ONES = (n) => {
+    if (n === 2)
+      return Vector2.ONES;
+    if (n === 3)
+      return Vector3.ONES;
+    return Vec.ZERO(n).map(() => 1);
+  };
+  static e = (n) => (i) => {
+    if (n === 2)
+      return Vector2.e(i);
+    if (n === 3)
+      return Vector3.e(i);
+    const vec = BUILD_VEC(n);
+    if (i >= 0 && i < n) {
+      vec[i] = 1;
+    }
+    return new Vec(vec);
+  };
+  static RANDOM = (n) => {
+    if (n === 2)
+      return Vector2.RANDOM();
+    if (n === 3)
+      return Vector3.RANDOM();
+    const v = BUILD_VEC(n);
+    for (let i = 0;i < n; i++) {
+      v[i] = Math.random();
+    }
+    return new Vec(v);
+  };
+}
+var BUILD_VEC = (n) => new ARRAY_TYPES.Float64Array(n);
+var COPY_VEC = (array) => ARRAY_TYPES.Float64Array.from(array);
+
+class VectorException extends Error {
+}
+var Vec3 = (x = 0, y = 0, z = 0) => new Vector3(x, y, z);
+var Vec2 = (x = 0, y = 0) => new Vector2(x, y);
+
+class Vector3 {
+  constructor(x = 0, y = 0, z = 0) {
+    this.x = x;
+    this.y = y;
+    this.z = z;
+  }
+  get n() {
+    return 3;
+  }
+  get dim() {
+    return 3;
+  }
+  size = () => 3;
+  shape = () => [3];
+  clone() {
+    return new Vector3(this.x, this.y, this.z);
+  }
+  get(i) {
+    if (i === 0)
+      return this.x;
+    if (i === 1)
+      return this.y;
+    if (i === 2)
+      return this.z;
+  }
+  toArray() {
+    return [this.x, this.y, this.z];
+  }
+  toString() {
+    return "[" + this.toArray().join(", ") + "]";
+  }
+  serialize() {
+    return this.toArray().join(", ");
+  }
+  add(u) {
+    return this.op(u, (a, b) => a + b);
+  }
+  sub(u) {
+    return this.op(u, (a, b) => a - b);
+  }
+  mul(u) {
+    return this.op(u, (a, b) => a * b);
+  }
+  div(u) {
+    return this.op(u, (a, b) => a / b);
+  }
+  dot(u) {
+    return this.x * u.x + this.y * u.y + this.z * u.z;
+  }
+  squareLength() {
+    return this.dot(this);
+  }
+  length() {
+    return Math.sqrt(this.dot(this));
+  }
+  normalize() {
+    return this.scale(1 / this.length());
+  }
+  scale(r) {
+    return this.map((z) => z * r);
+  }
+  map(lambda) {
+    return new Vector3(lambda(this.x), lambda(this.y), lambda(this.z));
+  }
+  op(u, operation) {
+    return new Vector3(operation(this.x, u.x), operation(this.y, u.y), operation(this.z, u.z));
+  }
+  reduce(fold, init = 0) {
+    let acc = init;
+    acc = fold(acc, this.x);
+    acc = fold(acc, this.y);
+    acc = fold(acc, this.z);
+    return acc;
+  }
+  fold = this.reduce;
+  foldLeft = this.fold;
+  equals(u, precision = 0.00001) {
+    if (!(u instanceof Vector3))
+      return false;
+    return this.sub(u).length() < precision;
+  }
+  take(n = 0, m = 3) {
+    const array = [this.x, this.y, this.z].slice(n, m);
+    if (array.length === 2)
+      return Vector2.fromArray(array);
+    if (array.length === 3)
+      return Vector3.fromArray(array);
+    return Vec.fromArray(array);
+  }
+  findIndex(predicate) {
+    if (predicate(this.x))
+      return 0;
+    if (predicate(this.y))
+      return 1;
+    if (predicate(this.z))
+      return 2;
+    return -1;
+  }
+  static fromArray(array) {
+    return new Vector3(...array);
+  }
+  static of(...values) {
+    return new Vector3(...values);
+  }
+  static e = (i) => {
+    if (i === 0)
+      return new Vector3(1, 0, 0);
+    if (i === 1)
+      return new Vector3(0, 1, 0);
+    if (i === 2)
+      return new Vector3(0, 0, 1);
+    return new Vec3;
+  };
+  static RANDOM = () => {
+    return new Vector3(Math.random(), Math.random(), Math.random());
+  };
+  static ONES = new Vector3(1, 1, 1);
+}
+
+class Vector2 {
+  constructor(x = 0, y = 0) {
+    this.x = x;
+    this.y = y;
+  }
+  get n() {
+    return 2;
+  }
+  get dim() {
+    return 2;
+  }
+  size = () => 2;
+  shape = () => [2];
+  clone() {
+    return new Vector2(this.x, this.y);
+  }
+  get(i) {
+    if (i === 0)
+      return this.x;
+    if (i === 1)
+      return this.y;
+  }
+  toArray() {
+    return [this.x, this.y];
+  }
+  toString() {
+    return "[" + this.toArray().join(", ") + "]";
+  }
+  serialize() {
+    return this.toArray().join(", ");
+  }
+  add(u) {
+    return this.op(u, (a, b) => a + b);
+  }
+  sub(u) {
+    return this.op(u, (a, b) => a - b);
+  }
+  mul(u) {
+    return this.op(u, (a, b) => a * b);
+  }
+  div(u) {
+    return this.op(u, (a, b) => a / b);
+  }
+  dot(u) {
+    return this.x * u.x + this.y * u.y;
+  }
+  squareLength() {
+    return this.dot(this);
+  }
+  length() {
+    return Math.sqrt(this.dot(this));
+  }
+  normalize() {
+    return this.scale(1 / this.length());
+  }
+  scale(r) {
+    return this.map((z) => z * r);
+  }
+  map(lambda) {
+    return new Vector2(lambda(this.x), lambda(this.y));
+  }
+  op(u, operation) {
+    return new Vector2(operation(this.x, u.x), operation(this.y, u.y));
+  }
+  reduce(fold, init = 0) {
+    let acc = init;
+    acc = fold(acc, this.x);
+    acc = fold(acc, this.y);
+    return acc;
+  }
+  fold = this.reduce;
+  foldLeft = this.fold;
+  equals(u, precision = 0.00001) {
+    if (!(u instanceof Vector2))
+      return false;
+    return this.sub(u).length() < precision;
+  }
+  take(n = 0, m = 2) {
+    const array = [this.x, this.y].slice(n, m);
+    if (array.length === 2)
+      return Vector2.fromArray(array);
+    return Vec.fromArray(array);
+  }
+  findIndex(predicate) {
+    if (predicate(this.x))
+      return 0;
+    if (predicate(this.y))
+      return 1;
+    return -1;
+  }
+  static fromArray(array) {
+    return new Vector2(...array);
+  }
+  static of(...values) {
+    return new Vector2(...values);
+  }
+  static e = (i) => {
+    if (i === 0)
+      return new Vector2(1, 0);
+    if (i === 1)
+      return new Vector2(0, 1);
+    return new Vector2;
+  };
+  static RANDOM = () => {
+    return new Vector2(Math.random(), Math.random());
+  };
+  static ONES = new Vector2(1, 1);
+}
+
+// src/Monads/Monads.js
+var exports_Monads = {};
+__export(exports_Monads, {
+  some: () => {
+    {
+      return some;
+    }
+  },
+  none: () => {
+    {
+      return none;
+    }
+  },
+  maybe: () => {
+    {
+      return maybe;
+    }
+  }
+});
+function some(x) {
+  return {
+    map: (f) => maybe(f(x)),
+    orElse: () => x,
+    forEach: (f) => f(x),
+    flatMap: (f) => f(x),
+    isSome: () => true
+  };
+}
+function none() {
+  return {
+    map: () => none(),
+    orElse: (f) => f(),
+    forEach: () => {
+    },
+    flatMap: () => none(),
+    isSome: () => false
+  };
+}
+function maybe(x) {
+  if (x) {
+    return some(x);
+  }
+  return none(x);
+}
+
+// src/Monads/Monads.js
+class Camera {
+  constructor(params = {
+    param: Vec3(2, 0, 0),
+    distanceToPlane: 1,
+    focalPoint: Vec3(0, 0, 0)
+  }) {
+    const {
+      distanceToPlane,
+      eye,
+      param,
+      focalPoint
+    } = params;
+    this.eye = eye;
+    this.param = param;
+    this.focalPoint = focalPoint;
+    this.distanceToPlane = distanceToPlane;
+    this.orbit();
+  }
+  orbit() {
+    const [rho, theta, phi] = this.param.toArray();
+    const cosT = Math.cos(theta);
+    const sinT = Math.sin(theta);
+    const cosP = Math.cos(phi);
+    const sinP = Math.sin(phi);
+    this.basis = [];
+    this.basis[2] = Vec3(-cosP * cosT, -cosP * sinT, -sinP);
+    this.basis[1] = Vec3(-sinP * cosT, -sinP * sinT, cosP);
+    this.basis[0] = Vec3(-sinT, cosT, 0);
+    const sphereCoordinates = Vec3(rho * cosP * cosT, rho * cosP * sinT, rho * sinP);
+    this.eye = sphereCoordinates.add(this.focalPoint);
+    return this;
+  }
+  rayShot(lambdaWithRays) {
+    return {
+      to: (canvas) => {
+        const w = canvas.width;
+        const h = canvas.height;
+        canvas.map((x, y) => {
+          const dirInLocal = [
+            2 * (x / w) - 1,
+            2 * (y / h) - 1,
+            1
+          ];
+          const dir = this.basis[0].scale(dirInLocal[0]).add(this.basis[1].scale(dirInLocal[1])).add(this.basis[2].scale(dirInLocal[2])).normalize();
+          return lambdaWithRays({ start: this.eye, dir });
+        });
+      }
+    };
+  }
+  sceneShot(scene) {
+    return {
+      to: (canvas) => {
+        const w = canvas.width;
+        const h = canvas.height;
+        canvas.map((x, y) => {
+          const dirInLocal = [
+            2 * (x / w) - 1,
+            2 * (y / h) - 1,
+            1
+          ];
+          const dir = this.basis[0].scale(dirInLocal[0]).add(this.basis[1].scale(dirInLocal[1])).add(this.basis[2].scale(dirInLocal[2])).normalize();
+          const maybePointNormalAndT = scene.interceptWith({ start: this.eye, dir });
+          return maybePointNormalAndT.map(([pos, normal]) => {
+            return Color.ofRGB((normal.get(0) + 1) / 2, (normal.get(1) + 1) / 2, (normal.get(2) + 1) / 2);
+          }).orElse(() => {
+            return Color.BLACK;
+          });
+        });
+      }
+    };
+  }
+}
+
+// src/Monads/Mon
+class Box {
+  constructor(min, max) {
+    this.isEmpty = min === undefined || max === undefined;
+    if (this.isEmpty)
+      return this;
+    this.min = min.op(max, Math.min);
+    this.max = max.op(min, Math.max);
+    this.center = min.add(max).scale(1 / 2);
+    this.diagonal = max.sub(min);
+  }
+  add(box) {
+    if (this === Box.EMPTY)
+      return box;
+    const { min, max } = this;
+    return new Box(min.op(box.min, Math.min), max.op(box.max, Math.max));
+  }
+  union = this.add;
+  sub(box) {
+    if (this === Box.EMPTY)
+      return Box.EMPTY;
+    const { min, max } = this;
+    const newMin = min.op(box.min, Math.max);
+    const newMax = max.op(box.max, Math.min);
+    const newDiag = newMax.sub(newMin);
+    const isAllPositive = newDiag.data.every((x) => x >= 0);
+    return !isAllPositive ? Box.EMPTY : new Box(newMin, newMax);
+  }
+  inter = this.sub;
+  move(vector) {
+    return new Box(this.min.add(vector), this.max.add(vector));
+  }
+  collidesWith(box) {
+    return !this.sub(box).isEmpty;
+  }
+  equals(box) {
+    if (!(box instanceof Box))
+      return false;
+    if (this == Box.EMPTY)
+      return true;
+    return this.min.equals(box.min) && this.max.equals(box.max);
+  }
+  distanceToBox(box) {
+    return this.box.center.sub(box.center).length();
+  }
+  distanceToPoint(pointVec) {
+    const r = this.max.sub(this.center);
+    return pointVec.map(Math.abs).sub(r).map((x) => Math.max(x, 0)).length();
+  }
+  estimateNormal(pointVec) {
+    const epsilon = 0.001;
+    const n = pointVec.dim;
+    const grad = [];
+    for (let i = 0;i < n; i++) {
+      grad.push(this.distanceToPoint(pointVec.add(Vec.e(n)(i).scale(epsilon))) - this.distanceToPoint(pointVec));
+    }
+    return Vec.fromArray(grad).normalize();
+  }
+  static ofPoint(point) {
+    const { position, radius, dim } = point;
+    const ones = Vec.ONES(dim);
+    return new Box(position.sub(ones.scale(radius)), position.add(ones.scale(radius)));
+  }
+  static EMPTY = new Box;
+}
+
+// src/Monads/Monads.
 var exports_Utils = {};
 __export(exports_Utils, {
   or: () => {
@@ -415,6 +1002,11 @@ __export(exports_Utils, {
   compose: () => {
     {
       return compose;
+    }
+  },
+  argmin: () => {
+    {
+      return argmin;
     }
   }
 });
@@ -435,12 +1027,229 @@ function or(...lambdas) {
     }
   }
 }
+function argmin(array, costFunction) {
+  let argminIndex = -1;
+  let cost = Number.MAX_VALUE;
+  for (let i = 0;i < array.length; i++) {
+    const newCost = costFunction(array[i]);
+    if (newCost < cost) {
+      cost = newCost;
+      argminIndex = i;
+    }
+  }
+  return argminIndex;
+}
+
+// src/Monads/Monads.
+var sphereInterception = function(point, { start, dir }) {
+  const diff = start.sub(point.position);
+  const b = 2 * dir.dot(diff);
+  const c = diff.squareLength() - point.radius * point.radius;
+  const discriminant = b * b - 4 * c;
+  if (discriminant < 0)
+    return none();
+  const sqrt = Math.sqrt(discriminant);
+  const [t1, t2] = [(-b - sqrt) / 2, (-b + sqrt) / 2];
+  const t = Math.min(t1, t2);
+  if (t1 * t2 < 0)
+    return some(t);
+  return t1 >= 0 && t2 >= 0 ? some(t) : none();
+};
+
+class Point {
+  constructor({ name, position, normal, color, radius }) {
+    this.name = name;
+    this.color = color;
+    this.normal = normal;
+    this.radius = radius;
+    this.position = position;
+  }
+  interceptWith({ start, dir }) {
+    return sphereInterception(this, { start, dir }).map((t) => {
+      const pointOnSphere = start.add(dir.scale(t));
+      const normal = pointOnSphere.sub(this.position).normalize();
+      return [pointOnSphere, normal];
+    });
+  }
+  static builder() {
+    return new PointBuilder;
+  }
+}
+
+class PointBuilder {
+  constructor() {
+    this._name;
+    this._color = Color.WHITE;
+    this._radius = 1;
+    this._normal = Vec3(1, 0, 0);
+    this._position = Vec3(0, 0, 0);
+  }
+  name(name) {
+    this._name = name;
+    return this;
+  }
+  color(r = 0, g = 0, b = 0) {
+    this._color = Color.ofRGB(r, g, b);
+    return this;
+  }
+  radius(radius) {
+    this._radius = radius;
+    return this;
+  }
+  normal(normal) {
+    this._normal = normal;
+    return this;
+  }
+  position(posVec3) {
+    this._position = posVec3;
+    return this;
+  }
+  build() {
+    const attrs = {
+      name: this._name,
+      color: this._color,
+      radius: this._radius,
+      normal: this._normal,
+      position: this._position
+    };
+    if (Object.values(attrs).some((x) => x === undefined)) {
+      throw new Error("Point is incomplete");
+    }
+    return new Point(attrs);
+  }
+}
+var Point_default = Point;
+
+// src/Monads/Monads.
+class Scene {
+  constructor() {
+    this.scene = {};
+    this.db = new Node;
+  }
+  add(elem) {
+    const classes = [Point_default];
+    if (!classes.some((c) => elem instanceof c))
+      return this;
+    const { name } = elem;
+    this.scene[name] = elem;
+    return this;
+  }
+  addObj(objStr, name) {
+    objStr.split("\n").forEach((lines, lineno) => {
+      const spaces = lines.split(" ");
+      if (spaces[0] === "v") {
+        const v = spaces.slice(1, 4).map((x) => Number.parseFloat(x));
+        if (Math.random() < 0.01) {
+          this.add(Point_default.builder().name(`${name}_${lineno}`).position(Vec3(...v)).radius(0.01).build());
+        }
+      }
+    });
+    return this;
+  }
+  clear() {
+    this.scene = {};
+  }
+  getElements() {
+    return Object.values(this.scene);
+  }
+  interceptWith(ray) {
+    const points = Object.values(this.scene);
+    let closestDistance = Number.MAX_VALUE;
+    let closest = none();
+    for (let i = 0;i < points.length; i++) {
+      points[i].interceptWith(ray).map(([pos, normal]) => {
+        const distance = ray.start.sub(pos).length();
+        if (distance < closestDistance) {
+          closest = some([pos, normal]);
+          closestDistance = distance;
+        }
+      });
+    }
+    return closest;
+  }
+}
+
+class Node {
+  isLeaf = false;
+  constructor() {
+    this.box = Box.EMPTY;
+  }
+  add(element) {
+    const elemBox = element.getBoundingBox();
+    this.box = this.box.add(elemBox);
+    if (!this.left) {
+      this.left = new Leaf(element);
+    } else if (!this.right) {
+      this.right = new Leaf(element);
+    } else {
+      if (this.left.isLeaf && this.right.isLeaf) {
+        this._addWithLeafs(element);
+      }
+      const minIndex = argmin([this.left.box.distance(elemBox), this.right.box.distance(elemBox)]);
+      this._updateChildren(minIndex, element);
+    }
+    return this;
+  }
+  _updateChildren(minIndex, element) {
+    let child = [this.left, this.right][minIndex];
+    if (!child.isLeaf) {
+      child.add(element);
+    } else {
+      const aux = child.element;
+      child = new Node().add(aux).add(element);
+    }
+  }
+  _addWithLeafs(element) {
+    const elemBox = element.getBoundingBox();
+    const distances = [
+      elemBBox.distance(this.left.box),
+      elemBBox.distance(this.right.box),
+      this.left.box.distance(this.right.box)
+    ];
+    const index = argmin(distances);
+    index2Action = {
+      0: () => {
+        const aux = this.left;
+        this.left = new Node;
+        this.left.add(aux.element).add(element);
+      },
+      1: () => {
+        const aux = this.right;
+        this.right = new Node;
+        this.right.add(aux.element).add(element);
+      },
+      2: () => {
+        const aux = this.left;
+        this.left = new Node;
+        this.left.add(aux.element).add(this.right.element);
+        this.right = new Leaf(element);
+      }
+    };
+    index2Action[index]();
+  }
+}
+
+class Leaf {
+  isLeaf = true;
+  constructor(element) {
+    this.element = element;
+    this.box = element.getBoundingBox();
+  }
+}
 export {
+  Vec3,
+  Vec2,
+  Vec,
   exports_Utils as Utils,
   Stream,
+  Scene,
+  Point_default as Point,
+  exports_Monads as Monads,
   Image,
   DomBuilder_default as DOM,
   Color,
   Canvas,
+  Camera,
+  Box,
   Animation
 };

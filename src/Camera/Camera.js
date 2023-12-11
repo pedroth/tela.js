@@ -1,27 +1,23 @@
-import Scene from "./Scene.js";
-import { Vec3, Vec2, BUILD_VEC } from "./Vec.js";
-
+import { Vec3 } from "../Vector/Vector.js"
+import Color from "../Color/Color.js"
+import { some, none } from "../Monads/Monads.js"
 export default class Camera {
-  /**
-   *
-   * @param {Number} distanceToPlane
-   * @param {Number} alpha radians > 0
-   * @param {Vec3} param
-   */
-  constructor({
-    eye = Vec3(2, 0, 0),
-    alpha = Math.PI / 4,
-    distanceToPlane = 1,
-    param = Vec3(2, 0, 0),
-    focalPoint = Vec3(0, 0, 0),
+  constructor(params = {
+    param: Vec3(2, 0, 0),
+    distanceToPlane: 1,
+    focalPoint: Vec3(0, 0, 0),
   }) {
-    this.distanceToPlane = distanceToPlane;
-    this.alpha = alpha;
-    // Vec3(rho, theta, phi)
+    const {
+      distanceToPlane,
+      eye,
+      param,
+      focalPoint
+    } = params
+    this.eye = eye;
     this.param = param;
     this.focalPoint = focalPoint;
-    this.eye = eye;
-    this.canvasSize = distanceToPlane * Math.tan(alpha);
+    this.distanceToPlane = distanceToPlane;
+    this.orbit();
   }
 
   orbit() {
@@ -48,131 +44,58 @@ export default class Camera {
     return this;
   }
 
+  rayShot(lambdaWithRays) {
+    return {
+      to: canvas => {
+        const w = canvas.width;
+        const h = canvas.height;
+        canvas.map((x, y) => {
+          const dirInLocal = [
+            2 * (x / w) - 1,
+            2 * (y / h) - 1,
+            1
+          ]
+          const dir = this.basis[0].scale(dirInLocal[0])
+            .add(this.basis[1].scale(dirInLocal[1]))
+            .add(this.basis[2].scale(dirInLocal[2]))
+            .normalize()
+          return lambdaWithRays({ start: this.eye, dir });
+        });
+      }
+    }
+  }
+
   sceneShot(scene) {
     return {
       to: (canvas) => {
-        const zBuffer = BUILD_VEC(canvas.width * canvas.height).fill(
-          Number.MAX_VALUE
-        );
-        canvas.min = Vec2(1, 1).scale(-this.canvasSize);
-        canvas.max = Vec2(1, 1).scale(this.canvasSize);
-        scene.getElements().forEach((e) => {
-          const paintMethodByType = {
-            [Scene.Line.name]: drawLine,
-            [Scene.Path.name]: drawPath,
-            [Scene.Point.name]: drawPoint,
-          };
-          const type = e.constructor.name;
-          if (type in paintMethodByType) {
-            paintMethodByType[type](e, this, canvas, { zBuffer });
-          }
-        });
-        canvas.paint();
-        return this;
+        const w = canvas.width;
+        const h = canvas.height;
+        canvas.map((x, y) => {
+          const dirInLocal = [
+            2 * (x / w) - 1,
+            2 * (y / h) - 1,
+            1
+          ]
+          const dir = this.basis[0].scale(dirInLocal[0])
+            .add(this.basis[1].scale(dirInLocal[1]))
+            .add(this.basis[2].scale(dirInLocal[2]))
+            .normalize()
+          const maybePointNormalAndT = scene.interceptWith({ start: this.eye, dir })
+          return maybePointNormalAndT
+            .map(([pos, normal]) => {
+              // const zInCameraCoords = this.basis[2].dot(pos.sub(this.eye))
+              // if (zInCameraCoords < this.distanceToPlane) return none();
+              return Color.ofRGB(
+                (normal.get(0) + 1) / 2,
+                (normal.get(1) + 1) / 2,
+                (normal.get(2) + 1) / 2
+              )
+            })
+            .orElse(() => {
+              return Color.BLACK;
+            })
+        })
       },
     };
-  }
-}
-
-/**
- *
- * @param {Vec3} vertexOut
- * @param {Vec3} vertexIn
- * @param {Camera} camera
- * @returns {Array3}
- */
-function intersectImagePlaneInCameraSpace(vertexOut, vertexIn, camera) {
-  const { distanceToPlane } = camera;
-  const v = vertexOut.sub(vertexIn);
-  const alpha = (distanceToPlane - vertexOut.get(2)) / v.get(2);
-  const p = vertexOut.add(v.scale(alpha));
-  return p;
-}
-
-function drawLine(line, camera, canvas, { zBuffer }) {
-  const { color: rgb } = line;
-  const { distanceToPlane } = camera;
-  // camera coords
-  const cameraLine = [line.start, line.end];
-  const start = line.start.sub(camera.eye);
-  const end = line.end.sub(camera.eye);
-  cameraLine[0] = matrixTransposeProd(camera.basis, start);
-  cameraLine[1] = matrixTransposeProd(camera.basis, end);
-
-  //frustum culling
-  let inFrustum = [];
-  let outFrustum = [];
-  for (let i = 0; i < cameraLine.length; i++) {
-    const zCoord = cameraLine[i].get(2);
-    if (zCoord < distanceToPlane) {
-      outFrustum.push(i);
-    } else {
-      inFrustum.push(i);
-    }
-  }
-  if (outFrustum.length == 2) {
-    return;
-  }
-  if (outFrustum.length == 1) {
-    const inVertex = inFrustum[0];
-    const outVertex = outFrustum[0];
-    const inter = intersectImagePlaneInCameraSpace(
-      cameraLine[outVertex],
-      cameraLine[inVertex],
-      camera
-    );
-    cameraLine[outVertex] = inter;
-  }
-
-  //project
-  for (let i = 0; i < cameraLine.length; i++) {
-    const zCoord = cameraLine[i].get(2);
-    cameraLine[i] = cameraLine[i].scale(distanceToPlane).scale(1 / zCoord);
-  }
-  canvas.drawLine(cameraLine[0].take(0, 2), cameraLine[1].take(0, 2), rgb);
-}
-
-function drawPoint(point, camera, canvas, { zBuffer }) {
-  const { color: rgb, position, radius, shader, disableDepthBuffer } = point;
-  const { distanceToPlane } = camera;
-  // camera coords
-  let pointInCameraCoords = position.sub(camera.eye);
-  pointInCameraCoords = matrixTransposeProd(camera.basis, pointInCameraCoords);
-  //frustum culling
-  const zCoord = pointInCameraCoords.get(2);
-  if (zCoord < distanceToPlane) {
-    return;
-  }
-  //project
-  const projectedPoint = pointInCameraCoords
-    .scale(distanceToPlane)
-    .scale(1 / zCoord);
-
-  // draw
-  canvas.drawPoint(projectedPoint.take(0, 2), rgb, {
-    radius,
-    predicate: (i, j) => {
-      if (disableDepthBuffer) return true;
-      const index = canvas.width * i + j;
-      const isClose2Cam = zCoord < zBuffer[index];
-      if (isClose2Cam) {
-        zBuffer[index] = zCoord;
-      }
-      return isClose2Cam;
-    },
-    shader,
-  });
-}
-
-function drawPath(path, camera, canvas, { zBuffer }) {
-  const { path: lines } = path;
-  for (let i = 0; i < lines.length - 1; i++) {
-    const line = Scene.Line.builder()
-      .name(`${path.name}_${i}`)
-      .start(lines[i])
-      .end(lines[i + 1])
-      .color(...path.color)
-      .build();
-    drawLine(line, camera, canvas, { zBuffer });
   }
 }

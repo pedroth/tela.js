@@ -46,9 +46,9 @@ export function saveStreamToFile(fileAddress, streamWithImages, { imageGetter = 
             }
             if (!fps) fps = ite / time;
             execSync(`ffmpeg -framerate ${fps} -i ${fileName}_%d.ppm ${fileName}.${extension}`);
-            for(let i = 0; i < ite; i++) {
+            for (let i = 0; i < ite; i++) {
                 unlinkSync(`${fileName}_${i}.ppm`);
-            } 
+            }
         }
     }
 }

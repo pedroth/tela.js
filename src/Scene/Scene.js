@@ -1,210 +1,145 @@
+import Box from "../Box/Box.js";
+import { none, some } from "../Monads/Monads.js";
+import { argmin } from "../Utils/Utils.js";
+import { Vec3 } from "../Vector/Vector.js";
+import Point from "./Point.js";
+
 export default class Scene {
-    constructor() {
-      this.scene = {};
-    }
-  
-    addElement(elem) {
-      const classes = [Line, Point, Path];
-      if (!classes.some((c) => elem instanceof c)) return this;
-      const { name } = elem;
-      this.scene[name] = elem;
-      return this;
-    }
-  
-    clear() {
-      this.scene = {};
-    }
-  
-    getElements() {
-      return Object.values(this.scene);
-    }
+  constructor() {
+    this.scene = {};
+    this.db = new Node();
   }
-  
-  class Line {
-    /**
-     *
-     * @param {String} name
-     * @param {Vec3} start
-     * @param {Vec3} end
-     * @param {Array4} color
-     */
-    constructor(name, start, end, color) {
-      this.name = name;
-      this.start = start;
-      this.end = end;
-      this.color = color;
-    }
-  
-    static builder() {
-      return new LineBuilder();
-    }
+
+  add(elem) {
+    const classes = [Point];
+    if (!classes.some((c) => elem instanceof c)) return this;
+    const { name } = elem;
+    this.scene[name] = elem;
+    // this.db.add(elem);
+    return this;
   }
-  
-  class LineBuilder {
-    constructor() {
-      this._name;
-      this._start;
-      this._end;
-      this._color;
+
+  addObj(objStr, name) {
+    objStr.split("\n")
+      .forEach((lines, lineno) => {
+        const spaces = lines.split(" ")
+        if (spaces[0] === "v") {
+          const v = spaces.slice(1, 4)
+            .map(x => Number.parseFloat(x));
+          if (Math.random() < 0.01) {
+            this.add(
+              Point
+                .builder()
+                .name(`${name}_${lineno}`)
+                .position(
+                  Vec3(...v)
+                )
+                .radius(0.01)
+                .build()
+            )
+          }
+        }
+      })
+    return this;
+  }
+
+  clear() {
+    this.scene = {};
+  }
+
+  getElements() {
+    return Object.values(this.scene);
+  }
+
+  interceptWith(ray) {
+    const points = Object.values(this.scene);
+    let closestDistance = Number.MAX_VALUE;
+    let closest = none();
+    for (let i = 0; i < points.length; i++) {
+      points[i].interceptWith(ray)
+        .map(([pos, normal]) => {
+          const distance = ray
+            .start
+            .sub(pos)
+            .length();
+          if (distance < closestDistance) {
+            closest = some([pos, normal]);
+            closestDistance = distance;
+          }
+        })
     }
-  
-    name(name) {
-      this._name = name;
-      return this;
-    }
-  
-    start(start) {
-      this._start = start;
-      return this;
-    }
-  
-    end(end) {
-      this._end = end;
-      return this;
-    }
-  
-    color(r = 0, g = 0, b = 0, alpha = 255) {
-      this._color = [r, g, b, alpha];
-      return this;
-    }
-  
-    build() {
-      const attrs = [this._name, this._start, this._end, this._color];
-      if (attrs.some((x) => x === undefined)) {
-        throw new Error("Line is incomplete");
+    return closest;
+  }
+}
+
+class Node {
+  isLeaf = false;
+  constructor() {
+    this.box = Box.EMPTY;
+  }
+
+  add(element) {
+    const elemBox = element.getBoundingBox();
+    this.box = this.box.add(elemBox);
+    if (!this.left) {
+      this.left = new Leaf(element);
+    } else if (!this.right) {
+      this.right = new Leaf(element);
+    } else {
+      if (this.left.isLeaf && this.right.isLeaf) {
+        this._addWithLeafs(element);
       }
-      return new Line(...attrs);
+      // at least one children is not a leaf
+      const minIndex = argmin([this.left.box.distance(elemBox), this.right.box.distance(elemBox)])
+      this._updateChildren(minIndex, element);
+    }
+    return this;
+  }
+
+  _updateChildren(minIndex, element) {
+    let child = [this.left, this.right][minIndex];
+    if (!child.isLeaf) {
+      child.add(element);
+    } else {
+      const aux = child.element;
+      child = new Node().add(aux).add(element);
     }
   }
-  
-  Scene.Line = Line;
-  
-  class Path {
-    /**
-     *
-     * @param {String} name
-     * @param {Array<Vec3>} path
-     * @param {Array4} color
-     */
-    constructor(name, path, color) {
-      this.name = name;
-      this.path = path;
-      this.color = color;
-    }
-  
-    static builder() {
-      return new PathBuilder();
-    }
-  }
-  
-  class PathBuilder {
-    constructor() {
-      this._name;
-      this._path;
-      this._color;
-    }
-  
-    name(name) {
-      this._name = name;
-      return this;
-    }
-  
-    path(path) {
-      this._path = path;
-      return this;
-    }
-  
-    color(r = 0, g = 0, b = 0, alpha = 255) {
-      this._color = [r, g, b, alpha];
-      return this;
-    }
-  
-    build() {
-      const attrs = [this._name, this._path, this._color];
-      if (attrs.some((x) => x === undefined)) {
-        throw new Error("Path is incomplete");
+
+  _addWithLeafs(element) {
+    const elemBox = element.getBoundingBox();
+    const distances = [
+      elemBBox.distance(this.left.box),
+      elemBBox.distance(this.right.box),
+      this.left.box.distance(this.right.box)
+    ]
+    const index = argmin(distances);
+    index2Action = {
+      0: () => {
+        const aux = this.left;
+        this.left = new Node();
+        this.left.add(aux.element).add(element);
+      },
+      1: () => {
+        const aux = this.right;
+        this.right = new Node();
+        this.right.add(aux.element).add(element);
+      },
+      2: () => {
+        const aux = this.left;
+        this.left = new Node();
+        this.left.add(aux.element).add(this.right.element);
+        this.right = new Leaf(element);
       }
-      return new Path(...attrs);
     }
+    index2Action[index]();
   }
-  
-  Scene.Path = Path;
-  
-  class Point {
-    /**
-     *
-     * @param {String} name
-     * @param {Number} radius
-     * @param {Array4} color
-     */
-    constructor(name, radius, color, position, shader, disableDepthBuffer) {
-      this.name = name;
-      this.radius = radius;
-      this.color = color;
-      this.position = position;
-      this.shader = shader;
-      this.disableDepthBuffer = disableDepthBuffer;
-    }
-  
-    static builder() {
-      return new PointBuilder();
-    }
+}
+
+class Leaf {
+  isLeaf = true;
+  constructor(element) {
+    this.element = element;
+    this.box = element.getBoundingBox();
   }
-  
-  class PointBuilder {
-    constructor() {
-      this._name;
-      this._radius;
-      this._color;
-      this._shader = ({ rgb }) => rgb;
-      this._disableDepthBuffer = false;
-    }
-  
-    name(name) {
-      this._name = name;
-      return this;
-    }
-  
-    radius(radius) {
-      this._radius = radius;
-      return this;
-    }
-  
-    color(r = 0, g = 0, b = 0, alpha = 255) {
-      this._color = [r, g, b, alpha];
-      return this;
-    }
-  
-    position(posVec3) {
-      this._position = posVec3;
-      return this;
-    }
-  
-    shader(shader) {
-      this._shader = shader;
-      return this;
-    }
-  
-    disableDepthBuffer(disableDepthBuffer) {
-      this._disableDepthBuffer = disableDepthBuffer;
-      return this;
-    }
-  
-    build() {
-      const attrs = [
-        this._name,
-        this._radius,
-        this._color,
-        this._position,
-        this._shader,
-        this._disableDepthBuffer,
-      ];
-      if (attrs.some((x) => x === undefined)) {
-        throw new Error("Point is incomplete");
-      }
-      return new Point(...attrs);
-    }
-  }
-  
-  Scene.Point = Point;
-  
+}

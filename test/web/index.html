@@ -63,7 +63,7 @@
                         const script = DOM.of("script").build();
                         script.type = "module";
                         script.textContent = `
-                        import {Canvas, DOM, Color, Animation} from "/dist/web/index.js"
+                        import {Canvas, DOM, Color, Animation, Scene, Camera, Vec2, Vec3, Vec, Box, Point} from "/dist/web/index.js"
                         ${toggleFullScreen.toString()}
                         const canvasDOM = document.getElementsByTagName("canvas")[0];
                         const canvas = Canvas.ofDOM(canvasDOM);
@@ -101,7 +101,7 @@
 
     (async () => {
         const iframes = await Promise.all(
-            range(5)
+            range(9)
                 .map(async i => {
                     const container = DOM.of("div");
                     const details = DOM.of("details")

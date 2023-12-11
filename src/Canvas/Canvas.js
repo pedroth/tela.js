@@ -72,6 +72,10 @@ export default class Canvas {
     return this;
   }
 
+  onMouseWheel(lambda) {
+    this._canvas.addEventListener("wheel", lambda, false)
+  }
+
   resize(width, height) {
     this._canvas.width = width;
     this._canvas.height = height;
