@@ -1,3 +1,4 @@
+/* eslint-disable no-undef */
 async (canvas, fps, logger) => {
     // resize incoming canvas:Canvas object.
     const width = 640;
@@ -6,19 +7,41 @@ async (canvas, fps, logger) => {
     // scene
     const camera = new Camera();
     const light = { pos: Vec3(2, 0, 0) };
-    const rayScene = ({ start, dir }) => {
-        let p = start;
-        let t = box.distanceToPoint(p);
+    const maxIte = 100;
+    const epsilon = 1e-3;
+
+    const box = new Box(Vec.ONES(3).scale(-0.5), Vec.ONES(3).scale(0.5));
+    const sphere = { pos: Vec3(0.0, 0.0, 0.0), radius: 0.65 };
+    const smin = (a, b, k = 0.1) => {
+        const h = a - b;
+        return 0.5 * ((a + b) - Math.sqrt(h * h + k));
+    }
+    const distanceFunction = p => Math.max(box.distanceToPoint(p), -(sphere.pos.sub(p).length() - sphere.radius))
+
+    const rayScene = (ray) => {
+        const { init } = ray;
+        let p = init;
+        let t = distanceFunction(p);
         const maxT = t;
-        for (let i = 0; i < 20; i++) {
-            p = start.add(dir.scale(t));
-            const d = box.distanceToPoint(p);
+        for (let i = 0; i < maxIte; i++) {
+            p = ray.trace(t);
+            const d = distanceFunction(p);
             t += d;
-            if (d < 0.01) {
-                const shade = Math.max(0, box.estimateNormal(p).dot(light.pos.sub(p).normalize()))
+            if (d < epsilon) {
+                const shade = Math.max(
+                    0,
+                    box
+                        .estimateNormal(p)
+                        .dot(
+                            light
+                                .pos
+                                .sub(p)
+                                .normalize()
+                        )
+                )
                 return Color.ofRGB(shade, 0, 0);
             }
-            if (d > maxT) break;
+            if (d > maxT) return Color.ofRGB(0, 0, i / maxIte);
         }
         return Color.BLACK;
     }
@@ -54,20 +77,20 @@ async (canvas, fps, logger) => {
         camera.orbit();
     })
 
-    const box = new Box(Vec.ONES(3).scale(-0.5), Vec.ONES(3).scale(0.5));
     Animation
         .builder()
         .initialState({ it: 1, time: 0, oldTime: new Date().getTime() })
         .nextState(({ it, time, oldTime }) => {
             const dt = (new Date().getTime() - oldTime) * 1e-3;
-            const t = 2 * Math.PI * time * 3;
+            oldTime = new Date().getTime()
+            const t = time;
             light.pos = Vec3(Math.cos(t), Math.sin(t), 1).scale(2);
             camera.rayShot(rayScene).to(canvas);
-            logger.print(`FPS: ${1 / dt}`);
+            logger.print(`FPS: ${Math.floor(1 / dt)}`);
             return {
                 it: it + 1,
                 time: time + dt,
-                oldTime: new Date().getTime()
+                oldTime
             };
         })
         .while(() => true)

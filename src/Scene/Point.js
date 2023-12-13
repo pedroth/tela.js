@@ -1,6 +1,7 @@
+import Box from "../Box/Box.js";
 import Color from "../Color/Color.js";
 import { none, some } from "../Monads/Monads.js";
-import { Vec3 } from "../Vector/Vector.js";
+import Vec, { Vec3 } from "../Vector/Vector.js";
 
 class Point {
     constructor({ name, position, normal, color, radius }) {
@@ -11,13 +12,23 @@ class Point {
         this.position = position;
     }
 
-    interceptWith({ start, dir }) {
-        return sphereInterception(this, { start, dir })
+    interceptWith(ray) {
+        return sphereInterception(this, ray)
             .map(t => {
-                const pointOnSphere = start.add(dir.scale(t));
+                const pointOnSphere = ray.trace(t);
                 const normal = pointOnSphere.sub(this.position).normalize();
                 return [pointOnSphere, normal];
             })
+    }
+
+    getBoundingBox() {
+        if (this.boundingBox) return this.boundingBox;
+        const n = this.position.dim;
+        this.boundingBox = new Box(
+            this.position.add(Vec.ONES(n).scale(-this.radius)),
+            this.position.add(Vec.ONES(n).scale(this.radius))
+        );
+        return this.boundingBox;
     }
 
     static builder() {
@@ -77,8 +88,9 @@ class PointBuilder {
     }
 }
 
-function sphereInterception(point, { start, dir }) {
-    const diff = start.sub(point.position);
+function sphereInterception(point, ray) {
+    const { init, dir } = ray;
+    const diff = init.sub(point.position);
     const b = 2 * dir.dot(diff);
     const c = diff.squareLength() - point.radius * point.radius;
     const discriminant = b * b - 4 * c; // a = 1

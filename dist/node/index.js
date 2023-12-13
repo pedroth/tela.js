@@ -9,7 +9,7 @@ var __export = (target, all) => {
     });
 };
 
-// src/Monads/Monads.js
+// src/Ray/Ray.jsads.js
 class Stream {
   constructor(initialState, updateStateFunction) {
     this._head = initialState;
@@ -23,7 +23,7 @@ class Stream {
   }
 }
 
-// src/Monads/Monads.jsilder.
+// src/Ray/Ray.jsads.jsilder.
 class Animation {
   constructor(state, next, doWhile) {
     this.animation = new Stream(state, next);
@@ -75,7 +75,7 @@ class AnimationBuilder {
   }
 }
 
-// src/Monads/Monads.js
+// src/Ray/Ray.jsads.js
 var handleMouse = function(canvas, lambda) {
   return (event) => {
     const h = canvas.height;
@@ -193,7 +193,7 @@ class Canvas {
   }
 }
 
-// src/Monads/Monads.
+// src/Ray/Ray.jsads.
 var MAX_8BIT = 255;
 
 class Color {
@@ -240,7 +240,7 @@ class Color {
   static WHITE = Color.ofRGB(1, 1, 1);
 }
 
-// src/Monads/Monads.jsilder.js
+// src/Ray/Ray.jsads.jsilder.js
 var isElement = function(o) {
   return typeof HTMLElement === "object" ? o instanceof HTMLElement : o && typeof o === "object" && o !== null && o.nodeType === 1 && typeof o.nodeName === "string";
 };
@@ -332,7 +332,7 @@ class DomBuilder {
 }
 var DomBuilder_default = DomBuilder;
 
-// src/Monads/Monads.
+// src/Ray/Ray.jsads.
 class Image {
   constructor(width, height) {
     this._width = width;
@@ -402,7 +402,7 @@ class Image {
   }
 }
 
-// src/Monads/Monads.js
+// src/Ray/Ray.jsads.js
 var _sanitize_input = function(arrayIn, arrayOut) {
   for (let i = 0;i < arrayIn.length; i++) {
     const z = arrayIn[i];
@@ -801,52 +801,16 @@ class Vector2 {
   static ONES = new Vector2(1, 1);
 }
 
-// src/Monads/Monads.js
-var exports_Monads = {};
-__export(exports_Monads, {
-  some: () => {
-    {
-      return some;
-    }
-  },
-  none: () => {
-    {
-      return none;
-    }
-  },
-  maybe: () => {
-    {
-      return maybe;
-    }
-  }
-});
-function some(x) {
-  return {
-    map: (f) => maybe(f(x)),
-    orElse: () => x,
-    forEach: (f) => f(x),
-    flatMap: (f) => f(x),
-    isSome: () => true
-  };
-}
-function none() {
-  return {
-    map: () => none(),
-    orElse: (f) => f(),
-    forEach: () => {
-    },
-    flatMap: () => none(),
-    isSome: () => false
-  };
-}
-function maybe(x) {
-  if (x) {
-    return some(x);
-  }
-  return none(x);
+// src/Ray/Ray.js
+function Ray(init, dir) {
+  const ans = {};
+  ans.init = init;
+  ans.dir = dir;
+  ans.trace = (t) => init.add(dir.scale(t));
+  return ans;
 }
 
-// src/Monads/Monads.js
+// src/Ray/Ray.jsads.js
 class Camera {
   constructor(params = {
     param: Vec3(2, 0, 0),
@@ -891,7 +855,7 @@ class Camera {
             1
           ];
           const dir = this.basis[0].scale(dirInLocal[0]).add(this.basis[1].scale(dirInLocal[1])).add(this.basis[2].scale(dirInLocal[2])).normalize();
-          return lambdaWithRays({ start: this.eye, dir });
+          return lambdaWithRays(Ray(this.eye, dir));
         });
       }
     };
@@ -901,6 +865,7 @@ class Camera {
       to: (canvas) => {
         const w = canvas.width;
         const h = canvas.height;
+        const samples = w * h;
         canvas.map((x, y) => {
           const dirInLocal = [
             2 * (x / w) - 1,
@@ -908,8 +873,7 @@ class Camera {
             1
           ];
           const dir = this.basis[0].scale(dirInLocal[0]).add(this.basis[1].scale(dirInLocal[1])).add(this.basis[2].scale(dirInLocal[2])).normalize();
-          const maybePointNormalAndT = scene.interceptWith({ start: this.eye, dir });
-          return maybePointNormalAndT.map(([pos, normal]) => {
+          return scene.interceptWith(Ray(this.eye, dir)).map(([, normal]) => {
             return Color.ofRGB((normal.get(0) + 1) / 2, (normal.get(1) + 1) / 2, (normal.get(2) + 1) / 2);
           }).orElse(() => {
             return Color.BLACK;
@@ -920,7 +884,55 @@ class Camera {
   }
 }
 
-// src/Monads/Mon
+// src/Ray/Ray.jsads.js
+var exports_Monads = {};
+__export(exports_Monads, {
+  some: () => {
+    {
+      return some;
+    }
+  },
+  none: () => {
+    {
+      return none;
+    }
+  },
+  maybe: () => {
+    {
+      return maybe;
+    }
+  }
+});
+function some(x) {
+  const object = {
+    map: (f) => maybe(f(x)),
+    orElse: () => x,
+    forEach: (f) => f(x),
+    flatMap: (f) => f(x),
+    isSome: () => true
+  };
+  return object;
+}
+function none() {
+  const object = {
+    map: () => object,
+    orElse: (f = () => {
+    }) => f(),
+    forEach: () => {
+    },
+    flatMap: () => object,
+    isSome: () => false
+  };
+  return object;
+}
+function maybe(x) {
+  if (x) {
+    return some(x);
+  }
+  return none(x);
+}
+
+// src/Ray/Ray.js
 class Box {
   constructor(min, max) {
     this.isEmpty = min === undefined || max === undefined;
@@ -948,12 +960,24 @@ class Box {
     const isAllPositive = newDiag.data.every((x) => x >= 0);
     return !isAllPositive ? Box.EMPTY : new Box(newMin, newMax);
   }
-  inter = this.sub;
-  move(vector) {
-    return new Box(this.min.add(vector), this.max.add(vector));
-  }
-  collidesWith(box) {
-    return !this.sub(box).isEmpty;
+  intersection = this.sub;
+  interceptWith(ray) {
+    const maxIte = 50;
+    const epsilon = 0.001;
+    let p = ray.init;
+    let t = this.distanceToPoint(p);
+    const maxT = t;
+    for (let i = 0;i < maxIte; i++) {
+      p = ray.trace(t);
+      const d = this.distanceToPoint(p);
+      t += d;
+      if (d < epsilon) {
+        return some(p);
+      }
+      if (d > maxT)
+        break;
+    }
+    return none();
   }
   equals(box) {
     if (!(box instanceof Box))
@@ -963,11 +987,12 @@ class Box {
     return this.min.equals(box.min) && this.max.equals(box.max);
   }
   distanceToBox(box) {
-    return this.box.center.sub(box.center).length();
+    return this.min.sub(box.min).length() + this.max.sub(box.max).length();
   }
   distanceToPoint(pointVec) {
+    const p = pointVec.sub(this.center);
     const r = this.max.sub(this.center);
-    return pointVec.map(Math.abs).sub(r).map((x) => Math.max(x, 0)).length();
+    return p.map(Math.abs).sub(r).map((x) => Math.max(x, 0)).length();
   }
   estimateNormal(pointVec) {
     const epsilon = 0.001;
@@ -978,15 +1003,10 @@ class Box {
     }
     return Vec.fromArray(grad).normalize();
   }
-  static ofPoint(point) {
-    const { position, radius, dim } = point;
-    const ones = Vec.ONES(dim);
-    return new Box(position.sub(ones.scale(radius)), position.add(ones.scale(radius)));
-  }
   static EMPTY = new Box;
 }
 
-// src/Monads/Monads.
+// src/Ray/Ray.jsads.
 var exports_Utils = {};
 __export(exports_Utils, {
   or: () => {
@@ -1027,7 +1047,7 @@ function or(...lambdas) {
     }
   }
 }
-function argmin(array, costFunction) {
+function argmin(array, costFunction = (x) => x) {
   let argminIndex = -1;
   let cost = Number.MAX_VALUE;
   for (let i = 0;i < array.length; i++) {
@@ -1040,9 +1060,10 @@ function argmin(array, costFunction) {
   return argminIndex;
 }
 
-// src/Monads/Monads.
-var sphereInterception = function(point, { start, dir }) {
-  const diff = start.sub(point.position);
+// src/Ray/Ray.jsads.
+var sphereInterception = function(point, ray) {
+  const { init, dir } = ray;
+  const diff = init.sub(point.position);
   const b = 2 * dir.dot(diff);
   const c = diff.squareLength() - point.radius * point.radius;
   const discriminant = b * b - 4 * c;
@@ -1064,12 +1085,19 @@ class Point {
     this.radius = radius;
     this.position = position;
   }
-  interceptWith({ start, dir }) {
-    return sphereInterception(this, { start, dir }).map((t) => {
-      const pointOnSphere = start.add(dir.scale(t));
+  interceptWith(ray) {
+    return sphereInterception(this, ray).map((t) => {
+      const pointOnSphere = ray.trace(t);
       const normal = pointOnSphere.sub(this.position).normalize();
       return [pointOnSphere, normal];
     });
+  }
+  getBoundingBox() {
+    if (this.boundingBox)
+      return this.boundingBox;
+    const n = this.position.dim;
+    this.boundingBox = new Box(this.position.add(Vec.ONES(n).scale(-this.radius)), this.position.add(Vec.ONES(n).scale(this.radius)));
+    return this.boundingBox;
   }
   static builder() {
     return new PointBuilder;
@@ -1120,7 +1148,7 @@ class PointBuilder {
 }
 var Point_default = Point;
 
-// src/Monads/Monads.
+// src/Ray/Ray.jsads.
 class Scene {
   constructor() {
     this.scene = {};
@@ -1132,6 +1160,7 @@ class Scene {
       return this;
     const { name } = elem;
     this.scene[name] = elem;
+    this.db.add(elem);
     return this;
   }
   addObj(objStr, name) {
@@ -1139,9 +1168,7 @@ class Scene {
       const spaces = lines.split(" ");
       if (spaces[0] === "v") {
         const v = spaces.slice(1, 4).map((x) => Number.parseFloat(x));
-        if (Math.random() < 0.01) {
-          this.add(Point_default.builder().name(`${name}_${lineno}`).position(Vec3(...v)).radius(0.01).build());
-        }
+        this.add(Point_default.builder().name(`${name}_${lineno}`).position(Vec3(...v)).radius(0.01).build());
       }
     });
     return this;
@@ -1153,19 +1180,7 @@ class Scene {
     return Object.values(this.scene);
   }
   interceptWith(ray) {
-    const points = Object.values(this.scene);
-    let closestDistance = Number.MAX_VALUE;
-    let closest = none();
-    for (let i = 0;i < points.length; i++) {
-      points[i].interceptWith(ray).map(([pos, normal]) => {
-        const distance = ray.start.sub(pos).length();
-        if (distance < closestDistance) {
-          closest = some([pos, normal]);
-          closestDistance = distance;
-        }
-      });
-    }
-    return closest;
+    return this.db.interceptWith(ray);
   }
 }
 
@@ -1182,13 +1197,34 @@ class Node {
     } else if (!this.right) {
       this.right = new Leaf(element);
     } else {
-      if (this.left.isLeaf && this.right.isLeaf) {
-        this._addWithLeafs(element);
-      }
-      const minIndex = argmin([this.left.box.distance(elemBox), this.right.box.distance(elemBox)]);
-      this._updateChildren(minIndex, element);
+      this._addElementWhenTreeIsFull(element, elemBox);
     }
     return this;
+  }
+  interceptWith(ray) {
+    const children = [this.left, this.right].filter((x) => x);
+    const nodes = children.filter((x) => !x.isLeaf);
+    const leafs = children.filter((x) => x.isLeaf);
+    const interceptions = [];
+    for (let i = 0;i < nodes.length; i++) {
+      nodes[i].interceptWith(ray).map((inter) => interceptions.push(inter));
+    }
+    for (let i = 0;i < leafs.length; i++) {
+      leafs[i].interceptWith(ray).map((inter) => interceptions.push(inter));
+    }
+    const index = argmin(interceptions, ([pos]) => ray.init.sub(pos).length());
+    return index === -1 ? none() : some(interceptions[index]);
+  }
+  _addElementWhenTreeIsFull(element, elemBox) {
+    if (this.left.isLeaf && this.right.isLeaf) {
+      this._addWithLeafs(element);
+    } else {
+      const minIndex = argmin([
+        this.left.box.distanceToBox(elemBox),
+        this.right.box.distanceToBox(elemBox)
+      ]);
+      this._updateChildren(minIndex, element);
+    }
   }
   _updateChildren(minIndex, element) {
     let child = [this.left, this.right][minIndex];
@@ -1196,18 +1232,21 @@ class Node {
       child.add(element);
     } else {
       const aux = child.element;
-      child = new Node().add(aux).add(element);
+      if (minIndex === 0)
+        this.left = new Node().add(aux).add(element);
+      if (minIndex === 1)
+        this.right = new Node().add(aux).add(element);
     }
   }
   _addWithLeafs(element) {
     const elemBox = element.getBoundingBox();
     const distances = [
-      elemBBox.distance(this.left.box),
-      elemBBox.distance(this.right.box),
-      this.left.box.distance(this.right.box)
+      elemBox.distanceToBox(this.left.box),
+      elemBox.distanceToBox(this.right.box),
+      this.left.box.distanceToBox(this.right.box)
     ];
     const index = argmin(distances);
-    index2Action = {
+    const index2Action = {
       0: () => {
         const aux = this.left;
         this.left = new Node;
@@ -1235,8 +1274,11 @@ class Leaf {
     this.element = element;
     this.box = element.getBoundingBox();
   }
+  interceptWith(ray) {
+    return this.element.interceptWith(ray);
+  }
 }
-// src/Monads/M
+// src/Ray/Ray.
 var exports_IO = {};
 __export(exports_IO, {
   saveStreamToFile: () => {

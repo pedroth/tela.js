@@ -1,6 +1,6 @@
 import { Vec3 } from "../Vector/Vector.js"
 import Color from "../Color/Color.js"
-import { some, none } from "../Monads/Monads.js"
+import { Ray } from "../Ray/Ray.js";
 export default class Camera {
   constructor(params = {
     param: Vec3(2, 0, 0),
@@ -59,7 +59,7 @@ export default class Camera {
             .add(this.basis[1].scale(dirInLocal[1]))
             .add(this.basis[2].scale(dirInLocal[2]))
             .normalize()
-          return lambdaWithRays({ start: this.eye, dir });
+          return lambdaWithRays(Ray(this.eye, dir));
         });
       }
     }
@@ -70,6 +70,7 @@ export default class Camera {
       to: (canvas) => {
         const w = canvas.width;
         const h = canvas.height;
+        const samples = w * h;
         canvas.map((x, y) => {
           const dirInLocal = [
             2 * (x / w) - 1,
@@ -80,9 +81,8 @@ export default class Camera {
             .add(this.basis[1].scale(dirInLocal[1]))
             .add(this.basis[2].scale(dirInLocal[2]))
             .normalize()
-          const maybePointNormalAndT = scene.interceptWith({ start: this.eye, dir })
-          return maybePointNormalAndT
-            .map(([pos, normal]) => {
+          return scene.interceptWith(Ray(this.eye, dir))
+            .map(([, normal]) => {
               // const zInCameraCoords = this.basis[2].dot(pos.sub(this.eye))
               // if (zInCameraCoords < this.distanceToPlane) return none();
               return Color.ofRGB(

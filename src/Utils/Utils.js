@@ -18,15 +18,15 @@ export function or(...lambdas) {
     }
 }
 
-export function argmin(array, costFunction) {
+export function argmin(array, costFunction = x => x) {
     let argminIndex = -1;
     let cost = Number.MAX_VALUE;
     // faster than forEach
     for (let i = 0; i < array.length; i++) {
         const newCost = costFunction(array[i]);
-        if(newCost < cost) {
+        if (newCost < cost) {
             cost = newCost;
-            argminIndex = i; 
+            argminIndex = i;
         }
     }
     return argminIndex;

@@ -1,21 +1,23 @@
 export function some(x) {
-    return {
+    const object = {
         map: f => maybe(f(x)),
         orElse: () => x,
         forEach: (f) => f(x),
         flatMap: f => f(x),
         isSome: () => true,
-    }
+    };
+    return object;
 }
 
 export function none() {
-    return {
-        map: () => none(),
-        orElse: f => f(),
+    const object = {
+        map: () => object,
+        orElse: (f = () => { }) => f(),
         forEach: () => { },
-        flatMap: () => none(),
+        flatMap: () => object,
         isSome: () => false,
-    }
+    };
+    return object
 }
 
 export function maybe(x) {

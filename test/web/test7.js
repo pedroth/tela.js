@@ -1,7 +1,7 @@
 async (canvas, fps, logger) => {
     // resize incoming canvas:Canvas object.
-    const width = 640;
-    const height = 480;
+    const width = 640/2;
+    const height = 480/2;
     canvas.resize(width, height);
     // scene
     const scene = new Scene()

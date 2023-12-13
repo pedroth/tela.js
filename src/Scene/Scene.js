@@ -15,7 +15,7 @@ export default class Scene {
     if (!classes.some((c) => elem instanceof c)) return this;
     const { name } = elem;
     this.scene[name] = elem;
-    // this.db.add(elem);
+    this.db.add(elem);
     return this;
   }
 
@@ -26,18 +26,16 @@ export default class Scene {
         if (spaces[0] === "v") {
           const v = spaces.slice(1, 4)
             .map(x => Number.parseFloat(x));
-          if (Math.random() < 0.01) {
-            this.add(
-              Point
-                .builder()
-                .name(`${name}_${lineno}`)
-                .position(
-                  Vec3(...v)
-                )
-                .radius(0.01)
-                .build()
-            )
-          }
+          this.add(
+            Point
+              .builder()
+              .name(`${name}_${lineno}`)
+              .position(
+                Vec3(...v)
+              )
+              .radius(0.01)
+              .build()
+          )
         }
       })
     return this;
@@ -52,23 +50,24 @@ export default class Scene {
   }
 
   interceptWith(ray) {
-    const points = Object.values(this.scene);
-    let closestDistance = Number.MAX_VALUE;
-    let closest = none();
-    for (let i = 0; i < points.length; i++) {
-      points[i].interceptWith(ray)
-        .map(([pos, normal]) => {
-          const distance = ray
-            .start
-            .sub(pos)
-            .length();
-          if (distance < closestDistance) {
-            closest = some([pos, normal]);
-            closestDistance = distance;
-          }
-        })
-    }
-    return closest;
+    // const points = Object.values(this.scene);
+    // let closestDistance = Number.MAX_VALUE;
+    // let closest = none();
+    // for (let i = 0; i < points.length; i++) {
+    //   points[i].interceptWith(ray)
+    //     .map(([pos, normal]) => {
+    //       const distance = ray
+    //         .init
+    //         .sub(pos)
+    //         .length();
+    //       if (distance < closestDistance) {
+    //         closest = some([pos, normal]);
+    //         closestDistance = distance;
+    //       }
+    //     })
+    // }
+    // return closest;
+    return this.db.interceptWith(ray);
   }
 }
 
@@ -86,14 +85,38 @@ class Node {
     } else if (!this.right) {
       this.right = new Leaf(element);
     } else {
-      if (this.left.isLeaf && this.right.isLeaf) {
-        this._addWithLeafs(element);
-      }
-      // at least one children is not a leaf
-      const minIndex = argmin([this.left.box.distance(elemBox), this.right.box.distance(elemBox)])
-      this._updateChildren(minIndex, element);
+      this._addElementWhenTreeIsFull(element, elemBox);
     }
     return this;
+  }
+
+  interceptWith(ray) {
+    // return this.box.interceptWith(ray).map(pos => [pos, this.box.estimateNormal(pos)])
+    const children = [this.left, this.right].filter(x => x);
+    const nodes = children.filter(x => !x.isLeaf);
+    const leafs = children.filter(x => x.isLeaf);
+    const interceptions = [];
+    for (let i = 0; i < nodes.length; i++) {
+      nodes[i].interceptWith(ray).map((inter) => interceptions.push(inter))
+    }
+    for (let i = 0; i < leafs.length; i++) {
+      leafs[i].interceptWith(ray).map((inter) => interceptions.push(inter));
+    }
+    const index = argmin(interceptions, ([pos]) => ray.init.sub(pos).length());
+    return index === -1 ? none() : some(interceptions[index]);
+  }
+
+  _addElementWhenTreeIsFull(element, elemBox) {
+    if (this.left.isLeaf && this.right.isLeaf) {
+      this._addWithLeafs(element);
+    } else {
+      // at least one children is not a leaf
+      const minIndex = argmin([
+        this.left.box.distanceToBox(elemBox),
+        this.right.box.distanceToBox(elemBox)
+      ]);
+      this._updateChildren(minIndex, element);
+    }
   }
 
   _updateChildren(minIndex, element) {
@@ -102,19 +125,20 @@ class Node {
       child.add(element);
     } else {
       const aux = child.element;
-      child = new Node().add(aux).add(element);
+      if (minIndex === 0) this.left = new Node().add(aux).add(element);
+      if (minIndex === 1) this.right = new Node().add(aux).add(element);
     }
   }
 
   _addWithLeafs(element) {
     const elemBox = element.getBoundingBox();
     const distances = [
-      elemBBox.distance(this.left.box),
-      elemBBox.distance(this.right.box),
-      this.left.box.distance(this.right.box)
+      elemBox.distanceToBox(this.left.box),
+      elemBox.distanceToBox(this.right.box),
+      this.left.box.distanceToBox(this.right.box)
     ]
     const index = argmin(distances);
-    index2Action = {
+    const index2Action = {
       0: () => {
         const aux = this.left;
         this.left = new Node();
@@ -141,5 +165,10 @@ class Leaf {
   constructor(element) {
     this.element = element;
     this.box = element.getBoundingBox();
+  }
+
+  interceptWith(ray) {
+    return this.element.interceptWith(ray);
+    // return this.box.interceptWith(ray).map(pos => [pos, this.box.estimateNormal(pos)]);
   }
 }

@@ -1,3 +1,4 @@
+import { none, some } from "../Monads/Monads";
 import Vec from "../Vector/Vector";
 
 export default class Box {
@@ -28,14 +29,24 @@ export default class Box {
         return !isAllPositive ? Box.EMPTY : new Box(newMin, newMax);
     }
 
-    inter = this.sub;
+    intersection = this.sub;
 
-    move(vector) {
-        return new Box(this.min.add(vector), this.max.add(vector));
-    }
-
-    collidesWith(box) {
-        return !this.sub(box).isEmpty
+    interceptWith(ray) {
+        const maxIte = 50;
+        const epsilon = 1e-3;
+        let p = ray.init;
+        let t = this.distanceToPoint(p);
+        const maxT = t;
+        for (let i = 0; i < maxIte; i++) {
+            p = ray.trace(t);
+            const d = this.distanceToPoint(p);
+            t += d;
+            if (d < epsilon) {
+                return some(p);
+            }
+            if (d > maxT) break;
+        }
+        return none();
     }
 
     equals(box) {
@@ -45,12 +56,14 @@ export default class Box {
     }
 
     distanceToBox(box) {
-        return this.box.center.sub(box.center).length();
+        // return this.center.sub(box.center).length;
+        return this.min.sub(box.min).length() + this.max.sub(box.max).length();
     }
 
     distanceToPoint(pointVec) {
+        const p = pointVec.sub(this.center);
         const r = this.max.sub(this.center);
-        return pointVec.map(Math.abs).sub(r).map(x => Math.max(x,0)).length();
+        return p.map(Math.abs).sub(r).map(x => Math.max(x, 0)).length();
     }
 
     estimateNormal(pointVec) {
@@ -63,10 +76,5 @@ export default class Box {
         return Vec.fromArray(grad).normalize();
     }
 
-    static ofPoint(point) {
-        const {position, radius, dim} = point;
-        const ones = Vec.ONES(dim);
-        return new Box(position.sub(ones.scale(radius)), position.add(ones.scale(radius)));
-    }
     static EMPTY = new Box();
 }

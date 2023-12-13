@@ -9,9 +9,9 @@ async (canvas, fps, logger) => {
     // mouse handling
     let mousedown = false;
     let mouse = Vec2();
-    canvas.onMouseDown((x,y) => {
+    canvas.onMouseDown((x, y) => {
         mousedown = true;
-        mouse = Vec2(x,y);
+        mouse = Vec2(x, y);
     })
     canvas.onMouseUp(() => {
         mousedown = false;
@@ -27,7 +27,7 @@ async (canvas, fps, logger) => {
             Vec3(
                 0,
                 -2 * Math.PI * (dx / canvas.width),
-                2 * Math.PI * (dy / canvas.height)
+                -2 * Math.PI * (dy / canvas.height)
             )
         );
         mouse = newMouse;
@@ -44,7 +44,7 @@ async (canvas, fps, logger) => {
         .add(
             Point
                 .builder()
-                .position(Vec3(0, 1, 0))
+                .position(Vec3(0, -1, 0))
                 .name("test6-1")
                 .radius(0.1)
                 .build()
@@ -52,7 +52,7 @@ async (canvas, fps, logger) => {
         .add(
             Point
                 .builder()
-                .position(Vec3(0, -1, 0))
+                .position(Vec3(0, 1, 0))
                 .name("test6-2")
                 .radius(0.1)
                 .build()
@@ -60,8 +60,32 @@ async (canvas, fps, logger) => {
         .add(
             Point
                 .builder()
-                .position(Vec3(0, 0, 1))
+                .position(Vec3(0, 0, -1))
                 .name("test6-3")
+                .radius(0.1)
+                .build()
+        )
+        .add(
+            Point
+                .builder()
+                .position(Vec3(0, 0, 1))
+                .name("test6-4")
+                .radius(0.1)
+                .build()
+        )
+        .add(
+            Point
+                .builder()
+                .position(Vec3(-1, 0, 0))
+                .name("test6-5")
+                .radius(0.1)
+                .build()
+        )
+        .add(
+            Point
+                .builder()
+                .position(Vec3(1, 0, 0))
+                .name("test6-6")
                 .radius(0.1)
                 .build()
         )
@@ -73,7 +97,7 @@ async (canvas, fps, logger) => {
         .initialState({ it: 1, oldTime: new Date().getTime() })
         .nextState(({ it, oldTime }) => {
             const dt = (new Date().getTime() - oldTime) * 1e-3;
-            fps(dt, it)
+            logger.print(Math.floor(1 / dt));
             return {
                 it: it + 1,
                 oldTime: new Date().getTime()

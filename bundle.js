@@ -1,3 +1,13 @@
+import watch from "node-watch";
+import { execSync } from "child_process";
+
+if ("--watch" === Bun.argv.at(-1)) {
+    watch('./src/', { recursive: true }, (evt, name) => {
+        console.log("%s changed", name);
+        console.log("%s", execSync("bun run build"));
+    });
+}
+
 // eslint-disable-next-line no-undef
 const build = await Bun.build({
     entrypoints: [
