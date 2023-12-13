@@ -6,16 +6,17 @@ import Point from "./Point.js";
 
 export default class Scene {
   constructor() {
-    this.scene = {};
-    this.db = new Node();
+    this.id2ElemMap = {};
+    this.boundingBoxScene = new Node();
+    this.gridScene = {};
   }
 
   add(elem) {
     const classes = [Point];
     if (!classes.some((c) => elem instanceof c)) return this;
     const { name } = elem;
-    this.scene[name] = elem;
-    this.db.add(elem);
+    this.id2ElemMap[name] = elem;
+    this.boundingBoxScene.add(elem);
     return this;
   }
 
@@ -42,11 +43,11 @@ export default class Scene {
   }
 
   clear() {
-    this.scene = {};
+    this.id2ElemMap = {};
   }
 
   getElements() {
-    return Object.values(this.scene);
+    return Object.values(this.id2ElemMap);
   }
 
   interceptWith(ray) {
@@ -67,7 +68,7 @@ export default class Scene {
     //     })
     // }
     // return closest;
-    return this.db.interceptWith(ray);
+    return this.boundingBoxScene.interceptWith(ray);
   }
 }
 

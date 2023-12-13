@@ -1,6 +1,7 @@
 import { none, some } from "../Monads/Monads";
 import Vec from "../Vector/Vector";
 
+
 export default class Box {
     constructor(min, max) {
         this.isEmpty = min === undefined || max === undefined;
@@ -32,7 +33,7 @@ export default class Box {
     intersection = this.sub;
 
     interceptWith(ray) {
-        const maxIte = 50;
+        const maxIte = 100;
         const epsilon = 1e-3;
         let p = ray.init;
         let t = this.distanceToPoint(p);
@@ -44,7 +45,9 @@ export default class Box {
             if (d < epsilon) {
                 return some(p);
             }
-            if (d > maxT) break;
+            if (d > maxT) {
+                break;
+            };
         }
         return none();
     }

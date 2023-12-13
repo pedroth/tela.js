@@ -1,4 +1,4 @@
-export function Ray(init, dir) {
+export default function Ray(init, dir) {
     const ans = {};
     ans.init = init;
     ans.dir = dir;

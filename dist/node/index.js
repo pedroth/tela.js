@@ -962,7 +962,7 @@ class Box {
   }
   intersection = this.sub;
   interceptWith(ray) {
-    const maxIte = 50;
+    const maxIte = 100;
     const epsilon = 0.001;
     let p = ray.init;
     let t = this.distanceToPoint(p);
@@ -974,8 +974,9 @@ class Box {
       if (d < epsilon) {
         return some(p);
       }
-      if (d > maxT)
+      if (d > maxT) {
         break;
+      }
     }
     return none();
   }

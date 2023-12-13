@@ -1,6 +1,6 @@
 import { Vec3 } from "../Vector/Vector.js"
 import Color from "../Color/Color.js"
-import { Ray } from "../Ray/Ray.js";
+import Ray from "../Ray/Ray.js";
 export default class Camera {
   constructor(params = {
     param: Vec3(2, 0, 0),
