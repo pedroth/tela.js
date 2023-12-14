@@ -162,9 +162,25 @@ const getIframeDefaultBody = () => `
         width: 73%;
         margin: 1rem auto;
     }
+
+    #expandButton {
+        position: absolute;
+        bottom: 0px;
+        right: 0px;
+        color: white;
+    }
+
+    #expandButton svg {
+        height: 1.5rem;
+        width: 1.5rem;
+        cursor:pointer;
+    }
 </style>
 <div id="root">
     <div id="canvasContainer">
+        <div id="expandButton">
+            <svg xmlns="http://www.w3.org/2000/svg" height="16" width="14" fill="currentColor" viewBox="0 0 448 512"><!--!Font Awesome Free 6.5.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2023 Fonticons, Inc.--><path d="M32 32C14.3 32 0 46.3 0 64v96c0 17.7 14.3 32 32 32s32-14.3 32-32V96h64c17.7 0 32-14.3 32-32s-14.3-32-32-32H32zM64 352c0-17.7-14.3-32-32-32s-32 14.3-32 32v96c0 17.7 14.3 32 32 32h96c17.7 0 32-14.3 32-32s-14.3-32-32-32H64V352zM320 32c-17.7 0-32 14.3-32 32s14.3 32 32 32h64v64c0 17.7 14.3 32 32 32s32-14.3 32-32V64c0-17.7-14.3-32-32-32H320zM448 352c0-17.7-14.3-32-32-32s-32 14.3-32 32v64H320c-17.7 0-32 14.3-32 32s14.3 32 32 32h96c17.7 0 32-14.3 32-32V352z"/></svg>
+        </div>
         <canvas id="canvas"></canvas>
     </div>
     <p id="logger"></p>
@@ -417,7 +433,7 @@ const examples = [
         path: "/test/web/test5.js"
     },
     {
-        title: "3 points",
+        title: "6 points",
         path: "/test/web/test6.js"
     },
     {
@@ -459,7 +475,7 @@ function execCode(code) {
             ${toggleFullScreen.toString()}
             const canvasDOM = document.getElementsByTagName("canvas")[0];
             const canvas = Canvas.ofDOM(canvasDOM);
-            canvasDOM.addEventListener('click', () => {
+            document.getElementById("expandButton").addEventListener('click', () => {
                 toggleFullScreen(canvasDOM);
             });
             const logger = {

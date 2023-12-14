@@ -7,6 +7,7 @@ import Point from "./Point.js";
 export default class Scene {
   constructor() {
     this.id2ElemMap = {};
+    this.sceneElems = [];
     this.boundingBoxScene = new Node();
     this.gridScene = {};
   }
@@ -16,6 +17,7 @@ export default class Scene {
     if (!classes.some((c) => elem instanceof c)) return this;
     const { name } = elem;
     this.id2ElemMap[name] = elem;
+    this.sceneElems.push(elem);
     this.boundingBoxScene.add(elem);
     return this;
   }
@@ -34,7 +36,7 @@ export default class Scene {
               .position(
                 Vec3(...v)
               )
-              .radius(0.01)
+              .radius(0.001)
               .build()
           )
         }
@@ -51,24 +53,27 @@ export default class Scene {
   }
 
   interceptWith(ray) {
-    // const points = Object.values(this.scene);
-    // let closestDistance = Number.MAX_VALUE;
-    // let closest = none();
-    // for (let i = 0; i < points.length; i++) {
-    //   points[i].interceptWith(ray)
-    //     .map(([pos, normal]) => {
-    //       const distance = ray
-    //         .init
-    //         .sub(pos)
-    //         .length();
-    //       if (distance < closestDistance) {
-    //         closest = some([pos, normal]);
-    //         closestDistance = distance;
-    //       }
-    //     })
-    // }
-    // return closest;
     return this.boundingBoxScene.interceptWith(ray);
+  }
+
+  _naiveIntercept(ray) {
+    const points = this.sceneElems;
+    let closestDistance = Number.MAX_VALUE;
+    let closest = none();
+    for (let i = 0; i < points.length; i++) {
+      points[i].interceptWith(ray)
+        .map(([pos, normal]) => {
+          const distance = ray
+            .init
+            .sub(pos)
+            .length();
+          if (distance < closestDistance) {
+            closest = some([pos, normal]);
+            closestDistance = distance;
+          }
+        })
+    }
+    return closest;
   }
 }
 
@@ -91,20 +96,20 @@ class Node {
     return this;
   }
 
-  interceptWith(ray) {
-    // return this.box.interceptWith(ray).map(pos => [pos, this.box.estimateNormal(pos)])
-    const children = [this.left, this.right].filter(x => x);
-    const nodes = children.filter(x => !x.isLeaf);
-    const leafs = children.filter(x => x.isLeaf);
-    const interceptions = [];
-    for (let i = 0; i < nodes.length; i++) {
-      nodes[i].interceptWith(ray).map((inter) => interceptions.push(inter))
+  interceptWith(ray, depth = 1) {
+    if (depth === 4) {
+      return this.box.interceptWith(ray).map(p => [p, this.box.estimateNormal(p)]);
     }
-    for (let i = 0; i < leafs.length; i++) {
-      leafs[i].interceptWith(ray).map((inter) => interceptions.push(inter));
-    }
-    const index = argmin(interceptions, ([pos]) => ray.init.sub(pos).length());
-    return index === -1 ? none() : some(interceptions[index]);
+    return this.box.interceptWith(ray).flatMap((p) => {
+      const children = [this.left, this.right].filter(x => x);
+      const closestBoxIndex = argmin(children, child => child.box.center.sub(p).length());
+      const indexes = [closestBoxIndex, (closestBoxIndex + 1) % 2];
+      for (let i = 0; i < indexes.length; i++) {
+        const maybeHit = children[indexes[i]].interceptWith(ray, depth + 1);
+        if (maybeHit.isSome()) return maybeHit;
+      }
+      return none();
+    })
   }
 
   _addElementWhenTreeIsFull(element, elemBox) {
