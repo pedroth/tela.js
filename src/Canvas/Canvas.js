@@ -25,7 +25,7 @@ export default class Canvas {
     * color: Color 
     */
   fill(color) {
-    return this._image.map(() => color);
+    return this.map((i) => color);
   }
 
   /**
@@ -47,6 +47,19 @@ export default class Canvas {
       this._image[k + 3] = 255;
     }
     return this.paint();
+  }
+
+  setPxl(x, y, color) {
+    const w = this._width;
+    const h = this._height;
+    const i = h - 1 - y;
+    const j = x;
+    let index = 4 * (w * i + j);
+    this._image[index] = color.red * 255;
+    this._image[index + 1] = color.green * 255;
+    this._image[index + 2] = color.blue * 255;
+    this._image[index + 3] = 255;
+    return this;
   }
 
   paint() {

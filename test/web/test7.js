@@ -21,7 +21,7 @@ async (canvas, fps, logger) => {
             return;
         }
         const [dx, dy] = newMouse.sub(mouse).toArray();
-        camera.param = camera.param.add(
+        camera.sphericalCoords = camera.sphericalCoords.add(
             Vec3(
                 0,
                 -2 * Math.PI * (dx / canvas.width),
@@ -30,17 +30,17 @@ async (canvas, fps, logger) => {
         );
         mouse = newMouse;
         camera.orbit();
-        camera.sceneShot(scene).to(canvas);
+        camera.reverseShot(scene).to(canvas);
     })
     canvas.onMouseWheel(({ deltaY }) => {
-        camera.param = camera.param.add(Vec3(deltaY * 0.001, 0, 0));
+        camera.sphericalCoords = camera.sphericalCoords.add(Vec3(deltaY * 0.001, 0, 0));
         camera.orbit();
-        camera.sceneShot(scene).to(canvas);
+        camera.reverseShot(scene).to(canvas);
     })
     // scene
-    const stanfordBunnyObj = await fetch("/assets/bunny.obj").then(x => x.text());
+    const stanfordBunnyObj = await fetch("/assets/spot.obj").then(x => x.text());
     scene.addObj(stanfordBunnyObj);
-    camera.sceneShot(scene).to(canvas);
+    camera.reverseShot(scene).to(canvas);
 
     // boilerplate for fps
     Animation

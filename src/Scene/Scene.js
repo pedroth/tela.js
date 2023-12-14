@@ -7,7 +7,7 @@ import Point from "./Point.js";
 export default class Scene {
   constructor() {
     this.id2ElemMap = {};
-    this.sceneElems = [];
+    this.sceneElements = [];
     this.boundingBoxScene = new Node();
     this.gridScene = {};
   }
@@ -17,30 +17,40 @@ export default class Scene {
     if (!classes.some((c) => elem instanceof c)) return this;
     const { name } = elem;
     this.id2ElemMap[name] = elem;
-    this.sceneElems.push(elem);
+    this.sceneElements.push(elem);
     this.boundingBoxScene.add(elem);
     return this;
   }
 
   addObj(objStr, name) {
+    const vertices = [];
+    const normals = [];
     objStr.split("\n")
-      .forEach((lines, lineno) => {
+      .forEach((lines) => {
         const spaces = lines.split(" ")
-        if (spaces[0] === "v") {
+        const type = spaces[0];
+        if (type === "v") {
           const v = spaces.slice(1, 4)
             .map(x => Number.parseFloat(x));
-          this.add(
-            Point
-              .builder()
-              .name(`${name}_${lineno}`)
-              .position(
-                Vec3(...v)
-              )
-              .radius(0.001)
-              .build()
-          )
+          vertices.push(Vec3(...v));
+        }
+        if (type === "vn") {
+          const v = spaces.slice(1, 4)
+            .map(x => Number.parseFloat(x));
+          normals.push(Vec3(...v));
         }
       })
+    for (let i = 0; i < vertices.length; i++) {
+      this.add(
+        Point
+          .builder()
+          .name(`${name}_${i}`)
+          .position(vertices[i])
+          .normal(normals[i] || Vec3(1, 0, 0))
+          .radius(0.001)
+          .build()
+      )
+    }
     return this;
   }
 
@@ -49,7 +59,7 @@ export default class Scene {
   }
 
   getElements() {
-    return Object.values(this.id2ElemMap);
+    return this.sceneElements;
   }
 
   interceptWith(ray) {
@@ -57,7 +67,7 @@ export default class Scene {
   }
 
   _naiveIntercept(ray) {
-    const points = this.sceneElems;
+    const points = this.sceneElements;
     let closestDistance = Number.MAX_VALUE;
     let closest = none();
     for (let i = 0; i < points.length; i++) {

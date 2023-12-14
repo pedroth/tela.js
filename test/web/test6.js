@@ -23,7 +23,7 @@ async (canvas, fps, logger) => {
             return;
         }
         const [dx, dy] = newMouse.sub(mouse).toArray();
-        camera.param = camera.param.add(
+        camera.sphericalCoords = camera.sphericalCoords.add(
             Vec3(
                 0,
                 -2 * Math.PI * (dx / canvas.width),
@@ -35,7 +35,7 @@ async (canvas, fps, logger) => {
         camera.sceneShot(scene).to(canvas);
     })
     canvas.onMouseWheel(({ deltaY }) => {
-        camera.param = camera.param.add(Vec3(deltaY * 0.001, 0, 0));
+        camera.sphericalCoords = camera.sphericalCoords.add(Vec3(deltaY * 0.001, 0, 0));
         camera.orbit();
         camera.sceneShot(scene).to(canvas);
     })

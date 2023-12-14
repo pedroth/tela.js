@@ -107,7 +107,7 @@ class Canvas {
     return this._canvas;
   }
   fill(color) {
-    return this._image.map(() => color);
+    return this.map((i) => color);
   }
   map(lambda) {
     const n = this._image.length;
@@ -125,6 +125,18 @@ class Canvas {
       this._image[k + 3] = 255;
     }
     return this.paint();
+  }
+  setPxl(x, y, color) {
+    const w = this._width;
+    const h = this._height;
+    const i = h - 1 - y;
+    const j = x;
+    let index = 4 * (w * i + j);
+    this._image[index] = color.red * 255;
+    this._image[index + 1] = color.green * 255;
+    this._image[index + 2] = color.blue * 255;
+    this._image[index + 3] = 255;
+    return this;
   }
   paint() {
     this._ctx.putImageData(this._imageData, 0, 0);
@@ -591,12 +603,7 @@ class Vector3 {
     return new Vector3(this.x, this.y, this.z);
   }
   get(i) {
-    if (i === 0)
-      return this.x;
-    if (i === 1)
-      return this.y;
-    if (i === 2)
-      return this.z;
+    return [this.x, this.y, this.z][i];
   }
   toArray() {
     return [this.x, this.y, this.z];
@@ -709,10 +716,7 @@ class Vector2 {
     return new Vector2(this.x, this.y);
   }
   get(i) {
-    if (i === 0)
-      return this.x;
-    if (i === 1)
-      return this.y;
+    return [this.x, this.y][i];
   }
   toArray() {
     return [this.x, this.y];
@@ -812,25 +816,19 @@ function Ray(init, dir) {
 
 // src/Ray/Ray.jsads.js
 class Camera {
-  constructor(params = {
-    param: Vec3(2, 0, 0),
-    distanceToPlane: 1,
-    focalPoint: Vec3(0, 0, 0)
+  constructor(props = {
+    sphericalCoords: Vec3(2, 0, 0),
+    focalPoint: Vec3(0, 0, 0),
+    distanceToPlane: 1
   }) {
-    const {
-      distanceToPlane,
-      eye,
-      param,
-      focalPoint
-    } = params;
-    this.eye = eye;
-    this.param = param;
-    this.focalPoint = focalPoint;
-    this.distanceToPlane = distanceToPlane;
+    const { sphericalCoords, focalPoint, distanceToPlane } = props;
+    this.sphericalCoords = sphericalCoords || Vec3(2, 0, 0);
+    this.focalPoint = focalPoint || Vec3(0, 0, 0);
+    this.distanceToPlane = distanceToPlane || 1;
     this.orbit();
   }
   orbit() {
-    const [rho, theta, phi] = this.param.toArray();
+    const [rho, theta, phi] = this.sphericalCoords.toArray();
     const cosT = Math.cos(theta);
     const sinT = Math.sin(theta);
     const cosP = Math.cos(phi);
@@ -861,24 +859,42 @@ class Camera {
     };
   }
   sceneShot(scene) {
+    const lambda = (ray) => {
+      return scene.interceptWith(ray).map(([, normal]) => {
+        return Color.ofRGB((normal.get(0) + 1) / 2, (normal.get(1) + 1) / 2, (normal.get(2) + 1) / 2);
+      }).orElse(() => {
+        return Color.BLACK;
+      });
+    };
+    return this.rayShot(lambda);
+  }
+  reverseShot(scene) {
     return {
       to: (canvas) => {
+        canvas.fill(Color.BLACK);
         const w = canvas.width;
         const h = canvas.height;
-        const samples = w * h;
-        canvas.map((x, y) => {
-          const dirInLocal = [
-            2 * (x / w) - 1,
-            2 * (y / h) - 1,
-            1
-          ];
-          const dir = this.basis[0].scale(dirInLocal[0]).add(this.basis[1].scale(dirInLocal[1])).add(this.basis[2].scale(dirInLocal[2])).normalize();
-          return scene.interceptWith(Ray(this.eye, dir)).map(([, normal]) => {
-            return Color.ofRGB((normal.get(0) + 1) / 2, (normal.get(1) + 1) / 2, (normal.get(2) + 1) / 2);
-          }).orElse(() => {
-            return Color.BLACK;
-          });
+        const zBuffer = new Float64Array(w * h).fill(Number.MAX_VALUE);
+        scene.getElements().forEach((point) => {
+          let pointInCamCoord = point.position.sub(this.eye);
+          pointInCamCoord = Vec3(this.basis[0].dot(pointInCamCoord), this.basis[1].dot(pointInCamCoord), this.basis[2].dot(pointInCamCoord));
+          const z = pointInCamCoord.get(2);
+          if (z < this.distanceToPlane) {
+            return;
+          }
+          const projectedPoint = pointInCamCoord.scale(this.distanceToPlane / z);
+          const x = w / 2 + projectedPoint.get(0) * w;
+          const y = h / 2 + projectedPoint.get(1) * h;
+          const i = h - 1 - y;
+          const j = x;
+          const zBufferIndex = Math.floor(w * i + j);
+          if (z < zBuffer[zBufferIndex]) {
+            zBuffer[zBufferIndex] = z;
+            const normal = point.normal;
+            canvas.setPxl(Math.floor(x), Math.floor(y), Color.ofRGB((normal.get(0) + 1) / 2, (normal.get(1) + 1) / 2, (normal.get(2) + 1) / 2));
+          }
         });
+        canvas.paint();
       }
     };
   }
@@ -1153,7 +1169,7 @@ var Point_default = Point;
 class Scene {
   constructor() {
     this.id2ElemMap = {};
-    this.sceneElems = [];
+    this.sceneElements = [];
     this.boundingBoxScene = new Node;
     this.gridScene = {};
   }
@@ -1163,31 +1179,41 @@ class Scene {
       return this;
     const { name } = elem;
     this.id2ElemMap[name] = elem;
-    this.sceneElems.push(elem);
+    this.sceneElements.push(elem);
     this.boundingBoxScene.add(elem);
     return this;
   }
   addObj(objStr, name) {
-    objStr.split("\n").forEach((lines, lineno) => {
+    const vertices = [];
+    const normals = [];
+    objStr.split("\n").forEach((lines) => {
       const spaces = lines.split(" ");
-      if (spaces[0] === "v") {
+      const type = spaces[0];
+      if (type === "v") {
         const v = spaces.slice(1, 4).map((x) => Number.parseFloat(x));
-        this.add(Point_default.builder().name(`${name}_${lineno}`).position(Vec3(...v)).radius(0.001).build());
+        vertices.push(Vec3(...v));
+      }
+      if (type === "vn") {
+        const v = spaces.slice(1, 4).map((x) => Number.parseFloat(x));
+        normals.push(Vec3(...v));
       }
     });
+    for (let i = 0;i < vertices.length; i++) {
+      this.add(Point_default.builder().name(`${name}_${i}`).position(vertices[i]).normal(normals[i] || Vec3(1, 0, 0)).radius(0.001).build());
+    }
     return this;
   }
   clear() {
     this.id2ElemMap = {};
   }
   getElements() {
-    return Object.values(this.id2ElemMap);
+    return this.sceneElements;
   }
   interceptWith(ray) {
     return this.boundingBoxScene.interceptWith(ray);
   }
   _naiveIntercept(ray) {
-    const points = this.sceneElems;
+    const points = this.sceneElements;
     let closestDistance = Number.MAX_VALUE;
     let closest = none();
     for (let i = 0;i < points.length; i++) {
