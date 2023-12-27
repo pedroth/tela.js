@@ -7,7 +7,7 @@ export default class Camera {
     focalPoint: Vec3(0, 0, 0),
     distanceToPlane: 1
   }) {
-    const {sphericalCoords, focalPoint, distanceToPlane} = props;
+    const { sphericalCoords, focalPoint, distanceToPlane } = props;
     this.sphericalCoords = sphericalCoords || Vec3(2, 0, 0);
     this.focalPoint = focalPoint || Vec3(0, 0, 0);
     this.distanceToPlane = distanceToPlane || 1;
@@ -96,30 +96,35 @@ export default class Camera {
           )
           //frustum culling
           const z = pointInCamCoord.get(2);
-          if (z < this.distanceToPlane) {
-            return;
-          }
+          if (z < this.distanceToPlane) return;
+
           //project
           const projectedPoint = pointInCamCoord
             .scale(this.distanceToPlane / z);
 
           // canvas coords
-          const x = w / 2 + projectedPoint.get(0) * w;
-          const y = h / 2 + projectedPoint.get(1) * h;
-          const i = h - 1 - y;
-          const j = x;
-          const zBufferIndex = Math.floor(w * i + j);
-          if (z < zBuffer[zBufferIndex]) {
-            zBuffer[zBufferIndex] = z;
-            const normal = point.normal;
-            canvas.setPxl(
-              Math.floor(x),
-              Math.floor(y),
-              Color.ofRGB(
-                (normal.get(0) + 1) / 2,
-                (normal.get(1) + 1) / 2,
-                (normal.get(2) + 1) / 2
-              ))
+          let x = w / 2 + projectedPoint.get(0) * w;
+          let y = h / 2 + projectedPoint.get(1) * h;
+          x = Math.floor(x);
+          y = Math.floor(y);
+          if (x < 0 || x >= w || y < 0 || y >= h) return;
+          const radius = Math.floor(Math.max(1, Math.min(10, 10 - z)));
+          for (let k = -radius; k < radius; k++) {
+            for (let l = -radius; l < radius; l++) {
+              const xl = Math.max(0, Math.min(w - 1, x + k));
+              const yl = Math.floor(y + l);
+              const j = xl;
+              const i = h - 1 - yl;
+              const zBufferIndex = Math.floor(w * i + j);
+              if (z < zBuffer[zBufferIndex]) {
+                zBuffer[zBufferIndex] = z;
+                canvas.setPxl(
+                  xl,
+                  yl,
+                  point.color
+                )
+              }
+            }
           }
         });
         canvas.paint();

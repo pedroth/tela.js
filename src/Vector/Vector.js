@@ -291,7 +291,7 @@ class Vector3 {
   }
 
   map(lambda) {
-    return new Vector3(lambda(this.x), lambda(this.y), lambda(this.z));
+    return new Vector3(lambda(this.x, 0), lambda(this.y, 1), lambda(this.z, 2));
   }
 
   /**
@@ -434,7 +434,7 @@ class Vector2 {
   }
 
   map(lambda) {
-    return new Vector2(lambda(this.x), lambda(this.y));
+    return new Vector2(lambda(this.x, 0), lambda(this.y, 1));
   }
 
   /**

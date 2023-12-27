@@ -52,8 +52,8 @@ class PointBuilder {
         return this;
     }
 
-    color(r = 0, g = 0, b = 0) {
-        this._color = Color.ofRGB(r, g, b);
+    color(color) {
+        this._color = color;
         return this;
     }
 

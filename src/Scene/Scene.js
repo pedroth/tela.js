@@ -1,7 +1,8 @@
 import Box from "../Box/Box.js";
+import Color from "../Color/Color.js";
 import { none, some } from "../Monads/Monads.js";
 import { argmin } from "../Utils/Utils.js";
-import { Vec3 } from "../Vector/Vector.js";
+import { Vec2, Vec3 } from "../Vector/Vector.js";
 import Point from "./Point.js";
 
 export default class Scene {
@@ -12,45 +13,15 @@ export default class Scene {
     this.gridScene = {};
   }
 
-  add(elem) {
-    const classes = [Point];
-    if (!classes.some((c) => elem instanceof c)) return this;
-    const { name } = elem;
-    this.id2ElemMap[name] = elem;
-    this.sceneElements.push(elem);
-    this.boundingBoxScene.add(elem);
-    return this;
-  }
-
-  addObj(objStr, name) {
-    const vertices = [];
-    const normals = [];
-    objStr.split("\n")
-      .forEach((lines) => {
-        const spaces = lines.split(" ")
-        const type = spaces[0];
-        if (type === "v") {
-          const v = spaces.slice(1, 4)
-            .map(x => Number.parseFloat(x));
-          vertices.push(Vec3(...v));
-        }
-        if (type === "vn") {
-          const v = spaces.slice(1, 4)
-            .map(x => Number.parseFloat(x));
-          normals.push(Vec3(...v));
-        }
-      })
-    for (let i = 0; i < vertices.length; i++) {
-      this.add(
-        Point
-          .builder()
-          .name(`${name}_${i}`)
-          .position(vertices[i])
-          .normal(normals[i] || Vec3(1, 0, 0))
-          .radius(0.001)
-          .build()
-      )
-    }
+  add(...elements) {
+    elements.forEach(elem => {
+      const classes = [Point];
+      if (!classes.some((c) => elem instanceof c)) return this;
+      const { name } = elem;
+      this.id2ElemMap[name] = elem;
+      this.sceneElements.push(elem);
+      this.boundingBoxScene.add(elem);
+    })
     return this;
   }
 
@@ -62,8 +33,8 @@ export default class Scene {
     return this.sceneElements;
   }
 
-  interceptWith(ray) {
-    return this.boundingBoxScene.interceptWith(ray);
+  interceptWith(ray, level) {
+    return this.boundingBoxScene.interceptWith(ray, level);
   }
 
   _naiveIntercept(ray) {
@@ -107,19 +78,36 @@ class Node {
   }
 
   interceptWith(ray, depth = 1) {
-    if (depth === 4) {
-      return this.box.interceptWith(ray).map(p => [p, this.box.estimateNormal(p)]);
-    }
-    return this.box.interceptWith(ray).flatMap((p) => {
-      const children = [this.left, this.right].filter(x => x);
-      const closestBoxIndex = argmin(children, child => child.box.center.sub(p).length());
-      const indexes = [closestBoxIndex, (closestBoxIndex + 1) % 2];
-      for (let i = 0; i < indexes.length; i++) {
-        const maybeHit = children[indexes[i]].interceptWith(ray, depth + 1);
-        if (maybeHit.isSome()) return maybeHit;
+    // if (depth === 10) {
+    //   return this.box.interceptWith(ray).map(p => [p, this.box.estimateNormal(p)]);
+    // }
+    // return this.box.interceptWith(ray).flatMap((p) => {
+    //   const children = [this.left, this.right].filter(x => x);
+    //   const closestBoxIndex = argmin(children, child => child.box.center.sub(p).length());
+    //   const indexes = [closestBoxIndex, (closestBoxIndex + 1) % 2];
+    //   for (let i = 0; i < indexes.length; i++) {
+    //     const maybeHit = children[indexes[i]].interceptWith(ray, depth + 1);
+    //     if (maybeHit.isSome()) return maybeHit;
+    //   }
+    //   return none();
+    // })
+    const maxIte = 100;
+    const epsilon = 1e-3;
+    let p = ray.init;
+    let t = this.distanceToPoint(p);
+    p = ray.trace(t);
+    const maxT = t;
+    for (let i = 0; i < maxIte; i++) {
+      const d = this.distanceToPoint(p);
+      t += d;
+      if (d < epsilon) {
+        return some(p);
       }
-      return none();
-    })
+      if (d > maxT) {
+        break;
+      };
+    }
+    return none();
   }
 
   _addElementWhenTreeIsFull(element, elemBox) {
@@ -185,6 +173,5 @@ class Leaf {
 
   interceptWith(ray) {
     return this.element.interceptWith(ray);
-    // return this.box.interceptWith(ray).map(pos => [pos, this.box.estimateNormal(pos)]);
   }
 }

@@ -20,7 +20,8 @@ https://pedroth.github.io/tela.js/
 
 # Main features
 
-- Generate image (desktop /  browser)
+## Visual
+- [/] Generate image (desktop /  browser)
     - Voxels (?)
     - [X] Different resolutions
     - [/] Point clouds / splatting
@@ -28,12 +29,14 @@ https://pedroth.github.io/tela.js/
     - [ ] Draw geometrical objects (aka [Simplices][simplex])
     - [ ] Path tracing: Shadows, Refraction, Global illumination, etc.
     - [X] Draw with shaders like code
+    - [ ] Raster engine
+- [/] Read Geometry formats with textures
 - [X] Generate image/video (desktop /  browser)
 - [X] Interactive application (browser)
 - [ ] Draw svgs(which includes text/formulas)
 
 
-[simplex]: https://en.wikipedia.org/wiki/Simplex
 
+[simplex]: https://en.wikipedia.org/wiki/Simplex
 
 # Research

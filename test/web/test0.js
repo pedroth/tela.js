@@ -3,13 +3,11 @@
     const width = 640;
     const height = 480;
     canvas.resize(width, height);
-    // variable to play with
-    const alpha = 1;
     // using canvas map
     canvas
         .map((x, y) => {
-            let px = (x * alpha) / (width - 1);
-            let py = (y * alpha) / (height - 1);
+            let px = x / width;
+            let py = y / height;
             return Color.ofRGB(px, py, 0);
         })
 

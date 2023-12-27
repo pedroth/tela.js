@@ -1,7 +1,7 @@
 async (canvas, fps, logger) => {
     // resize incoming canvas:Canvas object.
-    const width = 640/2;
-    const height = 480/2;
+    const width = 640 / 2;
+    const height = 480 / 2;
     canvas.resize(width, height);
     // scene
     const scene = new Scene()
@@ -48,40 +48,35 @@ async (canvas, fps, logger) => {
                 .name("test6-1")
                 .radius(0.1)
                 .build()
-        )
-        .add(
+            ,
             Point
                 .builder()
                 .position(Vec3(0, 1, 0))
                 .name("test6-2")
                 .radius(0.1)
                 .build()
-        )
-        .add(
+            ,
             Point
                 .builder()
                 .position(Vec3(0, 0, -1))
                 .name("test6-3")
                 .radius(0.1)
                 .build()
-        )
-        .add(
+            ,
             Point
                 .builder()
                 .position(Vec3(0, 0, 1))
                 .name("test6-4")
                 .radius(0.1)
                 .build()
-        )
-        .add(
+            ,
             Point
                 .builder()
                 .position(Vec3(-1, 0, 0))
                 .name("test6-5")
                 .radius(0.1)
                 .build()
-        )
-        .add(
+            ,
             Point
                 .builder()
                 .position(Vec3(1, 0, 0))

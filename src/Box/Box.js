@@ -13,7 +13,7 @@ export default class Box {
     }
 
     add(box) {
-        if (this === Box.EMPTY) return box;
+        if (this.isEmpty) return box;
         const { min, max } = this;
         return new Box(min.op(box.min, Math.min), max.op(box.max, Math.max));
     }
@@ -21,7 +21,7 @@ export default class Box {
     union = this.add;
 
     sub(box) {
-        if (this === Box.EMPTY) return Box.EMPTY;
+        if (this.isEmpty) return Box.EMPTY;
         const { min, max } = this;
         const newMin = min.op(box.min, Math.max);
         const newMax = max.op(box.max, Math.min);
@@ -66,7 +66,8 @@ export default class Box {
     distanceToPoint(pointVec) {
         const p = pointVec.sub(this.center);
         const r = this.max.sub(this.center);
-        return p.map(Math.abs).sub(r).map(x => Math.max(x, 0)).length();
+        const q = p.map(Math.abs).sub(r);
+        return q.map(x => Math.max(x, 0)).length() + Math.min(0, maxComp(q));
     }
 
     estimateNormal(pointVec) {
@@ -79,5 +80,16 @@ export default class Box {
         return Vec.fromArray(grad).normalize();
     }
 
+    toString() {
+        return `{
+        min:${this.min.toString()},
+        max:${this.max.toString()}
+    }`
+    }
+
     static EMPTY = new Box();
+}
+
+function maxComp(u) {
+    return u.fold((e,x) => Math.max(e, x), -Number.MAX_VALUE);
 }

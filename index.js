@@ -165,8 +165,8 @@ const getIframeDefaultBody = () => `
 
     #expandButton {
         position: absolute;
-        bottom: 0px;
-        right: 0px;
+        bottom: 25px;
+        right: 25px;
         color: white;
     }
 
@@ -174,6 +174,11 @@ const getIframeDefaultBody = () => `
         height: 1.5rem;
         width: 1.5rem;
         cursor:pointer;
+        transition: all 0.1s ease-in-out;
+    }
+
+    #expandButton svg:hover {
+        transform: scale(1.5);
     }
 </style>
 <div id="root">
@@ -468,7 +473,7 @@ function execCode(code) {
             const script = DOM.of("script").build();
             script.type = "module";
             script.textContent = `
-            import {Canvas, DOM, Color, Animation, Scene, Camera, Vec2, Vec3, Vec, Box, Point} from "/dist/web/index.js"
+            import {Canvas, DOM, Color, Animation, Scene, Camera, Vec2, Vec3, Vec, Box, Point, Mesh} from "/dist/web/index.js"
             Animation.globalAnimationIds.forEach(id => {
                 window.cancelAnimationFrame(id)
             });

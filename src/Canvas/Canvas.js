@@ -62,6 +62,10 @@ export default class Canvas {
     return this;
   }
 
+  drawLine(p1, p2, shader) {
+    
+  }
+
   paint() {
     this._ctx.putImageData(this._imageData, 0, 0);
     return this;

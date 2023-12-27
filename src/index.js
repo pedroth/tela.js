@@ -9,21 +9,23 @@ import Scene from "./Scene/Scene.js"
 import Vec, { Vec2, Vec3 } from "./Vector/Vector.js"
 import Box from "./Box/Box.js"
 import Point from "./Scene/Point.js"
+import Mesh from "./Scene/Mesh.js"
 
 export {
-    Point,
     Box,
-    Animation,
-    Canvas,
-    Color,
     DOM,
-    Image,
-    Stream,
-    Camera,
-    Scene,
+    Vec,
     Vec2,
     Vec3,
-    Vec
+    Color,
+    Image,
+    Point,
+    Scene,
+    Canvas,
+    Camera,
+    Mesh,
+    Stream,
+    Animation,
 }
 export * as Utils from "./Utils/Utils.js";
 export * as Monads from "./Monads/Monads.js";

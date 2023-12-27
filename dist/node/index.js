@@ -138,6 +138,8 @@ class Canvas {
     this._image[index + 3] = 255;
     return this;
   }
+  drawLine(p1, p2, shader) {
+  }
   paint() {
     this._ctx.putImageData(this._imageData, 0, 0);
     return this;
@@ -642,7 +644,7 @@ class Vector3 {
     return this.map((z) => z * r);
   }
   map(lambda) {
-    return new Vector3(lambda(this.x), lambda(this.y), lambda(this.z));
+    return new Vector3(lambda(this.x, 0), lambda(this.y, 1), lambda(this.z, 2));
   }
   op(u, operation) {
     return new Vector3(operation(this.x, u.x), operation(this.y, u.y), operation(this.z, u.z));
@@ -755,7 +757,7 @@ class Vector2 {
     return this.map((z) => z * r);
   }
   map(lambda) {
-    return new Vector2(lambda(this.x), lambda(this.y));
+    return new Vector2(lambda(this.x, 0), lambda(this.y, 1));
   }
   op(u, operation) {
     return new Vector2(operation(this.x, u.x), operation(this.y, u.y));
@@ -879,19 +881,28 @@ class Camera {
           let pointInCamCoord = point.position.sub(this.eye);
           pointInCamCoord = Vec3(this.basis[0].dot(pointInCamCoord), this.basis[1].dot(pointInCamCoord), this.basis[2].dot(pointInCamCoord));
           const z = pointInCamCoord.get(2);
-          if (z < this.distanceToPlane) {
+          if (z < this.distanceToPlane)
             return;
-          }
           const projectedPoint = pointInCamCoord.scale(this.distanceToPlane / z);
-          const x = w / 2 + projectedPoint.get(0) * w;
-          const y = h / 2 + projectedPoint.get(1) * h;
-          const i = h - 1 - y;
-          const j = x;
-          const zBufferIndex = Math.floor(w * i + j);
-          if (z < zBuffer[zBufferIndex]) {
-            zBuffer[zBufferIndex] = z;
-            const normal = point.normal;
-            canvas.setPxl(Math.floor(x), Math.floor(y), Color.ofRGB((normal.get(0) + 1) / 2, (normal.get(1) + 1) / 2, (normal.get(2) + 1) / 2));
+          let x = w / 2 + projectedPoint.get(0) * w;
+          let y = h / 2 + projectedPoint.get(1) * h;
+          x = Math.floor(x);
+          y = Math.floor(y);
+          if (x < 0 || x >= w || y < 0 || y >= h)
+            return;
+          const radius = Math.floor(Math.max(1, Math.min(10, 10 - z)));
+          for (let k = -radius;k < radius; k++) {
+            for (let l = -radius;l < radius; l++) {
+              const xl = Math.max(0, Math.min(w - 1, x + k));
+              const yl = Math.floor(y + l);
+              const j = xl;
+              const i = h - 1 - yl;
+              const zBufferIndex = Math.floor(w * i + j);
+              if (z < zBuffer[zBufferIndex]) {
+                zBuffer[zBufferIndex] = z;
+                canvas.setPxl(xl, yl, point.color);
+              }
+            }
           }
         });
         canvas.paint();
@@ -949,6 +960,10 @@ function maybe(x) {
 }
 
 // src/Ray/Ray.js
+var maxComp = function(u) {
+  return u.fold((e, x) => Math.max(e, x), -Number.MAX_VALUE);
+};
+
 class Box {
   constructor(min, max) {
     this.isEmpty = min === undefined || max === undefined;
@@ -960,14 +975,14 @@ class Box {
     this.diagonal = max.sub(min);
   }
   add(box) {
-    if (this === Box.EMPTY)
+    if (this.isEmpty)
       return box;
     const { min, max } = this;
     return new Box(min.op(box.min, Math.min), max.op(box.max, Math.max));
   }
   union = this.add;
   sub(box) {
-    if (this === Box.EMPTY)
+    if (this.isEmpty)
       return Box.EMPTY;
     const { min, max } = this;
     const newMin = min.op(box.min, Math.max);
@@ -1009,7 +1024,8 @@ class Box {
   distanceToPoint(pointVec) {
     const p = pointVec.sub(this.center);
     const r = this.max.sub(this.center);
-    return p.map(Math.abs).sub(r).map((x) => Math.max(x, 0)).length();
+    const q = p.map(Math.abs).sub(r);
+    return q.map((x) => Math.max(x, 0)).length() + Math.min(0, maxComp(q));
   }
   estimateNormal(pointVec) {
     const epsilon = 0.001;
@@ -1019,6 +1035,12 @@ class Box {
       grad.push(this.distanceToPoint(pointVec.add(Vec.e(n)(i).scale(epsilon))) - this.distanceToPoint(pointVec));
     }
     return Vec.fromArray(grad).normalize();
+  }
+  toString() {
+    return `{
+        min:${this.min.toString()},
+        max:${this.max.toString()}
+    }`;
   }
   static EMPTY = new Box;
 }
@@ -1133,8 +1155,8 @@ class PointBuilder {
     this._name = name;
     return this;
   }
-  color(r = 0, g = 0, b = 0) {
-    this._color = Color.ofRGB(r, g, b);
+  color(color) {
+    this._color = color;
     return this;
   }
   radius(radius) {
@@ -1173,34 +1195,16 @@ class Scene {
     this.boundingBoxScene = new Node;
     this.gridScene = {};
   }
-  add(elem) {
-    const classes = [Point_default];
-    if (!classes.some((c) => elem instanceof c))
-      return this;
-    const { name } = elem;
-    this.id2ElemMap[name] = elem;
-    this.sceneElements.push(elem);
-    this.boundingBoxScene.add(elem);
-    return this;
-  }
-  addObj(objStr, name) {
-    const vertices = [];
-    const normals = [];
-    objStr.split("\n").forEach((lines) => {
-      const spaces = lines.split(" ");
-      const type = spaces[0];
-      if (type === "v") {
-        const v = spaces.slice(1, 4).map((x) => Number.parseFloat(x));
-        vertices.push(Vec3(...v));
-      }
-      if (type === "vn") {
-        const v = spaces.slice(1, 4).map((x) => Number.parseFloat(x));
-        normals.push(Vec3(...v));
-      }
+  add(...elements) {
+    elements.forEach((elem) => {
+      const classes = [Point_default];
+      if (!classes.some((c) => elem instanceof c))
+        return this;
+      const { name } = elem;
+      this.id2ElemMap[name] = elem;
+      this.sceneElements.push(elem);
+      this.boundingBoxScene.add(elem);
     });
-    for (let i = 0;i < vertices.length; i++) {
-      this.add(Point_default.builder().name(`${name}_${i}`).position(vertices[i]).normal(normals[i] || Vec3(1, 0, 0)).radius(0.001).build());
-    }
     return this;
   }
   clear() {
@@ -1209,8 +1213,8 @@ class Scene {
   getElements() {
     return this.sceneElements;
   }
-  interceptWith(ray) {
-    return this.boundingBoxScene.interceptWith(ray);
+  interceptWith(ray, level) {
+    return this.boundingBoxScene.interceptWith(ray, level);
   }
   _naiveIntercept(ray) {
     const points = this.sceneElements;
@@ -1247,20 +1251,23 @@ class Node {
     return this;
   }
   interceptWith(ray, depth = 1) {
-    if (depth === 4) {
-      return this.box.interceptWith(ray).map((p) => [p, this.box.estimateNormal(p)]);
-    }
-    return this.box.interceptWith(ray).flatMap((p) => {
-      const children = [this.left, this.right].filter((x) => x);
-      const closestBoxIndex = argmin(children, (child) => child.box.center.sub(p).length());
-      const indexes = [closestBoxIndex, (closestBoxIndex + 1) % 2];
-      for (let i = 0;i < indexes.length; i++) {
-        const maybeHit = children[indexes[i]].interceptWith(ray, depth + 1);
-        if (maybeHit.isSome())
-          return maybeHit;
+    const maxIte = 100;
+    const epsilon = 0.001;
+    let p = ray.init;
+    let t = this.distanceToPoint(p);
+    p = ray.trace(t);
+    const maxT = t;
+    for (let i = 0;i < maxIte; i++) {
+      const d = this.distanceToPoint(p);
+      t += d;
+      if (d < epsilon) {
+        return some(p);
       }
-      return none();
-    });
+      if (d > maxT) {
+        break;
+      }
+    }
+    return none();
   }
   _addElementWhenTreeIsFull(element, elemBox) {
     if (this.left.isLeaf && this.right.isLeaf) {
@@ -1323,6 +1330,85 @@ class Leaf {
   }
   interceptWith(ray) {
     return this.element.interceptWith(ray);
+  }
+}
+
+// src/Ray/Ray.jsads
+var RADIUS = 0.001;
+
+class Mesh {
+  constructor({ vertices, normals, textureCoords, faces, colors }) {
+    this.vertices = vertices || [];
+    this.normals = normals || [];
+    this.textureCoords = textureCoords || [];
+    this.faces = faces || [];
+    this.colors = colors || [];
+  }
+  mapVertices(lambda) {
+    const newVertices = [];
+    for (let i = 0;i < this.vertices.length; i++) {
+      newVertices.push(lambda(this.vertices[i]));
+    }
+    return new Mesh({
+      vertices: newVertices,
+      normals: this.normals,
+      textureCoords: this.textureCoords,
+      faces: this.faces
+    });
+  }
+  mapColors(lambda) {
+    const newColors = [];
+    for (let i = 0;i < this.vertices.length; i++) {
+      newColors.push(lambda(this.vertices[i]));
+    }
+    return new Mesh({
+      vertices: this.vertices,
+      normals: this.normals,
+      textureCoords: this.textureCoords,
+      faces: this.faces,
+      colors: newColors
+    });
+  }
+  getBoundingBox() {
+    if (this.boundingBox)
+      return this.boundingBox;
+    this.boundingBox = new Box;
+    for (let i = 0;i < this.vertices.length; i++) {
+      this.boundingBox = this.boundingBox.add(new Box(this.vertices[i].add(Vec3(1, 1, 1).scale(RADIUS)), this.vertices[i].add(Vec3(1, 1, 1).scale(RADIUS))));
+    }
+    return this.boundingBox;
+  }
+  asPoints(name) {
+    const points = [];
+    for (let i = 0;i < this.vertices.length; i++) {
+      points.push(Point_default.builder().radius(RADIUS).name(`${name}_${i}`).color(this.colors[i]).position(this.vertices[i]).normal(this.normals[i] || Vec3(1, 0, 0)).build());
+    }
+    return points;
+  }
+  static readObj(objFile) {
+    const vertices = [];
+    const normals = [];
+    const texture = [];
+    const faces = [];
+    objFile.split("\n").forEach((lines) => {
+      const spaces = lines.split(" ");
+      const type = spaces[0];
+      if (type === "v") {
+        const v = spaces.slice(1, 4).map((x) => Number.parseFloat(x));
+        vertices.push(Vec3(...v));
+      }
+      if (type === "vn") {
+        const v = spaces.slice(1, 4).map((x) => Number.parseFloat(x));
+        normals.push(Vec3(...v));
+      }
+      if (type === "vt") {
+        const v = spaces.slice(1, 3).map((x) => Number.parseFloat(x));
+        texture.push(Vec2(...v));
+      }
+      if (type === "f") {
+      }
+    });
+    return new Mesh({ vertices, normals, texture, faces });
   }
 }
 // src/Ray/Ray.
@@ -1399,6 +1485,7 @@ export {
   Scene,
   Point_default as Point,
   exports_Monads as Monads,
+  Mesh,
   Image,
   exports_IO as IO,
   DomBuilder_default as DOM,
