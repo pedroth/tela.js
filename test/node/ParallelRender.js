@@ -17,10 +17,13 @@ const maxT = 10; // seconds
 const numOfFrames = Math.floor(maxT / deltaT);
 const FPS = Math.floor(1 / deltaT);
 const parallelStreams = 20;
-const imageProducers = [...Array(parallelStreams)].map((_, i) => {
-    const r = numOfFrames / parallelStreams;
-    const ll = Math.round(r * i);
-    const ul = Math.floor(r + ll);
+const partitions = [...Array(numOfFrames)].map((_,i) => i).reduce((e,x) => {
+    const index = x % parallelStreams;
+    if(!e[index]) e[index] = [];
+    e[index].push(x);
+    return e;
+}, {}) 
+const imageProducers = Object.values(partitions).map(partition => {
     return (
         `
         import { Color, Image, Stream, IO, Utils, Mesh, Vec3, Scene, Camera } from "./dist/node/index.js";
@@ -39,19 +42,21 @@ const imageProducers = [...Array(parallelStreams)].map((_, i) => {
             const bunnyBox = bunnyMesh.getBoundingBox();
             bunnyMesh = bunnyMesh
                 .mapVertices(v => v.sub(bunnyBox.min).div(bunnyBox.diagonal).scale(2).sub(Vec3(1, 1, 1)))
+                .mapVertices(v => Vec3(-v.y, v.x, v.z))
+                .mapVertices(v => Vec3(v.z, v.y, -v.x))
                 .mapColors(v => Color.ofRGB(...v.map(x => Math.max(0, Math.min(1, 0.5 * (x + 1)))).toArray()));
             scene.add(...bunnyMesh.asPoints("bunny", 0.05));
-            const ll = ${ll};
-            const ul = ${ul};
             const deltaT = ${deltaT};
-            for(let i = ll; i <= ul; i++) {
-                const time = deltaT * i;
+            const partitionIndices = [${partition.toString()}];
+            for(let i = 0; i < partitionIndices.length; i++) {
+                const j = partitionIndices[i];
+                const time = deltaT * j;
                 const theta = Math.PI / 4 * time;
                 camera.sphericalCoords = Vec3(camera.sphericalCoords.get(0), theta, 0);
                 camera.orbit();
                 const image = camera.sceneShot(scene).to(Image.ofSize(width, height));
-                writeFileSync(\`${fileName}_\${i}.ppm\`, createPPMFromFromImage(image));
-                console.log("Image created", i);
+                writeFileSync(\`${fileName}_\${j}.ppm\`, createPPMFromFromImage(image));
+                console.log("Image created", j);
             }
             return 0;
         })();
@@ -82,7 +87,7 @@ const imageProducers = [...Array(parallelStreams)].map((_, i) => {
                     );
                 })
                 .then(() => {
-                    for (let i = 0; i <= numOfFrames; i++) {
+                    for (let i = 0; i < numOfFrames; i++) {
                         unlinkSync(`${fileName}_${i}.ppm`);
                     }
                     for (let i = 0; i < parallelStreams; i++) {

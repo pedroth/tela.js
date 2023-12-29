@@ -1266,22 +1266,20 @@ class Node {
     return Math.random() < 0.5 ? this.left.getRandomLeaf() : this.right.getRandomLeaf();
   }
   interceptWith(ray, depth = 1) {
-    return this.box.interceptWith(ray).flatMap((p2) => {
-      const children2 = [this.left, this.right].filter((x) => x);
-      const closestBoxIndex2 = argmin(children2, (child) => child.box.center.sub(p2).length());
-      const indexes = [closestBoxIndex2, (closestBoxIndex2 + 1) % 2];
+    if (depth === 12) {
+      return this.getRandomLeaf().interceptWith(ray, 15);
+    }
+    return this.box.interceptWith(ray).flatMap((p) => {
+      const children = [this.left, this.right].filter((x) => x);
+      const closestBoxIndex = argmin(children, (child) => child.box.center.sub(p).length());
+      const indexes = [closestBoxIndex, (closestBoxIndex + 1) % 2];
       for (let i = 0;i < indexes.length; i++) {
-        const maybeHit = children2[indexes[i]].interceptWith(ray, depth + 1);
+        const maybeHit = children[indexes[i]].interceptWith(ray, depth + 1);
         if (maybeHit.isSome())
           return maybeHit;
       }
       return none();
     });
-    const { init: p, dir } = ray;
-    const children = [this.left, this.right];
-    const childrenDistances = children.map((child) => child.box.distanceToPoint(p));
-    const closestBoxIndex = argmin(childrenDistances);
-    return children[closestBoxIndex].interceptWith(Ray(ray.trace(childrenDistances[closestBoxIndex]), dir), depth + 1);
   }
   _addElementWhenTreeIsFull(element, elemBox) {
     if (this.left.isLeaf && this.right.isLeaf) {

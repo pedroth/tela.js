@@ -84,10 +84,10 @@ class Node {
   }
 
   interceptWith(ray, depth = 1) {
-    // if (depth === 20) {
-    //   return this.getRandomLeaf().interceptWith(ray, 15);
-    //   return this.box.interceptWith(ray).map(p => [p, this.box.estimateNormal(p)]);
-    // }
+    if (depth === 12) {
+      return this.getRandomLeaf().interceptWith(ray, 15);
+      // return this.box.interceptWith(ray).map(p => [p, this.box.estimateNormal(p)]);
+    }
     return this.box.interceptWith(ray).flatMap((p) => {
       const children = [this.left, this.right].filter(x => x);
       const closestBoxIndex = argmin(children, child => child.box.center.sub(p).length());
@@ -98,11 +98,11 @@ class Node {
       }
       return none();
     })
-    const { init: p, dir } = ray;
-    const children = [this.left, this.right];
-    const childrenDistances = children.map(child => child.box.distanceToPoint(p));
-    const closestBoxIndex = argmin(childrenDistances);
-    return children[closestBoxIndex].interceptWith(Ray(ray.trace(childrenDistances[closestBoxIndex]), dir), depth + 1);
+    // const { init: p, dir } = ray;
+    // const children = [this.left, this.right];
+    // const childrenDistances = children.map(child => child.box.distanceToPoint(p));
+    // const closestBoxIndex = argmin(childrenDistances);
+    // return children[closestBoxIndex].interceptWith(Ray(ray.trace(childrenDistances[closestBoxIndex]), dir), depth + 1);
   }
 
   _addElementWhenTreeIsFull(element, elemBox) {

@@ -45,10 +45,12 @@ async (canvas, fps, logger) => {
         .mapVertices(v =>
             v.sub(bunnyBox.min).div(bunnyBox.diagonal).scale(2).sub(Vec3(1, 1, 1))
         )
+        .mapVertices(v => Vec3(-v.y, v.x, v.z))
+        .mapVertices(v => Vec3(v.z, v.y, -v.x))
         .mapColors(v =>
             Color.ofRGB(...v.map(x => Math.max(0, Math.min(1, 0.5 * (x + 1)))).toArray())
         )
-    scene.add(...bunnyMesh.asPoints("bunny", 0.1));
+    scene.add(...bunnyMesh.asPoints("bunny", 0.05));
 
     // boilerplate for fps
     Animation
