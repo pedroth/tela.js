@@ -32,12 +32,10 @@ async (canvas, fps, logger) => {
         );
         mouse = newMouse;
         camera.orbit();
-        camera.sceneShot(scene).to(canvas);
     })
     canvas.onMouseWheel(({ deltaY }) => {
         camera.sphericalCoords = camera.sphericalCoords.add(Vec3(deltaY * 0.001, 0, 0));
         camera.orbit();
-        camera.sceneShot(scene).to(canvas);
     })
     // scene
     scene
@@ -84,13 +82,13 @@ async (canvas, fps, logger) => {
                 .radius(0.1)
                 .build()
         )
-    camera.sceneShot(scene).to(canvas);
 
     // boilerplate for fps
     Animation
         .builder()
         .initialState({ it: 1, oldTime: new Date().getTime() })
         .nextState(({ it, oldTime }) => {
+            camera.sceneShot(scene).to(canvas);
             const dt = (new Date().getTime() - oldTime) * 1e-3;
             logger.print(Math.floor(1 / dt));
             return {

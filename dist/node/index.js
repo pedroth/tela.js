@@ -110,10 +110,10 @@ class Canvas {
     return this.map((i) => color);
   }
   map(lambda) {
-    const n = this._image.length;
+    const n2 = this._image.length;
     const w = this._width;
     const h = this._height;
-    for (let k = 0;k < n; k += 4) {
+    for (let k = 0;k < n2; k += 4) {
       const i = Math.floor(k / (4 * w));
       const j = Math.floor(k / 4 % w);
       const x = j;
@@ -363,10 +363,10 @@ class Image {
     return this._image.map(() => color);
   }
   map(lambda) {
-    const n = this._image.length;
+    const n2 = this._image.length;
     const w = this._width;
     const h = this._height;
-    for (let k = 0;k < n; k++) {
+    for (let k = 0;k < n2; k++) {
       const i = Math.floor(k / w);
       const j = k % w;
       const x = j;
@@ -524,8 +524,8 @@ class Vec {
       return false;
     return this.sub(u).length() < precision;
   }
-  take(n = 0, m = this._vec.length) {
-    return new Vec(this._vec.slice(n, m));
+  take(n2 = 0, m = this._vec.length) {
+    return new Vec(this._vec.slice(n2, m));
   }
   findIndex(predicate) {
     for (let i = 0;i < this._n; i++) {
@@ -548,38 +548,38 @@ class Vec {
       return Vector3.of(...values);
     return new Vec(_sanitize_input(values, BUILD_VEC(values.length)));
   }
-  static ZERO = (n) => n === 3 ? new Vector3 : n === 2 ? new Vector2 : new Vec(BUILD_VEC(n));
-  static ONES = (n) => {
-    if (n === 2)
+  static ZERO = (n2) => n2 === 3 ? new Vector3 : n2 === 2 ? new Vector2 : new Vec(BUILD_VEC(n2));
+  static ONES = (n2) => {
+    if (n2 === 2)
       return Vector2.ONES;
-    if (n === 3)
+    if (n2 === 3)
       return Vector3.ONES;
-    return Vec.ZERO(n).map(() => 1);
+    return Vec.ZERO(n2).map(() => 1);
   };
-  static e = (n) => (i) => {
-    if (n === 2)
+  static e = (n2) => (i) => {
+    if (n2 === 2)
       return Vector2.e(i);
-    if (n === 3)
+    if (n2 === 3)
       return Vector3.e(i);
-    const vec = BUILD_VEC(n);
-    if (i >= 0 && i < n) {
+    const vec = BUILD_VEC(n2);
+    if (i >= 0 && i < n2) {
       vec[i] = 1;
     }
     return new Vec(vec);
   };
-  static RANDOM = (n) => {
-    if (n === 2)
+  static RANDOM = (n2) => {
+    if (n2 === 2)
       return Vector2.RANDOM();
-    if (n === 3)
+    if (n2 === 3)
       return Vector3.RANDOM();
-    const v = BUILD_VEC(n);
-    for (let i = 0;i < n; i++) {
+    const v = BUILD_VEC(n2);
+    for (let i = 0;i < n2; i++) {
       v[i] = Math.random();
     }
     return new Vec(v);
   };
 }
-var BUILD_VEC = (n) => new ARRAY_TYPES.Float64Array(n);
+var BUILD_VEC = (n2) => new ARRAY_TYPES.Float64Array(n2);
 var COPY_VEC = (array) => ARRAY_TYPES.Float64Array.from(array);
 
 class VectorException extends Error {
@@ -663,8 +663,8 @@ class Vector3 {
       return false;
     return this.sub(u).length() < precision;
   }
-  take(n = 0, m = 3) {
-    const array = [this.x, this.y, this.z].slice(n, m);
+  take(n2 = 0, m = 3) {
+    const array = [this.x, this.y, this.z].slice(n2, m);
     if (array.length === 2)
       return Vector2.fromArray(array);
     if (array.length === 3)
@@ -775,8 +775,8 @@ class Vector2 {
       return false;
     return this.sub(u).length() < precision;
   }
-  take(n = 0, m = 2) {
-    const array = [this.x, this.y].slice(n, m);
+  take(n2 = 0, m = 2) {
+    const array = [this.x, this.y].slice(n2, m);
     if (array.length === 2)
       return Vector2.fromArray(array);
     return Vec.fromArray(array);
@@ -848,7 +848,7 @@ class Camera {
       to: (canvas) => {
         const w = canvas.width;
         const h = canvas.height;
-        canvas.map((x, y) => {
+        return canvas.map((x, y) => {
           const dirInLocal = [
             2 * (x / w) - 1,
             2 * (y / h) - 1,
@@ -862,7 +862,17 @@ class Camera {
   }
   sceneShot(scene) {
     const lambda = (ray) => {
-      return scene.interceptWith(ray).map(([, normal]) => {
+      return scene.interceptWith(ray).map(([pos, normal]) => {
+        return Color.ofRGB((normal.get(0) + 1) / 2, (normal.get(1) + 1) / 2, (normal.get(2) + 1) / 2);
+      }).orElse(() => {
+        return Color.BLACK;
+      });
+    };
+    return this.rayShot(lambda);
+  }
+  _naiveShot(scene) {
+    const lambda = (ray) => {
+      return scene._naiveIntercept(ray).map(([pos, normal]) => {
         return Color.ofRGB((normal.get(0) + 1) / 2, (normal.get(1) + 1) / 2, (normal.get(2) + 1) / 2);
       }).orElse(() => {
         return Color.BLACK;
@@ -997,7 +1007,7 @@ class Box {
     const epsilon = 0.001;
     let p = ray.init;
     let t = this.distanceToPoint(p);
-    const maxT = t;
+    let minT = t;
     for (let i = 0;i < maxIte; i++) {
       p = ray.trace(t);
       const d = this.distanceToPoint(p);
@@ -1005,9 +1015,10 @@ class Box {
       if (d < epsilon) {
         return some(p);
       }
-      if (d > maxT) {
+      if (d > minT) {
         break;
       }
+      minT = d;
     }
     return none();
   }
@@ -1029,12 +1040,13 @@ class Box {
   }
   estimateNormal(pointVec) {
     const epsilon = 0.001;
-    const n = pointVec.dim;
+    const n2 = pointVec.dim;
     const grad = [];
-    for (let i = 0;i < n; i++) {
-      grad.push(this.distanceToPoint(pointVec.add(Vec.e(n)(i).scale(epsilon))) - this.distanceToPoint(pointVec));
+    const d = this.distanceToPoint(pointVec);
+    for (let i = 0;i < n2; i++) {
+      grad.push(this.distanceToPoint(pointVec.add(Vec.e(n2)(i).scale(epsilon))) - d);
     }
-    return Vec.fromArray(grad).normalize();
+    return Vec.fromArray(grad).scale(Math.sign(d)).normalize();
   }
   toString() {
     return `{
@@ -1134,8 +1146,8 @@ class Point {
   getBoundingBox() {
     if (this.boundingBox)
       return this.boundingBox;
-    const n = this.position.dim;
-    this.boundingBox = new Box(this.position.add(Vec.ONES(n).scale(-this.radius)), this.position.add(Vec.ONES(n).scale(this.radius)));
+    const n2 = this.position.dim;
+    this.boundingBox = new Box(this.position.add(Vec.ONES(n2).scale(-this.radius)), this.position.add(Vec.ONES(n2).scale(this.radius)));
     return this.boundingBox;
   }
   static builder() {
@@ -1250,24 +1262,26 @@ class Node {
     }
     return this;
   }
+  getRandomLeaf() {
+    return Math.random() < 0.5 ? this.left.getRandomLeaf() : this.right.getRandomLeaf();
+  }
   interceptWith(ray, depth = 1) {
-    const maxIte = 100;
-    const epsilon = 0.001;
-    let p = ray.init;
-    let t = this.distanceToPoint(p);
-    p = ray.trace(t);
-    const maxT = t;
-    for (let i = 0;i < maxIte; i++) {
-      const d = this.distanceToPoint(p);
-      t += d;
-      if (d < epsilon) {
-        return some(p);
+    return this.box.interceptWith(ray).flatMap((p2) => {
+      const children2 = [this.left, this.right].filter((x) => x);
+      const closestBoxIndex2 = argmin(children2, (child) => child.box.center.sub(p2).length());
+      const indexes = [closestBoxIndex2, (closestBoxIndex2 + 1) % 2];
+      for (let i = 0;i < indexes.length; i++) {
+        const maybeHit = children2[indexes[i]].interceptWith(ray, depth + 1);
+        if (maybeHit.isSome())
+          return maybeHit;
       }
-      if (d > maxT) {
-        break;
-      }
-    }
-    return none();
+      return none();
+    });
+    const { init: p, dir } = ray;
+    const children = [this.left, this.right];
+    const childrenDistances = children.map((child) => child.box.distanceToPoint(p));
+    const closestBoxIndex = argmin(childrenDistances);
+    return children[closestBoxIndex].interceptWith(Ray(ray.trace(childrenDistances[closestBoxIndex]), dir), depth + 1);
   }
   _addElementWhenTreeIsFull(element, elemBox) {
     if (this.left.isLeaf && this.right.isLeaf) {
@@ -1328,7 +1342,10 @@ class Leaf {
     this.element = element;
     this.box = element.getBoundingBox();
   }
-  interceptWith(ray) {
+  getRandomLeaf() {
+    return this;
+  }
+  interceptWith(ray, depth) {
     return this.element.interceptWith(ray);
   }
 }
@@ -1378,10 +1395,10 @@ class Mesh {
     }
     return this.boundingBox;
   }
-  asPoints(name) {
+  asPoints(name, radius = RADIUS) {
     const points = [];
     for (let i = 0;i < this.vertices.length; i++) {
-      points.push(Point_default.builder().radius(RADIUS).name(`${name}_${i}`).color(this.colors[i]).position(this.vertices[i]).normal(this.normals[i] || Vec3(1, 0, 0)).build());
+      points.push(Point_default.builder().radius(radius).name(`${name}_${i}`).color(this.colors[i]).position(this.vertices[i]).normal(this.normals[i] || Vec3(1, 0, 0)).build());
     }
     return points;
   }
@@ -1419,20 +1436,32 @@ __export(exports_IO, {
       return saveStreamToFile;
     }
   },
+  saveParallelToFile: () => {
+    {
+      return saveParallelToFile;
+    }
+  },
   saveImageToFile: () => {
     {
       return saveImageToFile;
     }
+  },
+  createPPMFromFromImage: () => {
+    {
+      return createPPMFromFromImage;
+    }
   }
 });
 import {writeFileSync, unlinkSync} from "fs";
-import {execSync} from "child_process";
+import {execSync, spawn} from "child_process";
 function saveImageToFile(fileAddress, image) {
   const { fileName, extension } = getFileNameAndExtensionFromAddress(fileAddress);
   const ppmName = `${fileName}.ppm`;
   writeFileSync(ppmName, createPPMFromFromImage(image));
-  execSync(`ffmpeg -i ${ppmName} ${fileName}.${extension}`);
-  unlinkSync(ppmName);
+  if (extension !== "ppm") {
+    execSync(`ffmpeg -i ${ppmName} ${fileName}.${extension}`);
+    unlinkSync(ppmName);
+  }
 }
 var getFileNameAndExtensionFromAddress = function(address) {
   const lastDotIndex = address.lastIndexOf(".");
@@ -1440,7 +1469,7 @@ var getFileNameAndExtensionFromAddress = function(address) {
   const extension = address.slice(lastDotIndex + 1);
   return { fileName, extension };
 };
-var createPPMFromFromImage = function(image) {
+function createPPMFromFromImage(image) {
   const width = image.width;
   const height = image.height;
   const pixelData = image.toArray();
@@ -1450,7 +1479,7 @@ var createPPMFromFromImage = function(image) {
     file += `${pixelData[i]} ${pixelData[i + 1]} ${pixelData[i + 2]}\n`;
   }
   return file;
-};
+}
 function saveStreamToFile(fileAddress, streamWithImages, { imageGetter = (s) => s.image, fps }) {
   const { fileName, extension } = getFileNameAndExtensionFromAddress(fileAddress);
   let ite = 0;
@@ -1475,6 +1504,39 @@ function saveStreamToFile(fileAddress, streamWithImages, { imageGetter = (s) => 
       }
     }
   };
+}
+function saveParallelToFile(fileAddress, arrayWithImageProducers, { fps }) {
+  const { fileName, extension } = getFileNameAndExtensionFromAddress(fileAddress);
+  const times = [];
+  const promises = arrayWithImageProducers.map((imageProducers, i) => {
+    const spawnFile = "IO_parallel" + i + ".js";
+    writeFileSync(spawnFile, `
+            import { writeFileSync, unlinkSync } from "fs";
+            ${createPPMFromFromImage.toString()}
+            ${imageProducers}
+            images.forEach()
+
+        `);
+    return new Promise((resolve) => {
+      const process = spawn(`bun ${spawnFile}`);
+      process.on("exit", () => {
+        resolve();
+      });
+    });
+  });
+  Promise.all(promises).then((groupOfImages) => {
+    let ite = 0;
+    groupOfImages.forEach((images) => images.forEach((image) => {
+      console.log("Image generated", ite);
+      writeFileSync(`${fileName}_${ite++}.ppm`, createPPMFromFromImage(image));
+    }));
+    if (!fps)
+      fps = Math.floor(1 / (times.reduce((e, t) => e + t, 0) / n));
+    execSync(`ffmpeg -framerate ${fps} -i ${fileName}_%d.ppm ${fileName}.${extension}`);
+    for (let i = 0;i < n; i++) {
+      unlinkSync(`${fileName}_${i}.ppm`);
+    }
+  });
 }
 export {
   Vec3,

@@ -32,12 +32,10 @@ async (canvas, fps, logger) => {
         );
         mouse = newMouse;
         camera.orbit();
-        camera.reverseShot(scene).to(canvas);
     })
     canvas.onMouseWheel(({ deltaY }) => {
         camera.sphericalCoords = camera.sphericalCoords.add(Vec3(deltaY * 0.001, 0, 0));
         camera.orbit();
-        camera.reverseShot(scene).to(canvas);
     })
     // scene
     const stanfordBunnyObj = await fetch("/assets/bunny.obj").then(x => x.text());
@@ -50,16 +48,16 @@ async (canvas, fps, logger) => {
         .mapColors(v =>
             Color.ofRGB(...v.map(x => Math.max(0, Math.min(1, 0.5 * (x + 1)))).toArray())
         )
-    scene.add(...bunnyMesh.asPoints("bunny"));
-    camera.reverseShot(scene).to(canvas);
+    scene.add(...bunnyMesh.asPoints("bunny", 0.1));
 
     // boilerplate for fps
     Animation
         .builder()
         .initialState({ it: 1, oldTime: new Date().getTime() })
         .nextState(({ it, oldTime }) => {
+            camera.reverseShot(scene).to(canvas);
             const dt = (new Date().getTime() - oldTime) * 1e-3;
-            fps(dt, it)
+            logger.print(Math.floor(1 / dt));
             return {
                 it: it + 1,
                 oldTime: new Date().getTime()

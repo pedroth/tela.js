@@ -8,21 +8,17 @@ async (canvas, fps, logger) => {
     const camera = new Camera();
     const light = { pos: Vec3(2, 0, 0) };
     const maxIte = 100;
+    const maxDist = 10;
     const epsilon = 1e-3;
 
     const box = new Box(Vec.ONES(3).scale(-0.5), Vec.ONES(3).scale(0.5));
     const sphere = { pos: Vec3(0.0, 0.0, 0.0), radius: 0.65 };
-    const smin = (a, b, k = 0.1) => {
-        const h = a - b;
-        return 0.5 * ((a + b) - Math.sqrt(h * h + k));
-    }
     const distanceFunction = p => Math.max(box.distanceToPoint(p), -(sphere.pos.sub(p).length() - sphere.radius))
 
     const rayScene = (ray) => {
         const { init } = ray;
         let p = init;
         let t = distanceFunction(p);
-        const maxT = t;
         for (let i = 0; i < maxIte; i++) {
             p = ray.trace(t);
             const d = distanceFunction(p);
@@ -41,7 +37,7 @@ async (canvas, fps, logger) => {
                 )
                 return Color.ofRGB(shade, 0, 0);
             }
-            if (d > maxT) return Color.ofRGB(0, 0, i / maxIte);
+            if (d > maxDist) return Color.ofRGB(0, 0, i / maxIte);
         }
         return Color.BLACK;
     }

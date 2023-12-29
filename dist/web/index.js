@@ -848,7 +848,7 @@ class Camera {
       to: (canvas) => {
         const w = canvas.width;
         const h = canvas.height;
-        canvas.map((x, y) => {
+        return canvas.map((x, y) => {
           const dirInLocal = [
             2 * (x / w) - 1,
             2 * (y / h) - 1,
@@ -862,7 +862,17 @@ class Camera {
   }
   sceneShot(scene) {
     const lambda = (ray) => {
-      return scene.interceptWith(ray).map(([, normal]) => {
+      return scene.interceptWith(ray).map(([pos, normal]) => {
+        return Color.ofRGB((normal.get(0) + 1) / 2, (normal.get(1) + 1) / 2, (normal.get(2) + 1) / 2);
+      }).orElse(() => {
+        return Color.BLACK;
+      });
+    };
+    return this.rayShot(lambda);
+  }
+  _naiveShot(scene) {
+    const lambda = (ray) => {
+      return scene._naiveIntercept(ray).map(([pos, normal]) => {
         return Color.ofRGB((normal.get(0) + 1) / 2, (normal.get(1) + 1) / 2, (normal.get(2) + 1) / 2);
       }).orElse(() => {
         return Color.BLACK;
@@ -997,7 +1007,7 @@ class Box {
     const epsilon = 0.001;
     let p = ray.init;
     let t = this.distanceToPoint(p);
-    const maxT = t;
+    let minT = t;
     for (let i = 0;i < maxIte; i++) {
       p = ray.trace(t);
       const d = this.distanceToPoint(p);
@@ -1005,9 +1015,10 @@ class Box {
       if (d < epsilon) {
         return some(p);
       }
-      if (d > maxT) {
+      if (d > minT) {
         break;
       }
+      minT = d;
     }
     return none();
   }
@@ -1031,10 +1042,11 @@ class Box {
     const epsilon = 0.001;
     const n = pointVec.dim;
     const grad = [];
+    const d = this.distanceToPoint(pointVec);
     for (let i = 0;i < n; i++) {
-      grad.push(this.distanceToPoint(pointVec.add(Vec.e(n)(i).scale(epsilon))) - this.distanceToPoint(pointVec));
+      grad.push(this.distanceToPoint(pointVec.add(Vec.e(n)(i).scale(epsilon))) - d);
     }
-    return Vec.fromArray(grad).normalize();
+    return Vec.fromArray(grad).scale(Math.sign(d)).normalize();
   }
   toString() {
     return `{
@@ -1250,24 +1262,26 @@ class Node {
     }
     return this;
   }
+  getRandomLeaf() {
+    return Math.random() < 0.5 ? this.left.getRandomLeaf() : this.right.getRandomLeaf();
+  }
   interceptWith(ray, depth = 1) {
-    const maxIte = 100;
-    const epsilon = 0.001;
-    let p = ray.init;
-    let t = this.distanceToPoint(p);
-    p = ray.trace(t);
-    const maxT = t;
-    for (let i = 0;i < maxIte; i++) {
-      const d = this.distanceToPoint(p);
-      t += d;
-      if (d < epsilon) {
-        return some(p);
+    return this.box.interceptWith(ray).flatMap((p2) => {
+      const children2 = [this.left, this.right].filter((x) => x);
+      const closestBoxIndex2 = argmin(children2, (child) => child.box.center.sub(p2).length());
+      const indexes = [closestBoxIndex2, (closestBoxIndex2 + 1) % 2];
+      for (let i = 0;i < indexes.length; i++) {
+        const maybeHit = children2[indexes[i]].interceptWith(ray, depth + 1);
+        if (maybeHit.isSome())
+          return maybeHit;
       }
-      if (d > maxT) {
-        break;
-      }
-    }
-    return none();
+      return none();
+    });
+    const { init: p, dir } = ray;
+    const children = [this.left, this.right];
+    const childrenDistances = children.map((child) => child.box.distanceToPoint(p));
+    const closestBoxIndex = argmin(childrenDistances);
+    return children[closestBoxIndex].interceptWith(Ray(ray.trace(childrenDistances[closestBoxIndex]), dir), depth + 1);
   }
   _addElementWhenTreeIsFull(element, elemBox) {
     if (this.left.isLeaf && this.right.isLeaf) {
@@ -1328,7 +1342,10 @@ class Leaf {
     this.element = element;
     this.box = element.getBoundingBox();
   }
-  interceptWith(ray) {
+  getRandomLeaf() {
+    return this;
+  }
+  interceptWith(ray, depth) {
     return this.element.interceptWith(ray);
   }
 }
@@ -1378,10 +1395,10 @@ class Mesh {
     }
     return this.boundingBox;
   }
-  asPoints(name) {
+  asPoints(name, radius = RADIUS) {
     const points = [];
     for (let i = 0;i < this.vertices.length; i++) {
-      points.push(Point_default.builder().radius(RADIUS).name(`${name}_${i}`).color(this.colors[i]).position(this.vertices[i]).normal(this.normals[i] || Vec3(1, 0, 0)).build());
+      points.push(Point_default.builder().radius(radius).name(`${name}_${i}`).color(this.colors[i]).position(this.vertices[i]).normal(this.normals[i] || Vec3(1, 0, 0)).build());
     }
     return points;
   }

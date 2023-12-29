@@ -1,12 +1,15 @@
 import { writeFileSync, unlinkSync } from "fs";
-import { execSync } from "child_process";
+import { execSync, spawn } from "child_process";
+
 
 export function saveImageToFile(fileAddress, image) {
     const { fileName, extension } = getFileNameAndExtensionFromAddress(fileAddress);
     const ppmName = `${fileName}.ppm`;
     writeFileSync(ppmName, createPPMFromFromImage(image));
-    execSync(`ffmpeg -i ${ppmName} ${fileName}.${extension}`);
-    unlinkSync(ppmName)
+    if (extension !== "ppm") {
+        execSync(`ffmpeg -i ${ppmName} ${fileName}.${extension}`);
+        unlinkSync(ppmName)
+    }
 }
 
 function getFileNameAndExtensionFromAddress(address) {
@@ -16,7 +19,7 @@ function getFileNameAndExtensionFromAddress(address) {
     return { fileName, extension };
 }
 
-function createPPMFromFromImage(image) {
+export function createPPMFromFromImage(image) {
     const width = image.width;
     const height = image.height;
     const pixelData = image.toArray();
@@ -53,3 +56,38 @@ export function saveStreamToFile(fileAddress, streamWithImages, { imageGetter = 
     }
 }
 
+export function saveParallelToFile(fileAddress, arrayWithImageProducers, { fps }) {
+    const { fileName, extension } = getFileNameAndExtensionFromAddress(fileAddress);
+    const times = [];
+    const promises = arrayWithImageProducers.map((imageProducers, i) => {
+        const spawnFile = "IO_parallel" + i + ".js";
+        writeFileSync(spawnFile, `
+            import { writeFileSync, unlinkSync } from "fs";
+            ${createPPMFromFromImage.toString()}
+            ${imageProducers}
+            images.forEach()
+
+        `);
+        return new Promise(resolve => {
+            const process = spawn(`bun ${spawnFile}`)
+            process.on("exit", () => {
+                resolve();
+            })
+        });
+    })
+    Promise.all(promises)
+        .then(groupOfImages => {
+            let ite = 0;
+            groupOfImages.forEach(images =>
+                images.forEach(image => {
+                    console.log("Image generated", ite)
+                    writeFileSync(`${fileName}_${ite++}.ppm`, createPPMFromFromImage(image));
+                })
+            )
+            if (!fps) fps = Math.floor(1 / (times.reduce((e, t) => e + t, 0) / n));
+            execSync(`ffmpeg -framerate ${fps} -i ${fileName}_%d.ppm ${fileName}.${extension}`);
+            for (let i = 0; i < n; i++) {
+                unlinkSync(`${fileName}_${i}.ppm`);
+            }
+        })
+}

@@ -1,6 +1,8 @@
+
 import Box from "../Box/Box.js";
 import Color from "../Color/Color.js";
 import { none, some } from "../Monads/Monads.js";
+import Ray from "../Ray/Ray.js";
 import { argmin } from "../Utils/Utils.js";
 import { Vec2, Vec3 } from "../Vector/Vector.js";
 import Point from "./Point.js";
@@ -77,37 +79,30 @@ class Node {
     return this;
   }
 
+  getRandomLeaf() {
+    return Math.random() < 0.5 ? this.left.getRandomLeaf(): this.right.getRandomLeaf();
+  }
+
   interceptWith(ray, depth = 1) {
-    // if (depth === 10) {
+    // if (depth === 20) {
+    //   return this.getRandomLeaf().interceptWith(ray, 15);
     //   return this.box.interceptWith(ray).map(p => [p, this.box.estimateNormal(p)]);
     // }
-    // return this.box.interceptWith(ray).flatMap((p) => {
-    //   const children = [this.left, this.right].filter(x => x);
-    //   const closestBoxIndex = argmin(children, child => child.box.center.sub(p).length());
-    //   const indexes = [closestBoxIndex, (closestBoxIndex + 1) % 2];
-    //   for (let i = 0; i < indexes.length; i++) {
-    //     const maybeHit = children[indexes[i]].interceptWith(ray, depth + 1);
-    //     if (maybeHit.isSome()) return maybeHit;
-    //   }
-    //   return none();
-    // })
-    const maxIte = 100;
-    const epsilon = 1e-3;
-    let p = ray.init;
-    let t = this.distanceToPoint(p);
-    p = ray.trace(t);
-    const maxT = t;
-    for (let i = 0; i < maxIte; i++) {
-      const d = this.distanceToPoint(p);
-      t += d;
-      if (d < epsilon) {
-        return some(p);
+    return this.box.interceptWith(ray).flatMap((p) => {
+      const children = [this.left, this.right].filter(x => x);
+      const closestBoxIndex = argmin(children, child => child.box.center.sub(p).length());
+      const indexes = [closestBoxIndex, (closestBoxIndex + 1) % 2];
+      for (let i = 0; i < indexes.length; i++) {
+        const maybeHit = children[indexes[i]].interceptWith(ray, depth + 1);
+        if (maybeHit.isSome()) return maybeHit;
       }
-      if (d > maxT) {
-        break;
-      };
-    }
-    return none();
+      return none();
+    })
+    const { init: p, dir } = ray;
+    const children = [this.left, this.right];
+    const childrenDistances = children.map(child => child.box.distanceToPoint(p));
+    const closestBoxIndex = argmin(childrenDistances);
+    return children[closestBoxIndex].interceptWith(Ray(ray.trace(childrenDistances[closestBoxIndex]), dir), depth + 1);
   }
 
   _addElementWhenTreeIsFull(element, elemBox) {
@@ -171,7 +166,12 @@ class Leaf {
     this.box = element.getBoundingBox();
   }
 
-  interceptWith(ray) {
+  getRandomLeaf() {
+    return this;
+  }
+
+  interceptWith(ray, depth) {
+    // return this.box.interceptWith(ray).map(pos => [pos, this.box.estimateNormal(pos)]);
     return this.element.interceptWith(ray);
   }
 }

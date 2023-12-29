@@ -43,7 +43,7 @@ export default class Camera {
       to: canvas => {
         const w = canvas.width;
         const h = canvas.height;
-        canvas.map((x, y) => {
+        return canvas.map((x, y) => {
           const dirInLocal = [
             2 * (x / w) - 1,
             2 * (y / h) - 1,
@@ -62,9 +62,7 @@ export default class Camera {
   sceneShot(scene) {
     const lambda = ray => {
       return scene.interceptWith(ray)
-        .map(([, normal]) => {
-          // const zInCameraCoords = this.basis[2].dot(pos.sub(this.eye))
-          // if (zInCameraCoords < this.distanceToPlane) return none();
+        .map(([pos, normal]) => {
           return Color.ofRGB(
             (normal.get(0) + 1) / 2,
             (normal.get(1) + 1) / 2,
@@ -78,6 +76,22 @@ export default class Camera {
     return this.rayShot(lambda);
   }
 
+  _naiveShot(scene) {
+    const lambda = ray => {
+      return scene._naiveIntercept(ray)
+        .map(([pos, normal]) => {
+          return Color.ofRGB(
+            (normal.get(0) + 1) / 2,
+            (normal.get(1) + 1) / 2,
+            (normal.get(2) + 1) / 2
+          )
+        })
+        .orElse(() => {
+          return Color.BLACK;
+        })
+    }
+    return this.rayShot(lambda);
+  }
 
   reverseShot(scene) {
     return {

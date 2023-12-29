@@ -52,13 +52,13 @@ export default class Mesh {
         return this.boundingBox;
     }
 
-    asPoints(name) {
+    asPoints(name, radius = RADIUS) {
         const points = [];
         for (let i = 0; i < this.vertices.length; i++) {
             points.push(
                 Point
                     .builder()
-                    .radius(RADIUS)
+                    .radius(radius)
                     .name(`${name}_${i}`)
                     .color(this.colors[i])
                     .position(this.vertices[i])

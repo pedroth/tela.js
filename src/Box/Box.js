@@ -37,7 +37,7 @@ export default class Box {
         const epsilon = 1e-3;
         let p = ray.init;
         let t = this.distanceToPoint(p);
-        const maxT = t;
+        let minT = t;
         for (let i = 0; i < maxIte; i++) {
             p = ray.trace(t);
             const d = this.distanceToPoint(p);
@@ -45,9 +45,10 @@ export default class Box {
             if (d < epsilon) {
                 return some(p);
             }
-            if (d > maxT) {
+            if (d > minT) {
                 break;
             };
+            minT = d;
         }
         return none();
     }
@@ -74,10 +75,11 @@ export default class Box {
         const epsilon = 1e-3;
         const n = pointVec.dim;
         const grad = [];
+        const d = this.distanceToPoint(pointVec);
         for (let i = 0; i < n; i++) {
-            grad.push(this.distanceToPoint(pointVec.add(Vec.e(n)(i).scale(epsilon))) - this.distanceToPoint(pointVec))
+            grad.push(this.distanceToPoint(pointVec.add(Vec.e(n)(i).scale(epsilon))) - d)
         }
-        return Vec.fromArray(grad).normalize();
+        return Vec.fromArray(grad).scale(Math.sign(d)).normalize();
     }
 
     toString() {
