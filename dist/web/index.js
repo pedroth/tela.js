@@ -226,6 +226,13 @@ class Color {
   get blue() {
     return this.rgb[2];
   }
+  add(color) {
+    return Color.ofRGB(this.rgb[0] + color.red, this.rgb[1] + color.green, this.rgb[2] + color.blue);
+  }
+  scale(r) {
+    const ans = this.rgb.map((c) => Math.min(1, Math.max(0, c * r)));
+    return new Color(ans);
+  }
   equals(color) {
     return this.rgb[0] === color.rgb[0] && this.rgb[1] === color.rgb[1] && this.rgb[2] === color.rgb[2];
   }
@@ -870,16 +877,6 @@ class Camera {
     };
     return this.rayShot(lambda);
   }
-  _naiveShot(scene) {
-    const lambda = (ray) => {
-      return scene._naiveIntercept(ray).map(([pos, normal]) => {
-        return Color.ofRGB((normal.get(0) + 1) / 2, (normal.get(1) + 1) / 2, (normal.get(2) + 1) / 2);
-      }).orElse(() => {
-        return Color.BLACK;
-      });
-    };
-    return this.rayShot(lambda);
-  }
   reverseShot(scene) {
     return {
       to: (canvas) => {
@@ -918,6 +915,16 @@ class Camera {
         canvas.paint();
       }
     };
+  }
+  _naiveShot(scene) {
+    const lambda = (ray) => {
+      return scene._naiveIntercept(ray).map(([pos, normal]) => {
+        return Color.ofRGB((normal.get(0) + 1) / 2, (normal.get(1) + 1) / 2, (normal.get(2) + 1) / 2);
+      }).orElse(() => {
+        return Color.BLACK;
+      });
+    };
+    return this.rayShot(lambda);
   }
 }
 
@@ -1262,23 +1269,28 @@ class Node {
     }
     return this;
   }
+  distanceToPoint(x) {
+    return this.box.distanceToPoint(x);
+  }
   getRandomLeaf() {
     return Math.random() < 0.5 ? this.left.getRandomLeaf() : this.right.getRandomLeaf();
   }
   interceptWith(ray, depth = 1) {
-    if (depth === 12) {
-      return this.getRandomLeaf().interceptWith(ray, 15);
+    if (depth === 10) {
+      return this.getRandomLeaf().interceptWith(ray, 10);
     }
     return this.box.interceptWith(ray).flatMap((p) => {
       const children = [this.left, this.right].filter((x) => x);
-      const closestBoxIndex = argmin(children, (child) => child.box.center.sub(p).length());
-      const indexes = [closestBoxIndex, (closestBoxIndex + 1) % 2];
-      for (let i = 0;i < indexes.length; i++) {
-        const maybeHit = children[indexes[i]].interceptWith(ray, depth + 1);
+      const hits = [];
+      for (let i = 0;i < children.length; i++) {
+        const maybeHit = children[i].interceptWith(ray, depth + 1);
         if (maybeHit.isSome())
-          return maybeHit;
+          hits.push(maybeHit.orElse());
       }
-      return none();
+      const minIndex = argmin(hits, ([point]) => point.sub(ray.init).length());
+      if (minIndex === -1)
+        return none();
+      return some(hits[minIndex]);
     });
   }
   _addElementWhenTreeIsFull(element, elemBox) {
@@ -1339,6 +1351,9 @@ class Leaf {
   constructor(element) {
     this.element = element;
     this.box = element.getBoundingBox();
+  }
+  distanceToPoint(x) {
+    return this.box.distanceToPoint(x);
   }
   getRandomLeaf() {
     return this;
