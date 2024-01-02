@@ -1,11 +1,9 @@
 
 import Box from "../Box/Box.js";
-import Color from "../Color/Color.js";
 import { none, some } from "../Monads/Monads.js";
-import Ray from "../Ray/Ray.js";
 import { argmin } from "../Utils/Utils.js";
-import { Vec2, Vec3 } from "../Vector/Vector.js";
 import Point from "./Point.js";
+import Ray from "../Ray/Ray.js";
 
 export default class Scene {
   constructor() {
@@ -79,30 +77,46 @@ class Node {
     return this;
   }
 
+  distanceToPoint(x) {
+    return this.box.distanceToPoint(x);
+  }
+
   getRandomLeaf() {
-    return Math.random() < 0.5 ? this.left.getRandomLeaf(): this.right.getRandomLeaf();
+    return Math.random() < 0.5 ? this.left.getRandomLeaf() : this.right.getRandomLeaf();
   }
 
   interceptWith(ray, depth = 1) {
-    if (depth === 12) {
-      return this.getRandomLeaf().interceptWith(ray, 15);
+    if (depth === 10) {
+      return this.getRandomLeaf().interceptWith(ray, 10);
       // return this.box.interceptWith(ray).map(p => [p, this.box.estimateNormal(p)]);
     }
     return this.box.interceptWith(ray).flatMap((p) => {
       const children = [this.left, this.right].filter(x => x);
-      const closestBoxIndex = argmin(children, child => child.box.center.sub(p).length());
-      const indexes = [closestBoxIndex, (closestBoxIndex + 1) % 2];
-      for (let i = 0; i < indexes.length; i++) {
-        const maybeHit = children[indexes[i]].interceptWith(ray, depth + 1);
-        if (maybeHit.isSome()) return maybeHit;
+      const hits = [];
+      for (let i = 0; i < children.length; i++) {
+        const maybeHit = children[i].interceptWith(ray, depth + 1);
+        if (maybeHit.isSome()) hits.push(maybeHit.orElse());
       }
-      return none();
+      const minIndex = argmin(hits, ([point]) => point.sub(ray.init).length());
+      if (minIndex === -1) return none();
+      return some(hits[minIndex]);
+
+
+      // const hits = children.map(child => child.interceptWith(ray, depth + 1));
+      // const actualHits = hits.filter(hit => hit.isSome()).map(hit => hit.orElse());
+      // const closestBoxIndex = argmin(actualHits, ([point]) => point.sub(p).length);
+      // if (closestBoxIndex !== -1) return some(actualHits[closestBoxIndex]);
+      // return none();
+
+
+      // const closestBoxIndex = argmin(children, child => child.distanceToPoint(p));
+      // const indexes = [closestBoxIndex, (closestBoxIndex + 1) % 2];
+      // for (let i = 0; i < indexes.length; i++) {
+      //   const maybeHit = children[indexes[i]].interceptWith(ray, depth + 1);
+      //   if (maybeHit.isSome()) return maybeHit;
+      // }
+      // return none();
     })
-    // const { init: p, dir } = ray;
-    // const children = [this.left, this.right];
-    // const childrenDistances = children.map(child => child.box.distanceToPoint(p));
-    // const closestBoxIndex = argmin(childrenDistances);
-    // return children[closestBoxIndex].interceptWith(Ray(ray.trace(childrenDistances[closestBoxIndex]), dir), depth + 1);
   }
 
   _addElementWhenTreeIsFull(element, elemBox) {
@@ -164,6 +178,10 @@ class Leaf {
   constructor(element) {
     this.element = element;
     this.box = element.getBoundingBox();
+  }
+
+  distanceToPoint(x) {
+    return this.box.distanceToPoint(x);
   }
 
   getRandomLeaf() {

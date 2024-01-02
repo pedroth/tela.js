@@ -21,17 +21,19 @@ let bunnyMesh = Mesh.readObj(stanfordBunnyObj);
 const bunnyBox = bunnyMesh.getBoundingBox();
 bunnyMesh = bunnyMesh
     .mapVertices(v => v.sub(bunnyBox.min).div(bunnyBox.diagonal).scale(2).sub(Vec3(1, 1, 1)))
+    .mapVertices(v => Vec3(-v.y, v.x, v.z))
+    .mapVertices(v => Vec3(v.z, v.y, -v.x))
     .mapColors(v => Color.ofRGB(...v.map(x => Math.max(0, Math.min(1, 0.5 * (x + 1)))).toArray()));
 scene.add(...bunnyMesh.asPoints("bunny", 0.05));
 
 const imageStream = new Stream(
-    { time: 0, image: Image.ofSize(width, height) },
+    { time: 0, image: camera.sceneShot(scene).to(Image.ofSize(width, height)) },
     ({ time, image }) => {
         const dt = 0.04; // 25 FPS
         const theta = Math.PI / 4 * time;
         camera.sphericalCoords = Vec3(camera.sphericalCoords.get(0), theta, 0);
         camera.orbit();
-        const [newImage, t] = measureTime2(() => camera._naiveShot(scene).to(image));
+        const [newImage, t] = measureTime2(() => camera.sceneShot(scene).to(image));
         console.log(`Image took ${t}s`);
         return {
             time: time + dt,

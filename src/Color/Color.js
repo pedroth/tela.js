@@ -26,6 +26,15 @@ export default class Color {
     return this.rgb[2];
   }
 
+  add(color) {
+    return Color.ofRGB(this.rgb[0] + color.red, this.rgb[1] + color.green, this.rgb[2] + color.blue );
+  }
+
+  scale(r) {
+    const ans = this.rgb.map(c => Math.min(1, Math.max(0, c * r)));
+    return new Color(ans);
+  }
+
   /**
    *
    * @param {Color} color

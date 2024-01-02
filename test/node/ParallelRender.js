@@ -11,7 +11,7 @@ export async function measureTime(lambda) {
 }
 
 
-const fileName = "bunny_parallel_optimized";
+const fileName = "bunny_parallel";
 const deltaT = 0.04; //seconds per frame
 const maxT = 10; // seconds
 const numOfFrames = Math.floor(maxT / deltaT);

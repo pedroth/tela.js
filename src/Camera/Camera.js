@@ -1,6 +1,8 @@
 import { Vec3 } from "../Vector/Vector.js"
 import Color from "../Color/Color.js"
 import Ray from "../Ray/Ray.js";
+import Image from "../Image/Image.js"
+
 export default class Camera {
   constructor(props = {
     sphericalCoords: Vec3(2, 0, 0),
@@ -76,23 +78,6 @@ export default class Camera {
     return this.rayShot(lambda);
   }
 
-  _naiveShot(scene) {
-    const lambda = ray => {
-      return scene._naiveIntercept(ray)
-        .map(([pos, normal]) => {
-          return Color.ofRGB(
-            (normal.get(0) + 1) / 2,
-            (normal.get(1) + 1) / 2,
-            (normal.get(2) + 1) / 2
-          )
-        })
-        .orElse(() => {
-          return Color.BLACK;
-        })
-    }
-    return this.rayShot(lambda);
-  }
-
   reverseShot(scene) {
     return {
       to: canvas => {
@@ -144,5 +129,22 @@ export default class Camera {
         canvas.paint();
       }
     }
+  }
+
+  _naiveShot(scene) {
+    const lambda = ray => {
+      return scene._naiveIntercept(ray)
+        .map(([pos, normal]) => {
+          return Color.ofRGB(
+            (normal.get(0) + 1) / 2,
+            (normal.get(1) + 1) / 2,
+            (normal.get(2) + 1) / 2
+          )
+        })
+        .orElse(() => {
+          return Color.BLACK;
+        })
+    }
+    return this.rayShot(lambda);
   }
 }
