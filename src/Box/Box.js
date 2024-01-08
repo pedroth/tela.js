@@ -53,6 +53,14 @@ export default class Box {
         return none();
     }
 
+    scale(r) {
+        return new Box(this.min.sub(this.center).scale(r), this.max.sub(this.center).scale(r)).move(this.center);
+    }
+
+    move(v) {
+        return new Box(this.min.add(v), this.max.add(v));
+    }
+
     equals(box) {
         if (!(box instanceof Box)) return false;
         if (this == Box.EMPTY) return true;
@@ -93,5 +101,5 @@ export default class Box {
 }
 
 function maxComp(u) {
-    return u.fold((e,x) => Math.max(e, x), -Number.MAX_VALUE);
+    return u.fold((e, x) => Math.max(e, x), -Number.MAX_VALUE);
 }

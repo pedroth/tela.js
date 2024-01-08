@@ -9,7 +9,7 @@ var __export = (target, all) => {
     });
 };
 
-// src/Utils/Math.js.js
+// src/Ray/Ray.js.js.js
 class Stream {
   constructor(initialState, updateStateFunction) {
     this._head = initialState;
@@ -23,7 +23,7 @@ class Stream {
   }
 }
 
-// src/Utils/Math.js.jsilder.
+// src/Ray/Ray.js.js.jsilder.
 class Animation {
   constructor(state, next, doWhile) {
     this.animation = new Stream(state, next);
@@ -75,7 +75,13 @@ class AnimationBuilder {
   }
 }
 
-// src/Utils/Math.js.js
+// src/Ray/Ray.js.js
+function smin(a, b, k = 32) {
+  const res = Math.exp(-k * a) + Math.exp(-k * b);
+  return -Math.log(res) / k;
+}
+
+// src/Ray/Ray.js.js.js
 var handleMouse = function(canvas, lambda) {
   return (event) => {
     const h = canvas.height;
@@ -137,8 +143,6 @@ class Canvas {
     this._image[index + 2] = color.blue * 255;
     this._image[index + 3] = 255;
     return this;
-  }
-  drawLine(p1, p2, shader) {
   }
   paint() {
     this._ctx.putImageData(this._imageData, 0, 0);
@@ -207,7 +211,7 @@ class Canvas {
   }
 }
 
-// src/Utils/Math.js.
+// src/Ray/Ray.js.js.
 var MAX_8BIT = 255;
 
 class Color {
@@ -261,7 +265,7 @@ class Color {
   static WHITE = Color.ofRGB(1, 1, 1);
 }
 
-// src/Utils/Math.js.jsilder.js
+// src/Ray/Ray.js.js.jsilder.js
 var isElement = function(o) {
   return typeof HTMLElement === "object" ? o instanceof HTMLElement : o && typeof o === "object" && o !== null && o.nodeType === 1 && typeof o.nodeName === "string";
 };
@@ -353,7 +357,7 @@ class DomBuilder {
 }
 var DomBuilder_default = DomBuilder;
 
-// src/Utils/Math.js.
+// src/Ray/Ray.js.js.
 class Image {
   constructor(width, height) {
     this._width = width;
@@ -423,7 +427,7 @@ class Image {
   }
 }
 
-// src/Utils/Math.js.js
+// src/Ray/Ray.js.js.js
 var _sanitize_input = function(arrayIn, arrayOut) {
   for (let i = 0;i < arrayIn.length; i++) {
     const z = arrayIn[i];
@@ -814,7 +818,7 @@ class Vector2 {
   static ONES = new Vector2(1, 1);
 }
 
-// src/Utils/Math
+// src/Ray/Ray.js
 function Ray(init, dir) {
   const ans = {};
   ans.init = init;
@@ -823,7 +827,7 @@ function Ray(init, dir) {
   return ans;
 }
 
-// src/Utils/Math.js.js
+// src/Ray/Ray.js.js.js
 class Camera {
   constructor(props = {
     sphericalCoords: Vec3(2, 0, 0),
@@ -928,7 +932,7 @@ class Camera {
   }
 }
 
-// src/Utils/Math.js.js
+// src/Ray/Ray.js.js.js
 var exports_Monads = {};
 __export(exports_Monads, {
   some: () => {
@@ -976,7 +980,7 @@ function maybe(x) {
   return none(x);
 }
 
-// src/Utils/Math
+// src/Ray/Ray.js
 var maxComp = function(u) {
   return u.fold((e, x) => Math.max(e, x), -Number.MAX_VALUE);
 };
@@ -1029,6 +1033,12 @@ class Box {
     }
     return none();
   }
+  scale(r) {
+    return new Box(this.min.sub(this.center).scale(r), this.max.sub(this.center).scale(r)).move(this.center);
+  }
+  move(v) {
+    return new Box(this.min.add(v), this.max.add(v));
+  }
   equals(box) {
     if (!(box instanceof Box))
       return false;
@@ -1064,7 +1074,7 @@ class Box {
   static EMPTY = new Box;
 }
 
-// src/Utils/Math.js.
+// src/Ray/Ray.js.js.
 var exports_Utils = {};
 __export(exports_Utils, {
   or: () => {
@@ -1118,7 +1128,7 @@ function argmin(array, costFunction = (x) => x) {
   return argminIndex;
 }
 
-// src/Utils/Math.js.
+// src/Ray/Ray.js.js.
 var sphereInterception = function(point, ray) {
   const { init, dir } = ray;
   const diff = init.sub(point.position);
@@ -1209,13 +1219,7 @@ class PointBuilder {
 }
 var Point_default = Point;
 
-// src/Utils/Math.js
-function smin(a, b, k = 32) {
-  const res = Math.exp(-k * a) + Math.exp(-k * b);
-  return -Math.log(res) / k;
-}
-
-// src/Utils/Math.js.
+// src/Ray/Ray.js.js.
 class Scene {
   constructor() {
     this.id2ElemMap = {};
@@ -1399,7 +1403,7 @@ class Leaf {
   }
 }
 
-// src/Utils/Math.js
+// src/Ray/Ray.js.js
 var RADIUS = 0.001;
 
 class Mesh {

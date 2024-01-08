@@ -1,3 +1,5 @@
+import { clipLine } from "../Utils/Math";
+
 export default class Canvas {
 
   constructor(canvas) {
@@ -62,9 +64,26 @@ export default class Canvas {
     return this;
   }
 
-  drawLine(p1, p2, shader) {
-    
-  }
+  // drawLine(p1, p2, shader) {
+  //   const { width, height } = this.canvas;
+  //   const line = clipLine(p1, p2, new Box(Vec2(0, 0), Vec2(width, height)));
+  //   if (line.length === 0) return;
+  //   const [p0, p1] = line;
+  //   const v = p1.sub(p0);
+  //   const n = v.map(Math.abs).fold((e, x) => e + x);
+  //   for (let k = 0; k < n; k++) {
+  //     const s = k / n;
+  //     const x = p0.add(v.scale(s)).map(Math.floor);
+  //     const [i, j] = x.toArray();
+  //     const index = 4 * (i * width + j);
+  //     const color = shader(i, j);
+  //     this.data[index] = color.red;
+  //     this.data[index + 1] = color.green;
+  //     this.data[index + 2] = color.blue;
+  //     this.data[index + 3] = 255;
+  //   }
+  //   return this;
+  // }
 
   paint() {
     this._ctx.putImageData(this._imageData, 0, 0);

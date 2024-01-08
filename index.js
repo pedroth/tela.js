@@ -418,6 +418,10 @@ const examples = [
         path: "/test/web/test0.js"
     },
     {
+        title: "Mandelbrot set shader",
+        path: "/test/web/test0.5.js"
+    },
+    {
         title: "Simple animation shader",
         path: "/test/web/test1.js"
     },
