@@ -9,7 +9,7 @@ var __export = (target, all) => {
     });
 };
 
-// src/Ray/Ray.jsads.js
+// src/Utils/Math.js.js
 class Stream {
   constructor(initialState, updateStateFunction) {
     this._head = initialState;
@@ -23,7 +23,7 @@ class Stream {
   }
 }
 
-// src/Ray/Ray.jsads.jsilder.
+// src/Utils/Math.js.jsilder.
 class Animation {
   constructor(state, next, doWhile) {
     this.animation = new Stream(state, next);
@@ -75,7 +75,7 @@ class AnimationBuilder {
   }
 }
 
-// src/Ray/Ray.jsads.js
+// src/Utils/Math.js.js
 var handleMouse = function(canvas, lambda) {
   return (event) => {
     const h = canvas.height;
@@ -207,7 +207,7 @@ class Canvas {
   }
 }
 
-// src/Ray/Ray.jsads.
+// src/Utils/Math.js.
 var MAX_8BIT = 255;
 
 class Color {
@@ -261,7 +261,7 @@ class Color {
   static WHITE = Color.ofRGB(1, 1, 1);
 }
 
-// src/Ray/Ray.jsads.jsilder.js
+// src/Utils/Math.js.jsilder.js
 var isElement = function(o) {
   return typeof HTMLElement === "object" ? o instanceof HTMLElement : o && typeof o === "object" && o !== null && o.nodeType === 1 && typeof o.nodeName === "string";
 };
@@ -353,7 +353,7 @@ class DomBuilder {
 }
 var DomBuilder_default = DomBuilder;
 
-// src/Ray/Ray.jsads.
+// src/Utils/Math.js.
 class Image {
   constructor(width, height) {
     this._width = width;
@@ -423,7 +423,7 @@ class Image {
   }
 }
 
-// src/Ray/Ray.jsads.js
+// src/Utils/Math.js.js
 var _sanitize_input = function(arrayIn, arrayOut) {
   for (let i = 0;i < arrayIn.length; i++) {
     const z = arrayIn[i];
@@ -814,7 +814,7 @@ class Vector2 {
   static ONES = new Vector2(1, 1);
 }
 
-// src/Ray/Ray.js
+// src/Utils/Math
 function Ray(init, dir) {
   const ans = {};
   ans.init = init;
@@ -823,7 +823,7 @@ function Ray(init, dir) {
   return ans;
 }
 
-// src/Ray/Ray.jsads.js
+// src/Utils/Math.js.js
 class Camera {
   constructor(props = {
     sphericalCoords: Vec3(2, 0, 0),
@@ -928,7 +928,7 @@ class Camera {
   }
 }
 
-// src/Ray/Ray.jsads.js
+// src/Utils/Math.js.js
 var exports_Monads = {};
 __export(exports_Monads, {
   some: () => {
@@ -976,7 +976,7 @@ function maybe(x) {
   return none(x);
 }
 
-// src/Ray/Ray.js
+// src/Utils/Math
 var maxComp = function(u) {
   return u.fold((e, x) => Math.max(e, x), -Number.MAX_VALUE);
 };
@@ -1064,7 +1064,7 @@ class Box {
   static EMPTY = new Box;
 }
 
-// src/Ray/Ray.jsads.
+// src/Utils/Math.js.
 var exports_Utils = {};
 __export(exports_Utils, {
   or: () => {
@@ -1118,7 +1118,7 @@ function argmin(array, costFunction = (x) => x) {
   return argminIndex;
 }
 
-// src/Ray/Ray.jsads.
+// src/Utils/Math.js.
 var sphereInterception = function(point, ray) {
   const { init, dir } = ray;
   const diff = init.sub(point.position);
@@ -1142,6 +1142,9 @@ class Point {
     this.normal = normal;
     this.radius = radius;
     this.position = position;
+  }
+  distanceToPoint(p) {
+    return this.position.sub(p).length() - this.radius;
   }
   interceptWith(ray) {
     return sphereInterception(this, ray).map((t) => {
@@ -1206,13 +1209,18 @@ class PointBuilder {
 }
 var Point_default = Point;
 
-// src/Ray/Ray.jsads.
+// src/Utils/Math.js
+function smin(a, b, k = 32) {
+  const res = Math.exp(-k * a) + Math.exp(-k * b);
+  return -Math.log(res) / k;
+}
+
+// src/Utils/Math.js.
 class Scene {
   constructor() {
     this.id2ElemMap = {};
     this.sceneElements = [];
     this.boundingBoxScene = new Node;
-    this.gridScene = {};
   }
   add(...elements) {
     elements.forEach((elem) => {
@@ -1235,6 +1243,19 @@ class Scene {
   interceptWith(ray, level) {
     return this.boundingBoxScene.interceptWith(ray, level);
   }
+  distanceToPoint(p) {
+    return this.boundingBoxScene.distanceToPoint(p);
+  }
+  estimateNormal(p) {
+    const epsilon = 0.001;
+    const n2 = p.dim;
+    const grad = [];
+    const d = this.distanceToPoint(p);
+    for (let i = 0;i < n2; i++) {
+      grad.push(this.distanceToPoint(p.add(Vec.e(n2)(i).scale(epsilon))) - d);
+    }
+    return Vec.fromArray(grad).scale(Math.sign(d)).normalize();
+  }
   _naiveIntercept(ray) {
     const points = this.sceneElements;
     let closestDistance = Number.MAX_VALUE;
@@ -1254,10 +1275,14 @@ class Scene {
 
 class Node {
   isLeaf = false;
+  numberOfLeafs = 0;
+  leafs = [];
   constructor() {
     this.box = Box.EMPTY;
   }
   add(element) {
+    this.numberOfLeafs += 1;
+    this.leafs.push(element);
     const elemBox = element.getBoundingBox();
     this.box = this.box.add(elemBox);
     if (!this.left) {
@@ -1269,15 +1294,23 @@ class Node {
     }
     return this;
   }
-  distanceToPoint(x) {
-    return this.box.distanceToPoint(x);
+  distanceToPoint(p) {
+    if (this.numberOfLeafs <= 2) {
+      return this.getElements().reduce((e, leaf) => smin(e, leaf.distanceToPoint(p)), 1000);
+    }
+    const children = [this.left, this.right];
+    const index = argmin(children, (c) => c.box.distanceToPoint(p));
+    return children[index].distanceToPoint(p);
+  }
+  getElements() {
+    return this.leafs;
   }
   getRandomLeaf() {
     return Math.random() < 0.5 ? this.left.getRandomLeaf() : this.right.getRandomLeaf();
   }
   interceptWith(ray, depth = 1) {
-    if (depth === 10) {
-      return this.getRandomLeaf().interceptWith(ray, 10);
+    if (this.numberOfLeafs === 5) {
+      return this.box.interceptWith(ray).map((p) => [p, this.box.estimateNormal(p)]);
     }
     return this.box.interceptWith(ray).flatMap((p) => {
       const children = [this.left, this.right].filter((x) => x);
@@ -1353,7 +1386,10 @@ class Leaf {
     this.box = element.getBoundingBox();
   }
   distanceToPoint(x) {
-    return this.box.distanceToPoint(x);
+    return this.element.distanceToPoint(x);
+  }
+  getLeafs() {
+    return [this];
   }
   getRandomLeaf() {
     return this;
@@ -1363,7 +1399,7 @@ class Leaf {
   }
 }
 
-// src/Ray/Ray.jsads
+// src/Utils/Math.js
 var RADIUS = 0.001;
 
 class Mesh {
@@ -1441,7 +1477,7 @@ class Mesh {
     return new Mesh({ vertices, normals, texture, faces });
   }
 }
-// src/Ray/Ray.
+// src/Utils/Ma
 var exports_IO = {};
 __export(exports_IO, {
   saveStreamToFile: () => {

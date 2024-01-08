@@ -430,6 +430,10 @@ const examples = [
         path: "/test/web/test3.js"
     },
     {
+        title: "Amazing effects shader 2",
+        path: "/test/web/test3.5.js"
+    },
+    {
         title: "Wave simulation",
         path: "/test/web/test4.js"
     },
@@ -448,6 +452,10 @@ const examples = [
     {
         title: "SDF test",
         path: "/test/web/test8.js"
+    },
+    {
+        title: "bunny SDF test",
+        path: "/test/web/test9.js"
     }
 ];
 

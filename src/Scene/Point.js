@@ -12,6 +12,10 @@ class Point {
         this.position = position;
     }
 
+    distanceToPoint(p) {
+        return this.position.sub(p).length() - this.radius;
+    }
+
     interceptWith(ray) {
         return sphereInterception(this, ray)
             .map(t => {

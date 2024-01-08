@@ -1,4 +1,4 @@
-// Based on https://www.shadertoy.com/view/mtyGWy
+// Port from https://www.shadertoy.com/view/mtyGWy
 (canvas, fps) => {
     // resize incoming canvas:Canvas object.
     const width = 640 / 2;
