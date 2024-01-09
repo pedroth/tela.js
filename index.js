@@ -415,51 +415,55 @@ async function renderUI() {
 const examples = [
     {
         title: "Simple shader",
-        path: "/test/web/test0.js"
+        path: "/test/web/simple_shader.js"
     },
     {
         title: "Mandelbrot set shader",
-        path: "/test/web/test0.5.js"
+        path: "/test/web/mandelbrot.js"
     },
     {
         title: "Simple animation shader",
-        path: "/test/web/test1.js"
+        path: "/test/web/simple_animation.js"
     },
     {
         title: "Rotating grid shader",
-        path: "/test/web/test2.js"
+        path: "/test/web/rotating_grid.js"
     },
     {
         title: "Amazing effects shader",
-        path: "/test/web/test3.js"
+        path: "/test/web/amazing_shader.js"
     },
     {
         title: "Amazing effects shader 2",
-        path: "/test/web/test3.5.js"
+        path: "/test/web/amazing_shader_2.js"
     },
     {
         title: "Wave simulation",
-        path: "/test/web/test4.js"
+        path: "/test/web/wave_equation.js"
     },
     {
         title: "Wave Interaction",
-        path: "/test/web/test5.js"
+        path: "/test/web/interactive_wave.js"
     },
     {
         title: "6 points",
-        path: "/test/web/test6.js"
+        path: "/test/web/six_spheres.js"
     },
     {
         title: "Point cloud bunny",
-        path: "/test/web/test7.js"
+        path: "/test/web/bunny.js"
     },
     {
         title: "SDF test",
-        path: "/test/web/test8.js"
+        path: "/test/web/signed_distance.js"
     },
     {
         title: "bunny SDF test",
-        path: "/test/web/test9.js"
+        path: "/test/web/signed_bunny.js"
+    },
+    {
+        title: "image to rgb space",
+        path: "/test/web/image2rgb.js"
     }
 ];
 
@@ -485,7 +489,7 @@ function execCode(code) {
             const script = DOM.of("script").build();
             script.type = "module";
             script.textContent = `
-            import {Canvas, DOM, Color, Animation, Scene, Camera, Vec2, Vec3, Vec, Box, Point, Mesh} from "/dist/web/index.js"
+            import {Canvas, DOM, Color, Animation, Scene, Camera, Vec2, Vec3, Vec, Box, Point, Mesh, NaiveScene} from "/dist/web/index.js"
             Animation.globalAnimationIds.forEach(id => {
                 window.cancelAnimationFrame(id)
             });

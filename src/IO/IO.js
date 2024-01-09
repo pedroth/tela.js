@@ -1,5 +1,7 @@
-import { writeFileSync, unlinkSync } from "fs";
+import { writeFileSync, unlinkSync, readFileSync } from "fs";
 import { execSync, spawn } from "child_process";
+import Image from "../Image/Image";
+import Color from "../Color/Color";
 
 
 export function saveImageToFile(fileAddress, image) {
@@ -17,6 +19,24 @@ function getFileNameAndExtensionFromAddress(address) {
     const fileName = address.slice(0, lastDotIndex);
     const extension = address.slice(lastDotIndex + 1);
     return { fileName, extension };
+}
+
+export function readImageFrom(src) {
+    const { fileName } = getFileNameAndExtensionFromAddress(src);
+    execSync(`ffmpeg -i ${src} ${fileName}.ppm`);
+    const imageFile = readFileSync(`${fileName}.ppm`, { encoding: "utf-8" });
+    const rows = imageFile.split("\n");
+    const [header, ...rest] = rows;
+    const [w, h] = header.split(" ").slice(1, 2).map(Number.parseInt);
+    const img = Image.ofSize(w, h);
+    rest.forEach((line, k) => {
+        const i = Math.floor(k / w);
+        const j = j % w;
+        const x = j;
+        const y = h - 1 - i;
+        const [r, g, b] = line.split(" ").map(Number.parseInt);
+        img.setPxl(x, y, Color.ofRGBRaw(r, g, b));
+    })
 }
 
 export function createPPMFromFromImage(image) {
@@ -77,11 +97,11 @@ export function saveParallelToFile(fileAddress, arrayWithImageProducers, { fps }
     })
     Promise.all(promises)
         .then(groupOfImages => {
-            let ite = 0;
+            let n = 0;
             groupOfImages.forEach(images =>
                 images.forEach(image => {
-                    console.log("Image generated", ite)
-                    writeFileSync(`${fileName}_${ite++}.ppm`, createPPMFromFromImage(image));
+                    console.log("Image generated", n)
+                    writeFileSync(`${fileName}_${n++}.ppm`, createPPMFromFromImage(image));
                 })
             )
             if (!fps) fps = Math.floor(1 / (times.reduce((e, t) => e + t, 0) / n));

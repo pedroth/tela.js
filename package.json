@@ -22,15 +22,19 @@
   },
   "homepage": "https://github.com/pedroth/tela.js#readme",
   "scripts": {
-    "build": "bun run clean; bun bundle.js",
+    "build": "bun run clean; bun i; bun bundle.js",
     "buildDev": "bun bundle.js --watch",
     "serve": "bunx http-server",
-    "clean": "rm -fr node_modules; rm -fr dist/; rm *.png *.jpeg *.ppm *.webm *.mp4"
+    "clean": "rm -fr node_modules; rm -fr dist/; rm *.png *.jpeg *.ppm *.webm *.mp4",
+    "pub": "npm version patch; bun run build; npm publish"
   },
   "devDependencies": {
     "bun-types": "latest",
     "child_process": "^1.0.2",
     "eslint": "^8.55.0",
     "node-watch": "^0.7.4"
+  },
+  "dependencies": {
+    "jimp": "^0.22.10"
   }
 }

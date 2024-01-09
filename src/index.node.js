@@ -1,3 +1,5 @@
 export * from "./index.js";
 import * as IO from "./IO/IO.js"
-export { IO };
+import Image from "./Image/Image.js"
+
+export { IO, Image };

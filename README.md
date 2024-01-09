@@ -14,6 +14,18 @@ The propose of a graphic engine is to be able to generate images in a computatio
 
 # Quick start
 
+First you need to install [ffmpeg][ffmpeg] in your system, in a way that it is possible to write on the console:
+```bash
+ffmpeg -version 
+
+# it should output something like: fmpeg version 4.4.2-0ubuntu0.22.04.1...
+# maybe with a different OS...
+
+```
+
+Then just install using `npm 
+
+
 # Playground
 
 https://pedroth.github.io/tela.js/

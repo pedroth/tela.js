@@ -1,7 +1,6 @@
 import { Vec3, Vec2 } from "../Vector/Vector.js";
 import Point from "./Point.js"
 import Box from "../Box/Box.js";
-import Color from "../Color/Color.js";
 
 const RADIUS = 0.001;
 export default class Mesh {

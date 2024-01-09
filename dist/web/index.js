@@ -9,7 +9,7 @@ var __export = (target, all) => {
     });
 };
 
-// src/Ray/Ray.js.js.js
+// src/Ray/Ray.js.jsts.
 class Stream {
   constructor(initialState, updateStateFunction) {
     this._head = initialState;
@@ -23,7 +23,7 @@ class Stream {
   }
 }
 
-// src/Ray/Ray.js.js.jsilder.
+// src/Ray/Ray.js.jsts.jsser.
 class Animation {
   constructor(state, next, doWhile) {
     this.animation = new Stream(state, next);
@@ -75,13 +75,70 @@ class AnimationBuilder {
   }
 }
 
+// src/Ray/Ray.js.jst
+var MAX_8BIT = 255;
+
+class Color {
+  constructor(rbg) {
+    this.rgb = rbg;
+  }
+  getRGB() {
+    return this.rgb;
+  }
+  get red() {
+    return this.rgb[0];
+  }
+  get green() {
+    return this.rgb[1];
+  }
+  get blue() {
+    return this.rgb[2];
+  }
+  add(color) {
+    return Color.ofRGB(this.rgb[0] + color.red, this.rgb[1] + color.green, this.rgb[2] + color.blue);
+  }
+  scale(r) {
+    const ans = this.rgb.map((c) => Math.min(1, Math.max(0, c * r)));
+    return new Color(ans);
+  }
+  equals(color) {
+    return this.rgb[0] === color.rgb[0] && this.rgb[1] === color.rgb[1] && this.rgb[2] === color.rgb[2];
+  }
+  static ofRGB(red = 0, green = 0, blue = 0) {
+    const rgb = new Float64Array(3);
+    rgb[0] = red;
+    rgb[1] = green;
+    rgb[2] = blue;
+    return new Color(rgb);
+  }
+  static ofRGBRaw(red = 0, green = 0, blue = 0) {
+    const rgb = new Float64Array(3);
+    rgb[0] = red / MAX_8BIT;
+    rgb[1] = green / MAX_8BIT;
+    rgb[2] = blue / MAX_8BIT;
+    return new Color(rgb);
+  }
+  static random() {
+    const r = () => Math.random();
+    return Color.ofRGB(r(), r(), r());
+  }
+  static RED = Color.ofRGB(1, 0, 0);
+  static GREEN = Color.ofRGB(0, 1, 0);
+  static BLUE = Color.ofRGB(0, 0, 1);
+  static BLACK = Color.ofRGB(0, 0, 0);
+  static WHITE = Color.ofRGB(1, 1, 1);
+}
+
+// src/Ray/Ray.js.jsts.js
+var MAX_8BIT2 = 255;
+
 // src/Ray/Ray.js.js
 function smin(a, b, k = 32) {
   const res = Math.exp(-k * a) + Math.exp(-k * b);
   return -Math.log(res) / k;
 }
 
-// src/Ray/Ray.js.js.js
+// src/Ray/Ray.js.jsts.
 var handleMouse = function(canvas, lambda) {
   return (event) => {
     const h = canvas.height;
@@ -113,7 +170,7 @@ class Canvas {
     return this._canvas;
   }
   fill(color) {
-    return this.map((i) => color);
+    return this.map(() => color);
   }
   map(lambda) {
     const n = this._image.length;
@@ -125,10 +182,10 @@ class Canvas {
       const x = j;
       const y = h - 1 - i;
       const color = lambda(x, y);
-      this._image[k] = color.red * 255;
-      this._image[k + 1] = color.green * 255;
-      this._image[k + 2] = color.blue * 255;
-      this._image[k + 3] = 255;
+      this._image[k] = color.red * MAX_8BIT2;
+      this._image[k + 1] = color.green * MAX_8BIT2;
+      this._image[k + 2] = color.blue * MAX_8BIT2;
+      this._image[k + 3] = MAX_8BIT2;
     }
     return this.paint();
   }
@@ -138,11 +195,19 @@ class Canvas {
     const i = h - 1 - y;
     const j = x;
     let index = 4 * (w * i + j);
-    this._image[index] = color.red * 255;
-    this._image[index + 1] = color.green * 255;
-    this._image[index + 2] = color.blue * 255;
-    this._image[index + 3] = 255;
+    this._image[index] = color.red * MAX_8BIT2;
+    this._image[index + 1] = color.green * MAX_8BIT2;
+    this._image[index + 2] = color.blue * MAX_8BIT2;
+    this._image[index + 3] = MAX_8BIT2;
     return this;
+  }
+  getPxl(x, y) {
+    const w = this._width;
+    const h = this._height;
+    const i = h - 1 - y;
+    const j = x;
+    let index = 4 * (w * i + j);
+    return Color.ofRGBRaw(this._image[index], this._image[index + 1], this._image[index + 2]);
   }
   paint() {
     this._ctx.putImageData(this._imageData, 0, 0);
@@ -202,6 +267,20 @@ class Canvas {
   static ofCanvas(canvas) {
     return new Canvas(canvas._canvas);
   }
+  static ofUrl(url) {
+    return new Promise((resolve) => {
+      const img = document.createElement("img");
+      img.src = url;
+      img.onload = function() {
+        const canvas = document.createElement("canvas");
+        canvas.width = img.width;
+        canvas.height = img.height;
+        const ctx = canvas.getContext("2d");
+        ctx.drawImage(img, 0, 0);
+        resolve(Canvas.ofDOM(canvas));
+      };
+    });
+  }
   static ofImage(image) {
     const w = image.width;
     const h = image.height;
@@ -211,61 +290,7 @@ class Canvas {
   }
 }
 
-// src/Ray/Ray.js.js.
-var MAX_8BIT = 255;
-
-class Color {
-  constructor(rbg) {
-    this.rgb = rbg;
-  }
-  getRGB() {
-    return this.rgb;
-  }
-  get red() {
-    return this.rgb[0];
-  }
-  get green() {
-    return this.rgb[1];
-  }
-  get blue() {
-    return this.rgb[2];
-  }
-  add(color) {
-    return Color.ofRGB(this.rgb[0] + color.red, this.rgb[1] + color.green, this.rgb[2] + color.blue);
-  }
-  scale(r) {
-    const ans = this.rgb.map((c) => Math.min(1, Math.max(0, c * r)));
-    return new Color(ans);
-  }
-  equals(color) {
-    return this.rgb[0] === color.rgb[0] && this.rgb[1] === color.rgb[1] && this.rgb[2] === color.rgb[2];
-  }
-  static ofRGB(red = 0, green = 0, blue = 0) {
-    const rgb = new Float64Array(3);
-    rgb[0] = red;
-    rgb[1] = green;
-    rgb[2] = blue;
-    return new Color(rgb);
-  }
-  static ofRGBRaw(red = 0, green = 0, blue = 0) {
-    const rgb = new Float64Array(3);
-    rgb[0] = red / MAX_8BIT;
-    rgb[1] = green / MAX_8BIT;
-    rgb[2] = blue / MAX_8BIT;
-    return new Color(rgb);
-  }
-  static random() {
-    const r = () => Math.random();
-    return Color.ofRGB(r(), r(), r());
-  }
-  static RED = Color.ofRGB(1, 0, 0);
-  static GREEN = Color.ofRGB(0, 1, 0);
-  static BLUE = Color.ofRGB(0, 0, 1);
-  static BLACK = Color.ofRGB(0, 0, 0);
-  static WHITE = Color.ofRGB(1, 1, 1);
-}
-
-// src/Ray/Ray.js.js.jsilder.js
+// src/Ray/Ray.js.jsts.jsser.js
 var isElement = function(o) {
   return typeof HTMLElement === "object" ? o instanceof HTMLElement : o && typeof o === "object" && o !== null && o.nodeType === 1 && typeof o.nodeName === "string";
 };
@@ -357,77 +382,7 @@ class DomBuilder {
 }
 var DomBuilder_default = DomBuilder;
 
-// src/Ray/Ray.js.js.
-class Image {
-  constructor(width, height) {
-    this._width = width;
-    this._height = height;
-    this._image = new Array(this._width * this._height).fill(() => Color.ofRGB());
-  }
-  get width() {
-    return this._width;
-  }
-  get height() {
-    return this._height;
-  }
-  fill(color) {
-    return this._image.map(() => color);
-  }
-  map(lambda) {
-    const n = this._image.length;
-    const w = this._width;
-    const h = this._height;
-    for (let k = 0;k < n; k++) {
-      const i = Math.floor(k / w);
-      const j = k % w;
-      const x = j;
-      const y = h - 1 - i;
-      this._image[k] = lambda(x, y);
-    }
-    return this;
-  }
-  toArray() {
-    const w = this._width;
-    const h = this._height;
-    const imageData = new Uint8Array(this._width * this._height * 4);
-    for (let i = 0;i < h; i++) {
-      for (let j = 0;j < w; j++) {
-        let index = w * i + j;
-        const color = this._image[index];
-        index <<= 2;
-        imageData[index] = color.red * 255;
-        imageData[index + 1] = color.green * 255;
-        imageData[index + 2] = color.blue * 255;
-        imageData[index + 3] = 255;
-      }
-    }
-    return imageData;
-  }
-  static ofSize(width, height) {
-    return new Image(width, height);
-  }
-  static ofDOM(canvasDOM) {
-    const ctx = canvasDOM.getContext("2d", { willReadFrequently: true });
-    const w = canvasDOM.width;
-    const h = canvasDOM.height;
-    const imageData = ctx.getImageData(0, 0, w, h);
-    const data = imageData.data;
-    const image = Image.ofSize(w, h);
-    for (let i = 0;i < data.length; i += 4) {
-      const color = Color.ofRGB(data[i] / 255, data[i + 1] / 255, data[i + 2] / 255);
-      image._image[Math.floor(i / 4)] = color;
-    }
-  }
-  static ofCanvas(canvas) {
-    const w = canvas.width;
-    const h = canvas.height;
-    return Image.ofSize(w, h).map((x, y) => {
-      return canvas.get(x, y);
-    });
-  }
-}
-
-// src/Ray/Ray.js.js.js
+// src/Ray/Ray.js.jsts.
 var _sanitize_input = function(arrayIn, arrayOut) {
   for (let i = 0;i < arrayIn.length; i++) {
     const z = arrayIn[i];
@@ -827,7 +782,7 @@ function Ray(init, dir) {
   return ans;
 }
 
-// src/Ray/Ray.js.js.js
+// src/Ray/Ray.js.jsts.
 class Camera {
   constructor(props = {
     sphericalCoords: Vec3(2, 0, 0),
@@ -917,22 +872,13 @@ class Camera {
           }
         });
         canvas.paint();
+        return canvas;
       }
     };
   }
-  _naiveShot(scene) {
-    const lambda = (ray) => {
-      return scene._naiveIntercept(ray).map(([pos, normal]) => {
-        return Color.ofRGB((normal.get(0) + 1) / 2, (normal.get(1) + 1) / 2, (normal.get(2) + 1) / 2);
-      }).orElse(() => {
-        return Color.BLACK;
-      });
-    };
-    return this.rayShot(lambda);
-  }
 }
 
-// src/Ray/Ray.js.js.js
+// src/Ray/Ray.js.jsts.
 var exports_Monads = {};
 __export(exports_Monads, {
   some: () => {
@@ -1074,12 +1020,17 @@ class Box {
   static EMPTY = new Box;
 }
 
-// src/Ray/Ray.js.js.
+// src/Ray/Ray.js.jst
 var exports_Utils = {};
 __export(exports_Utils, {
   or: () => {
     {
       return or;
+    }
+  },
+  measureTimeWithResult: () => {
+    {
+      return measureTimeWithResult;
     }
   },
   measureTime: () => {
@@ -1102,6 +1053,11 @@ function measureTime(lambda) {
   const t = performance.now();
   lambda();
   return 0.001 * (performance.now() - t);
+}
+function measureTimeWithResult(lambda) {
+  const t = performance.now();
+  const result = lambda();
+  return { result, time: 0.001 * (performance.now() - t) };
 }
 function compose(f, g) {
   return (x) => f(g(x));
@@ -1128,7 +1084,7 @@ function argmin(array, costFunction = (x) => x) {
   return argminIndex;
 }
 
-// src/Ray/Ray.js.js.
+// src/Ray/Ray.js.jst
 var sphereInterception = function(point, ray) {
   const { init, dir } = ray;
   const diff = init.sub(point.position);
@@ -1219,7 +1175,7 @@ class PointBuilder {
 }
 var Point_default = Point;
 
-// src/Ray/Ray.js.js.
+// src/Ray/Ray.js.jst
 class Scene {
   constructor() {
     this.id2ElemMap = {};
@@ -1227,7 +1183,11 @@ class Scene {
     this.boundingBoxScene = new Node;
   }
   add(...elements) {
-    elements.forEach((elem) => {
+    return this.addList(elements);
+  }
+  addList(elements) {
+    for (let i = 0;i < elements.length; i++) {
+      const elem = elements[i];
       const classes = [Point_default];
       if (!classes.some((c) => elem instanceof c))
         return this;
@@ -1235,11 +1195,13 @@ class Scene {
       this.id2ElemMap[name] = elem;
       this.sceneElements.push(elem);
       this.boundingBoxScene.add(elem);
-    });
+    }
     return this;
   }
   clear() {
     this.id2ElemMap = {};
+    this.sceneElements = [];
+    this.boundingBoxScene = new Node;
   }
   getElements() {
     return this.sceneElements;
@@ -1259,21 +1221,6 @@ class Scene {
       grad.push(this.distanceToPoint(p.add(Vec.e(n)(i).scale(epsilon))) - d);
     }
     return Vec.fromArray(grad).scale(Math.sign(d)).normalize();
-  }
-  _naiveIntercept(ray) {
-    const points = this.sceneElements;
-    let closestDistance = Number.MAX_VALUE;
-    let closest = none();
-    for (let i = 0;i < points.length; i++) {
-      points[i].interceptWith(ray).map(([pos, normal]) => {
-        const distance = ray.init.sub(pos).length();
-        if (distance < closestDistance) {
-          closest = some([pos, normal]);
-          closestDistance = distance;
-        }
-      });
-    }
-    return closest;
   }
 }
 
@@ -1403,6 +1350,69 @@ class Leaf {
   }
 }
 
+// src/Ray/Ray.js.jsts.jss
+class NaiveScene {
+  constructor() {
+    this.id2ElemMap = {};
+    this.sceneElements = [];
+  }
+  add(...elements) {
+    return this.addList(elements);
+  }
+  addList(elements) {
+    for (let i = 0;i < elements.length; i++) {
+      const elem = elements[i];
+      const classes = [Point_default];
+      if (!classes.some((c) => elem instanceof c))
+        return this;
+      const { name } = elem;
+      this.id2ElemMap[name] = elem;
+      this.sceneElements.push(elem);
+    }
+    return this;
+  }
+  clear() {
+    this.id2ElemMap = {};
+    this.sceneElements = [];
+  }
+  getElements() {
+    return this.sceneElements;
+  }
+  distanceToPoint(p) {
+    const elements = this.sceneElements;
+    let distance = Number.MAX_VALUE;
+    for (let i = 0;i < elements.length; i++) {
+      distance = smin(distance, elements[i].distanceToPoint(p));
+    }
+    return;
+  }
+  estimateNormal(p) {
+    const epsilon = 0.001;
+    const n = p.dim;
+    const grad = [];
+    const d = this.distanceToPoint(p);
+    for (let i = 0;i < n; i++) {
+      grad.push(this.distanceToPoint(p.add(Vec.e(n)(i).scale(epsilon))) - d);
+    }
+    return Vec.fromArray(grad).scale(Math.sign(d)).normalize();
+  }
+  interceptWith(ray) {
+    const points = this.sceneElements;
+    let closestDistance = Number.MAX_VALUE;
+    let closest = none();
+    for (let i = 0;i < points.length; i++) {
+      points[i].interceptWith(ray).map(([pos, normal]) => {
+        const distance = ray.init.sub(pos).length();
+        if (distance < closestDistance) {
+          closest = some([pos, normal]);
+          closestDistance = distance;
+        }
+      });
+    }
+    return closest;
+  }
+}
+
 // src/Ray/Ray.js.js
 var RADIUS = 0.001;
 
@@ -1489,9 +1499,9 @@ export {
   Stream,
   Scene,
   Point_default as Point,
+  NaiveScene,
   exports_Monads as Monads,
   Mesh,
-  Image,
   DomBuilder_default as DOM,
   Color,
   Canvas,

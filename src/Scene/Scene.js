@@ -15,19 +15,26 @@ export default class Scene {
   }
 
   add(...elements) {
-    elements.forEach(elem => {
+    return this.addList(elements);
+  }
+
+  addList(elements) {
+    for (let i = 0; i < elements.length; i++) {
+      const elem = elements[i];
       const classes = [Point];
       if (!classes.some((c) => elem instanceof c)) return this;
       const { name } = elem;
       this.id2ElemMap[name] = elem;
       this.sceneElements.push(elem);
       this.boundingBoxScene.add(elem);
-    })
+    }
     return this;
   }
 
   clear() {
     this.id2ElemMap = {};
+    this.sceneElements = [];
+    this.boundingBoxScene = new Node();
   }
 
   getElements() {
@@ -51,26 +58,6 @@ export default class Scene {
       grad.push(this.distanceToPoint(p.add(Vec.e(n)(i).scale(epsilon))) - d);
     }
     return Vec.fromArray(grad).scale(Math.sign(d)).normalize();
-  }
-
-  _naiveIntercept(ray) {
-    const points = this.sceneElements;
-    let closestDistance = Number.MAX_VALUE;
-    let closest = none();
-    for (let i = 0; i < points.length; i++) {
-      points[i].interceptWith(ray)
-        .map(([pos, normal]) => {
-          const distance = ray
-            .init
-            .sub(pos)
-            .length();
-          if (distance < closestDistance) {
-            closest = some([pos, normal]);
-            closestDistance = distance;
-          }
-        })
-    }
-    return closest;
   }
 }
 

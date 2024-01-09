@@ -1,4 +1,6 @@
 import Color from "../Color/Color.js";
+import Jimp from "jimp";
+
 export default class Image {
 
     constructor(width, height) {
@@ -23,6 +25,11 @@ export default class Image {
         return this._image.map(() => color);
     }
 
+    paint() {
+        // to implement the same interface as canvas
+        return this;
+    }
+
     /**
      * lambda: (x: Number, y: Number) => Color 
      */
@@ -38,6 +45,29 @@ export default class Image {
             this._image[k] = lambda(x, y);
         }
         return this;
+    }
+
+    setPxl(x, y, color) {
+        const w = this._width;
+        const h = this._height;
+        const i = h - 1 - y;
+        const j = x;
+        let index = w * i + j;
+        this._image[index] = color;
+        return this;
+    }
+
+    getPxl(x, y) {
+        const w = this._width;
+        const h = this._height;
+        const i = h - 1 - y;
+        const j = x;
+        let index = w * i + j;
+        return this._image[index];
+    }
+
+    array() {
+        return this.toArray();
     }
 
     toArray() {
@@ -57,6 +87,26 @@ export default class Image {
             }
         }
         return imageData;
+    }
+
+    static ofUrl(url) {
+        return new Promise((resolve, reject) => {
+            Jimp.read(url, (error, image) => {
+                if (error) {
+                    return reject(error);
+                }
+                const width = image.bitmap.width;
+                const height = image.bitmap.height;
+
+                const img = Image.ofSize(width, height);
+
+                img.map((i, j) => {
+                    const color = Jimp.intToRGBA(image.getPixelColor(i, j));
+                    return Color.ofRGB(color.r, color.g, color.b);
+                })
+                resolve(img);
+            })
+        });
     }
 
     static ofSize(width, height) {

@@ -1,3 +1,5 @@
+import Color from "../Color/Color";
+import { MAX_8BIT } from "../Utils/Constants";
 import { clipLine } from "../Utils/Math";
 
 export default class Canvas {
@@ -27,7 +29,7 @@ export default class Canvas {
     * color: Color 
     */
   fill(color) {
-    return this.map((i) => color);
+    return this.map(() => color);
   }
 
   /**
@@ -43,10 +45,10 @@ export default class Canvas {
       const x = j;
       const y = h - 1 - i;
       const color = lambda(x, y);
-      this._image[k] = color.red * 255;
-      this._image[k + 1] = color.green * 255;
-      this._image[k + 2] = color.blue * 255;
-      this._image[k + 3] = 255;
+      this._image[k] = color.red * MAX_8BIT;
+      this._image[k + 1] = color.green * MAX_8BIT;
+      this._image[k + 2] = color.blue * MAX_8BIT;
+      this._image[k + 3] = MAX_8BIT;
     }
     return this.paint();
   }
@@ -57,11 +59,20 @@ export default class Canvas {
     const i = h - 1 - y;
     const j = x;
     let index = 4 * (w * i + j);
-    this._image[index] = color.red * 255;
-    this._image[index + 1] = color.green * 255;
-    this._image[index + 2] = color.blue * 255;
-    this._image[index + 3] = 255;
+    this._image[index] = color.red * MAX_8BIT;
+    this._image[index + 1] = color.green * MAX_8BIT;
+    this._image[index + 2] = color.blue * MAX_8BIT;
+    this._image[index + 3] = MAX_8BIT;
     return this;
+  }
+
+  getPxl(x, y) {
+    const w = this._width;
+    const h = this._height;
+    const i = h - 1 - y;
+    const j = x;
+    let index = 4 * (w * i + j);
+    return Color.ofRGBRaw(this._image[index], this._image[index + 1], this._image[index + 2]);
   }
 
   // drawLine(p1, p2, shader) {
@@ -151,6 +162,21 @@ export default class Canvas {
 
   static ofCanvas(canvas) {
     return new Canvas(canvas._canvas);
+  }
+
+  static ofUrl(url) {
+    return new Promise((resolve) => {
+      const img = document.createElement("img");
+      img.src = url;
+      img.onload = function () {
+        const canvas = document.createElement("canvas");
+        canvas.width = img.width;
+        canvas.height = img.height;
+        const ctx = canvas.getContext("2d");
+        ctx.drawImage(img, 0, 0);
+        resolve(Canvas.ofDOM(canvas));
+      };
+    });
   }
 
   static ofImage(image) {

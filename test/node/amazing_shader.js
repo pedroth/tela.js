@@ -1,12 +1,9 @@
 import { Color, Image, Stream, IO, Utils } from "../../dist/node/index.js";
-
 const { measureTime } = Utils;
-const { saveImageToFile, saveStreamToFile } = IO;
+const { saveStreamToFile } = IO;
 
 const width = 640;
 const height = 480;
-const step = (threshold) => (x) => x < threshold ? 0 : 1;
-const mod = (x) => (n) => ((x % n) + n) % n;
 const clamp = x => Math.max(Math.min(1, x), 0);
 function palette(t) {
     let a = [0.5, 0.5, 0.5];
@@ -15,34 +12,6 @@ function palette(t) {
     let d = [0.263, 0.416, 0.557];
     return [a[0] + b[0] * Math.cos(6.28318 * (c[0] * t + d[0])), a[1] + b[1] * Math.cos(6.28318 * (c[1] * t + d[1])), a[2] + b[2] * Math.cos(6.28318 * (c[2] * t + d[2]))];
 }
-
-saveImageToFile(
-    "./test0.png",
-    Image.ofSize(width, height)
-        .map((x, y) => {
-            let u = x / width;
-            let v = y / height;
-            return Color.ofRGB((2 * u) % 1, (2 * v) % 1, 0);
-        })
-)
-
-saveImageToFile(
-    "./test1.jpeg",
-    Image.ofSize(width, height)
-        .map((x, y) => {
-            let u = x / (width - 1);
-            let v = y / (height - 1);
-            const grid = 10;
-            u *= grid;
-            v *= grid;
-            const t = 1;
-            const u_t = Math.cos(t) * u + Math.sin(t) * v;
-            const v_t = -Math.sin(t) * u + Math.cos(t) * v;
-            const color =
-                (1 - step(0.95)(mod(u_t)(1))) * (1 - step(0.95)(mod(v_t)(1)));
-            return Color.ofRGB(color, color, color);
-        })
-)
 
 const imageStream = new Stream(
     { time: 0, image: Image.ofSize(width, height) },
@@ -79,7 +48,7 @@ console.log(
     "Video created in: ",
     measureTime(() => {
         saveStreamToFile(
-            "./test3.mp4",
+            "./amazing.mp4",
             imageStream,
             { fps: 100 }
         ).until(({ time }) => time < 5)
