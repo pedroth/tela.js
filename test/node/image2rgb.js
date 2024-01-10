@@ -1,5 +1,5 @@
 import { Image, Stream, IO, Utils, Vec3, NaiveScene, Camera, Point } from "../../dist/node/index.js";
-const { saveStreamToFile } = IO;
+const { saveStreamToFile, saveImageToFile, readImageFrom } = IO;
 const { measureTimeWithResult, measureTime } = Utils;
 
 (async () => {
@@ -9,35 +9,34 @@ const { measureTimeWithResult, measureTime } = Utils;
     // scene
     const scene = new NaiveScene();
     const camera = new Camera({ sphericalCoords: Vec3(4, 0, 0) });
-    const [img, time] = await measureTimeWithResult(() => Image.ofUrl("./assets/kakashi.jpg"));
+    const img = Image.ofUrl("./assets/kakashi.jpg");
     const grid = [...Array(img.width * img.height)]
         .map((_, k) => {
             const i = Math.floor(k / img.width);
             const j = k % img.width;
-            const x = j;
-            const y = i;
+            const x = j / img.width;
+            const y = i / img.height;
             return Point
                 .builder()
                 .name(`pxl_${k}`)
                 .radius(0.01)
                 .position(
-                    Vec3(0, x / img.width, y / img.height)
+                    Vec3(0, x, y)
                 )
-                .color(img.getPxl(x, y))
+                .color(img.getPxl(j, i))
                 .build();
         });
-    console.log(">>>>", time)
     scene.addList(grid);
     // saveImageToFile("kakashi.png", camera.reverseShot(scene).to(Image.ofSize(width, height)));
 
     const imageStream = new Stream(
         { time: 0, image: camera.reverseShot(scene).to(Image.ofSize(width, height)) },
-        ({ time, image }) => {
+        async ({ time, image }) => {
             const dt = 0.04; // 25 FPS
             const theta = Math.PI / 4 * time;
             camera.sphericalCoords = Vec3(camera.sphericalCoords.get(0), theta, Math.PI / 4);
             camera.orbit();
-            const { result: newImage, time: t } = measureTimeWithResult(() => camera.reverseShot(scene).to(image));
+            const { result: newImage, time: t } = await measureTimeWithResult(() => camera.reverseShot(scene).to(image));
             console.log(`Image took ${t}s`);
             return {
                 time: time + dt,

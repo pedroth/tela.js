@@ -102,10 +102,10 @@ class Node {
   }
 
   interceptWith(ray, depth = 1) {
-    if (this.numberOfLeafs === 5) {
-      // return this.getRandomLeaf().interceptWith(ray, 10);
-      return this.box.interceptWith(ray).map(p => [p, this.box.estimateNormal(p)]);
-    }
+    // if (this.numberOfLeafs === 5) {
+    //   // return this.getRandomLeaf().interceptWith(ray, 10);
+    //   return this.box.interceptWith(ray).map(p => [p, this.box.estimateNormal(p)]);
+    // }
     return this.box.interceptWith(ray).flatMap((p) => {
       const children = [this.left, this.right].filter(x => x);
       const hits = [];

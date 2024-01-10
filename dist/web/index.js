@@ -9,7 +9,7 @@ var __export = (target, all) => {
     });
 };
 
-// src/Ray/Ray.js.jsts.
+// src/Utils/Constants.
 class Stream {
   constructor(initialState, updateStateFunction) {
     this._head = initialState;
@@ -23,7 +23,7 @@ class Stream {
   }
 }
 
-// src/Ray/Ray.js.jsts.jsser.
+// src/Utils/Constants.jsser.
 class Animation {
   constructor(state, next, doWhile) {
     this.animation = new Stream(state, next);
@@ -75,7 +75,7 @@ class AnimationBuilder {
   }
 }
 
-// src/Ray/Ray.js.jst
+// src/Utils/Constant
 var MAX_8BIT = 255;
 
 class Color {
@@ -129,16 +129,16 @@ class Color {
   static WHITE = Color.ofRGB(1, 1, 1);
 }
 
-// src/Ray/Ray.js.jsts.js
+// src/Utils/Constants.js
 var MAX_8BIT2 = 255;
 
-// src/Ray/Ray.js.js
+// src/Utils/Constan
 function smin(a, b, k = 32) {
   const res = Math.exp(-k * a) + Math.exp(-k * b);
   return -Math.log(res) / k;
 }
 
-// src/Ray/Ray.js.jsts.
+// src/Utils/Constants.
 var handleMouse = function(canvas, lambda) {
   return (event) => {
     const h = canvas.height;
@@ -290,7 +290,7 @@ class Canvas {
   }
 }
 
-// src/Ray/Ray.js.jsts.jsser.js
+// src/Utils/Constants.jsser.js
 var isElement = function(o) {
   return typeof HTMLElement === "object" ? o instanceof HTMLElement : o && typeof o === "object" && o !== null && o.nodeType === 1 && typeof o.nodeName === "string";
 };
@@ -382,7 +382,7 @@ class DomBuilder {
 }
 var DomBuilder_default = DomBuilder;
 
-// src/Ray/Ray.js.jsts.
+// src/Utils/Constants.
 var _sanitize_input = function(arrayIn, arrayOut) {
   for (let i = 0;i < arrayIn.length; i++) {
     const z = arrayIn[i];
@@ -773,7 +773,7 @@ class Vector2 {
   static ONES = new Vector2(1, 1);
 }
 
-// src/Ray/Ray.js
+// src/Utils/Cons
 function Ray(init, dir) {
   const ans = {};
   ans.init = init;
@@ -782,7 +782,7 @@ function Ray(init, dir) {
   return ans;
 }
 
-// src/Ray/Ray.js.jsts.
+// src/Utils/Constants.
 class Camera {
   constructor(props = {
     sphericalCoords: Vec3(2, 0, 0),
@@ -828,7 +828,7 @@ class Camera {
   }
   sceneShot(scene) {
     const lambda = (ray) => {
-      return scene.interceptWith(ray).map(([pos, normal]) => {
+      return scene.interceptWith(ray).map(([, normal]) => {
         return Color.ofRGB((normal.get(0) + 1) / 2, (normal.get(1) + 1) / 2, (normal.get(2) + 1) / 2);
       }).orElse(() => {
         return Color.BLACK;
@@ -856,7 +856,7 @@ class Camera {
           y = Math.floor(y);
           if (x < 0 || x >= w || y < 0 || y >= h)
             return;
-          const radius = Math.floor(Math.max(1, Math.min(10, 10 - z)));
+          const radius = Math.ceil(point.radius * (this.distanceToPlane / z) * w);
           for (let k = -radius;k < radius; k++) {
             for (let l = -radius;l < radius; l++) {
               const xl = Math.max(0, Math.min(w - 1, x + k));
@@ -878,7 +878,7 @@ class Camera {
   }
 }
 
-// src/Ray/Ray.js.jsts.
+// src/Utils/Constants.
 var exports_Monads = {};
 __export(exports_Monads, {
   some: () => {
@@ -926,7 +926,7 @@ function maybe(x) {
   return none(x);
 }
 
-// src/Ray/Ray.js
+// src/Utils/Cons
 var maxComp = function(u) {
   return u.fold((e, x) => Math.max(e, x), -Number.MAX_VALUE);
 };
@@ -1020,7 +1020,7 @@ class Box {
   static EMPTY = new Box;
 }
 
-// src/Ray/Ray.js.jst
+// src/Utils/Constant
 var exports_Utils = {};
 __export(exports_Utils, {
   or: () => {
@@ -1054,9 +1054,9 @@ function measureTime(lambda) {
   lambda();
   return 0.001 * (performance.now() - t);
 }
-function measureTimeWithResult(lambda) {
+async function measureTimeWithResult(lambda) {
   const t = performance.now();
-  const result = lambda();
+  const result = await lambda();
   return { result, time: 0.001 * (performance.now() - t) };
 }
 function compose(f, g) {
@@ -1084,7 +1084,7 @@ function argmin(array, costFunction = (x) => x) {
   return argminIndex;
 }
 
-// src/Ray/Ray.js.jst
+// src/Utils/Constant
 var sphereInterception = function(point, ray) {
   const { init, dir } = ray;
   const diff = init.sub(point.position);
@@ -1175,7 +1175,7 @@ class PointBuilder {
 }
 var Point_default = Point;
 
-// src/Ray/Ray.js.jst
+// src/Utils/Constant
 class Scene {
   constructor() {
     this.id2ElemMap = {};
@@ -1260,9 +1260,6 @@ class Node {
     return Math.random() < 0.5 ? this.left.getRandomLeaf() : this.right.getRandomLeaf();
   }
   interceptWith(ray, depth = 1) {
-    if (this.numberOfLeafs === 5) {
-      return this.box.interceptWith(ray).map((p) => [p, this.box.estimateNormal(p)]);
-    }
     return this.box.interceptWith(ray).flatMap((p) => {
       const children = [this.left, this.right].filter((x) => x);
       const hits = [];
@@ -1350,7 +1347,7 @@ class Leaf {
   }
 }
 
-// src/Ray/Ray.js.jsts.jss
+// src/Utils/Constants.jss
 class NaiveScene {
   constructor() {
     this.id2ElemMap = {};
@@ -1413,7 +1410,7 @@ class NaiveScene {
   }
 }
 
-// src/Ray/Ray.js.js
+// src/Utils/Constan
 var RADIUS = 0.001;
 
 class Mesh {

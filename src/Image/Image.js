@@ -1,5 +1,6 @@
 import Color from "../Color/Color.js";
 import Jimp from "jimp";
+import { readImageFrom } from "../IO/IO.js";
 
 export default class Image {
 
@@ -90,23 +91,7 @@ export default class Image {
     }
 
     static ofUrl(url) {
-        return new Promise((resolve, reject) => {
-            Jimp.read(url, (error, image) => {
-                if (error) {
-                    return reject(error);
-                }
-                const width = image.bitmap.width;
-                const height = image.bitmap.height;
-
-                const img = Image.ofSize(width, height);
-
-                img.map((i, j) => {
-                    const color = Jimp.intToRGBA(image.getPixelColor(i, j));
-                    return Color.ofRGB(color.r, color.g, color.b);
-                })
-                resolve(img);
-            })
-        });
+        return readImageFrom(url);
     }
 
     static ofSize(width, height) {

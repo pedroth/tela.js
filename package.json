@@ -1,13 +1,23 @@
 {
   "name": "tela.js",
   "version": "1.0.0",
-  "description": "Graphic library from scratch",
-  "module": "./src/index.js",
-  "type": "module",
+  "author": "Pedroth",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/pedroth/tela.js.git"
   },
+  "module": "./src/index.js",
+  "devDependencies": {
+    "bun-types": "latest",
+    "child_process": "^1.0.2",
+    "eslint": "^8.55.0",
+    "node-watch": "^0.7.4"
+  },
+  "bugs": {
+    "url": "https://github.com/pedroth/tela.js/issues"
+  },
+  "description": "Graphic library from scratch",
+  "homepage": "https://github.com/pedroth/tela.js#readme",
   "keywords": [
     "javascript",
     "computer graphics",
@@ -15,12 +25,7 @@
     "mathematics",
     "minimal dependencies"
   ],
-  "author": "Pedroth",
   "license": "Apache-2.0",
-  "bugs": {
-    "url": "https://github.com/pedroth/tela.js/issues"
-  },
-  "homepage": "https://github.com/pedroth/tela.js#readme",
   "scripts": {
     "build": "bun run clean; bun i; bun bundle.js",
     "buildDev": "bun bundle.js --watch",
@@ -28,13 +33,5 @@
     "clean": "rm -fr node_modules; rm -fr dist/; rm *.png *.jpeg *.ppm *.webm *.mp4",
     "pub": "npm version patch; bun run build; npm publish"
   },
-  "devDependencies": {
-    "bun-types": "latest",
-    "child_process": "^1.0.2",
-    "eslint": "^8.55.0",
-    "node-watch": "^0.7.4"
-  },
-  "dependencies": {
-    "jimp": "^0.22.10"
-  }
+  "type": "module"
 }

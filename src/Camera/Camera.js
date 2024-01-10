@@ -63,7 +63,7 @@ export default class Camera {
   sceneShot(scene) {
     const lambda = ray => {
       return scene.interceptWith(ray)
-        .map(([pos, normal]) => {
+        .map(([, normal]) => {
           return Color.ofRGB(
             (normal.get(0) + 1) / 2,
             (normal.get(1) + 1) / 2,
@@ -92,6 +92,7 @@ export default class Camera {
             this.basis[1].dot(pointInCamCoord),
             this.basis[2].dot(pointInCamCoord)
           )
+          
           //frustum culling
           const z = pointInCamCoord.get(2);
           if (z < this.distanceToPlane) return;
@@ -106,7 +107,7 @@ export default class Camera {
           x = Math.floor(x);
           y = Math.floor(y);
           if (x < 0 || x >= w || y < 0 || y >= h) return;
-          const radius = Math.floor(Math.max(1, Math.min(10, 10 - z)));
+          const radius = Math.ceil((point.radius) * (this.distanceToPlane / z) * w);
           for (let k = -radius; k < radius; k++) {
             for (let l = -radius; l < radius; l++) {
               const xl = Math.max(0, Math.min(w - 1, x + k));

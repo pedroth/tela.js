@@ -21,22 +21,52 @@ function getFileNameAndExtensionFromAddress(address) {
     return { fileName, extension };
 }
 
+// parse p6 type of ppm image file
+// with help of chatGPT
+function parsePPM(data) {
+    const NEW_LINE_CHAR = 10;
+    let index = 0;
+    let headerLines = 3;
+    // read until end of header
+    while (headerLines > 0) {
+        if (data[index] === NEW_LINE_CHAR) headerLines--;
+        index++;
+    }
+    const [, width, height, maxColor] = data
+        .slice(0, index)
+        .map(x => String.fromCharCode(x))
+        .join("")
+        .match(/\d+/g)
+        .map(Number);
+
+    const pixelStart = index;
+    const pixels = [];
+    for (let i = pixelStart; i < data.length; i += 3) {
+        pixels.push({
+            r: data[i],
+            g: data[i + 1],
+            b: data[i + 2],
+        });
+    }
+    return { width, height, maxColor, pixels };
+}
+
 export function readImageFrom(src) {
     const { fileName } = getFileNameAndExtensionFromAddress(src);
     execSync(`ffmpeg -i ${src} ${fileName}.ppm`);
-    const imageFile = readFileSync(`${fileName}.ppm`, { encoding: "utf-8" });
-    const rows = imageFile.split("\n");
-    const [header, ...rest] = rows;
-    const [w, h] = header.split(" ").slice(1, 2).map(Number.parseInt);
+    const imageFile = readFileSync(`${fileName}.ppm`);
+    const { width: w, height: h, pixels } = parsePPM(Array.from(imageFile));
+    unlinkSync(`${fileName}.ppm`);
     const img = Image.ofSize(w, h);
-    rest.forEach((line, k) => {
+    for (let k = 0; k < pixels.length; k++) {
+        const { r, g, b } = pixels[k];
         const i = Math.floor(k / w);
-        const j = j % w;
+        const j = k % w;
         const x = j;
         const y = h - 1 - i;
-        const [r, g, b] = line.split(" ").map(Number.parseInt);
         img.setPxl(x, y, Color.ofRGBRaw(r, g, b));
-    })
+    }
+    return img;
 }
 
 export function createPPMFromFromImage(image) {
