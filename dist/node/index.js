@@ -9,7 +9,7 @@ var __export = (target, all) => {
     });
 };
 
-// src/Utils/Constants.
+// src/Ray/Ray.js.jsts.
 class Stream {
   constructor(initialState, updateStateFunction) {
     this._head = initialState;
@@ -23,7 +23,7 @@ class Stream {
   }
 }
 
-// src/Utils/Constants.jsser.
+// src/Ray/Ray.js.jsts.jsser.
 class Animation {
   constructor(state, next, doWhile) {
     this.animation = new Stream(state, next);
@@ -75,7 +75,7 @@ class AnimationBuilder {
   }
 }
 
-// src/Utils/Constant
+// src/Ray/Ray.js.jst
 var MAX_8BIT = 255;
 
 class Color {
@@ -129,16 +129,16 @@ class Color {
   static WHITE = Color.ofRGB(1, 1, 1);
 }
 
-// src/Utils/Constants.js
+// src/Ray/Ray.js.jsts.js
 var MAX_8BIT2 = 255;
 
-// src/Utils/Constan
+// src/Ray/Ray.js.js
 function smin(a, b, k = 32) {
   const res = Math.exp(-k * a) + Math.exp(-k * b);
   return -Math.log(res) / k;
 }
 
-// src/Utils/Constants.
+// src/Ray/Ray.js.jsts.
 var handleMouse = function(canvas, lambda) {
   return (event) => {
     const h = canvas.height;
@@ -290,7 +290,7 @@ class Canvas {
   }
 }
 
-// src/Utils/Constants.jsser.js
+// src/Ray/Ray.js.jsts.jsser.js
 var isElement = function(o) {
   return typeof HTMLElement === "object" ? o instanceof HTMLElement : o && typeof o === "object" && o !== null && o.nodeType === 1 && typeof o.nodeName === "string";
 };
@@ -382,7 +382,7 @@ class DomBuilder {
 }
 var DomBuilder_default = DomBuilder;
 
-// src/Utils/Constants.
+// src/Ray/Ray.js.jsts.
 var _sanitize_input = function(arrayIn, arrayOut) {
   for (let i = 0;i < arrayIn.length; i++) {
     const z = arrayIn[i];
@@ -773,7 +773,7 @@ class Vector2 {
   static ONES = new Vector2(1, 1);
 }
 
-// src/Utils/Cons
+// src/Ray/Ray.js
 function Ray(init, dir) {
   const ans = {};
   ans.init = init;
@@ -782,7 +782,7 @@ function Ray(init, dir) {
   return ans;
 }
 
-// src/Utils/Constants.
+// src/Ray/Ray.js.jsts.
 class Camera {
   constructor(props = {
     sphericalCoords: Vec3(2, 0, 0),
@@ -878,7 +878,7 @@ class Camera {
   }
 }
 
-// src/Utils/Constants.
+// src/Ray/Ray.js.jsts.
 var exports_Monads = {};
 __export(exports_Monads, {
   some: () => {
@@ -926,7 +926,7 @@ function maybe(x) {
   return none(x);
 }
 
-// src/Utils/Cons
+// src/Ray/Ray.js
 var maxComp = function(u) {
   return u.fold((e, x) => Math.max(e, x), -Number.MAX_VALUE);
 };
@@ -1020,7 +1020,7 @@ class Box {
   static EMPTY = new Box;
 }
 
-// src/Utils/Constant
+// src/Ray/Ray.js.jst
 var exports_Utils = {};
 __export(exports_Utils, {
   or: () => {
@@ -1094,7 +1094,7 @@ function argmin(array, costFunction = (x) => x) {
   return argminIndex;
 }
 
-// src/Utils/Constant
+// src/Ray/Ray.js.jst
 var sphereInterception = function(point, ray) {
   const { init, dir } = ray;
   const diff = init.sub(point.position);
@@ -1185,7 +1185,7 @@ class PointBuilder {
 }
 var Point_default = Point;
 
-// src/Utils/Constant
+// src/Ray/Ray.js.jst
 class Scene {
   constructor() {
     this.id2ElemMap = {};
@@ -1357,7 +1357,7 @@ class Leaf {
   }
 }
 
-// src/Utils/Constants.jss
+// src/Ray/Ray.js.jsts.jss
 class NaiveScene {
   constructor() {
     this.id2ElemMap = {};
@@ -1420,7 +1420,7 @@ class NaiveScene {
   }
 }
 
-// src/Utils/Constan
+// src/Ray/Ray.js.js
 var RADIUS = 0.001;
 
 class Mesh {
@@ -1498,6 +1498,259 @@ class Mesh {
     return new Mesh({ vertices, normals, texture, faces });
   }
 }
+// src/Ray/Ray.
+var exports_IO = {};
+__export(exports_IO, {
+  saveStreamToFile: () => {
+    {
+      return saveStreamToFile;
+    }
+  },
+  saveParallelToFile: () => {
+    {
+      return saveParallelToFile;
+    }
+  },
+  saveImageToFile: () => {
+    {
+      return saveImageToFile;
+    }
+  },
+  readImageFrom: () => {
+    {
+      return readImageFrom;
+    }
+  },
+  createPPMFromFromImage: () => {
+    {
+      return createPPMFromFromImage;
+    }
+  }
+});
+import {writeFileSync, unlinkSync, readFileSync} from "fs";
+import {execSync, spawn} from "child_process";
+
+// src/Ray/Ray.js.jst
+class Image {
+  constructor(width, height) {
+    this._width = width;
+    this._height = height;
+    this._image = new Array(this._width * this._height).fill(() => Color.ofRGB());
+  }
+  get width() {
+    return this._width;
+  }
+  get height() {
+    return this._height;
+  }
+  fill(color) {
+    return this.map(() => color);
+  }
+  paint() {
+    return this;
+  }
+  map(lambda) {
+    const n = this._image.length;
+    const w = this._width;
+    const h = this._height;
+    for (let k = 0;k < n; k++) {
+      const i = Math.floor(k / w);
+      const j = k % w;
+      const x = j;
+      const y = h - 1 - i;
+      this._image[k] = lambda(x, y);
+    }
+    return this;
+  }
+  setPxl(x, y, color) {
+    const w = this._width;
+    const h = this._height;
+    const i = h - 1 - y;
+    const j = x;
+    let index = w * i + j;
+    this._image[index] = color;
+    return this;
+  }
+  getPxl(x, y) {
+    const w = this._width;
+    const h = this._height;
+    const i = h - 1 - y;
+    const j = x;
+    let index = w * i + j;
+    return this._image[index];
+  }
+  array() {
+    return this.toArray();
+  }
+  toArray() {
+    const w = this._width;
+    const h = this._height;
+    const imageData = new Uint8Array(this._width * this._height * 4);
+    for (let i = 0;i < h; i++) {
+      for (let j = 0;j < w; j++) {
+        let index = w * i + j;
+        const color = this._image[index];
+        index <<= 2;
+        imageData[index] = color.red * 255;
+        imageData[index + 1] = color.green * 255;
+        imageData[index + 2] = color.blue * 255;
+        imageData[index + 3] = 255;
+      }
+    }
+    return imageData;
+  }
+  static ofUrl(url) {
+    return readImageFrom(url);
+  }
+  static ofSize(width, height) {
+    return new Image(width, height);
+  }
+  static ofDOM(canvasDOM) {
+    const ctx = canvasDOM.getContext("2d", { willReadFrequently: true });
+    const w = canvasDOM.width;
+    const h = canvasDOM.height;
+    const imageData = ctx.getImageData(0, 0, w, h);
+    const data = imageData.data;
+    const image = Image.ofSize(w, h);
+    for (let i = 0;i < data.length; i += 4) {
+      const color = Color.ofRGB(data[i] / 255, data[i + 1] / 255, data[i + 2] / 255);
+      image._image[Math.floor(i / 4)] = color;
+    }
+  }
+  static ofCanvas(canvas) {
+    const w = canvas.width;
+    const h = canvas.height;
+    return Image.ofSize(w, h).map((x, y) => {
+      return canvas.get(x, y);
+    });
+  }
+}
+
+// src/Ray/Ray.
+import os from "os";
+function saveImageToFile(fileAddress, image) {
+  const { fileName, extension } = getFileNameAndExtensionFromAddress(fileAddress);
+  const ppmName = `${fileName}.ppm`;
+  writeFileSync(ppmName, createPPMFromFromImage(image));
+  if (extension !== "ppm") {
+    execSync(`ffmpeg -i ${ppmName} ${fileName}.${extension}`);
+    unlinkSync(ppmName);
+  }
+}
+var getFileNameAndExtensionFromAddress = function(address) {
+  const lastDotIndex = address.lastIndexOf(".");
+  const fileName = address.slice(0, lastDotIndex);
+  const extension = address.slice(lastDotIndex + 1);
+  return { fileName, extension };
+};
+var parsePPM = function(data) {
+  const NEW_LINE_CHAR = 10;
+  let index = 0;
+  let headerLines = 3;
+  while (headerLines > 0) {
+    if (data[index] === NEW_LINE_CHAR)
+      headerLines--;
+    index++;
+  }
+  const [, width, height, maxColor] = data.slice(0, index).map((x) => String.fromCharCode(x)).join("").match(/\d+/g).map(Number);
+  const pixelStart = index;
+  const pixels = [];
+  for (let i = pixelStart;i < data.length; i += 3) {
+    pixels.push({
+      r: data[i],
+      g: data[i + 1],
+      b: data[i + 2]
+    });
+  }
+  return { width, height, maxColor, pixels };
+};
+function readImageFrom(src) {
+  const { fileName } = getFileNameAndExtensionFromAddress(src);
+  execSync(`ffmpeg -i ${src} ${fileName}.ppm`);
+  const imageFile = readFileSync(`${fileName}.ppm`);
+  const { width: w, height: h, pixels } = parsePPM(Array.from(imageFile));
+  unlinkSync(`${fileName}.ppm`);
+  const img = Image.ofSize(w, h);
+  for (let k = 0;k < pixels.length; k++) {
+    const { r, g, b } = pixels[k];
+    const i = Math.floor(k / w);
+    const j = k % w;
+    const x = j;
+    const y = h - 1 - i;
+    img.setPxl(x, y, Color.ofRGBRaw(r, g, b));
+  }
+  return img;
+}
+function createPPMFromFromImage(image) {
+  const width = image.width;
+  const height = image.height;
+  const pixelData = image.toArray();
+  const MAX_8_BIT = 255;
+  let file = `P3\n${width} ${height}\n${MAX_8_BIT}\n`;
+  for (let i = 0;i < pixelData.length; i += 4) {
+    file += `${pixelData[i]} ${pixelData[i + 1]} ${pixelData[i + 2]}\n`;
+  }
+  return file;
+}
+function saveStreamToFile(fileAddress, streamWithImages, { imageGetter = (s) => s.image, fps }) {
+  const { fileName, extension } = getFileNameAndExtensionFromAddress(fileAddress);
+  let ite = 0;
+  let time = 0;
+  let timeCheck = performance.now();
+  return {
+    until: (streamStatePredicate) => {
+      let s = streamWithImages;
+      while (streamStatePredicate(s.head)) {
+        const image = imageGetter(s.head);
+        writeFileSync(`${fileName}_${ite++}.ppm`, createPPMFromFromImage(image));
+        const newTimeCheck = performance.now();
+        time += (newTimeCheck - timeCheck) * 0.001;
+        timeCheck = performance.now();
+        s = s.tail;
+      }
+      if (!fps)
+        fps = ite / time;
+      execSync(`ffmpeg -framerate ${fps} -i ${fileName}_%d.ppm ${fileName}.${extension}`);
+      for (let i = 0;i < ite; i++) {
+        unlinkSync(`${fileName}_${i}.ppm`);
+      }
+    }
+  };
+}
+function saveParallelToFile(fileAddress, parallelWithImageProducers, { fps }) {
+  const { fileName, extension } = getFileNameAndExtensionFromAddress(fileAddress);
+  const partition = parallelWithImageProducers.getPartition();
+  const times = [];
+  const promises = arrayWithImageProducers.map((imageProducers, i) => {
+    const spawnFile = "IO_parallel" + i + ".js";
+    writeFileSync(spawnFile, `
+            import { writeFileSync, unlinkSync } from "fs";
+            ${createPPMFromFromImage.toString()}
+            ${imageProducers}
+            images.forEach()
+
+        `);
+    return new Promise((resolve) => {
+      const process = spawn(`bun ${spawnFile}`);
+      process.on("exit", () => {
+        resolve();
+      });
+    });
+  });
+  Promise.all(promises).then((groupOfImages) => {
+    let n = 0;
+    groupOfImages.forEach((images) => images.forEach((image) => {
+      console.log("Image generated", n);
+      writeFileSync(`${fileName}_${n++}.ppm`, createPPMFromFromImage(image));
+    }));
+    if (!fps)
+      fps = Math.floor(1 / (times.reduce((e, t) => e + t, 0) / n));
+    execSync(`ffmpeg -framerate ${fps} -i ${fileName}_%d.ppm ${fileName}.${extension}`);
+    for (let i = 0;i < n; i++) {
+      unlinkSync(`${fileName}_${i}.ppm`);
+    }
+  });
+}
 export {
   Vec3,
   Vec2,
@@ -1509,6 +1762,8 @@ export {
   NaiveScene,
   exports_Monads as Monads,
   Mesh,
+  Image,
+  exports_IO as IO,
   DomBuilder_default as DOM,
   Color,
   Canvas,

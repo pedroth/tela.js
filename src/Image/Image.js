@@ -1,5 +1,4 @@
 import Color from "../Color/Color.js";
-import Jimp from "jimp";
 import { readImageFrom } from "../IO/IO.js";
 
 export default class Image {
@@ -23,7 +22,7 @@ export default class Image {
      * color: Color 
      */
     fill(color) {
-        return this._image.map(() => color);
+        return this.map(() => color);
     }
 
     paint() {

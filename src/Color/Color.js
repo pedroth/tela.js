@@ -10,7 +10,7 @@ export default class Color {
     this.rgb = rbg;
   }
 
-  getRGB() {
+  toArray() {
     return this.rgb;
   }
 

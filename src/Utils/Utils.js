@@ -4,9 +4,15 @@ export function measureTime(lambda) {
     return 1e-3 * (performance.now() - t);
 }
 
-export async function measureTimeWithResult(lambda) {
+export async function measureTimeWithAsyncResult(lambda) {
     const t = performance.now();
     const result = await lambda();
+    return { result, time: 1e-3 * (performance.now() - t) };
+}
+
+export function measureTimeWithResult(lambda) {
+    const t = performance.now();
+    const result = lambda();
     return { result, time: 1e-3 * (performance.now() - t) };
 }
 

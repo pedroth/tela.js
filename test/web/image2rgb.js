@@ -6,7 +6,7 @@ async (canvas, fps, logger) => {
     canvas.resize(width, height);
     // scene
     const scene = new NaiveScene();
-    const camera = new Camera({ sphericalCoords: Vec3(5, 0, 0) });
+    const camera = new Camera({ sphericalCoords: Vec3(5, 0, 0), focalPoint: Vec3(0.5, 0.5, 0.5) });
     // mouse handling
     let mousedown = false;
     let mouse = Vec2();
@@ -39,36 +39,71 @@ async (canvas, fps, logger) => {
         camera.orbit();
     })
     // scene
-    const img = await Canvas.ofUrl("./assets/kakashi.jpg");
+    const img = await Canvas.ofUrl("./assets/lotr.jpg");
     const grid = [...Array(img.width * img.height)]
         .map((_, k) => {
             const i = Math.floor(k / img.width);
             const j = k % img.width;
             const x = j;
             const y = i;
-            return Point
-                .builder()
-                .name(`pxl_${k}`)
-                .radius(0.01)
-                .position(
-                    Vec3(0, x / img.width, y / img.height)
-                )
-                .color(img.getPxl(x, y))
-                .build();
+            const initial = Vec3(0, x / img.width, y / img.height);
+            return {
+                init: initial,
+                point: Point
+                    .builder()
+                    .name(`pxl_${k}`)
+                    .radius(0.01)
+                    .position(initial)
+                    .color(img.getPxl(x, y))
+                    .build()
+            }
         });
-    scene.addList(grid);
+    scene.addList(grid.map(({ point }) => point));
+
+    const stateMachine = (() => {
+        let state = 0;
+        const dt = 0.25;
+        const period = 10;
+        const halfPeriod = period / 2;
+        return t => {
+            let time = t % period;
+            if (state === 0 && time < halfPeriod) {
+                grid.forEach(({ init, point }) => {
+                    const speed = init.sub(point.position);
+                    point.position = point.position.add(speed.scale(dt));
+                })
+                return state;
+            }
+            if (state === 0 && time >= halfPeriod) {
+                return state++;
+            }
+            if (state === 1 && time >= halfPeriod) {
+                grid.forEach(({ point }) => {
+                    const colorVec3 = Vec3(...point.color.toArray());
+                    const speed = colorVec3.sub(point.position);
+                    point.position = point.position.add(speed.scale(dt));
+                })
+                return state;
+            }
+            if (state === 1 && time < halfPeriod) {
+                return state--;
+            }
+        }
+    })();
 
     // boilerplate for fps
     Animation
         .builder()
-        .initialState({ it: 1, oldTime: new Date().getTime() })
-        .nextState(({ it, oldTime }) => {
+        .initialState({ it: 1, oldTime: new Date().getTime(), time: 0 })
+        .nextState(({ it, oldTime, time }) => {
             camera.reverseShot(scene).to(canvas);
+            stateMachine(time)
             const dt = (new Date().getTime() - oldTime) * 1e-3;
             logger.print(Math.floor(1 / dt));
             return {
                 it: it + 1,
-                oldTime: new Date().getTime()
+                oldTime: new Date().getTime(),
+                time: time + dt
             };
         })
         .while(() => true)

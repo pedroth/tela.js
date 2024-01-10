@@ -2,6 +2,7 @@ import { writeFileSync, unlinkSync } from "fs";
 import { IO } from "../../dist/node/index.js";
 import { exec, execSync, spawn } from "child_process";
 import path from "path";
+import os from "os";
 const { createPPMFromFromImage } = IO;
 
 export async function measureTime(lambda) {
@@ -16,13 +17,13 @@ const deltaT = 0.04; //seconds per frame
 const maxT = 10; // seconds
 const numOfFrames = Math.floor(maxT / deltaT);
 const FPS = Math.floor(1 / deltaT);
-const parallelStreams = 20;
-const partitions = [...Array(numOfFrames)].map((_,i) => i).reduce((e,x) => {
+const parallelStreams = os.cpus().length;
+const partitions = [...Array(numOfFrames)].map((_, i) => i).reduce((e, x) => {
     const index = x % parallelStreams;
-    if(!e[index]) e[index] = [];
+    if (!e[index]) e[index] = [];
     e[index].push(x);
     return e;
-}, {}) 
+}, {})
 const imageProducers = Object.values(partitions).map(partition => {
     return (
         `
