@@ -9,7 +9,7 @@ var __export = (target, all) => {
     });
 };
 
-// src/Ray/Ray.js.jsts.
+// src/Utils/Math.jsts.
 class Stream {
   constructor(initialState, updateStateFunction) {
     this._head = initialState;
@@ -23,7 +23,7 @@ class Stream {
   }
 }
 
-// src/Ray/Ray.js.jsts.jsser.
+// src/Utils/Math.jsts.jsssr.
 class Animation {
   constructor(state, next, doWhile) {
     this.animation = new Stream(state, next);
@@ -75,7 +75,7 @@ class AnimationBuilder {
   }
 }
 
-// src/Ray/Ray.js.jst
+// src/Utils/Math.jst
 var MAX_8BIT = 255;
 
 class Color {
@@ -129,16 +129,16 @@ class Color {
   static WHITE = Color.ofRGB(1, 1, 1);
 }
 
-// src/Ray/Ray.js.jsts.js
+// src/Utils/Math.jsts.js
 var MAX_8BIT2 = 255;
 
-// src/Ray/Ray.js.js
+// src/Utils/Math.js
 function smin(a, b, k = 32) {
   const res = Math.exp(-k * a) + Math.exp(-k * b);
   return -Math.log(res) / k;
 }
 
-// src/Ray/Ray.js.jsts.
+// src/Utils/Math.jsts.
 var handleMouse = function(canvas, lambda) {
   return (event) => {
     const h = canvas.height;
@@ -290,7 +290,7 @@ class Canvas {
   }
 }
 
-// src/Ray/Ray.js.jsts.jsser.js
+// src/Utils/Math.jsts.jsssr.js
 var isElement = function(o) {
   return typeof HTMLElement === "object" ? o instanceof HTMLElement : o && typeof o === "object" && o !== null && o.nodeType === 1 && typeof o.nodeName === "string";
 };
@@ -382,7 +382,81 @@ class DomBuilder {
 }
 var DomBuilder_default = DomBuilder;
 
-// src/Ray/Ray.js.jsts.
+// src/Utils/Math.jsts.jsss
+class Parallel {
+  constructor(numberOfStreams, inputStreamGenerator, partitionFunction, stateGenerator, dependencies, lazyInitialState) {
+    this.numberOfStreams = numberOfStreams;
+    this.inputStreamGenerator = inputStreamGenerator;
+    this.partitionFunction = partitionFunction;
+    this.stateGenerator = stateGenerator;
+    this.dependencies = dependencies;
+    this.lazyInitialState = lazyInitialState;
+  }
+  getPartition() {
+    return new Array(this.numberOfStreams).fill().map((_, i) => {
+      return { ...this.inputStreamGenerator(i), __ite__: i };
+    }).reduce((e, x, i) => {
+      const value = this.partitionFunction(x, i);
+      if (!(value in e)) {
+        e[value] = [];
+      }
+      e[value].push(x);
+      return e;
+    }, {});
+  }
+  static builder() {
+    return new ParallelBuilder;
+  }
+}
+
+class ParallelBuilder {
+  constructor() {
+    this._numberOfStreams;
+    this._inputStreamGenerator;
+    this._partitionFunction;
+    this._stateGenerator;
+    this._dependencies;
+    this._lazyInitialState = () => {
+    };
+  }
+  numberOfStreams(numberOfStreams) {
+    this._numberOfStreams = numberOfStreams;
+    return this;
+  }
+  inputStreamGenerator(inputStreamGenerator) {
+    this._inputStreamGenerator = inputStreamGenerator;
+    return this;
+  }
+  partitionFunction(partitionFunction) {
+    this._partitionFunction = partitionFunction;
+    return this;
+  }
+  stateGenerator(stateGenerator, dependencies = []) {
+    this._stateGenerator = stateGenerator;
+    this._dependencies = dependencies;
+    return this;
+  }
+  lazyInitialState(lazyInitialState) {
+    this._lazyInitialState = lazyInitialState;
+    return this;
+  }
+  build() {
+    const attrs = [
+      this._numberOfStreams,
+      this._inputStreamGenerator,
+      this._partitionFunction,
+      this._stateGenerator,
+      this._dependencies,
+      this._lazyInitialState
+    ];
+    if (attrs.some((x) => x === undefined)) {
+      throw new Error("Parallel is incomplete");
+    }
+    return new Parallel(...attrs);
+  }
+}
+
+// src/Utils/Math.jsts.
 var _sanitize_input = function(arrayIn, arrayOut) {
   for (let i = 0;i < arrayIn.length; i++) {
     const z = arrayIn[i];
@@ -773,7 +847,7 @@ class Vector2 {
   static ONES = new Vector2(1, 1);
 }
 
-// src/Ray/Ray.js
+// src/Utils/Math
 function Ray(init, dir) {
   const ans = {};
   ans.init = init;
@@ -782,7 +856,7 @@ function Ray(init, dir) {
   return ans;
 }
 
-// src/Ray/Ray.js.jsts.
+// src/Utils/Math.jsts.
 class Camera {
   constructor(props = {
     sphericalCoords: Vec3(2, 0, 0),
@@ -878,7 +952,7 @@ class Camera {
   }
 }
 
-// src/Ray/Ray.js.jsts.
+// src/Utils/Math.jsts.
 var exports_Monads = {};
 __export(exports_Monads, {
   some: () => {
@@ -926,7 +1000,7 @@ function maybe(x) {
   return none(x);
 }
 
-// src/Ray/Ray.js
+// src/Utils/Math
 var maxComp = function(u) {
   return u.fold((e, x) => Math.max(e, x), -Number.MAX_VALUE);
 };
@@ -1020,7 +1094,7 @@ class Box {
   static EMPTY = new Box;
 }
 
-// src/Ray/Ray.js.jst
+// src/Utils/Math.jst
 var exports_Utils = {};
 __export(exports_Utils, {
   or: () => {
@@ -1094,7 +1168,7 @@ function argmin(array, costFunction = (x) => x) {
   return argminIndex;
 }
 
-// src/Ray/Ray.js.jst
+// src/Utils/Math.jst
 var sphereInterception = function(point, ray) {
   const { init, dir } = ray;
   const diff = init.sub(point.position);
@@ -1185,7 +1259,7 @@ class PointBuilder {
 }
 var Point_default = Point;
 
-// src/Ray/Ray.js.jst
+// src/Utils/Math.jst
 class Scene {
   constructor() {
     this.id2ElemMap = {};
@@ -1200,7 +1274,7 @@ class Scene {
       const elem = elements[i];
       const classes = [Point_default];
       if (!classes.some((c) => elem instanceof c))
-        return this;
+        continue;
       const { name } = elem;
       this.id2ElemMap[name] = elem;
       this.sceneElements.push(elem);
@@ -1255,35 +1329,6 @@ class Node {
     }
     return this;
   }
-  distanceToPoint(p) {
-    if (this.numberOfLeafs <= 2) {
-      return this.getElements().reduce((e, leaf) => smin(e, leaf.distanceToPoint(p)), 1000);
-    }
-    const children = [this.left, this.right];
-    const index = argmin(children, (c) => c.box.distanceToPoint(p));
-    return children[index].distanceToPoint(p);
-  }
-  getElements() {
-    return this.leafs;
-  }
-  getRandomLeaf() {
-    return Math.random() < 0.5 ? this.left.getRandomLeaf() : this.right.getRandomLeaf();
-  }
-  interceptWith(ray, depth = 1) {
-    return this.box.interceptWith(ray).flatMap((p) => {
-      const children = [this.left, this.right].filter((x) => x);
-      const hits = [];
-      for (let i = 0;i < children.length; i++) {
-        const maybeHit = children[i].interceptWith(ray, depth + 1);
-        if (maybeHit.isSome())
-          hits.push(maybeHit.orElse());
-      }
-      const minIndex = argmin(hits, ([point]) => point.sub(ray.init).length());
-      if (minIndex === -1)
-        return none();
-      return some(hits[minIndex]);
-    });
-  }
   _addElementWhenTreeIsFull(element, elemBox) {
     if (this.left.isLeaf && this.right.isLeaf) {
       this._addWithLeafs(element);
@@ -1335,6 +1380,35 @@ class Node {
     };
     index2Action[index]();
   }
+  interceptWith(ray, depth = 1) {
+    return this.box.interceptWith(ray).flatMap(() => {
+      const children = [this.left, this.right].filter((x) => x);
+      const hits = [];
+      for (let i = 0;i < children.length; i++) {
+        const maybeHit = children[i].interceptWith(ray, depth + 1);
+        if (maybeHit.isSome())
+          hits.push(maybeHit.orElse());
+      }
+      const minIndex = argmin(hits, ([point]) => point.sub(ray.init).length());
+      if (minIndex === -1)
+        return none();
+      return some(hits[minIndex]);
+    });
+  }
+  distanceToPoint(p) {
+    if (this.numberOfLeafs <= 2) {
+      return this.getElements().reduce((e, leaf) => smin(e, leaf.distanceToPoint(p)), 1000);
+    }
+    const children = [this.left, this.right];
+    const index = argmin(children, (c) => c.box.distanceToPoint(p));
+    return children[index].distanceToPoint(p);
+  }
+  getElements() {
+    return this.leafs;
+  }
+  getRandomLeaf() {
+    return Math.random() < 0.5 ? this.left.getRandomLeaf() : this.right.getRandomLeaf();
+  }
 }
 
 class Leaf {
@@ -1357,7 +1431,7 @@ class Leaf {
   }
 }
 
-// src/Ray/Ray.js.jsts.jss
+// src/Utils/Math.jsts.jss
 class NaiveScene {
   constructor() {
     this.id2ElemMap = {};
@@ -1420,7 +1494,7 @@ class NaiveScene {
   }
 }
 
-// src/Ray/Ray.js.js
+// src/Utils/Math.js
 var RADIUS = 0.001;
 
 class Mesh {
@@ -1498,17 +1572,12 @@ class Mesh {
     return new Mesh({ vertices, normals, texture, faces });
   }
 }
-// src/Ray/Ray.
+// src/Utils/Ma
 var exports_IO = {};
 __export(exports_IO, {
-  saveStreamToFile: () => {
+  saveParallelImageStreamToVideo: () => {
     {
-      return saveStreamToFile;
-    }
-  },
-  saveParallelToFile: () => {
-    {
-      return saveParallelToFile;
+      return saveParallelImageStreamToVideo;
     }
   },
   saveImageToFile: () => {
@@ -1516,21 +1585,26 @@ __export(exports_IO, {
       return saveImageToFile;
     }
   },
+  saveImageStreamToVideo: () => {
+    {
+      return saveImageStreamToVideo;
+    }
+  },
   readImageFrom: () => {
     {
       return readImageFrom;
     }
   },
-  createPPMFromFromImage: () => {
+  createPPMFromImage: () => {
     {
-      return createPPMFromFromImage;
+      return createPPMFromImage;
     }
   }
 });
 import {writeFileSync, unlinkSync, readFileSync} from "fs";
-import {execSync, spawn} from "child_process";
+import {execSync, spawn, exec} from "child_process";
 
-// src/Ray/Ray.js.jst
+// src/Utils/Math.jst
 class Image {
   constructor(width, height) {
     this._width = width;
@@ -1626,12 +1700,12 @@ class Image {
   }
 }
 
-// src/Ray/Ray.
+// src/Utils/Ma
 import os from "os";
 function saveImageToFile(fileAddress, image) {
   const { fileName, extension } = getFileNameAndExtensionFromAddress(fileAddress);
   const ppmName = `${fileName}.ppm`;
-  writeFileSync(ppmName, createPPMFromFromImage(image));
+  writeFileSync(ppmName, createPPMFromImage(image));
   if (extension !== "ppm") {
     execSync(`ffmpeg -i ${ppmName} ${fileName}.${extension}`);
     unlinkSync(ppmName);
@@ -1681,7 +1755,7 @@ function readImageFrom(src) {
   }
   return img;
 }
-function createPPMFromFromImage(image) {
+function createPPMFromImage(image) {
   const width = image.width;
   const height = image.height;
   const pixelData = image.toArray();
@@ -1692,7 +1766,7 @@ function createPPMFromFromImage(image) {
   }
   return file;
 }
-function saveStreamToFile(fileAddress, streamWithImages, { imageGetter = (s) => s.image, fps }) {
+function saveImageStreamToVideo(fileAddress, streamWithImages, { imageGetter = (s) => s.image, fps }) {
   const { fileName, extension } = getFileNameAndExtensionFromAddress(fileAddress);
   let ite = 0;
   let time = 0;
@@ -1702,7 +1776,7 @@ function saveStreamToFile(fileAddress, streamWithImages, { imageGetter = (s) => 
       let s = streamWithImages;
       while (streamStatePredicate(s.head)) {
         const image = imageGetter(s.head);
-        writeFileSync(`${fileName}_${ite++}.ppm`, createPPMFromFromImage(image));
+        writeFileSync(`${fileName}_${ite++}.ppm`, createPPMFromImage(image));
         const newTimeCheck = performance.now();
         time += (newTimeCheck - timeCheck) * 0.001;
         timeCheck = performance.now();
@@ -1717,37 +1791,51 @@ function saveStreamToFile(fileAddress, streamWithImages, { imageGetter = (s) => 
     }
   };
 }
-function saveParallelToFile(fileAddress, parallelWithImageProducers, { fps }) {
+function saveParallelImageStreamToVideo(fileAddress, parallelStreamOfImages, { fps }) {
   const { fileName, extension } = getFileNameAndExtensionFromAddress(fileAddress);
-  const partition = parallelWithImageProducers.getPartition();
-  const times = [];
-  const promises = arrayWithImageProducers.map((imageProducers, i) => {
+  const partition = parallelStreamOfImages.getPartition();
+  const inputParamsPartitions = Object.values(partition);
+  const n = inputParamsPartitions.reduce((acc, partition2) => {
+    acc += partition2.length;
+    return acc;
+  }, 0);
+  const promises = inputParamsPartitions.map((inputParams, i) => {
     const spawnFile = "IO_parallel" + i + ".js";
     writeFileSync(spawnFile, `
-            import { writeFileSync, unlinkSync } from "fs";
-            ${createPPMFromFromImage.toString()}
-            ${imageProducers}
-            images.forEach()
+            import {DOM, Color, Animation, Scene, Camera, Vec2, Vec3, Vec, Box, Point, Mesh, Image,NaiveScene} from "./dist/node/index.js"
+            import fs from "fs";
 
+            
+            ${createPPMFromImage.toString().replaceAll("function(image)", "function __createPPMFromImage__(image)")}
+            
+            ${parallelStreamOfImages.dependencies.map((dependency) => dependency.toString()).join("\n")}
+            
+            const __initial_state__ = (${parallelStreamOfImages.lazyInitialState})();
+
+            const __gen__ = ${parallelStreamOfImages.stateGenerator.toString()};
+            
+            const partition_inputs = ${JSON.stringify(inputParams)};
+            partition_inputs.forEach(input => {
+                const {__ite__} = input;
+                const combinedInput = !__initial_state__ ? input : {...input, ...__initial_state__}; 
+                const __img__ = __gen__(combinedInput);
+                fs.writeFileSync(\`${fileName}_\${__ite__}.ppm\`, __createPPMFromImage__(__img__));
+            });
         `);
     return new Promise((resolve) => {
-      const process = spawn(`bun ${spawnFile}`);
-      process.on("exit", () => {
+      exec(`bun ${spawnFile}`, () => {
         resolve();
       });
     });
   });
-  Promise.all(promises).then((groupOfImages) => {
-    let n = 0;
-    groupOfImages.forEach((images) => images.forEach((image) => {
-      console.log("Image generated", n);
-      writeFileSync(`${fileName}_${n++}.ppm`, createPPMFromFromImage(image));
-    }));
-    if (!fps)
-      fps = Math.floor(1 / (times.reduce((e, t) => e + t, 0) / n));
+  return Promise.all(promises).then(() => {
     execSync(`ffmpeg -framerate ${fps} -i ${fileName}_%d.ppm ${fileName}.${extension}`);
     for (let i = 0;i < n; i++) {
       unlinkSync(`${fileName}_${i}.ppm`);
+    }
+    for (let i = 0;i < inputParamsPartitions.length; i++) {
+      const spawnFile = "IO_parallel" + i + ".js";
+      unlinkSync(spawnFile);
     }
   });
 }
@@ -1759,6 +1847,7 @@ export {
   Stream,
   Scene,
   Point_default as Point,
+  Parallel,
   NaiveScene,
   exports_Monads as Monads,
   Mesh,

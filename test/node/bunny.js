@@ -2,7 +2,7 @@ import { Color, Image, Stream, IO, Utils, Mesh, Vec3, Scene, Camera } from "../.
 import { readFileSync } from "fs"
 
 const { measureTime } = Utils;
-const { saveStreamToFile } = IO;
+const { saveImageStreamToVideo } = IO;
 
 const measureTime2 = lambda => {
     const t = performance.now();
@@ -45,7 +45,7 @@ const imageStream = new Stream(
 console.log(
     "Video created in: ",
     measureTime(() => {
-        saveStreamToFile(
+        saveImageStreamToVideo(
             "./bunny_stream.mp4",
             imageStream,
             { fps: 25 }

@@ -1,5 +1,5 @@
-import { Image, Stream, IO, Utils, Vec3, NaiveScene, Camera, Point, Color } from "../../dist/node/index.js";
-const { saveStreamToFile, saveImageToFile } = IO;
+import { Image, Stream, IO, Utils, Vec3, NaiveScene, Scene, Camera, Point, Color } from "../../dist/node/index.js";
+const { saveImageStreamToVideo, saveImageToFile } = IO;
 const { measureTimeWithResult, measureTime } = Utils;
 
 (async () => {
@@ -10,7 +10,7 @@ const { measureTimeWithResult, measureTime } = Utils;
     // scene
     const scene = new NaiveScene();
     const camera = new Camera({ sphericalCoords: Vec3(2, 0, 0), focalPoint: Vec3(0.5, 0.5, 0.5) });
-    const img = await Image.ofUrl("./assets/chapelle.jpg");
+    const img = await Image.ofUrl("./assets/kakashi.jpg");
     const grid = [...Array(img.width * img.height)]
         .map((_, k) => {
             const i = Math.floor(k / img.width);
@@ -28,8 +28,16 @@ const { measureTimeWithResult, measureTime } = Utils;
                     .color(img.getPxl(x, y))
                     .build()
             }
-        });
-    scene.addList(grid.map(({ point }) => point));
+        })
+    // for (let i = grid.length - 1; i > 0; i--) {
+    //     // random number between 0 and i
+    //     const r = Math.floor(Math.random() * (i + 1));
+    //     //swap in place
+    //     const temp = grid[i];
+    //     grid[i] = grid[r];
+    //     grid[r] = temp;
+    // }
+    console.log(measureTime(() => scene.addList(grid.map(({ point }) => point))));
 
     const stateMachine = (() => {
         let state = 0;
@@ -86,7 +94,7 @@ const { measureTimeWithResult, measureTime } = Utils;
     console.log(
         "Video created in: ",
         measureTime(() => {
-            saveStreamToFile(
+            saveImageStreamToVideo(
                 "./image2rgb.mp4",
                 imageStream,
                 { fps: 25 }

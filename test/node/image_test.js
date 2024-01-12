@@ -1,7 +1,7 @@
 import { Color, Image, Stream, IO, Utils } from "../../dist/node/index.js";
 
 const { measureTime } = Utils;
-const { saveImageToFile, saveStreamToFile } = IO;
+const { saveImageToFile, saveImageStreamToVideo } = IO;
 
 const width = 640;
 const height = 480;

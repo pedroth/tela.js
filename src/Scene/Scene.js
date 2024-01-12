@@ -3,7 +3,6 @@ import Box from "../Box/Box.js";
 import { none, some } from "../Monads/Monads.js";
 import { argmin } from "../Utils/Utils.js";
 import Point from "./Point.js";
-import Ray from "../Ray/Ray.js";
 import Vec from "../Vector/Vector.js";
 import { smin } from "../Utils/Math.js";
 
@@ -22,7 +21,7 @@ export default class Scene {
     for (let i = 0; i < elements.length; i++) {
       const elem = elements[i];
       const classes = [Point];
-      if (!classes.some((c) => elem instanceof c)) return this;
+      if (!classes.some((c) => elem instanceof c)) continue;
       const { name } = elem;
       this.id2ElemMap[name] = elem;
       this.sceneElements.push(elem);
@@ -84,41 +83,6 @@ class Node {
     return this;
   }
 
-  distanceToPoint(p) {
-    if (this.numberOfLeafs <= 2) {
-      return this.getElements().reduce((e, leaf) => smin(e, leaf.distanceToPoint(p)), 1000);
-    }
-    const children = [this.left, this.right];
-    const index = argmin(children, c => c.box.distanceToPoint(p));
-    return children[index].distanceToPoint(p);
-  }
-
-  getElements() {
-    return this.leafs;
-  }
-
-  getRandomLeaf() {
-    return Math.random() < 0.5 ? this.left.getRandomLeaf() : this.right.getRandomLeaf();
-  }
-
-  interceptWith(ray, depth = 1) {
-    // if (this.numberOfLeafs === 5) {
-    //   // return this.getRandomLeaf().interceptWith(ray, 10);
-    //   return this.box.interceptWith(ray).map(p => [p, this.box.estimateNormal(p)]);
-    // }
-    return this.box.interceptWith(ray).flatMap((p) => {
-      const children = [this.left, this.right].filter(x => x);
-      const hits = [];
-      for (let i = 0; i < children.length; i++) {
-        const maybeHit = children[i].interceptWith(ray, depth + 1);
-        if (maybeHit.isSome()) hits.push(maybeHit.orElse());
-      }
-      const minIndex = argmin(hits, ([point]) => point.sub(ray.init).length());
-      if (minIndex === -1) return none();
-      return some(hits[minIndex]);
-    })
-  }
-
   _addElementWhenTreeIsFull(element, elemBox) {
     if (this.left.isLeaf && this.right.isLeaf) {
       this._addWithLeafs(element);
@@ -170,6 +134,41 @@ class Node {
       }
     }
     index2Action[index]();
+  }
+
+  interceptWith(ray, depth = 1) {
+    // if (this.numberOfLeafs === 5) {
+    //   // return this.getRandomLeaf().interceptWith(ray, 10);
+    //   return this.box.interceptWith(ray).map(p => [p, this.box.estimateNormal(p)]);
+    // }
+    return this.box.interceptWith(ray).flatMap(() => {
+      const children = [this.left, this.right].filter(x => x);
+      const hits = [];
+      for (let i = 0; i < children.length; i++) {
+        const maybeHit = children[i].interceptWith(ray, depth + 1);
+        if (maybeHit.isSome()) hits.push(maybeHit.orElse());
+      }
+      const minIndex = argmin(hits, ([point]) => point.sub(ray.init).length());
+      if (minIndex === -1) return none();
+      return some(hits[minIndex]);
+    })
+  }
+
+  distanceToPoint(p) {
+    if (this.numberOfLeafs <= 2) {
+      return this.getElements().reduce((e, leaf) => smin(e, leaf.distanceToPoint(p)), 1000);
+    }
+    const children = [this.left, this.right];
+    const index = argmin(children, c => c.box.distanceToPoint(p));
+    return children[index].distanceToPoint(p);
+  }
+
+  getElements() {
+    return this.leafs;
+  }
+
+  getRandomLeaf() {
+    return Math.random() < 0.5 ? this.left.getRandomLeaf() : this.right.getRandomLeaf();
   }
 }
 

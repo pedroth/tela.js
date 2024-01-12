@@ -3,6 +3,7 @@ import Canvas from "./Canvas/Canvas.js"
 import Color from "./Color/Color.js"
 import DOM from "./DomBuilder/DomBuilder.js"
 import Stream from "./Stream/Stream.js"
+import Parallel from "./Parallel/Parallel.js"
 import Camera from "./Camera/Camera.js"
 import Scene from "./Scene/Scene.js"
 import NaiveScene from "./Scene/NaiveScene.js"
@@ -24,6 +25,7 @@ export {
     Canvas,
     Camera,
     Stream,
+    Parallel,
     Animation,
     NaiveScene,
 }

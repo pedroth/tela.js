@@ -9,7 +9,7 @@ var __export = (target, all) => {
     });
 };
 
-// src/Utils/Constants.
+// src/Ray/Ray.jstants.
 class Stream {
   constructor(initialState, updateStateFunction) {
     this._head = initialState;
@@ -23,7 +23,7 @@ class Stream {
   }
 }
 
-// src/Utils/Constants.jsser.
+// src/Ray/Ray.jstants.jsssr.
 class Animation {
   constructor(state, next, doWhile) {
     this.animation = new Stream(state, next);
@@ -75,7 +75,7 @@ class AnimationBuilder {
   }
 }
 
-// src/Utils/Constant
+// src/Ray/Ray.jstant
 var MAX_8BIT = 255;
 
 class Color {
@@ -129,16 +129,16 @@ class Color {
   static WHITE = Color.ofRGB(1, 1, 1);
 }
 
-// src/Utils/Constants.js
+// src/Ray/Ray.jstants.js
 var MAX_8BIT2 = 255;
 
-// src/Utils/Constan
+// src/Ray/Ray.jstan
 function smin(a, b, k = 32) {
   const res = Math.exp(-k * a) + Math.exp(-k * b);
   return -Math.log(res) / k;
 }
 
-// src/Utils/Constants.
+// src/Ray/Ray.jstants.
 var handleMouse = function(canvas, lambda) {
   return (event) => {
     const h = canvas.height;
@@ -290,7 +290,7 @@ class Canvas {
   }
 }
 
-// src/Utils/Constants.jsser.js
+// src/Ray/Ray.jstants.jsssr.js
 var isElement = function(o) {
   return typeof HTMLElement === "object" ? o instanceof HTMLElement : o && typeof o === "object" && o !== null && o.nodeType === 1 && typeof o.nodeName === "string";
 };
@@ -382,7 +382,81 @@ class DomBuilder {
 }
 var DomBuilder_default = DomBuilder;
 
-// src/Utils/Constants.
+// src/Ray/Ray.jstants.jsss
+class Parallel {
+  constructor(numberOfStreams, inputStreamGenerator, partitionFunction, stateGenerator, dependencies, lazyInitialState) {
+    this.numberOfStreams = numberOfStreams;
+    this.inputStreamGenerator = inputStreamGenerator;
+    this.partitionFunction = partitionFunction;
+    this.stateGenerator = stateGenerator;
+    this.dependencies = dependencies;
+    this.lazyInitialState = lazyInitialState;
+  }
+  getPartition() {
+    return new Array(this.numberOfStreams).fill().map((_, i) => {
+      return { ...this.inputStreamGenerator(i), __ite__: i };
+    }).reduce((e, x, i) => {
+      const value = this.partitionFunction(x, i);
+      if (!(value in e)) {
+        e[value] = [];
+      }
+      e[value].push(x);
+      return e;
+    }, {});
+  }
+  static builder() {
+    return new ParallelBuilder;
+  }
+}
+
+class ParallelBuilder {
+  constructor() {
+    this._numberOfStreams;
+    this._inputStreamGenerator;
+    this._partitionFunction;
+    this._stateGenerator;
+    this._dependencies;
+    this._lazyInitialState = () => {
+    };
+  }
+  numberOfStreams(numberOfStreams) {
+    this._numberOfStreams = numberOfStreams;
+    return this;
+  }
+  inputStreamGenerator(inputStreamGenerator) {
+    this._inputStreamGenerator = inputStreamGenerator;
+    return this;
+  }
+  partitionFunction(partitionFunction) {
+    this._partitionFunction = partitionFunction;
+    return this;
+  }
+  stateGenerator(stateGenerator, dependencies = []) {
+    this._stateGenerator = stateGenerator;
+    this._dependencies = dependencies;
+    return this;
+  }
+  lazyInitialState(lazyInitialState) {
+    this._lazyInitialState = lazyInitialState;
+    return this;
+  }
+  build() {
+    const attrs = [
+      this._numberOfStreams,
+      this._inputStreamGenerator,
+      this._partitionFunction,
+      this._stateGenerator,
+      this._dependencies,
+      this._lazyInitialState
+    ];
+    if (attrs.some((x) => x === undefined)) {
+      throw new Error("Parallel is incomplete");
+    }
+    return new Parallel(...attrs);
+  }
+}
+
+// src/Ray/Ray.jstants.
 var _sanitize_input = function(arrayIn, arrayOut) {
   for (let i = 0;i < arrayIn.length; i++) {
     const z = arrayIn[i];
@@ -773,7 +847,7 @@ class Vector2 {
   static ONES = new Vector2(1, 1);
 }
 
-// src/Utils/Cons
+// src/Ray/Ray.js
 function Ray(init, dir) {
   const ans = {};
   ans.init = init;
@@ -782,7 +856,7 @@ function Ray(init, dir) {
   return ans;
 }
 
-// src/Utils/Constants.
+// src/Ray/Ray.jstants.
 class Camera {
   constructor(props = {
     sphericalCoords: Vec3(2, 0, 0),
@@ -878,7 +952,7 @@ class Camera {
   }
 }
 
-// src/Utils/Constants.
+// src/Ray/Ray.jstants.
 var exports_Monads = {};
 __export(exports_Monads, {
   some: () => {
@@ -926,7 +1000,7 @@ function maybe(x) {
   return none(x);
 }
 
-// src/Utils/Cons
+// src/Ray/Ray.js
 var maxComp = function(u) {
   return u.fold((e, x) => Math.max(e, x), -Number.MAX_VALUE);
 };
@@ -1020,7 +1094,7 @@ class Box {
   static EMPTY = new Box;
 }
 
-// src/Utils/Constant
+// src/Ray/Ray.jstant
 var exports_Utils = {};
 __export(exports_Utils, {
   or: () => {
@@ -1094,7 +1168,7 @@ function argmin(array, costFunction = (x) => x) {
   return argminIndex;
 }
 
-// src/Utils/Constant
+// src/Ray/Ray.jstant
 var sphereInterception = function(point, ray) {
   const { init, dir } = ray;
   const diff = init.sub(point.position);
@@ -1185,7 +1259,7 @@ class PointBuilder {
 }
 var Point_default = Point;
 
-// src/Utils/Constant
+// src/Ray/Ray.jstant
 class Scene {
   constructor() {
     this.id2ElemMap = {};
@@ -1200,7 +1274,7 @@ class Scene {
       const elem = elements[i];
       const classes = [Point_default];
       if (!classes.some((c) => elem instanceof c))
-        return this;
+        continue;
       const { name } = elem;
       this.id2ElemMap[name] = elem;
       this.sceneElements.push(elem);
@@ -1255,35 +1329,6 @@ class Node {
     }
     return this;
   }
-  distanceToPoint(p) {
-    if (this.numberOfLeafs <= 2) {
-      return this.getElements().reduce((e, leaf) => smin(e, leaf.distanceToPoint(p)), 1000);
-    }
-    const children = [this.left, this.right];
-    const index = argmin(children, (c) => c.box.distanceToPoint(p));
-    return children[index].distanceToPoint(p);
-  }
-  getElements() {
-    return this.leafs;
-  }
-  getRandomLeaf() {
-    return Math.random() < 0.5 ? this.left.getRandomLeaf() : this.right.getRandomLeaf();
-  }
-  interceptWith(ray, depth = 1) {
-    return this.box.interceptWith(ray).flatMap((p) => {
-      const children = [this.left, this.right].filter((x) => x);
-      const hits = [];
-      for (let i = 0;i < children.length; i++) {
-        const maybeHit = children[i].interceptWith(ray, depth + 1);
-        if (maybeHit.isSome())
-          hits.push(maybeHit.orElse());
-      }
-      const minIndex = argmin(hits, ([point]) => point.sub(ray.init).length());
-      if (minIndex === -1)
-        return none();
-      return some(hits[minIndex]);
-    });
-  }
   _addElementWhenTreeIsFull(element, elemBox) {
     if (this.left.isLeaf && this.right.isLeaf) {
       this._addWithLeafs(element);
@@ -1335,6 +1380,35 @@ class Node {
     };
     index2Action[index]();
   }
+  interceptWith(ray, depth = 1) {
+    return this.box.interceptWith(ray).flatMap(() => {
+      const children = [this.left, this.right].filter((x) => x);
+      const hits = [];
+      for (let i = 0;i < children.length; i++) {
+        const maybeHit = children[i].interceptWith(ray, depth + 1);
+        if (maybeHit.isSome())
+          hits.push(maybeHit.orElse());
+      }
+      const minIndex = argmin(hits, ([point]) => point.sub(ray.init).length());
+      if (minIndex === -1)
+        return none();
+      return some(hits[minIndex]);
+    });
+  }
+  distanceToPoint(p) {
+    if (this.numberOfLeafs <= 2) {
+      return this.getElements().reduce((e, leaf) => smin(e, leaf.distanceToPoint(p)), 1000);
+    }
+    const children = [this.left, this.right];
+    const index = argmin(children, (c) => c.box.distanceToPoint(p));
+    return children[index].distanceToPoint(p);
+  }
+  getElements() {
+    return this.leafs;
+  }
+  getRandomLeaf() {
+    return Math.random() < 0.5 ? this.left.getRandomLeaf() : this.right.getRandomLeaf();
+  }
 }
 
 class Leaf {
@@ -1357,7 +1431,7 @@ class Leaf {
   }
 }
 
-// src/Utils/Constants.jss
+// src/Ray/Ray.jstants.jss
 class NaiveScene {
   constructor() {
     this.id2ElemMap = {};
@@ -1420,7 +1494,7 @@ class NaiveScene {
   }
 }
 
-// src/Utils/Constan
+// src/Ray/Ray.jstan
 var RADIUS = 0.001;
 
 class Mesh {
@@ -1506,6 +1580,7 @@ export {
   Stream,
   Scene,
   Point_default as Point,
+  Parallel,
   NaiveScene,
   exports_Monads as Monads,
   Mesh,

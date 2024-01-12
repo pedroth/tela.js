@@ -1,13 +1,14 @@
 import { writeFileSync, unlinkSync, readFileSync } from "fs";
-import { execSync, spawn } from "child_process";
+import { execSync, spawn, exec } from "child_process";
 import Image from "../Image/Image";
 import Color from "../Color/Color";
+import os from "os";
 
 
 export function saveImageToFile(fileAddress, image) {
     const { fileName, extension } = getFileNameAndExtensionFromAddress(fileAddress);
     const ppmName = `${fileName}.ppm`;
-    writeFileSync(ppmName, createPPMFromFromImage(image));
+    writeFileSync(ppmName, createPPMFromImage(image));
     if (extension !== "ppm") {
         execSync(`ffmpeg -i ${ppmName} ${fileName}.${extension}`);
         unlinkSync(ppmName)
@@ -69,7 +70,7 @@ export function readImageFrom(src) {
     return img;
 }
 
-export function createPPMFromFromImage(image) {
+export function createPPMFromImage(image) {
     const width = image.width;
     const height = image.height;
     const pixelData = image.toArray();
@@ -81,7 +82,7 @@ export function createPPMFromFromImage(image) {
     return file;
 }
 
-export function saveStreamToFile(fileAddress, streamWithImages, { imageGetter = s => s.image, fps }) {
+export function saveImageStreamToVideo(fileAddress, streamWithImages, { imageGetter = s => s.image, fps }) {
     const { fileName, extension } = getFileNameAndExtensionFromAddress(fileAddress);
     let ite = 0;
     let time = 0;
@@ -91,7 +92,7 @@ export function saveStreamToFile(fileAddress, streamWithImages, { imageGetter = 
             let s = streamWithImages;
             while (streamStatePredicate(s.head)) {
                 const image = imageGetter(s.head);
-                writeFileSync(`${fileName}_${ite++}.ppm`, createPPMFromFromImage(image));
+                writeFileSync(`${fileName}_${ite++}.ppm`, createPPMFromImage(image));
                 const newTimeCheck = performance.now();
                 time += (newTimeCheck - timeCheck) * 1e-3;
                 timeCheck = performance.now();
@@ -106,38 +107,53 @@ export function saveStreamToFile(fileAddress, streamWithImages, { imageGetter = 
     }
 }
 
-export function saveParallelToFile(fileAddress, arrayWithImageProducers, { fps }) {
+export function saveParallelImageStreamToVideo(fileAddress, parallelStreamOfImages, { fps }) {
     const { fileName, extension } = getFileNameAndExtensionFromAddress(fileAddress);
-    const times = [];
-    const promises = arrayWithImageProducers.map((imageProducers, i) => {
+    const partition = parallelStreamOfImages.getPartition();
+    const inputParamsPartitions = Object.values(partition);
+    const n = inputParamsPartitions.reduce((acc, partition) => { acc += partition.length; return acc; }, 0);
+    const promises = inputParamsPartitions.map((inputParams, i) => {
         const spawnFile = "IO_parallel" + i + ".js";
         writeFileSync(spawnFile, `
-            import { writeFileSync, unlinkSync } from "fs";
-            ${createPPMFromFromImage.toString()}
-            ${imageProducers}
-            images.forEach()
+            import {DOM, Color, Animation, Scene, Camera, Vec2, Vec3, Vec, Box, Point, Mesh, Image,NaiveScene} from "./dist/node/index.js"
+            import fs from "fs";
 
+            
+            ${createPPMFromImage.toString().replaceAll("function(image)", "function __createPPMFromImage__(image)")}
+            
+            ${parallelStreamOfImages.dependencies.map(dependency => dependency.toString()).join("\n")}
+            
+            const __initial_state__ = (${parallelStreamOfImages.lazyInitialState})();
+
+            const __gen__ = ${parallelStreamOfImages.stateGenerator.toString()};
+            
+            const partition_inputs = ${JSON.stringify(inputParams)};
+            partition_inputs.forEach(input => {
+                const {__ite__} = input;
+                const combinedInput = !__initial_state__ ? input : {...input, ...__initial_state__}; 
+                const __img__ = __gen__(combinedInput);
+                fs.writeFileSync(\`${fileName}_\${__ite__}.ppm\`, __createPPMFromImage__(__img__));
+            });
         `);
         return new Promise(resolve => {
-            const process = spawn(`bun ${spawnFile}`)
-            process.on("exit", () => {
+            // const process = spawn(`bun ${spawnFile}`, [], { shell: true })
+            // process.on("close", () => {
+            //     resolve();
+            // })
+            exec(`bun ${spawnFile}`, () => {
                 resolve();
             })
         });
     })
-    Promise.all(promises)
-        .then(groupOfImages => {
-            let n = 0;
-            groupOfImages.forEach(images =>
-                images.forEach(image => {
-                    console.log("Image generated", n)
-                    writeFileSync(`${fileName}_${n++}.ppm`, createPPMFromFromImage(image));
-                })
-            )
-            if (!fps) fps = Math.floor(1 / (times.reduce((e, t) => e + t, 0) / n));
+    return Promise.all(promises)
+        .then(() => {
             execSync(`ffmpeg -framerate ${fps} -i ${fileName}_%d.ppm ${fileName}.${extension}`);
             for (let i = 0; i < n; i++) {
                 unlinkSync(`${fileName}_${i}.ppm`);
+            }
+            for (let i = 0; i < inputParamsPartitions.length; i++) {
+                const spawnFile = "IO_parallel" + i + ".js";
+                unlinkSync(spawnFile);
             }
         })
 }

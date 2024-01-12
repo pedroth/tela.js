@@ -1,6 +1,6 @@
 import { Color, Image, Stream, IO, Utils } from "../../dist/node/index.js";
 const { measureTime } = Utils;
-const { saveStreamToFile } = IO;
+const { saveImageStreamToVideo } = IO;
 
 const width = 640;
 const height = 480;
@@ -47,7 +47,7 @@ const imageStream = new Stream(
 console.log(
     "Video created in: ",
     measureTime(() => {
-        saveStreamToFile(
+        saveImageStreamToVideo(
             "./amazing.mp4",
             imageStream,
             { fps: 100 }

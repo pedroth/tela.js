@@ -1,5 +1,5 @@
 import { Image, Stream, IO, Utils, Vec2, Box, Color } from "../../dist/node/index.js";
-const { saveStreamToFile } = IO;
+const { saveImageStreamToVideo } = IO;
 const { measureTimeWithResult, measureTime } = Utils;
 
 (async () => {
@@ -54,7 +54,7 @@ const { measureTimeWithResult, measureTime } = Utils;
     console.log(
         "Video created in: ",
         measureTime(() => {
-            saveStreamToFile(
+            saveImageStreamToVideo(
                 "./mandelbrot.mp4",
                 imageStream,
                 { fps: 25 }
