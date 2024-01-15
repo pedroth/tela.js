@@ -7,12 +7,12 @@ const { measureTime, measureTimeWithAsyncResult } = Utils;
     const width = 640;
     const height = 480;
     const FPS = 25;
-    const maxT = 20;
+    const maxT = 60;
     const dt = 1 / FPS;
     const numberOfProcessors = os.cpus().length;
     const numOfFrames = Math.floor(FPS * maxT);
 
-    function mandelbrot(time, width, height) {
+    function mandelbrot(i, width, height) {
         const ite = 100;
         const size = Vec2(width, height);
         const complexMul = (z, w) => Vec2(z.x * w.x - z.y * w.y, z.x * w.y + z.y * w.x);
@@ -21,8 +21,8 @@ const { measureTime, measureTimeWithAsyncResult } = Utils;
             Vec2(-0.948163086364632, 0.2561877382574972),
             Vec2(-0.9481630863646167, 0.25618773825751284)
         );
-        const scale = 1e-1 ** time;
-        box = box.scale(1 + scale);
+        const beta = 1.025;
+        box = box.scale(beta ** i);
         return image.map((x, y) => {
             let p = Vec2(x, y).div(size);
             p = p.map(z => 2 * z - 1);
@@ -46,9 +46,9 @@ const { measureTime, measureTimeWithAsyncResult } = Utils;
         Parallel
             .builder()
             .numberOfStreams(numOfFrames)
-            .inputStreamGenerator((i) => ({ time: i * dt, width, height }))
+            .inputStreamGenerator((i) => ({ i, width, height }))
             .partitionFunction((_, i) => i % (numberOfProcessors))
-            .stateGenerator(({ time, width, height }) => mandelbrot(time, width, height), [mandelbrot])
+            .stateGenerator(({ i, width, height }) => mandelbrot(i, width, height), [mandelbrot])
             .build()
 
     console.log(

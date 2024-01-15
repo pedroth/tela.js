@@ -10,12 +10,14 @@ const { measureTimeWithResult, measureTime } = Utils;
     const size = Vec2(width, height);
     const complexMul = (z, w) => Vec2(z.x * w.x - z.y * w.y, z.x * w.y + z.y * w.x);
     // let box = new Box(Vec2(-1, -1), Vec2(1, 1));
-    let box = new Box(
-        Vec2(-0.948163086364632, 0.2561877382574972),
-        Vec2(-0.9481630863646167, 0.25618773825751284)
-    );
-    function mandelbrot(image) {
+    function mandelbrot(i, image) {
         const ite = 100;
+        let box = new Box(
+            Vec2(-0.948163086364632, 0.2561877382574972),
+            Vec2(-0.9481630863646167, 0.25618773825751284)
+        );
+        const beta = 1.01;
+        box = box.scale(beta ** i);
         return image.map((x, y) => {
             let p = Vec2(x, y).div(size);
             p = p.map(z => 2 * z - 1);
@@ -37,15 +39,14 @@ const { measureTimeWithResult, measureTime } = Utils;
 
     // scene
     const imageStream = new Stream(
-        { time: 0, image: mandelbrot(Image.ofSize(width, height)) },
-        ({ time, image }) => {
+        { time: 0, i: 0, image: mandelbrot(0, Image.ofSize(width, height)) },
+        ({ time, i, image }) => {
             const dt = 1 / FPS;
-            const scale = 1e-1 * time;
-            box = box.scale(1 + scale);
-            const { result: newImage, time: t } = measureTimeWithResult(() => mandelbrot(image));
+            const { result: newImage, time: t } = measureTimeWithResult(() => mandelbrot(i + 1, image));
             console.log(`Image took ${t}s`);
             return {
                 time: time + dt,
+                i: i + 1,
                 image: newImage
             };
         }
