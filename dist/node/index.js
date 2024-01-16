@@ -9,7 +9,7 @@ var __export = (target, all) => {
     });
 };
 
-// src/Utils/Math.jsts.
+// src/Utils/Constants.
 class Stream {
   constructor(initialState, updateStateFunction) {
     this._head = initialState;
@@ -23,7 +23,7 @@ class Stream {
   }
 }
 
-// src/Utils/Math.jsts.jsssr.
+// src/Utils/Constants.jsssr.
 class Animation {
   constructor(state, next, doWhile) {
     this.animation = new Stream(state, next);
@@ -75,7 +75,7 @@ class AnimationBuilder {
   }
 }
 
-// src/Utils/Math.jst
+// src/Utils/Constant
 var MAX_8BIT = 255;
 
 class Color {
@@ -129,334 +129,10 @@ class Color {
   static WHITE = Color.ofRGB(1, 1, 1);
 }
 
-// src/Utils/Math.jsts.js
+// src/Utils/Constants.js
 var MAX_8BIT2 = 255;
 
-// src/Utils/Math.js
-function smin(a, b, k = 32) {
-  const res = Math.exp(-k * a) + Math.exp(-k * b);
-  return -Math.log(res) / k;
-}
-
-// src/Utils/Math.jsts.
-var handleMouse = function(canvas, lambda) {
-  return (event) => {
-    const h = canvas.height;
-    const w = canvas.width;
-    const rect = canvas._canvas.getBoundingClientRect();
-    const mx = (event.clientX - rect.left) / rect.width, my = (event.clientY - rect.top) / rect.height;
-    const x = Math.floor(mx * w);
-    const y = Math.floor(h - 1 - my * h);
-    return lambda(x, y);
-  };
-};
-
-class Canvas {
-  constructor(canvas) {
-    this._canvas = canvas;
-    this._width = canvas.width;
-    this._height = canvas.height;
-    this._ctx = this._canvas.getContext("2d", { willReadFrequently: true });
-    this._imageData = this._ctx.getImageData(0, 0, this._width, this._height);
-    this._image = this._imageData.data;
-  }
-  get width() {
-    return this._canvas.width;
-  }
-  get height() {
-    return this._canvas.height;
-  }
-  get DOM() {
-    return this._canvas;
-  }
-  fill(color) {
-    return this.map(() => color);
-  }
-  map(lambda) {
-    const n = this._image.length;
-    const w = this._width;
-    const h = this._height;
-    for (let k = 0;k < n; k += 4) {
-      const i = Math.floor(k / (4 * w));
-      const j = Math.floor(k / 4 % w);
-      const x = j;
-      const y = h - 1 - i;
-      const color = lambda(x, y);
-      this._image[k] = color.red * MAX_8BIT2;
-      this._image[k + 1] = color.green * MAX_8BIT2;
-      this._image[k + 2] = color.blue * MAX_8BIT2;
-      this._image[k + 3] = MAX_8BIT2;
-    }
-    return this.paint();
-  }
-  setPxl(x, y, color) {
-    const w = this._width;
-    const h = this._height;
-    const i = h - 1 - y;
-    const j = x;
-    let index = 4 * (w * i + j);
-    this._image[index] = color.red * MAX_8BIT2;
-    this._image[index + 1] = color.green * MAX_8BIT2;
-    this._image[index + 2] = color.blue * MAX_8BIT2;
-    this._image[index + 3] = MAX_8BIT2;
-    return this;
-  }
-  getPxl(x, y) {
-    const w = this._width;
-    const h = this._height;
-    const i = h - 1 - y;
-    const j = x;
-    let index = 4 * (w * i + j);
-    return Color.ofRGBRaw(this._image[index], this._image[index + 1], this._image[index + 2]);
-  }
-  paint() {
-    this._ctx.putImageData(this._imageData, 0, 0);
-    return this;
-  }
-  onMouseDown(lambda) {
-    this._canvas.addEventListener("mousedown", handleMouse(this, lambda), false);
-    this._canvas.addEventListener("touchstart", handleMouse(this, lambda), false);
-    return this;
-  }
-  onMouseUp(lambda) {
-    this._canvas.addEventListener("mouseup", handleMouse(this, lambda), false);
-    this._canvas.addEventListener("touchend", handleMouse(this, lambda), false);
-    return this;
-  }
-  onMouseMove(lambda) {
-    this._canvas.addEventListener("mousemove", handleMouse(this, lambda), false);
-    this._canvas.addEventListener("touchmove", handleMouse(this, lambda), false);
-    return this;
-  }
-  onMouseWheel(lambda) {
-    this._canvas.addEventListener("wheel", lambda, false);
-  }
-  resize(width, height) {
-    this._canvas.width = width;
-    this._canvas.height = height;
-    this._width = this._canvas.width;
-    this._height = this._canvas.height;
-    this._ctx = this._canvas.getContext("2d", { willReadFrequently: true });
-    this._imageData = this._ctx.getImageData(0, 0, this._width, this._height);
-    this._image = this._imageData.data;
-  }
-  startVideoRecorder() {
-    let responseBlob;
-    const canvasSnapshots = [];
-    const stream = this._canvas.captureStream();
-    const recorder = new MediaRecorder(stream);
-    recorder.addEventListener("dataavailable", (e) => canvasSnapshots.push(e.data));
-    recorder.start();
-    recorder.onstop = () => responseBlob = new Blob(canvasSnapshots, { type: "video/webm" });
-    return {
-      stop: () => new Promise((re) => {
-        recorder.stop();
-        setTimeout(() => re(responseBlob));
-      })
-    };
-  }
-  static ofSize(width, height) {
-    const canvas = document.createElement("canvas");
-    canvas.setAttribute("width", width);
-    canvas.setAttribute("height", height);
-    return new Canvas(canvas);
-  }
-  static ofDOM(canvasDOM) {
-    return new Canvas(canvasDOM);
-  }
-  static ofCanvas(canvas) {
-    return new Canvas(canvas._canvas);
-  }
-  static ofUrl(url) {
-    return new Promise((resolve) => {
-      const img = document.createElement("img");
-      img.src = url;
-      img.onload = function() {
-        const canvas = document.createElement("canvas");
-        canvas.width = img.width;
-        canvas.height = img.height;
-        const ctx = canvas.getContext("2d");
-        ctx.drawImage(img, 0, 0);
-        resolve(Canvas.ofDOM(canvas));
-      };
-    });
-  }
-  static ofImage(image) {
-    const w = image.width;
-    const h = image.height;
-    return Canvas.ofSize(w, h).map((x, y) => {
-      return image.get(x, y);
-    });
-  }
-}
-
-// src/Utils/Math.jsts.jsssr.js
-var isElement = function(o) {
-  return typeof HTMLElement === "object" ? o instanceof HTMLElement : o && typeof o === "object" && o !== null && o.nodeType === 1 && typeof o.nodeName === "string";
-};
-var isPromise = function(o) {
-  return o instanceof Promise;
-};
-var SVG_URL = "http://www.w3.org/2000/svg";
-var SVG_TAGS = [
-  "svg",
-  "g",
-  "circle",
-  "ellipse",
-  "line",
-  "path",
-  "polygon",
-  "polyline",
-  "rect"
-];
-
-class DomBuilder {
-  constructor(element) {
-    this.element = element;
-  }
-  attr(name, value) {
-    this.element.setAttribute(name, value);
-    return this;
-  }
-  style(styleStr) {
-    this.element.setAttribute("style", styleStr);
-    return this;
-  }
-  appendChild(...elements) {
-    elements.forEach((e) => {
-      if (isElement(e)) {
-        this.element.appendChild(e);
-      } else if (isPromise(e)) {
-        e.then((actualElem) => this.appendChild(actualElem));
-      } else {
-        this.element.appendChild(e.build());
-      }
-    });
-    return this;
-  }
-  inner(value) {
-    if (isPromise(value)) {
-      value.then((v) => this.element.innerHTML = v);
-    } else {
-      this.element.innerHTML = value;
-    }
-    return this;
-  }
-  removeChildren() {
-    while (this.element.firstChild) {
-      this.element.removeChild(this.element.lastChild);
-    }
-    return this;
-  }
-  html(value) {
-    return this.inner(value);
-  }
-  event(eventName, lambda) {
-    this.element.addEventListener(eventName, lambda);
-    return this;
-  }
-  build() {
-    return this.element;
-  }
-  addClass(className) {
-    if (!className || className === "")
-      return this;
-    this.element.classList.add(...className.split(" "));
-    return this;
-  }
-  removeClass(className) {
-    this.element.classList.remove(className);
-    return this;
-  }
-  static of(elem) {
-    if (isElement(elem)) {
-      return new DomBuilder(elem);
-    }
-    const isSvg = SVG_TAGS.includes(elem);
-    const element = isSvg ? document.createElementNS(SVG_URL, elem) : document.createElement(elem);
-    return new DomBuilder(element);
-  }
-  static ofId(id) {
-    return new DomBuilder(document.getElementById(id));
-  }
-}
-var DomBuilder_default = DomBuilder;
-
-// src/Utils/Math.jsts.jsss
-class Parallel {
-  constructor(numberOfStreams, inputStreamGenerator, partitionFunction, stateGenerator, dependencies, lazyInitialState) {
-    this.numberOfStreams = numberOfStreams;
-    this.inputStreamGenerator = inputStreamGenerator;
-    this.partitionFunction = partitionFunction;
-    this.stateGenerator = stateGenerator;
-    this.dependencies = dependencies;
-    this.lazyInitialState = lazyInitialState;
-  }
-  getPartition() {
-    return new Array(this.numberOfStreams).fill().map((_, i) => {
-      return { ...this.inputStreamGenerator(i), __ite__: i };
-    }).reduce((e, x, i) => {
-      const value = this.partitionFunction(x, i);
-      if (!(value in e)) {
-        e[value] = [];
-      }
-      e[value].push(x);
-      return e;
-    }, {});
-  }
-  static builder() {
-    return new ParallelBuilder;
-  }
-}
-
-class ParallelBuilder {
-  constructor() {
-    this._numberOfStreams;
-    this._inputStreamGenerator;
-    this._partitionFunction;
-    this._stateGenerator;
-    this._dependencies;
-    this._lazyInitialState = () => {
-    };
-  }
-  numberOfStreams(numberOfStreams) {
-    this._numberOfStreams = numberOfStreams;
-    return this;
-  }
-  inputStreamGenerator(inputStreamGenerator) {
-    this._inputStreamGenerator = inputStreamGenerator;
-    return this;
-  }
-  partitionFunction(partitionFunction) {
-    this._partitionFunction = partitionFunction;
-    return this;
-  }
-  stateGenerator(stateGenerator, dependencies = []) {
-    this._stateGenerator = stateGenerator;
-    this._dependencies = dependencies;
-    return this;
-  }
-  lazyInitialState(lazyInitialState) {
-    this._lazyInitialState = lazyInitialState;
-    return this;
-  }
-  build() {
-    const attrs = [
-      this._numberOfStreams,
-      this._inputStreamGenerator,
-      this._partitionFunction,
-      this._stateGenerator,
-      this._dependencies,
-      this._lazyInitialState
-    ];
-    if (attrs.some((x) => x === undefined)) {
-      throw new Error("Parallel is incomplete");
-    }
-    return new Parallel(...attrs);
-  }
-}
-
-// src/Utils/Math.jsts.
+// src/Utils/Constants.
 var _sanitize_input = function(arrayIn, arrayOut) {
   for (let i = 0;i < arrayIn.length; i++) {
     const z = arrayIn[i];
@@ -565,7 +241,7 @@ class Vec {
     return this.sub(u).length() < precision;
   }
   take(n = 0, m = this._vec.length) {
-    return new Vec(this._vec.slice(n, m));
+    return Vec.fromArray(this._vec.slice(n, m));
   }
   findIndex(predicate) {
     for (let i = 0;i < this._n; i++) {
@@ -705,10 +381,6 @@ class Vector3 {
   }
   take(n = 0, m = 3) {
     const array = [this.x, this.y, this.z].slice(n, m);
-    if (array.length === 2)
-      return Vector2.fromArray(array);
-    if (array.length === 3)
-      return Vector3.fromArray(array);
     return Vec.fromArray(array);
   }
   findIndex(predicate) {
@@ -817,8 +489,6 @@ class Vector2 {
   }
   take(n = 0, m = 2) {
     const array = [this.x, this.y].slice(n, m);
-    if (array.length === 2)
-      return Vector2.fromArray(array);
     return Vec.fromArray(array);
   }
   findIndex(predicate) {
@@ -847,112 +517,89 @@ class Vector2 {
   static ONES = new Vector2(1, 1);
 }
 
-// src/Utils/Math
-function Ray(init, dir) {
-  const ans = {};
-  ans.init = init;
-  ans.dir = dir;
-  ans.trace = (t) => init.add(dir.scale(t));
-  return ans;
+// src/Utils/Constan
+function smin(a, b, k = 32) {
+  const res = Math.exp(-k * a) + Math.exp(-k * b);
+  return -Math.log(res) / k;
 }
-
-// src/Utils/Math.jsts.
-class Camera {
-  constructor(props = {
-    sphericalCoords: Vec3(2, 0, 0),
-    focalPoint: Vec3(0, 0, 0),
-    distanceToPlane: 1
-  }) {
-    const { sphericalCoords, focalPoint, distanceToPlane } = props;
-    this.sphericalCoords = sphericalCoords || Vec3(2, 0, 0);
-    this.focalPoint = focalPoint || Vec3(0, 0, 0);
-    this.distanceToPlane = distanceToPlane || 1;
-    this.orbit();
+function clipLine(p0, p1, box) {
+  const pointStack = [p0, p1];
+  const inStack = [];
+  const outStack = [];
+  for (let i = 0;i < pointStack.length; i++) {
+    const p = pointStack[i];
+    if (box.collidesWith(p)) {
+      inStack.push(p);
+    } else {
+      outStack.push(p);
+    }
   }
-  orbit() {
-    const [rho, theta, phi] = this.sphericalCoords.toArray();
-    const cosT = Math.cos(theta);
-    const sinT = Math.sin(theta);
-    const cosP = Math.cos(phi);
-    const sinP = Math.sin(phi);
-    this.basis = [];
-    this.basis[2] = Vec3(-cosP * cosT, -cosP * sinT, -sinP);
-    this.basis[1] = Vec3(-sinP * cosT, -sinP * sinT, cosP);
-    this.basis[0] = Vec3(-sinT, cosT, 0);
-    const sphereCoordinates = Vec3(rho * cosP * cosT, rho * cosP * sinT, rho * sinP);
-    this.eye = sphereCoordinates.add(this.focalPoint);
-    return this;
+  if (inStack.length >= 2) {
+    return inStack;
   }
-  rayShot(lambdaWithRays) {
-    return {
-      to: (canvas) => {
-        const w = canvas.width;
-        const h = canvas.height;
-        return canvas.map((x, y) => {
-          const dirInLocal = [
-            2 * (x / w) - 1,
-            2 * (y / h) - 1,
-            1
-          ];
-          const dir = this.basis[0].scale(dirInLocal[0]).add(this.basis[1].scale(dirInLocal[1])).add(this.basis[2].scale(dirInLocal[2])).normalize();
-          return lambdaWithRays(Ray(this.eye, dir));
-        });
-      }
-    };
+  if (inStack.length === 1) {
+    const [inPoint] = inStack;
+    const [outPoint] = outStack;
+    return [inPoint, ...lineBoxIntersection(inPoint, outPoint, box)];
   }
-  sceneShot(scene) {
-    const lambda = (ray) => {
-      return scene.interceptWith(ray).map(([, normal]) => {
-        return Color.ofRGB((normal.get(0) + 1) / 2, (normal.get(1) + 1) / 2, (normal.get(2) + 1) / 2);
-      }).orElse(() => {
-        return Color.BLACK;
-      });
-    };
-    return this.rayShot(lambda);
-  }
-  reverseShot(scene) {
-    return {
-      to: (canvas) => {
-        canvas.fill(Color.BLACK);
-        const w = canvas.width;
-        const h = canvas.height;
-        const zBuffer = new Float64Array(w * h).fill(Number.MAX_VALUE);
-        scene.getElements().forEach((point) => {
-          let pointInCamCoord = point.position.sub(this.eye);
-          pointInCamCoord = Vec3(this.basis[0].dot(pointInCamCoord), this.basis[1].dot(pointInCamCoord), this.basis[2].dot(pointInCamCoord));
-          const z = pointInCamCoord.get(2);
-          if (z < this.distanceToPlane)
-            return;
-          const projectedPoint = pointInCamCoord.scale(this.distanceToPlane / z);
-          let x = w / 2 + projectedPoint.get(0) * w;
-          let y = h / 2 + projectedPoint.get(1) * h;
-          x = Math.floor(x);
-          y = Math.floor(y);
-          if (x < 0 || x >= w || y < 0 || y >= h)
-            return;
-          const radius = Math.ceil(point.radius * (this.distanceToPlane / z) * w);
-          for (let k = -radius;k < radius; k++) {
-            for (let l = -radius;l < radius; l++) {
-              const xl = Math.max(0, Math.min(w - 1, x + k));
-              const yl = Math.floor(y + l);
-              const j = xl;
-              const i = h - 1 - yl;
-              const zBufferIndex = Math.floor(w * i + j);
-              if (z < zBuffer[zBufferIndex]) {
-                zBuffer[zBufferIndex] = z;
-                canvas.setPxl(xl, yl, point.color);
-              }
-            }
-          }
-        });
-        canvas.paint();
-        return canvas;
-      }
-    };
-  }
+  return lineBoxIntersection(...outStack, box);
 }
+var lineBoxIntersection = function(start, end, box) {
+  const width = box.diagonal.x;
+  const height = box.diagonal.y;
+  const v = end.sub(start);
+  const boundary = [
+    [Vec.ZERO(2), Vec2(height, 0)],
+    [Vec2(height, 0), Vec2(0, width)],
+    [Vec2(height, width), Vec2(-height, 0)],
+    [Vec2(0, width), Vec2(0, -width)]
+  ];
+  const intersectionSolutions = [];
+  boundary.forEach(([s, d]) => {
+    if (d.x === 0) {
+      const solution = _solveLowTriMatrix(v, -d.get(1), s.sub(start));
+      solution !== undefined && intersectionSolutions.push(solution);
+    } else {
+      const solution = _solveUpTriMatrix(v, -d.get(0), s.sub(start));
+      solution !== undefined && intersectionSolutions.push(solution);
+    }
+  });
+  const validIntersections = [];
+  intersectionSolutions.forEach((solution) => {
+    const [x, y] = [solution.x, solution.y];
+    if (0 <= x && x <= 1 && 0 <= y && y <= 1) {
+      validIntersections.push(solution);
+    }
+  });
+  if (validIntersections.length === 0)
+    return [];
+  return validIntersections.map((solution) => {
+    const t = solution.x;
+    return start.add(v.scale(t));
+  });
+};
+var _solveLowTriMatrix = function(v, a, f) {
+  const v1 = v.x;
+  const v2 = v.y;
+  const av1 = a * v1;
+  if (av1 === 0 || v1 === 0)
+    return;
+  const f1 = f.x;
+  const f2 = f.y;
+  return Vec2(f1 / v1, (f2 * v1 - v2 * f1) / av1);
+};
+var _solveUpTriMatrix = function(v, a, f) {
+  const v1 = v.x;
+  const v2 = v.y;
+  const av2 = a * v2;
+  if (av2 === 0 || v2 === 0)
+    return;
+  const f1 = f.x;
+  const f2 = f.y;
+  return Vec2(f2 / v2, (f1 * v2 - v1 * f2) / av2);
+};
 
-// src/Utils/Math.jsts.
+// src/Utils/Constants.
 var exports_Monads = {};
 __export(exports_Monads, {
   some: () => {
@@ -1000,7 +647,7 @@ function maybe(x) {
   return none(x);
 }
 
-// src/Utils/Math
+// src/Utils/Cons
 var maxComp = function(u) {
   return u.fold((e, x) => Math.max(e, x), -Number.MAX_VALUE);
 };
@@ -1029,7 +676,7 @@ class Box {
     const newMin = min.op(box.min, Math.max);
     const newMax = max.op(box.max, Math.min);
     const newDiag = newMax.sub(newMin);
-    const isAllPositive = newDiag.data.every((x) => x >= 0);
+    const isAllPositive = newDiag.fold((e, x) => e && x >= 0, true);
     return !isAllPositive ? Box.EMPTY : new Box(newMin, newMax);
   }
   intersection = this.sub;
@@ -1085,6 +732,19 @@ class Box {
     }
     return Vec.fromArray(grad).scale(Math.sign(d)).normalize();
   }
+  collidesWith(box) {
+    const vectorCollision = () => !this.sub(new Box(box, box)).isEmpty;
+    const type2action = {
+      [Box.name]: () => !this.sub(box).isEmpty,
+      Vector: vectorCollision,
+      Vector3: vectorCollision,
+      Vector2: vectorCollision
+    };
+    if (box.constructor.name in type2action) {
+      return type2action[box.constructor.name]();
+    }
+    return false;
+  }
   toString() {
     return `{
         min:${this.min.toString()},
@@ -1094,81 +754,358 @@ class Box {
   static EMPTY = new Box;
 }
 
-// src/Utils/Math.jst
-var exports_Utils = {};
-__export(exports_Utils, {
-  or: () => {
-    {
-      return or;
-    }
-  },
-  measureTimeWithResult: () => {
-    {
-      return measureTimeWithResult;
-    }
-  },
-  measureTimeWithAsyncResult: () => {
-    {
-      return measureTimeWithAsyncResult;
-    }
-  },
-  measureTime: () => {
-    {
-      return measureTime;
-    }
-  },
-  compose: () => {
-    {
-      return compose;
-    }
-  },
-  argmin: () => {
-    {
-      return argmin;
-    }
+// src/Utils/Constants.
+var handleMouse = function(canvas, lambda) {
+  return (event) => {
+    const h = canvas.height;
+    const w = canvas.width;
+    const rect = canvas._canvas.getBoundingClientRect();
+    const mx = (event.clientX - rect.left) / rect.width, my = (event.clientY - rect.top) / rect.height;
+    const x = Math.floor(mx * w);
+    const y = Math.floor(h - 1 - my * h);
+    return lambda(x, y);
+  };
+};
+
+class Canvas {
+  constructor(canvas) {
+    this._canvas = canvas;
+    this._width = canvas.width;
+    this._height = canvas.height;
+    this._ctx = this._canvas.getContext("2d", { willReadFrequently: true });
+    this._imageData = this._ctx.getImageData(0, 0, this._width, this._height);
+    this._image = this._imageData.data;
   }
-});
-function measureTime(lambda) {
-  const t = performance.now();
-  lambda();
-  return 0.001 * (performance.now() - t);
-}
-async function measureTimeWithAsyncResult(lambda) {
-  const t = performance.now();
-  const result = await lambda();
-  return { result, time: 0.001 * (performance.now() - t) };
-}
-function measureTimeWithResult(lambda) {
-  const t = performance.now();
-  const result = lambda();
-  return { result, time: 0.001 * (performance.now() - t) };
-}
-function compose(f, g) {
-  return (x) => f(g(x));
-}
-function or(...lambdas) {
-  for (let i = 0;i < lambdas.length; i++) {
-    try {
-      return lambdas[i]();
-    } catch (err) {
-      continue;
-    }
+  get width() {
+    return this._canvas.width;
   }
-}
-function argmin(array, costFunction = (x) => x) {
-  let argminIndex = -1;
-  let cost = Number.MAX_VALUE;
-  for (let i = 0;i < array.length; i++) {
-    const newCost = costFunction(array[i]);
-    if (newCost < cost) {
-      cost = newCost;
-      argminIndex = i;
-    }
+  get height() {
+    return this._canvas.height;
   }
-  return argminIndex;
+  get DOM() {
+    return this._canvas;
+  }
+  fill(color) {
+    return this.map(() => color);
+  }
+  map(lambda) {
+    const n = this._image.length;
+    const w = this._width;
+    const h = this._height;
+    for (let k = 0;k < n; k += 4) {
+      const i = Math.floor(k / (4 * w));
+      const j = Math.floor(k / 4 % w);
+      const x = j;
+      const y = h - 1 - i;
+      const color = lambda(x, y);
+      this._image[k] = color.red * MAX_8BIT2;
+      this._image[k + 1] = color.green * MAX_8BIT2;
+      this._image[k + 2] = color.blue * MAX_8BIT2;
+      this._image[k + 3] = MAX_8BIT2;
+    }
+    return this.paint();
+  }
+  setPxl(x, y, color) {
+    const w = this._width;
+    const h = this._height;
+    const i = h - 1 - y;
+    const j = x;
+    let index = 4 * (w * i + j);
+    this._image[index] = color.red * MAX_8BIT2;
+    this._image[index + 1] = color.green * MAX_8BIT2;
+    this._image[index + 2] = color.blue * MAX_8BIT2;
+    this._image[index + 3] = MAX_8BIT2;
+    return this;
+  }
+  getPxl(x, y) {
+    const w = this._width;
+    const h = this._height;
+    const i = h - 1 - y;
+    const j = x;
+    let index = 4 * (w * i + j);
+    return Color.ofRGBRaw(this._image[index], this._image[index + 1], this._image[index + 2]);
+  }
+  drawLine(p1, p2, shader) {
+    const w = this._width;
+    const h = this._height;
+    const line = clipLine(p1, p2, new Box(Vec2(0, 0), Vec2(w, h)));
+    if (line.length === 0)
+      return;
+    const [pi, pf] = line;
+    const v = pf.sub(pi);
+    const n = v.map(Math.abs).fold((e, x) => e + x);
+    for (let k = 0;k < n; k++) {
+      const s = k / n;
+      const lineP = pi.add(v.scale(s)).map(Math.floor);
+      const [x, y] = lineP.toArray();
+      const i = h - 1 - y;
+      const j = x;
+      const index = 4 * (i * w + j);
+      const color = shader(i, j);
+      this._image[index] = color.red * MAX_8BIT2;
+      this._image[index + 1] = color.green * MAX_8BIT2;
+      this._image[index + 2] = color.blue * MAX_8BIT2;
+      this._image[index + 3] = 255;
+    }
+    return this;
+  }
+  paint() {
+    this._ctx.putImageData(this._imageData, 0, 0);
+    return this;
+  }
+  onMouseDown(lambda) {
+    this._canvas.addEventListener("mousedown", handleMouse(this, lambda), false);
+    this._canvas.addEventListener("touchstart", handleMouse(this, lambda), false);
+    return this;
+  }
+  onMouseUp(lambda) {
+    this._canvas.addEventListener("mouseup", handleMouse(this, lambda), false);
+    this._canvas.addEventListener("touchend", handleMouse(this, lambda), false);
+    return this;
+  }
+  onMouseMove(lambda) {
+    this._canvas.addEventListener("mousemove", handleMouse(this, lambda), false);
+    this._canvas.addEventListener("touchmove", handleMouse(this, lambda), false);
+    return this;
+  }
+  onMouseWheel(lambda) {
+    this._canvas.addEventListener("wheel", lambda, false);
+  }
+  resize(width, height) {
+    this._canvas.width = width;
+    this._canvas.height = height;
+    this._width = this._canvas.width;
+    this._height = this._canvas.height;
+    this._ctx = this._canvas.getContext("2d", { willReadFrequently: true });
+    this._imageData = this._ctx.getImageData(0, 0, this._width, this._height);
+    this._image = this._imageData.data;
+  }
+  startVideoRecorder() {
+    let responseBlob;
+    const canvasSnapshots = [];
+    const stream = this._canvas.captureStream();
+    const recorder = new MediaRecorder(stream);
+    recorder.addEventListener("dataavailable", (e) => canvasSnapshots.push(e.data));
+    recorder.start();
+    recorder.onstop = () => responseBlob = new Blob(canvasSnapshots, { type: "video/webm" });
+    return {
+      stop: () => new Promise((re) => {
+        recorder.stop();
+        setTimeout(() => re(responseBlob));
+      })
+    };
+  }
+  static ofSize(width, height) {
+    const canvas = document.createElement("canvas");
+    canvas.setAttribute("width", width);
+    canvas.setAttribute("height", height);
+    return new Canvas(canvas);
+  }
+  static ofDOM(canvasDOM) {
+    return new Canvas(canvasDOM);
+  }
+  static ofCanvas(canvas) {
+    return new Canvas(canvas._canvas);
+  }
+  static ofUrl(url) {
+    return new Promise((resolve) => {
+      const img = document.createElement("img");
+      img.src = url;
+      img.onload = function() {
+        const canvas = document.createElement("canvas");
+        canvas.width = img.width;
+        canvas.height = img.height;
+        const ctx = canvas.getContext("2d");
+        ctx.drawImage(img, 0, 0);
+        resolve(Canvas.ofDOM(canvas));
+      };
+    });
+  }
+  static ofImage(image) {
+    const w = image.width;
+    const h = image.height;
+    return Canvas.ofSize(w, h).map((x, y) => {
+      return image.get(x, y);
+    });
+  }
 }
 
-// src/Utils/Math.jst
+// src/Utils/Constants.jsssr.js
+var isElement = function(o) {
+  return typeof HTMLElement === "object" ? o instanceof HTMLElement : o && typeof o === "object" && o !== null && o.nodeType === 1 && typeof o.nodeName === "string";
+};
+var isPromise = function(o) {
+  return o instanceof Promise;
+};
+var SVG_URL = "http://www.w3.org/2000/svg";
+var SVG_TAGS = [
+  "svg",
+  "g",
+  "circle",
+  "ellipse",
+  "line",
+  "path",
+  "polygon",
+  "polyline",
+  "rect"
+];
+
+class DomBuilder {
+  constructor(element) {
+    this.element = element;
+  }
+  attr(name, value) {
+    this.element.setAttribute(name, value);
+    return this;
+  }
+  style(styleStr) {
+    this.element.setAttribute("style", styleStr);
+    return this;
+  }
+  appendChild(...elements) {
+    elements.forEach((e) => {
+      if (isElement(e)) {
+        this.element.appendChild(e);
+      } else if (isPromise(e)) {
+        e.then((actualElem) => this.appendChild(actualElem));
+      } else {
+        this.element.appendChild(e.build());
+      }
+    });
+    return this;
+  }
+  inner(value) {
+    if (isPromise(value)) {
+      value.then((v) => this.element.innerHTML = v);
+    } else {
+      this.element.innerHTML = value;
+    }
+    return this;
+  }
+  removeChildren() {
+    while (this.element.firstChild) {
+      this.element.removeChild(this.element.lastChild);
+    }
+    return this;
+  }
+  html(value) {
+    return this.inner(value);
+  }
+  event(eventName, lambda) {
+    this.element.addEventListener(eventName, lambda);
+    return this;
+  }
+  build() {
+    return this.element;
+  }
+  addClass(className) {
+    if (!className || className === "")
+      return this;
+    this.element.classList.add(...className.split(" "));
+    return this;
+  }
+  removeClass(className) {
+    this.element.classList.remove(className);
+    return this;
+  }
+  static of(elem) {
+    if (isElement(elem)) {
+      return new DomBuilder(elem);
+    }
+    const isSvg = SVG_TAGS.includes(elem);
+    const element = isSvg ? document.createElementNS(SVG_URL, elem) : document.createElement(elem);
+    return new DomBuilder(element);
+  }
+  static ofId(id) {
+    return new DomBuilder(document.getElementById(id));
+  }
+}
+var DomBuilder_default = DomBuilder;
+
+// src/Utils/Constants.jsss
+class Parallel {
+  constructor(numberOfStreams, inputStreamGenerator, partitionFunction, stateGenerator, dependencies, lazyInitialState) {
+    this.numberOfStreams = numberOfStreams;
+    this.inputStreamGenerator = inputStreamGenerator;
+    this.partitionFunction = partitionFunction;
+    this.stateGenerator = stateGenerator;
+    this.dependencies = dependencies;
+    this.lazyInitialState = lazyInitialState;
+  }
+  getPartition() {
+    return new Array(this.numberOfStreams).fill().map((_, i) => {
+      return { ...this.inputStreamGenerator(i), __ite__: i };
+    }).reduce((e, x, i) => {
+      const value = this.partitionFunction(x, i);
+      if (!(value in e)) {
+        e[value] = [];
+      }
+      e[value].push(x);
+      return e;
+    }, {});
+  }
+  static builder() {
+    return new ParallelBuilder;
+  }
+}
+
+class ParallelBuilder {
+  constructor() {
+    this._numberOfStreams;
+    this._inputStreamGenerator;
+    this._partitionFunction;
+    this._stateGenerator;
+    this._dependencies;
+    this._lazyInitialState = () => {
+    };
+  }
+  numberOfStreams(numberOfStreams) {
+    this._numberOfStreams = numberOfStreams;
+    return this;
+  }
+  inputStreamGenerator(inputStreamGenerator) {
+    this._inputStreamGenerator = inputStreamGenerator;
+    return this;
+  }
+  partitionFunction(partitionFunction) {
+    this._partitionFunction = partitionFunction;
+    return this;
+  }
+  stateGenerator(stateGenerator, dependencies = []) {
+    this._stateGenerator = stateGenerator;
+    this._dependencies = dependencies;
+    return this;
+  }
+  lazyInitialState(lazyInitialState) {
+    this._lazyInitialState = lazyInitialState;
+    return this;
+  }
+  build() {
+    const attrs = [
+      this._numberOfStreams,
+      this._inputStreamGenerator,
+      this._partitionFunction,
+      this._stateGenerator,
+      this._dependencies,
+      this._lazyInitialState
+    ];
+    if (attrs.some((x) => x === undefined)) {
+      throw new Error("Parallel is incomplete");
+    }
+    return new Parallel(...attrs);
+  }
+}
+
+// src/Utils/Cons
+function Ray(init, dir) {
+  const ans = {};
+  ans.init = init;
+  ans.dir = dir;
+  ans.trace = (t) => init.add(dir.scale(t));
+  return ans;
+}
+
+// src/Utils/Constant
 var sphereInterception = function(point, ray) {
   const { init, dir } = ray;
   const diff = init.sub(point.position);
@@ -1259,7 +1196,292 @@ class PointBuilder {
 }
 var Point_default = Point;
 
-// src/Utils/Math.jst
+// src/Utils/Constan
+class Line {
+  constructor(name, start, end, color) {
+    this.name = name;
+    this.start = start;
+    this.end = end;
+    this.color = color;
+  }
+  static builder() {
+    return new LineBuilder;
+  }
+}
+
+class LineBuilder {
+  constructor() {
+    this._name;
+    this._start;
+    this._end;
+    this._color;
+  }
+  name(name) {
+    this._name = name;
+    return this;
+  }
+  start(start) {
+    this._start = start;
+    return this;
+  }
+  end(end) {
+    this._end = end;
+    return this;
+  }
+  color(color) {
+    this._color = color;
+    return this;
+  }
+  build() {
+    const attrs = [
+      this._name,
+      this._start,
+      this._end,
+      this._color
+    ];
+    if (attrs.some((x) => x === undefined)) {
+      throw new Error("Line is incomplete");
+    }
+    return new Line(...attrs);
+  }
+}
+
+// src/Utils/Constants.
+var rasterPoint = function({ canvas, camera, elem, w, h, zBuffer }) {
+  const { distanceToPlane } = camera;
+  const point = elem;
+  let pointInCamCoord = camera.toCameraCoord(point.position);
+  const z = pointInCamCoord.z;
+  if (z < distanceToPlane)
+    return;
+  const projectedPoint = pointInCamCoord.scale(distanceToPlane / z);
+  let x = w / 2 + projectedPoint.x * w;
+  let y = h / 2 + projectedPoint.y * h;
+  x = Math.floor(x);
+  y = Math.floor(y);
+  if (x < 0 || x >= w || y < 0 || y >= h)
+    return;
+  const radius = Math.ceil(point.radius * (distanceToPlane / z) * w);
+  for (let k = -radius;k < radius; k++) {
+    for (let l = -radius;l < radius; l++) {
+      const xl = Math.max(0, Math.min(w - 1, x + k));
+      const yl = Math.floor(y + l);
+      const j = xl;
+      const i = h - 1 - yl;
+      const zBufferIndex = Math.floor(w * i + j);
+      if (z < zBuffer[zBufferIndex]) {
+        zBuffer[zBufferIndex] = z;
+        canvas.setPxl(xl, yl, point.color);
+      }
+    }
+  }
+};
+var rasterLine = function({ canvas, camera, elem, w, h, zBuffer }) {
+  const line = elem;
+  const { color } = line;
+  const { distanceToPlane } = camera;
+  let cameraLine = [line.start, line.end].map((p) => camera.toCameraCoord(p));
+  let inFrustum = [];
+  let outFrustum = [];
+  for (let i = 0;i < cameraLine.length; i++) {
+    const zCoord = cameraLine[i].z;
+    if (zCoord < distanceToPlane) {
+      outFrustum.push(i);
+    } else {
+      inFrustum.push(i);
+    }
+  }
+  if (outFrustum.length == 2)
+    return;
+  if (outFrustum.length == 1) {
+    const inVertex = inFrustum[0];
+    const outVertex = outFrustum[0];
+    const inter = intersectImagePlaneInCameraSpace(cameraLine[outVertex], cameraLine[inVertex], camera);
+    cameraLine[outVertex] = inter;
+  }
+  cameraLine.forEach((p, i) => {
+    cameraLine[i].scale(distanceToPlane / p.z);
+  });
+  cameraLine = cameraLine.map((p) => {
+    let x = w / 2 + p.x * w;
+    let y = h / 2 + p.y * h;
+    x = Math.floor(x);
+    y = Math.floor(y);
+    return Vec2(x, y);
+  });
+  canvas.drawLine(cameraLine[0], cameraLine[1], () => color);
+};
+var intersectImagePlaneInCameraSpace = function(vertexOut, vertexIn, camera) {
+  const { distanceToPlane } = camera;
+  const v = vertexOut.sub(vertexIn);
+  const alpha = (distanceToPlane - vertexOut.get(2)) / v.get(2);
+  const p = vertexOut.add(v.scale(alpha));
+  return p;
+};
+
+class Camera {
+  constructor(props = {
+    sphericalCoords: Vec3(2, 0, 0),
+    focalPoint: Vec3(0, 0, 0),
+    distanceToPlane: 1
+  }) {
+    const { sphericalCoords, focalPoint, distanceToPlane } = props;
+    this.sphericalCoords = sphericalCoords || Vec3(2, 0, 0);
+    this.focalPoint = focalPoint || Vec3(0, 0, 0);
+    this.distanceToPlane = distanceToPlane || 1;
+    this.orbit();
+  }
+  orbit() {
+    const [rho, theta, phi] = this.sphericalCoords.toArray();
+    const cosT = Math.cos(theta);
+    const sinT = Math.sin(theta);
+    const cosP = Math.cos(phi);
+    const sinP = Math.sin(phi);
+    this.basis = [];
+    this.basis[2] = Vec3(-cosP * cosT, -cosP * sinT, -sinP);
+    this.basis[1] = Vec3(-sinP * cosT, -sinP * sinT, cosP);
+    this.basis[0] = Vec3(-sinT, cosT, 0);
+    const sphereCoordinates = Vec3(rho * cosP * cosT, rho * cosP * sinT, rho * sinP);
+    this.eye = sphereCoordinates.add(this.focalPoint);
+    return this;
+  }
+  rayShot(lambdaWithRays) {
+    return {
+      to: (canvas) => {
+        const w = canvas.width;
+        const h = canvas.height;
+        return canvas.map((x, y) => {
+          const dirInLocal = [
+            2 * (x / w) - 1,
+            2 * (y / h) - 1,
+            1
+          ];
+          const dir = this.basis[0].scale(dirInLocal[0]).add(this.basis[1].scale(dirInLocal[1])).add(this.basis[2].scale(dirInLocal[2])).normalize();
+          return lambdaWithRays(Ray(this.eye, dir));
+        });
+      }
+    };
+  }
+  sceneShot(scene) {
+    const lambda = (ray) => {
+      return scene.interceptWith(ray).map(([, normal]) => {
+        return Color.ofRGB((normal.get(0) + 1) / 2, (normal.get(1) + 1) / 2, (normal.get(2) + 1) / 2);
+      }).orElse(() => {
+        return Color.BLACK;
+      });
+    };
+    return this.rayShot(lambda);
+  }
+  reverseShot(scene) {
+    const type2render = {
+      [Point_default.name]: rasterPoint,
+      [Line.name]: rasterLine
+    };
+    return {
+      to: (canvas) => {
+        canvas.fill(Color.BLACK);
+        const w = canvas.width;
+        const h = canvas.height;
+        const zBuffer = new Float64Array(w * h).fill(Number.MAX_VALUE);
+        scene.getElements().forEach((elem) => {
+          if (elem.constructor.name in type2render) {
+            type2render[elem.constructor.name]({
+              canvas,
+              camera: this,
+              elem,
+              w,
+              h,
+              zBuffer
+            });
+          }
+        });
+        canvas.paint();
+        return canvas;
+      }
+    };
+  }
+  toCameraCoord(x) {
+    let pointInCamCoord = x.sub(this.eye);
+    pointInCamCoord = Vec3(this.basis[0].dot(pointInCamCoord), this.basis[1].dot(pointInCamCoord), this.basis[2].dot(pointInCamCoord));
+    return pointInCamCoord;
+  }
+}
+
+// src/Utils/Constant
+var exports_Utils = {};
+__export(exports_Utils, {
+  or: () => {
+    {
+      return or;
+    }
+  },
+  measureTimeWithResult: () => {
+    {
+      return measureTimeWithResult;
+    }
+  },
+  measureTimeWithAsyncResult: () => {
+    {
+      return measureTimeWithAsyncResult;
+    }
+  },
+  measureTime: () => {
+    {
+      return measureTime;
+    }
+  },
+  compose: () => {
+    {
+      return compose;
+    }
+  },
+  argmin: () => {
+    {
+      return argmin;
+    }
+  }
+});
+function measureTime(lambda) {
+  const t = performance.now();
+  lambda();
+  return 0.001 * (performance.now() - t);
+}
+async function measureTimeWithAsyncResult(lambda) {
+  const t = performance.now();
+  const result = await lambda();
+  return { result, time: 0.001 * (performance.now() - t) };
+}
+function measureTimeWithResult(lambda) {
+  const t = performance.now();
+  const result = lambda();
+  return { result, time: 0.001 * (performance.now() - t) };
+}
+function compose(f, g) {
+  return (x) => f(g(x));
+}
+function or(...lambdas) {
+  for (let i = 0;i < lambdas.length; i++) {
+    try {
+      return lambdas[i]();
+    } catch (err) {
+      continue;
+    }
+  }
+}
+function argmin(array, costFunction = (x) => x) {
+  let argminIndex = -1;
+  let cost = Number.MAX_VALUE;
+  for (let i = 0;i < array.length; i++) {
+    const newCost = costFunction(array[i]);
+    if (newCost < cost) {
+      cost = newCost;
+      argminIndex = i;
+    }
+  }
+  return argminIndex;
+}
+
+// src/Utils/Constant
 class Scene {
   constructor() {
     this.id2ElemMap = {};
@@ -1272,9 +1494,6 @@ class Scene {
   addList(elements) {
     for (let i = 0;i < elements.length; i++) {
       const elem = elements[i];
-      const classes = [Point_default];
-      if (!classes.some((c) => elem instanceof c))
-        continue;
       const { name } = elem;
       this.id2ElemMap[name] = elem;
       this.sceneElements.push(elem);
@@ -1431,7 +1650,7 @@ class Leaf {
   }
 }
 
-// src/Utils/Math.jsts.jss
+// src/Utils/Constants.jss
 class NaiveScene {
   constructor() {
     this.id2ElemMap = {};
@@ -1443,9 +1662,6 @@ class NaiveScene {
   addList(elements) {
     for (let i = 0;i < elements.length; i++) {
       const elem = elements[i];
-      const classes = [Point_default];
-      if (!classes.some((c) => elem instanceof c))
-        return this;
       const { name } = elem;
       this.id2ElemMap[name] = elem;
       this.sceneElements.push(elem);
@@ -1494,7 +1710,7 @@ class NaiveScene {
   }
 }
 
-// src/Utils/Math.js
+// src/Utils/Constan
 var RADIUS = 0.001;
 
 class Mesh {
@@ -1546,6 +1762,18 @@ class Mesh {
     }
     return points;
   }
+  asLines(name) {
+    const lines = {};
+    for (let i = 0;i < this.faces.length; i++) {
+      const indices = this.faces[i];
+      for (let j = 0;j < indices.length; j++) {
+        const vi = indices[j];
+        const vj = indices[(j + 1) % indices.length];
+        lines[[vi, vj].sort().join("_")] = Line.builder().name(`${name}_${vi}_${vj}`).start(this.vertices[vi]).end(this.vertices[vj]).color(Color.GREEN).build();
+      }
+    }
+    return Object.values(lines);
+  }
   static readObj(objFile) {
     const vertices = [];
     const normals = [];
@@ -1567,12 +1795,14 @@ class Mesh {
         texture.push(Vec2(...v));
       }
       if (type === "f") {
+        const v = spaces.slice(1, 3).map((x) => Number.parseFloat(x.split("/")[0]));
+        faces.push(v);
       }
     });
     return new Mesh({ vertices, normals, texture, faces });
   }
 }
-// src/Utils/Ma
+// src/Utils/Co
 var exports_IO = {};
 __export(exports_IO, {
   saveParallelImageStreamToVideo: () => {
@@ -1604,7 +1834,7 @@ __export(exports_IO, {
 import {writeFileSync, unlinkSync, readFileSync} from "fs";
 import {execSync, spawn, exec} from "child_process";
 
-// src/Utils/Math.jst
+// src/Utils/Constant
 class Image {
   constructor(width, height) {
     this._width = width;
@@ -1700,7 +1930,7 @@ class Image {
   }
 }
 
-// src/Utils/Ma
+// src/Utils/Co
 import os from "os";
 function saveImageToFile(fileAddress, image) {
   const { fileName, extension } = getFileNameAndExtensionFromAddress(fileAddress);

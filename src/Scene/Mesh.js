@@ -1,6 +1,8 @@
 import { Vec3, Vec2 } from "../Vector/Vector.js";
 import Point from "./Point.js"
 import Box from "../Box/Box.js";
+import Color from "../Color/Color.js";
+import Line from "./Line.js";
 
 const RADIUS = 0.001;
 export default class Mesh {
@@ -68,6 +70,27 @@ export default class Mesh {
         return points;
     }
 
+    asLines(name) {
+        const lines = {};
+        for (let i = 0; i < this.faces.length; i++) {
+            const indices = this.faces[i];
+            for (let j = 0; j < indices.length; j++) {
+
+                const vi = indices[j];
+                const vj = indices[(j + 1) % indices.length];
+                lines[[vi, vj].sort().join("_")] =
+                    Line
+                        .builder()
+                        .name(`${name}_${vi}_${vj}`)
+                        .start(this.vertices[vi])
+                        .end(this.vertices[vj])
+                        .color(Color.GREEN)
+                        .build()
+            }
+        }
+        return Object.values(lines);
+    }
+
 
     static readObj(objFile) {
         const vertices = [];
@@ -79,22 +102,28 @@ export default class Mesh {
                 const spaces = lines.split(" ")
                 const type = spaces[0];
                 if (type === "v") {
+                    // 3 numbers
                     const v = spaces.slice(1, 4)
                         .map(x => Number.parseFloat(x));
                     vertices.push(Vec3(...v));
                 }
                 if (type === "vn") {
+                    // 3 numbers
                     const v = spaces.slice(1, 4)
                         .map(x => Number.parseFloat(x));
                     normals.push(Vec3(...v));
                 }
                 if (type === "vt") {
+                    // 2 numbers
                     const v = spaces.slice(1, 3)
                         .map(x => Number.parseFloat(x));
                     texture.push(Vec2(...v));
                 }
                 if (type === "f") {
-                    // TODO
+                    // vertex_index/texture_index/normal_index
+                    const v = spaces.slice(1, 3)
+                        .map(x => Number.parseFloat(x.split("/")[0]));
+                    faces.push(v);
                 }
             })
         return new Mesh({ vertices, normals, texture, faces })

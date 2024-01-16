@@ -1,10 +1,9 @@
 
 import Box from "../Box/Box.js";
-import { none, some } from "../Monads/Monads.js";
-import { argmin } from "../Utils/Utils.js";
-import Point from "./Point.js";
 import Vec from "../Vector/Vector.js";
 import { smin } from "../Utils/Math.js";
+import { argmin } from "../Utils/Utils.js";
+import { none, some } from "../Monads/Monads.js";
 
 export default class Scene {
   constructor() {
@@ -20,8 +19,6 @@ export default class Scene {
   addList(elements) {
     for (let i = 0; i < elements.length; i++) {
       const elem = elements[i];
-      const classes = [Point];
-      if (!classes.some((c) => elem instanceof c)) continue;
       const { name } = elem;
       this.id2ElemMap[name] = elem;
       this.sceneElements.push(elem);

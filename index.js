@@ -454,6 +454,10 @@ const examples = [
         path: "/test/web/bunny.js"
     },
     {
+        title: "Wire frame bunny",
+        path: "/test/web/wireframe.js"
+    },
+    {
         title: "SDF test",
         path: "/test/web/signed_distance.js"
     },

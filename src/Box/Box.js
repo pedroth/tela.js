@@ -1,5 +1,5 @@
 import { none, some } from "../Monads/Monads";
-import Vec from "../Vector/Vector";
+import Vec, { Vec2, Vec3 } from "../Vector/Vector";
 
 
 export default class Box {
@@ -26,7 +26,7 @@ export default class Box {
         const newMin = min.op(box.min, Math.max);
         const newMax = max.op(box.max, Math.min);
         const newDiag = newMax.sub(newMin);
-        const isAllPositive = newDiag.data.every((x) => x >= 0);
+        const isAllPositive = newDiag.fold((e, x) => e && x >= 0, true);
         return !isAllPositive ? Box.EMPTY : new Box(newMin, newMax);
     }
 
@@ -47,7 +47,7 @@ export default class Box {
             }
             if (d > minT) {
                 break;
-            };
+            }
             minT = d;
         }
         return none();
@@ -88,6 +88,20 @@ export default class Box {
             grad.push(this.distanceToPoint(pointVec.add(Vec.e(n)(i).scale(epsilon))) - d)
         }
         return Vec.fromArray(grad).scale(Math.sign(d)).normalize();
+    }
+
+    collidesWith(box) {
+        const vectorCollision = () => !this.sub(new Box(box, box)).isEmpty;
+        const type2action = {
+            [Box.name]: () => !this.sub(box).isEmpty,
+            "Vector": vectorCollision,
+            "Vector3": vectorCollision,
+            "Vector2": vectorCollision,
+        }
+        if (box.constructor.name in type2action) {
+            return type2action[box.constructor.name]();
+        }
+        return false;
     }
 
     toString() {

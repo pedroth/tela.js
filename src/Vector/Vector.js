@@ -155,7 +155,7 @@ export default class Vec {
   }
 
   take(n = 0, m = this._vec.length) {
-    return new Vec(this._vec.slice(n, m));
+    return Vec.fromArray(this._vec.slice(n, m));
   }
 
   findIndex(predicate) {
@@ -325,8 +325,6 @@ class Vector3 {
 
   take(n = 0, m = 3) {
     const array = [this.x, this.y, this.z].slice(n, m);
-    if (array.length === 2) return Vector2.fromArray(array);
-    if (array.length === 3) return Vector3.fromArray(array);
     return Vec.fromArray(array);
   }
 
@@ -463,7 +461,6 @@ class Vector2 {
 
   take(n = 0, m = 2) {
     const array = [this.x, this.y].slice(n, m);
-    if (array.length === 2) return Vector2.fromArray(array);
     return Vec.fromArray(array);
   }
 

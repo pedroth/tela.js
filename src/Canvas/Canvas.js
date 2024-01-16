@@ -1,6 +1,8 @@
 import Color from "../Color/Color";
 import { MAX_8BIT } from "../Utils/Constants";
 import { clipLine } from "../Utils/Math";
+import Box from "../Box/Box"
+import { Vec2 } from "../Vector/Vector";
 
 export default class Canvas {
 
@@ -75,26 +77,29 @@ export default class Canvas {
     return Color.ofRGBRaw(this._image[index], this._image[index + 1], this._image[index + 2]);
   }
 
-  // drawLine(p1, p2, shader) {
-  //   const { width, height } = this.canvas;
-  //   const line = clipLine(p1, p2, new Box(Vec2(0, 0), Vec2(width, height)));
-  //   if (line.length === 0) return;
-  //   const [p0, p1] = line;
-  //   const v = p1.sub(p0);
-  //   const n = v.map(Math.abs).fold((e, x) => e + x);
-  //   for (let k = 0; k < n; k++) {
-  //     const s = k / n;
-  //     const x = p0.add(v.scale(s)).map(Math.floor);
-  //     const [i, j] = x.toArray();
-  //     const index = 4 * (i * width + j);
-  //     const color = shader(i, j);
-  //     this.data[index] = color.red;
-  //     this.data[index + 1] = color.green;
-  //     this.data[index + 2] = color.blue;
-  //     this.data[index + 3] = 255;
-  //   }
-  //   return this;
-  // }
+  drawLine(p1, p2, shader) {
+    const w = this._width;
+    const h = this._height;
+    const line = clipLine(p1, p2, new Box(Vec2(0, 0), Vec2(w, h)));
+    if (line.length === 0) return;
+    const [pi, pf] = line;
+    const v = pf.sub(pi);
+    const n = v.map(Math.abs).fold((e, x) => e + x);
+    for (let k = 0; k < n; k++) {
+      const s = k / n;
+      const lineP = pi.add(v.scale(s)).map(Math.floor);
+      const [x, y] = lineP.toArray();
+      const i = h - 1 - y;
+      const j = x;
+      const index = 4 * (i * w + j);
+      const color = shader(i, j);
+      this._image[index] = color.red * MAX_8BIT;
+      this._image[index + 1] = color.green * MAX_8BIT;
+      this._image[index + 2] = color.blue * MAX_8BIT;
+      this._image[index + 3] = 255;
+    }
+    return this;
+  }
 
   paint() {
     this._ctx.putImageData(this._imageData, 0, 0);

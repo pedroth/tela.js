@@ -1,3 +1,5 @@
+import Vec, { Vec2 } from "../Vector/Vector";
+
 export function smin(a, b, k = 32) {
     const res = Math.exp(-k * a) + Math.exp(-k * b);
     return -Math.log(res) / k;
@@ -23,43 +25,73 @@ export function clipLine(p0, p1, box) {
     if (inStack.length === 1) {
         const [inPoint] = inStack;
         const [outPoint] = outStack;
-        return [inPoint, ...lineBoxIntersection(inPoint, outPoint)];
+        return [inPoint, ...lineBoxIntersection(inPoint, outPoint, box)];
     }
-    // both points are outside,need to intersect the boundary
+    // both points are outside, need to intersect the boundary
     return lineBoxIntersection(...outStack, box);
 }
 
 function lineBoxIntersection(start, end, box) {
-    const width = box.max.get(0) - box.min.get(0);
-    const height = box.max.get(1) - box.min.get(1);
+    const width = box.diagonal.x;
+    const height = box.diagonal.y;
     const v = end.sub(start);
     // point and direction of boundary
     const boundary = [
-        [vec2.ZERO, vec2.of(height, 0)],
-        [vec2.of(height, 0), vec2.of(0, width)],
-        [vec2.of(height, width), vec2.of(-height, 0)],
-        [vec2.of(0, width), vec2.of(0, -width)],
+        [Vec.ZERO(2), Vec2(height, 0)],
+        [Vec2(height, 0), Vec2(0, width)],
+        [Vec2(height, width), Vec2(-height, 0)],
+        [Vec2(0, width), Vec2(0, -width)],
     ];
     const intersectionSolutions = [];
     boundary.forEach(([s, d]) => {
-        if (d.get(0) === 0) {
-            const solution = this._solveLowTriMatrix(v, -d.get(1), s.sub(start));
+        if (d.x === 0) {
+            const solution = _solveLowTriMatrix(v, -d.get(1), s.sub(start));
             solution !== undefined && intersectionSolutions.push(solution);
         } else {
-            const solution = this._solveUpTriMatrix(v, -d.get(0), s.sub(start));
+            const solution = _solveUpTriMatrix(v, -d.get(0), s.sub(start));
             solution !== undefined && intersectionSolutions.push(solution);
         }
     });
     const validIntersections = [];
     intersectionSolutions.forEach((solution) => {
-        const [x, y] = [solution.get(0), solution.get(1)];
+        const [x, y] = [solution.x, solution.y];
         if (0 <= x && x <= 1 && 0 <= y && y <= 1) {
             validIntersections.push(solution);
         }
     });
     if (validIntersections.length === 0) return [];
     return validIntersections.map((solution) => {
-        const t = solution.get(0);
+        const t = solution.x;
         return start.add(v.scale(t));
     });
+}
+
+/**
+ * return solution to : [ v_0 , 0] x = f_0
+ *
+ *                      [ v_1,  a] y = f_1
+ */
+function _solveLowTriMatrix(v, a, f) {
+    const v1 = v.x;
+    const v2 = v.y;
+    const av1 = a * v1;
+    if (av1 === 0 || v1 === 0) return undefined;
+    const f1 = f.x;
+    const f2 = f.y;
+    return Vec2(f1 / v1, (f2 * v1 - v2 * f1) / av1);
+}
+
+/**
+ * return solution to : [ v_0 , a] x = f_0
+ *
+ *					    [ v_1,  0] y = f_1
+ */
+function _solveUpTriMatrix(v, a, f) {
+    const v1 = v.x;
+    const v2 = v.y;
+    const av2 = a * v2;
+    if (av2 === 0 || v2 === 0) return undefined;
+    const f1 = f.x;
+    const f2 = f.y;
+    return Vec2(f2 / v2, (f1 * v2 - v1 * f2) / av2);
 }

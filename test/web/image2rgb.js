@@ -1,8 +1,8 @@
 /* eslint-disable no-undef */
 async (canvas, fps, logger) => {
     // resize incoming canvas:Canvas object.
-    const width = 640;
-    const height = 480;
+    const width = 640/2;
+    const height = 480/2;
     canvas.resize(width, height);
     // scene
     const scene = new NaiveScene();
@@ -39,7 +39,7 @@ async (canvas, fps, logger) => {
         camera.orbit();
     })
     // scene
-    const img = await Canvas.ofUrl("./assets/lotr.jpg");
+    const img = await Canvas.ofUrl("./assets/kakashi.jpg");
     const grid = [...Array(img.width * img.height)]
         .map((_, k) => {
             const i = Math.floor(k / img.width);
@@ -52,7 +52,7 @@ async (canvas, fps, logger) => {
                 point: Point
                     .builder()
                     .name(`pxl_${k}`)
-                    .radius(0.01)
+                    .radius(1e-5)
                     .position(initial)
                     .color(img.getPxl(x, y))
                     .build()
@@ -63,7 +63,7 @@ async (canvas, fps, logger) => {
     const stateMachine = (() => {
         let state = 0;
         const dt = 0.25;
-        const period = 10;
+        const period = 15;
         const halfPeriod = period / 2;
         return t => {
             let time = t % period;
