@@ -37,18 +37,18 @@ function lineBoxIntersection(start, end, box) {
     const v = end.sub(start);
     // point and direction of boundary
     const boundary = [
-        [Vec.ZERO(2), Vec2(height, 0)],
-        [Vec2(height, 0), Vec2(0, width)],
-        [Vec2(height, width), Vec2(-height, 0)],
-        [Vec2(0, width), Vec2(0, -width)],
+        [Vec2(), Vec2(width, 0)],
+        [Vec2(width, 0), Vec2(0, height)],
+        [Vec2(width, height), Vec2(-width, 0)],
+        [Vec2(0, height), Vec2(0, -height)],
     ];
     const intersectionSolutions = [];
     boundary.forEach(([s, d]) => {
         if (d.x === 0) {
-            const solution = _solveLowTriMatrix(v, -d.get(1), s.sub(start));
+            const solution = _solveLowTriMatrix(v, -d.y, s.sub(start));
             solution !== undefined && intersectionSolutions.push(solution);
         } else {
-            const solution = _solveUpTriMatrix(v, -d.get(0), s.sub(start));
+            const solution = _solveUpTriMatrix(v, -d.x, s.sub(start));
             solution !== undefined && intersectionSolutions.push(solution);
         }
     });
@@ -60,10 +60,14 @@ function lineBoxIntersection(start, end, box) {
         }
     });
     if (validIntersections.length === 0) return [];
-    return validIntersections.map((solution) => {
-        const t = solution.x;
-        return start.add(v.scale(t));
-    });
+    if (validIntersections.length >= 2) {
+        const p1 = start.add(v.scale(validIntersections[0].x));
+        const p2 = start.add(v.scale(validIntersections[1].x));
+        return [p1, p2];
+    }
+    debugger;
+    //it can be shown that at this point there is only one valid intersection
+    return [start.add(v.scale(validIntersections[0].x))]
 }
 
 /**

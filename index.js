@@ -493,7 +493,7 @@ function execCode(code) {
             const script = DOM.of("script").build();
             script.type = "module";
             script.textContent = `
-            import {Canvas, DOM, Color, Animation, Scene, Camera, Vec2, Vec3, Vec, Box, Point, Mesh, NaiveScene} from "/dist/web/index.js"
+            import {Canvas, DOM, Color, Animation, Scene, Camera, Vec2, Vec3, Vec, Box, Point, Mesh, NaiveScene, Line} from "/dist/web/index.js"
             Animation.globalAnimationIds.forEach(id => {
                 window.cancelAnimationFrame(id)
             });

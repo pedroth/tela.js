@@ -164,25 +164,26 @@ function rasterLine({ canvas, camera, elem, w, h, zBuffer }) {
   const line = elem;
   const { color } = line;
   const { distanceToPlane } = camera;
+
   // camera coords
   let cameraLine = [line.start, line.end].map((p) => camera.toCameraCoord(p));
-
+  
   //frustum culling
   let inFrustum = [];
   let outFrustum = [];
-  for (let i = 0; i < cameraLine.length; i++) {
-    const zCoord = cameraLine[i].z;
+  cameraLine.forEach((p, i) => {
+    const zCoord = p.z;
     if (zCoord < distanceToPlane) {
       outFrustum.push(i);
     } else {
       inFrustum.push(i);
     }
-  }
-  if (outFrustum.length == 2) return;
-  if (outFrustum.length == 1) {
+  });
+  if (outFrustum.length === 2) return;
+  if (outFrustum.length === 1) {
     const inVertex = inFrustum[0];
     const outVertex = outFrustum[0];
-    const inter = intersectImagePlaneInCameraSpace(
+    const inter = _lineCameraPlaneIntersection(
       cameraLine[outVertex],
       cameraLine[inVertex],
       camera
@@ -192,7 +193,7 @@ function rasterLine({ canvas, camera, elem, w, h, zBuffer }) {
 
   //project
   cameraLine.forEach((p, i) => {
-    cameraLine[i].scale(distanceToPlane / p.z);
+    cameraLine[i] = cameraLine[i].scale(distanceToPlane / p.z);
   })
   // integer coordinates
   cameraLine = cameraLine.map((p) => {
@@ -205,10 +206,10 @@ function rasterLine({ canvas, camera, elem, w, h, zBuffer }) {
   canvas.drawLine(cameraLine[0], cameraLine[1], () => color);
 }
 
-function intersectImagePlaneInCameraSpace(vertexOut, vertexIn, camera) {
+function _lineCameraPlaneIntersection(vertexOut, vertexIn, camera) {
   const { distanceToPlane } = camera;
-  const v = vertexOut.sub(vertexIn);
-  const alpha = (distanceToPlane - vertexOut.get(2)) / v.get(2);
+  const v = vertexIn.sub(vertexOut);
+  const alpha = (distanceToPlane - vertexOut.z) / v.z;
   const p = vertexOut.add(v.scale(alpha));
   return p;
 }

@@ -9,7 +9,7 @@ var __export = (target, all) => {
     });
 };
 
-// src/Utils/Constants.
+// src/Ray/Ray.jstants.
 class Stream {
   constructor(initialState, updateStateFunction) {
     this._head = initialState;
@@ -23,7 +23,7 @@ class Stream {
   }
 }
 
-// src/Utils/Constants.jsssr.
+// src/Ray/Ray.jstants.jsssr.
 class Animation {
   constructor(state, next, doWhile) {
     this.animation = new Stream(state, next);
@@ -75,7 +75,7 @@ class AnimationBuilder {
   }
 }
 
-// src/Utils/Constant
+// src/Ray/Ray.jstant
 var MAX_8BIT = 255;
 
 class Color {
@@ -129,10 +129,10 @@ class Color {
   static WHITE = Color.ofRGB(1, 1, 1);
 }
 
-// src/Utils/Constants.js
+// src/Ray/Ray.jstants.js
 var MAX_8BIT2 = 255;
 
-// src/Utils/Constants.
+// src/Ray/Ray.jstants.
 var _sanitize_input = function(arrayIn, arrayOut) {
   for (let i = 0;i < arrayIn.length; i++) {
     const z = arrayIn[i];
@@ -517,7 +517,7 @@ class Vector2 {
   static ONES = new Vector2(1, 1);
 }
 
-// src/Utils/Constan
+// src/Ray/Ray.jstan
 function smin(a, b, k = 32) {
   const res = Math.exp(-k * a) + Math.exp(-k * b);
   return -Math.log(res) / k;
@@ -549,18 +549,18 @@ var lineBoxIntersection = function(start, end, box) {
   const height = box.diagonal.y;
   const v = end.sub(start);
   const boundary = [
-    [Vec.ZERO(2), Vec2(height, 0)],
-    [Vec2(height, 0), Vec2(0, width)],
-    [Vec2(height, width), Vec2(-height, 0)],
-    [Vec2(0, width), Vec2(0, -width)]
+    [Vec2(), Vec2(width, 0)],
+    [Vec2(width, 0), Vec2(0, height)],
+    [Vec2(width, height), Vec2(-width, 0)],
+    [Vec2(0, height), Vec2(0, -height)]
   ];
   const intersectionSolutions = [];
   boundary.forEach(([s, d]) => {
     if (d.x === 0) {
-      const solution = _solveLowTriMatrix(v, -d.get(1), s.sub(start));
+      const solution = _solveLowTriMatrix(v, -d.y, s.sub(start));
       solution !== undefined && intersectionSolutions.push(solution);
     } else {
-      const solution = _solveUpTriMatrix(v, -d.get(0), s.sub(start));
+      const solution = _solveUpTriMatrix(v, -d.x, s.sub(start));
       solution !== undefined && intersectionSolutions.push(solution);
     }
   });
@@ -573,10 +573,13 @@ var lineBoxIntersection = function(start, end, box) {
   });
   if (validIntersections.length === 0)
     return [];
-  return validIntersections.map((solution) => {
-    const t = solution.x;
-    return start.add(v.scale(t));
-  });
+  if (validIntersections.length >= 2) {
+    const p1 = start.add(v.scale(validIntersections[0].x));
+    const p2 = start.add(v.scale(validIntersections[1].x));
+    return [p1, p2];
+  }
+  debugger;
+  return [start.add(v.scale(validIntersections[0].x))];
 };
 var _solveLowTriMatrix = function(v, a, f) {
   const v1 = v.x;
@@ -599,7 +602,7 @@ var _solveUpTriMatrix = function(v, a, f) {
   return Vec2(f2 / v2, (f1 * v2 - v1 * f2) / av2);
 };
 
-// src/Utils/Constants.
+// src/Ray/Ray.jstants.
 var exports_Monads = {};
 __export(exports_Monads, {
   some: () => {
@@ -647,7 +650,7 @@ function maybe(x) {
   return none(x);
 }
 
-// src/Utils/Cons
+// src/Ray/Ray.js
 var maxComp = function(u) {
   return u.fold((e, x) => Math.max(e, x), -Number.MAX_VALUE);
 };
@@ -754,7 +757,7 @@ class Box {
   static EMPTY = new Box;
 }
 
-// src/Utils/Constants.
+// src/Ray/Ray.jstants.
 var handleMouse = function(canvas, lambda) {
   return (event) => {
     const h = canvas.height;
@@ -829,7 +832,7 @@ class Canvas {
     const w = this._width;
     const h = this._height;
     const line = clipLine(p1, p2, new Box(Vec2(0, 0), Vec2(w, h)));
-    if (line.length === 0)
+    if (line.length <= 1)
       return;
     const [pi, pf] = line;
     const v = pf.sub(pi);
@@ -930,7 +933,7 @@ class Canvas {
   }
 }
 
-// src/Utils/Constants.jsssr.js
+// src/Ray/Ray.jstants.jsssr.js
 var isElement = function(o) {
   return typeof HTMLElement === "object" ? o instanceof HTMLElement : o && typeof o === "object" && o !== null && o.nodeType === 1 && typeof o.nodeName === "string";
 };
@@ -1022,7 +1025,7 @@ class DomBuilder {
 }
 var DomBuilder_default = DomBuilder;
 
-// src/Utils/Constants.jsss
+// src/Ray/Ray.jstants.jsss
 class Parallel {
   constructor(numberOfStreams, inputStreamGenerator, partitionFunction, stateGenerator, dependencies, lazyInitialState) {
     this.numberOfStreams = numberOfStreams;
@@ -1096,7 +1099,7 @@ class ParallelBuilder {
   }
 }
 
-// src/Utils/Cons
+// src/Ray/Ray.js
 function Ray(init, dir) {
   const ans = {};
   ans.init = init;
@@ -1105,7 +1108,7 @@ function Ray(init, dir) {
   return ans;
 }
 
-// src/Utils/Constant
+// src/Ray/Ray.jstant
 var sphereInterception = function(point, ray) {
   const { init, dir } = ray;
   const diff = init.sub(point.position);
@@ -1196,7 +1199,7 @@ class PointBuilder {
 }
 var Point_default = Point;
 
-// src/Utils/Constan
+// src/Ray/Ray.jstan
 class Line {
   constructor(name, start, end, color) {
     this.name = name;
@@ -1246,7 +1249,7 @@ class LineBuilder {
   }
 }
 
-// src/Utils/Constants.
+// src/Ray/Ray.jstants.
 var rasterPoint = function({ canvas, camera, elem, w, h, zBuffer }) {
   const { distanceToPlane } = camera;
   const point = elem;
@@ -1281,26 +1284,27 @@ var rasterLine = function({ canvas, camera, elem, w, h, zBuffer }) {
   const { color } = line;
   const { distanceToPlane } = camera;
   let cameraLine = [line.start, line.end].map((p) => camera.toCameraCoord(p));
+  const zs = cameraLine.map((p) => p.z);
   let inFrustum = [];
   let outFrustum = [];
-  for (let i = 0;i < cameraLine.length; i++) {
-    const zCoord = cameraLine[i].z;
+  cameraLine.forEach((p, i) => {
+    const zCoord = p.z;
     if (zCoord < distanceToPlane) {
       outFrustum.push(i);
     } else {
       inFrustum.push(i);
     }
-  }
-  if (outFrustum.length == 2)
+  });
+  if (outFrustum.length === 2)
     return;
-  if (outFrustum.length == 1) {
+  if (outFrustum.length === 1) {
     const inVertex = inFrustum[0];
     const outVertex = outFrustum[0];
-    const inter = intersectImagePlaneInCameraSpace(cameraLine[outVertex], cameraLine[inVertex], camera);
+    const inter = _lineCameraPlaneIntersection(cameraLine[outVertex], cameraLine[inVertex], camera);
     cameraLine[outVertex] = inter;
   }
   cameraLine.forEach((p, i) => {
-    cameraLine[i].scale(distanceToPlane / p.z);
+    cameraLine[i] = cameraLine[i].scale(distanceToPlane / p.z);
   });
   cameraLine = cameraLine.map((p) => {
     let x = w / 2 + p.x * w;
@@ -1311,10 +1315,10 @@ var rasterLine = function({ canvas, camera, elem, w, h, zBuffer }) {
   });
   canvas.drawLine(cameraLine[0], cameraLine[1], () => color);
 };
-var intersectImagePlaneInCameraSpace = function(vertexOut, vertexIn, camera) {
+var _lineCameraPlaneIntersection = function(vertexOut, vertexIn, camera) {
   const { distanceToPlane } = camera;
-  const v = vertexOut.sub(vertexIn);
-  const alpha = (distanceToPlane - vertexOut.get(2)) / v.get(2);
+  const v = vertexIn.sub(vertexOut);
+  const alpha = (distanceToPlane - vertexOut.z) / v.z;
   const p = vertexOut.add(v.scale(alpha));
   return p;
 };
@@ -1407,7 +1411,7 @@ class Camera {
   }
 }
 
-// src/Utils/Constant
+// src/Ray/Ray.jstant
 var exports_Utils = {};
 __export(exports_Utils, {
   or: () => {
@@ -1481,7 +1485,7 @@ function argmin(array, costFunction = (x) => x) {
   return argminIndex;
 }
 
-// src/Utils/Constant
+// src/Ray/Ray.jstant
 class Scene {
   constructor() {
     this.id2ElemMap = {};
@@ -1650,7 +1654,7 @@ class Leaf {
   }
 }
 
-// src/Utils/Constants.jss
+// src/Ray/Ray.jstants.jss
 class NaiveScene {
   constructor() {
     this.id2ElemMap = {};
@@ -1710,7 +1714,7 @@ class NaiveScene {
   }
 }
 
-// src/Utils/Constan
+// src/Ray/Ray.jstan
 var RADIUS = 0.001;
 
 class Mesh {
@@ -1802,7 +1806,7 @@ class Mesh {
     return new Mesh({ vertices, normals, texture, faces });
   }
 }
-// src/Utils/Co
+// src/Ray/Ray.
 var exports_IO = {};
 __export(exports_IO, {
   saveParallelImageStreamToVideo: () => {
@@ -1834,7 +1838,7 @@ __export(exports_IO, {
 import {writeFileSync, unlinkSync, readFileSync} from "fs";
 import {execSync, spawn, exec} from "child_process";
 
-// src/Utils/Constant
+// src/Ray/Ray.jstant
 class Image {
   constructor(width, height) {
     this._width = width;
@@ -1930,7 +1934,7 @@ class Image {
   }
 }
 
-// src/Utils/Co
+// src/Ray/Ray.
 import os from "os";
 function saveImageToFile(fileAddress, image) {
   const { fileName, extension } = getFileNameAndExtensionFromAddress(fileAddress);
@@ -2081,6 +2085,7 @@ export {
   NaiveScene,
   exports_Monads as Monads,
   Mesh,
+  Line,
   Image,
   exports_IO as IO,
   DomBuilder_default as DOM,

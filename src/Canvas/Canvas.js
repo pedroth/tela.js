@@ -81,7 +81,7 @@ export default class Canvas {
     const w = this._width;
     const h = this._height;
     const line = clipLine(p1, p2, new Box(Vec2(0, 0), Vec2(w, h)));
-    if (line.length === 0) return;
+    if (line.length <= 1) return;
     const [pi, pf] = line;
     const v = pf.sub(pi);
     const n = v.map(Math.abs).fold((e, x) => e + x);
