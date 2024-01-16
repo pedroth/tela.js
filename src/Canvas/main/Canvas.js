@@ -124,10 +124,10 @@ export default class Canvas {
     if (i < 0 || i >= height || j < 0 || j >= width) return undefined;
     const index = 4 * (i * width + j);
     return Color.ofRGBARaw(
-      this.imgBuffer[index],
-      this.imgBuffer[index + 1],
-      this.imgBuffer[index + 2],
-      this.imgBuffer[index + 3]
+      this.data[index],
+      this.data[index + 1],
+      this.data[index + 2],
+      this.data[index + 3]
     );
   }
   /**
