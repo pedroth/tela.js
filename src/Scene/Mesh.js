@@ -75,13 +75,14 @@ export default class Mesh {
         for (let i = 0; i < this.faces.length; i++) {
             const indices = this.faces[i];
             for (let j = 0; j < indices.length; j++) {
-
-                const vi = indices[j];
-                const vj = indices[(j + 1) % indices.length];
-                lines[[vi, vj].sort().join("_")] =
+                const vi = indices[j] - 1;
+                const vj = indices[(j + 1) % indices.length] - 1;
+                const edge_id = [vi, vj].sort().join("_");
+                const edge_name = `${name}_${vi}_${vj}`;
+                lines[edge_id] =
                     Line
                         .builder()
-                        .name(`${name}_${vi}_${vj}`)
+                        .name(edge_name)
                         .start(this.vertices[vi])
                         .end(this.vertices[vj])
                         .color(Color.GREEN)
@@ -98,9 +99,10 @@ export default class Mesh {
         const texture = [];
         const faces = [];
         objFile.split("\n")
-            .forEach((lines) => {
-                const spaces = lines.split(" ")
+            .forEach((line) => {
+                const spaces = line.split(" ");
                 const type = spaces[0];
+                if (!type) return;
                 if (type === "v") {
                     // 3 numbers
                     const v = spaces.slice(1, 4)
@@ -121,7 +123,7 @@ export default class Mesh {
                 }
                 if (type === "f") {
                     // vertex_index/texture_index/normal_index
-                    const v = spaces.slice(1, 3)
+                    const v = spaces.slice(1, 4)
                         .map(x => Number.parseFloat(x.split("/")[0]));
                     faces.push(v);
                 }

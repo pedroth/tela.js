@@ -9,7 +9,7 @@ var __export = (target, all) => {
     });
 };
 
-// src/Ray/Ray.js.jsts.
+// src/Utils/Constants.
 class Stream {
   constructor(initialState, updateStateFunction) {
     this._head = initialState;
@@ -23,7 +23,7 @@ class Stream {
   }
 }
 
-// src/Ray/Ray.js.jsts.jsssr.
+// src/Utils/Constants.jsssr.
 class Animation {
   constructor(state, next, doWhile) {
     this.animation = new Stream(state, next);
@@ -75,7 +75,7 @@ class AnimationBuilder {
   }
 }
 
-// src/Ray/Ray.js.jst
+// src/Utils/Constant
 var MAX_8BIT = 255;
 
 class Color {
@@ -129,10 +129,10 @@ class Color {
   static WHITE = Color.ofRGB(1, 1, 1);
 }
 
-// src/Ray/Ray.js.jsts.js
+// src/Utils/Constants.js
 var MAX_8BIT2 = 255;
 
-// src/Ray/Ray.js.jsts.
+// src/Utils/Constants.
 var _sanitize_input = function(arrayIn, arrayOut) {
   for (let i = 0;i < arrayIn.length; i++) {
     const z = arrayIn[i];
@@ -517,7 +517,7 @@ class Vector2 {
   static ONES = new Vector2(1, 1);
 }
 
-// src/Ray/Ray.js.js
+// src/Utils/Constan
 function smin(a, b, k = 32) {
   const res = Math.exp(-k * a) + Math.exp(-k * b);
   return -Math.log(res) / k;
@@ -602,7 +602,7 @@ var _solveUpTriMatrix = function(v, a, f) {
   return Vec2(f2 / v2, (f1 * v2 - v1 * f2) / av2);
 };
 
-// src/Ray/Ray.js.jsts.
+// src/Utils/Constants.
 var exports_Monads = {};
 __export(exports_Monads, {
   some: () => {
@@ -650,7 +650,7 @@ function maybe(x) {
   return none(x);
 }
 
-// src/Ray/Ray.js
+// src/Utils/Cons
 var maxComp = function(u) {
   return u.fold((e, x) => Math.max(e, x), -Number.MAX_VALUE);
 };
@@ -757,7 +757,7 @@ class Box {
   static EMPTY = new Box;
 }
 
-// src/Ray/Ray.js.jsts.
+// src/Utils/Constants.
 var handleMouse = function(canvas, lambda) {
   return (event) => {
     const h = canvas.height;
@@ -933,7 +933,7 @@ class Canvas {
   }
 }
 
-// src/Ray/Ray.js.jsts.jsssr.js
+// src/Utils/Constants.jsssr.js
 var isElement = function(o) {
   return typeof HTMLElement === "object" ? o instanceof HTMLElement : o && typeof o === "object" && o !== null && o.nodeType === 1 && typeof o.nodeName === "string";
 };
@@ -1025,7 +1025,7 @@ class DomBuilder {
 }
 var DomBuilder_default = DomBuilder;
 
-// src/Ray/Ray.js.jsts.jsss
+// src/Utils/Constants.jsss
 class Parallel {
   constructor(numberOfStreams, inputStreamGenerator, partitionFunction, stateGenerator, dependencies, lazyInitialState) {
     this.numberOfStreams = numberOfStreams;
@@ -1099,7 +1099,7 @@ class ParallelBuilder {
   }
 }
 
-// src/Ray/Ray.js
+// src/Utils/Cons
 function Ray(init, dir) {
   const ans = {};
   ans.init = init;
@@ -1108,7 +1108,7 @@ function Ray(init, dir) {
   return ans;
 }
 
-// src/Ray/Ray.js.jst
+// src/Utils/Constant
 var sphereInterception = function(point, ray) {
   const { init, dir } = ray;
   const diff = init.sub(point.position);
@@ -1199,7 +1199,7 @@ class PointBuilder {
 }
 var Point_default = Point;
 
-// src/Ray/Ray.js.js
+// src/Utils/Constan
 class Line {
   constructor(name, start, end, color) {
     this.name = name;
@@ -1249,7 +1249,7 @@ class LineBuilder {
   }
 }
 
-// src/Ray/Ray.js.jsts.
+// src/Utils/Constants.
 var rasterPoint = function({ canvas, camera, elem, w, h, zBuffer }) {
   const { distanceToPlane } = camera;
   const point = elem;
@@ -1284,7 +1284,6 @@ var rasterLine = function({ canvas, camera, elem, w, h, zBuffer }) {
   const { color } = line;
   const { distanceToPlane } = camera;
   let cameraLine = [line.start, line.end].map((p) => camera.toCameraCoord(p));
-  const zs = cameraLine.map((p) => p.z);
   let inFrustum = [];
   let outFrustum = [];
   cameraLine.forEach((p, i) => {
@@ -1411,7 +1410,7 @@ class Camera {
   }
 }
 
-// src/Ray/Ray.js.jst
+// src/Utils/Constant
 var exports_Utils = {};
 __export(exports_Utils, {
   or: () => {
@@ -1485,7 +1484,7 @@ function argmin(array, costFunction = (x) => x) {
   return argminIndex;
 }
 
-// src/Ray/Ray.js.jst
+// src/Utils/Constant
 class Scene {
   constructor() {
     this.id2ElemMap = {};
@@ -1654,7 +1653,7 @@ class Leaf {
   }
 }
 
-// src/Ray/Ray.js.jsts.jss
+// src/Utils/Constants.jss
 class NaiveScene {
   constructor() {
     this.id2ElemMap = {};
@@ -1714,7 +1713,7 @@ class NaiveScene {
   }
 }
 
-// src/Ray/Ray.js.js
+// src/Utils/Constan
 var RADIUS = 0.001;
 
 class Mesh {
@@ -1770,10 +1769,14 @@ class Mesh {
     const lines = {};
     for (let i = 0;i < this.faces.length; i++) {
       const indices = this.faces[i];
+      console.log(">>>>0", i);
       for (let j = 0;j < indices.length; j++) {
-        const vi = indices[j];
-        const vj = indices[(j + 1) % indices.length];
-        lines[[vi, vj].sort().join("_")] = Line.builder().name(`${name}_${vi}_${vj}`).start(this.vertices[vi]).end(this.vertices[vj]).color(Color.GREEN).build();
+        const vi = indices[j] - 1;
+        const vj = indices[(j + 1) % indices.length] - 1;
+        const edge_id = [vi, vj].sort().join("_");
+        const edge_name = `${name}_${vi}_${vj}`;
+        console.log(">>>>1", edge_name, this.vertices[vi], this.vertices[vj]);
+        lines[edge_id] = Line.builder().name(edge_name).start(this.vertices[vi]).end(this.vertices[vj]).color(Color.GREEN).build();
       }
     }
     return Object.values(lines);
@@ -1783,9 +1786,11 @@ class Mesh {
     const normals = [];
     const texture = [];
     const faces = [];
-    objFile.split("\n").forEach((lines) => {
-      const spaces = lines.split(" ");
+    objFile.split("\n").forEach((line) => {
+      const spaces = line.split(" ");
       const type = spaces[0];
+      if (!type)
+        return;
       if (type === "v") {
         const v = spaces.slice(1, 4).map((x) => Number.parseFloat(x));
         vertices.push(Vec3(...v));
@@ -1799,7 +1804,7 @@ class Mesh {
         texture.push(Vec2(...v));
       }
       if (type === "f") {
-        const v = spaces.slice(1, 3).map((x) => Number.parseFloat(x.split("/")[0]));
+        const v = spaces.slice(1, 4).map((x) => Number.parseFloat(x.split("/")[0]));
         faces.push(v);
       }
     });
