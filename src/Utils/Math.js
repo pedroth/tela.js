@@ -65,7 +65,6 @@ function lineBoxIntersection(start, end, box) {
         const p2 = start.add(v.scale(validIntersections[1].x));
         return [p1, p2];
     }
-    debugger;
     //it can be shown that at this point there is only one valid intersection
     return [start.add(v.scale(validIntersections[0].x))]
 }

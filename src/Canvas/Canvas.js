@@ -47,6 +47,7 @@ export default class Canvas {
       const x = j;
       const y = h - 1 - i;
       const color = lambda(x, y);
+      if (!color) return;
       this._image[k] = color.red * MAX_8BIT;
       this._image[k + 1] = color.green * MAX_8BIT;
       this._image[k + 2] = color.blue * MAX_8BIT;
@@ -58,8 +59,8 @@ export default class Canvas {
   setPxl(x, y, color) {
     const w = this._width;
     const h = this._height;
-    const i = h - 1 - y;
     const j = x;
+    const i = h - 1 - y;
     let index = 4 * (w * i + j);
     this._image[index] = color.red * MAX_8BIT;
     this._image[index + 1] = color.green * MAX_8BIT;
@@ -89,10 +90,11 @@ export default class Canvas {
       const s = k / n;
       const lineP = pi.add(v.scale(s)).map(Math.floor);
       const [x, y] = lineP.toArray();
-      const i = h - 1 - y;
       const j = x;
+      const i = h - 1 - y;
       const index = 4 * (i * w + j);
-      const color = shader(i, j);
+      const color = shader(x, y);
+      if (!color) continue;
       this._image[index] = color.red * MAX_8BIT;
       this._image[index + 1] = color.green * MAX_8BIT;
       this._image[index + 2] = color.blue * MAX_8BIT;

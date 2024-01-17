@@ -121,9 +121,17 @@ export default class Camera {
 }
 
 
+//========================================================================================
+/*                                                                                      *
+ *                                         UTILS                                        *
+ *                                                                                      */
+//========================================================================================
+
+
 function rasterPoint({ canvas, camera, elem, w, h, zBuffer }) {
-  const { distanceToPlane } = camera;
   const point = elem;
+  const { distanceToPlane } = camera;
+  // camera coords
   let pointInCamCoord = camera.toCameraCoord(point.position)
 
   //frustum culling
@@ -164,10 +172,9 @@ function rasterLine({ canvas, camera, elem, w, h, zBuffer }) {
   const line = elem;
   const { color } = line;
   const { distanceToPlane } = camera;
-
   // camera coords
-  let cameraLine = [line.start, line.end].map((p) => camera.toCameraCoord(p));
-  
+  const cameraLine = [line.start, line.end].map((p) => camera.toCameraCoord(p));
+
   //frustum culling
   let inFrustum = [];
   let outFrustum = [];
@@ -192,18 +199,35 @@ function rasterLine({ canvas, camera, elem, w, h, zBuffer }) {
   }
 
   //project
-  cameraLine.forEach((p, i) => {
-    cameraLine[i] = cameraLine[i].scale(distanceToPlane / p.z);
-  })
+  const projectedPoint = cameraLine
+    .map(p => {
+      return p.scale(distanceToPlane / p.z);
+    })
   // integer coordinates
-  cameraLine = cameraLine.map((p) => {
-    let x = w / 2 + p.x * w;
-    let y = h / 2 + p.y * h;
-    x = Math.floor(x);
-    y = Math.floor(y);
-    return Vec2(x, y);
-  })
-  canvas.drawLine(cameraLine[0], cameraLine[1], () => color);
+  const intPoint = projectedPoint
+    .map((p) => {
+      let x = w / 2 + p.x * w;
+      let y = h / 2 + p.y * h;
+      x = Math.floor(x);
+      y = Math.floor(y);
+      return Vec2(x, y);
+    })
+
+  const v = intPoint[1].sub(intPoint[0]);
+  const vSquared = v.squareLength();
+  const shader = (x, y) => {
+    const p = Vec2(x, y).sub(intPoint[0]);
+    const t = v.dot(p) / vSquared;
+    const z = cameraLine[0].z * (1 - t) + cameraLine[1].z * t;
+    const j = x;
+    const i = h - 1 - y;
+    const zBufferIndex = Math.floor(w * i + j);
+    if (z < zBuffer[zBufferIndex]) {
+      zBuffer[zBufferIndex] = z;
+      return color;
+    }
+  }
+  canvas.drawLine(intPoint[0], intPoint[1], shader);
 }
 
 function _lineCameraPlaneIntersection(vertexOut, vertexIn, camera) {

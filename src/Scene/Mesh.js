@@ -92,42 +92,46 @@ export default class Mesh {
         return Object.values(lines);
     }
 
-
     static readObj(objFile) {
         const vertices = [];
         const normals = [];
         const texture = [];
         const faces = [];
-        objFile.split("\n")
-            .forEach((line) => {
-                const spaces = line.split(" ");
-                const type = spaces[0];
-                if (!type) return;
-                if (type === "v") {
-                    // 3 numbers
-                    const v = spaces.slice(1, 4)
-                        .map(x => Number.parseFloat(x));
-                    vertices.push(Vec3(...v));
-                }
-                if (type === "vn") {
-                    // 3 numbers
-                    const v = spaces.slice(1, 4)
-                        .map(x => Number.parseFloat(x));
-                    normals.push(Vec3(...v));
-                }
-                if (type === "vt") {
-                    // 2 numbers
-                    const v = spaces.slice(1, 3)
-                        .map(x => Number.parseFloat(x));
-                    texture.push(Vec2(...v));
-                }
-                if (type === "f") {
-                    // vertex_index/texture_index/normal_index
-                    const v = spaces.slice(1, 4)
-                        .map(x => Number.parseFloat(x.split("/")[0]));
-                    faces.push(v);
-                }
-            })
+        const lines = objFile.split("\n");
+        for (let i = 0; i < lines.length; i++) {
+            const line = lines[i];
+            const spaces = line.split(" ");
+            const type = spaces[0];
+            if (!type) continue;
+            if (type === "v") {
+                // 3 numbers
+                const v = spaces.slice(1, 4)
+                    .map(x => Number.parseFloat(x));
+                vertices.push(Vec3(...v));
+                continue;
+            }
+            if (type === "vn") {
+                // 3 numbers
+                const v = spaces.slice(1, 4)
+                    .map(x => Number.parseFloat(x));
+                normals.push(Vec3(...v));
+                continue;
+            }
+            if (type === "vt") {
+                // 2 numbers
+                const v = spaces.slice(1, 3)
+                    .map(x => Number.parseFloat(x));
+                texture.push(Vec2(...v));
+                continue;
+            }
+            if (type === "f") {
+                // vertex_index/texture_index/normal_index
+                const v = spaces.slice(1, 4)
+                    .map(x => Number.parseFloat(x.split("/")[0]));
+                faces.push(v);
+                continue;
+            }
+        }
         return new Mesh({ vertices, normals, texture, faces })
     }
 }
