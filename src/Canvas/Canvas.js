@@ -103,6 +103,11 @@ export default class Canvas {
     return this;
   }
 
+
+  drawTriangle(x1, x2, x3, shader) {
+    return drawConvexPolygon(this, [x1, x2, x3], shader);
+  }
+
   paint() {
     this._ctx.putImageData(this._imageData, 0, 0);
     return this;
@@ -156,6 +161,13 @@ export default class Canvas {
     };
   }
 
+  //========================================================================================
+  /*                                                                                      *
+   *                                    Static Methods                                    *
+   *                                                                                      */
+  //========================================================================================
+
+
   static ofSize(width, height) {
     const canvas = document.createElement('canvas');
     canvas.setAttribute('width', width);
@@ -195,6 +207,62 @@ export default class Canvas {
       })
   }
 }
+
+
+function drawConvexPolygon(canvas, positions, shader) {
+  const { width, height } = canvas;
+  const canvasBox = new Box(Vec2(), Vec2(width, height));
+  let boundingBox = Box.EMPTY;
+  positions.forEach((x) => {
+    boundingBox = boundingBox.add(new Box(x, x));
+  });
+  const finalBox = canvasBox.intersection(boundingBox);
+  if (finalBox.isEmpty) return canvas;
+  canvas.drawLine(finalBox.min, finalBox.max, () => Color.RED);
+  const [xMin, yMin] = finalBox.min.toArray();
+  const [xMax, yMax] = finalBox.max.toArray();
+
+  for (let x = xMin; x < xMax; x++) {
+    for (let y = yMin; y < yMax; y++) {
+      if (isInsideConvex(Vec2(x, y), positions)) {
+        const j = x;
+        const i = height - 1 - y;
+        const color = shader(x, y);
+        const index = 4 * (i * width + j);
+        canvas._image[index] = color.red * MAX_8BIT;
+        canvas._image[index + 1] = color.green * MAX_8BIT;
+        canvas._image[index + 2] = color.blue * MAX_8BIT;
+        canvas._image[index + 3] = MAX_8BIT;
+      }
+    }
+  }
+  return canvas;
+}
+
+
+
+
+function isInsideConvex(x, positions) {
+  const m = positions.length;
+  const v = [];
+  const vDotN = [];
+  for (let i = 0; i < m; i++) {
+    const p1 = positions[(i + 1) % m];
+    const p0 = positions[i];
+    v[i] = p1.sub(p0);
+    const vi = v[i];
+    const n = Vec2(-vi.y, vi.x);
+    const r = x.sub(p0);
+    vDotN[i] = r.dot(n);
+  }
+  let orientation = v[0].x * v[1].y - v[0].y * v[1].x >= 0 ? 1 : -1;
+  for (let i = 0; i < m; i++) {
+    const myDot = vDotN[i] * orientation;
+    if (myDot < 0) return false;
+  }
+  return true;
+}
+
 
 function handleMouse(canvas, lambda) {
   return event => {

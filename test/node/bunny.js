@@ -12,6 +12,9 @@ const measureTime2 = lambda => {
 
 const width = 640;
 const height = 480;
+const FPS = 25;
+const dt = 1 / FPS;
+const maxT = 10;
 
 // scene
 const scene = new Scene()
@@ -29,7 +32,6 @@ scene.add(...bunnyMesh.asPoints("bunny", 0.05));
 const imageStream = new Stream(
     { time: 0, image: camera.sceneShot(scene).to(Image.ofSize(width, height)) },
     ({ time, image }) => {
-        const dt = 0.04; // 25 FPS
         const theta = Math.PI / 4 * time;
         camera.sphericalCoords = Vec3(camera.sphericalCoords.get(0), theta, 0);
         camera.orbit();
@@ -48,8 +50,8 @@ console.log(
         saveImageStreamToVideo(
             "./bunny_stream.mp4",
             imageStream,
-            { fps: 25 }
-        ).until(({ time }) => time < 10);
+            { fps: FPS }
+        ).until(({ time }) => time < maxT);
     })
 )
 

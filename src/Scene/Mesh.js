@@ -3,6 +3,7 @@ import Point from "./Point.js"
 import Box from "../Box/Box.js";
 import Color from "../Color/Color.js";
 import Line from "./Line.js";
+import Triangle from "./Triangle.js";
 
 const RADIUS = 0.001;
 export default class Mesh {
@@ -61,7 +62,7 @@ export default class Mesh {
                     .builder()
                     .radius(radius)
                     .name(`${name}_${i}`)
-                    .color(this.colors[i])
+                    .color(this.colors[i] || Color.RED)
                     .position(this.vertices[i])
                     .normal(this.normals[i] || Vec3(1, 0, 0))
                     .build()
@@ -78,18 +79,37 @@ export default class Mesh {
                 const vi = indices[j] - 1;
                 const vj = indices[(j + 1) % indices.length] - 1;
                 const edge_id = [vi, vj].sort().join("_");
-                const edge_name = `${name}_${vi}_${vj}`;
+                const edge_name = `${name}_${edge_id}`;
                 lines[edge_id] =
                     Line
                         .builder()
                         .name(edge_name)
-                        .start(this.vertices[vi])
-                        .end(this.vertices[vj])
-                        .color(Color.GREEN)
+                        .positions(this.vertices[vi], this.vertices[vj])
+                        .colors(this.colors[vi] || Color.GREEN, this.colors[vj] || Color.GREEN)
                         .build()
             }
         }
         return Object.values(lines);
+    }
+
+    asTriangles(name) {
+        const triangles = {};
+        for (let i = 0; i < this.faces.length; i++) {
+            const indices = this.faces[i].map(x => x - 1);
+            const edge_id = indices
+                .sort()
+                .join("_");
+            const edge_name = `${name}_${edge_id}`;
+            triangles[edge_id] =
+                Triangle
+                    .builder()
+                    .name(edge_name)
+                    .positions(...indices.map(j => this.vertices[j]))
+                    .colors(...indices.map(j => this.colors[j] || Color.BLUE))
+                    .build()
+
+        }
+        return Object.values(triangles);
     }
 
     static readObj(objFile) {

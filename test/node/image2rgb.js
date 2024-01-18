@@ -1,5 +1,5 @@
-import { Image, Stream, IO, Utils, Vec3, NaiveScene, Scene, Camera, Point, Color } from "../../dist/node/index.js";
-const { saveImageStreamToVideo, saveImageToFile } = IO;
+import { Image, Stream, IO, Utils, Vec3, NaiveScene, Camera, Point } from "../../dist/node/index.js";
+const { saveImageStreamToVideo } = IO;
 const { measureTimeWithResult, measureTime } = Utils;
 
 (async () => {

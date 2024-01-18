@@ -11,6 +11,7 @@ import Vec, { Vec2, Vec3 } from "./Vector/Vector.js"
 import Box from "./Box/Box.js"
 import Point from "./Scene/Point.js"
 import Line from "./Scene/Line.js"
+import Triangle from "./Scene/Triangle.js"
 import Mesh from "./Scene/Mesh.js"
 
 export {
@@ -28,6 +29,7 @@ export {
     Camera,
     Stream,
     Parallel,
+    Triangle,
     Animation,
     NaiveScene,
 }

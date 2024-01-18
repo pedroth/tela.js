@@ -1,4 +1,4 @@
-export default class Line {
+export default class Triangle {
     constructor(name, positions, colors) {
         this.name = name;
         this.positions = positions;
@@ -6,11 +6,11 @@ export default class Line {
     }
 
     static builder() {
-        return new LineBuilder();
+        return new TriangleBuilder();
     }
 }
 
-class LineBuilder {
+class TriangleBuilder {
     constructor() {
         this._name;
         this._positions;
@@ -22,13 +22,13 @@ class LineBuilder {
         return this;
     }
 
-    positions(start, end) {
-        this._positions = [start, end];
+    positions(v1, v2, v3) {
+        this._positions = [v1, v2, v3];
         return this;
     }
 
-    colors(start, end) {
-        this._colors = [start, end];
+    colors(c1, c2, c3) {
+        this._colors = [c1, c2, c3];
         return this;
     }
 
@@ -36,11 +36,11 @@ class LineBuilder {
         const attrs = [
             this._name,
             this._positions,
-            this._colors
+            this._colors,
         ];
         if (attrs.some((x) => x === undefined)) {
-            throw new Error("Line is incomplete");
+            throw new Error("Triangle is incomplete");
         }
-        return new Line(...attrs);
+        return new Triangle(...attrs);
     }
 }

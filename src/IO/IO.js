@@ -1,9 +1,7 @@
 import { writeFileSync, unlinkSync, readFileSync } from "fs";
-import { execSync, spawn, exec } from "child_process";
+import { execSync, exec } from "child_process";
 import Image from "../Image/Image";
 import Color from "../Color/Color";
-import os from "os";
-
 
 export function saveImageToFile(fileAddress, image) {
     const { fileName, extension } = getFileNameAndExtensionFromAddress(fileAddress);
@@ -136,13 +134,7 @@ export function saveParallelImageStreamToVideo(fileAddress, parallelStreamOfImag
             });
         `);
         return new Promise(resolve => {
-            // const process = spawn(`bun ${spawnFile}`, [], { shell: true })
-            // process.on("close", () => {
-            //     resolve();
-            // })
-            exec(`bun ${spawnFile}`, () => {
-                resolve();
-            })
+            exec(`bun ${spawnFile}`, () => resolve());
         });
     })
     return Promise.all(promises)

@@ -458,6 +458,10 @@ const examples = [
         path: "/test/web/wireframe.js"
     },
     {
+        title: "Phong light",
+        path: "/test/web/phong.js"
+    },
+    {
         title: "SDF test",
         path: "/test/web/signed_distance.js"
     },
@@ -493,7 +497,7 @@ function execCode(code) {
             const script = DOM.of("script").build();
             script.type = "module";
             script.textContent = `
-            import {Canvas, DOM, Color, Animation, Scene, Camera, Vec2, Vec3, Vec, Box, Point, Mesh, NaiveScene, Line} from "/dist/web/index.js"
+            import {Canvas, DOM, Color, Animation, Scene, Camera, Vec2, Vec3, Vec, Box, Point, Mesh, NaiveScene, Line, Triangle} from "/dist/web/index.js"
             Animation.globalAnimationIds.forEach(id => {
                 window.cancelAnimationFrame(id)
             });

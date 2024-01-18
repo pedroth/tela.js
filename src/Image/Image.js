@@ -1,5 +1,8 @@
+import Box from "../Box/Box.js";
 import Color from "../Color/Color.js";
 import { readImageFrom } from "../IO/IO.js";
+import { clipLine } from "../Utils/Math.js";
+import { Vec2 } from "../Vector/Vector.js";
 
 export default class Image {
 
@@ -64,6 +67,28 @@ export default class Image {
         const j = x;
         let index = w * i + j;
         return this._image[index];
+    }
+
+    drawLine(p1, p2, shader) {
+        const w = this._width;
+        const h = this._height;
+        const line = clipLine(p1, p2, new Box(Vec2(0, 0), Vec2(w, h)));
+        if (line.length <= 1) return;
+        const [pi, pf] = line;
+        const v = pf.sub(pi);
+        const n = v.map(Math.abs).fold((e, x) => e + x);
+        for (let k = 0; k < n; k++) {
+            const s = k / n;
+            const lineP = pi.add(v.scale(s)).map(Math.floor);
+            const [x, y] = lineP.toArray();
+            const j = x;
+            const i = h - 1 - y;
+            const index = (i * w + j);
+            const color = shader(x, y);
+            if (!color) continue;
+            this._image[index] = color;
+        }
+        return this;
     }
 
     array() {

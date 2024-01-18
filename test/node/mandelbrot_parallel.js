@@ -1,7 +1,7 @@
 import os from "os";
 import { Image, IO, Utils, Vec2, Box, Color, Parallel } from "../../dist/node/index.js";
 const { saveParallelImageStreamToVideo } = IO;
-const { measureTime, measureTimeWithAsyncResult } = Utils;
+const { measureTimeWithAsyncResult } = Utils;
 
 (async () => {
     const width = 640;
