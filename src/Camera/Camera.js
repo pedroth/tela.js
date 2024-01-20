@@ -135,16 +135,13 @@ function rasterPoint({ canvas, camera, elem, w, h, zBuffer }) {
   const { distanceToPlane } = camera;
   // camera coords
   let pointInCamCoord = camera.toCameraCoord(point.position)
-
   //frustum culling
   const z = pointInCamCoord.z;
   if (z < distanceToPlane) return;
-
   //project
   const projectedPoint = pointInCamCoord
     .scale(distanceToPlane / z);
-
-  // canvas coords
+  // shader
   let x = w / 2 + projectedPoint.x * w;
   let y = h / 2 + projectedPoint.y * h;
   x = Math.floor(x);
@@ -155,8 +152,7 @@ function rasterPoint({ canvas, camera, elem, w, h, zBuffer }) {
     for (let l = -radius; l < radius; l++) {
       const xl = Math.max(0, Math.min(w - 1, x + k));
       const yl = Math.floor(y + l);
-      const j = xl;
-      const i = h - 1 - yl;
+      const [i, j] = canvas.canvas2grid(xl, yl);
       const zBufferIndex = Math.floor(w * i + j);
       if (z < zBuffer[zBufferIndex]) {
         zBuffer[zBufferIndex] = z;
@@ -176,7 +172,6 @@ function rasterLine({ canvas, camera, elem, w, h, zBuffer }) {
   const { distanceToPlane } = camera;
   // camera coords
   const pointsInCamCoord = positions.map((p) => camera.toCameraCoord(p));
-
   //frustum culling
   let inFrustum = [];
   let outFrustum = [];
@@ -199,7 +194,6 @@ function rasterLine({ canvas, camera, elem, w, h, zBuffer }) {
     );
     pointsInCamCoord[outVertex] = inter;
   }
-
   //project
   const projectedPoint = pointsInCamCoord
     .map(p => {
@@ -214,7 +208,7 @@ function rasterLine({ canvas, camera, elem, w, h, zBuffer }) {
       y = Math.floor(y);
       return Vec2(x, y);
     })
-
+  // shader
   const v = intPoint[1].sub(intPoint[0]);
   const vSquared = v.squareLength();
   const shader = (x, y) => {
@@ -222,8 +216,7 @@ function rasterLine({ canvas, camera, elem, w, h, zBuffer }) {
     const t = v.dot(p) / vSquared;
     const z = pointsInCamCoord[0].z * (1 - t) + pointsInCamCoord[1].z * t;
     const c = colors[0].scale(1 - t).add(colors[1].scale(t));
-    const j = x;
-    const i = h - 1 - y;
+    const [i, j] = canvas.canvas2grid(x, y);
     const zBufferIndex = Math.floor(w * i + j);
     if (z < zBuffer[zBufferIndex]) {
       zBuffer[zBufferIndex] = z;
@@ -235,11 +228,10 @@ function rasterLine({ canvas, camera, elem, w, h, zBuffer }) {
 
 function rasterTriangle({ canvas, camera, elem, w, h, zBuffer }) {
   const triangleElem = elem;
-  const { colors, positions } = triangleElem;
+  const { colors, positions, texCoords } = triangleElem;
   const { distanceToPlane } = camera;
   // camera coords
   const pointsInCamCoord = positions.map((p) => camera.toCameraCoord(p));
-
   //frustum culling
   let inFrustum = [];
   let outFrustum = [];
@@ -254,9 +246,7 @@ function rasterTriangle({ canvas, camera, elem, w, h, zBuffer }) {
   if (outFrustum.length >= 1) return;
   //project
   const projectedPoint = pointsInCamCoord
-    .map(p => {
-      return p.scale(distanceToPlane / p.z);
-    })
+    .map(p => p.scale(distanceToPlane / p.z))
   // integer coordinates
   const intPoint = projectedPoint
     .map((p) => {
@@ -266,24 +256,45 @@ function rasterTriangle({ canvas, camera, elem, w, h, zBuffer }) {
       y = Math.floor(y);
       return Vec2(x, y);
     })
-
-  // const u = intPoint[2].sub(intPoint[0]);
-  // const v = intPoint[1].sub(intPoint[0]);
-  // const vSquared = v.squareLength();
-  // const shader = (x, y) => {
-  //   const p = Vec2(x, y).sub(intPoint[0]);
-  //   const t = v.dot(p) / vSquared;
-  //   const z = pointsInCamCoord[0].z * (1 - t) + pointsInCamCoord[1].z * t;
-  //   const c = colors[0].scale(1 - t).add(colors[1].scale(t));
-  //   const j = x;
-  //   const i = h - 1 - y;
-  //   const zBufferIndex = Math.floor(w * i + j);
-  //   if (z < zBuffer[zBufferIndex]) {
-  //     zBuffer[zBufferIndex] = z;
-  //     return c;
-  //   }
-  // }
-  canvas.drawTriangle(intPoint[0], intPoint[1], intPoint[2], () => Color.BLUE);
+  // shader
+  const u = intPoint[2].sub(intPoint[0]);
+  const v = intPoint[1].sub(intPoint[0]);
+  const det = u.x * v.y - u.y * v.x; // wedge product
+  const shader = (x, y) => {
+    const p = Vec2(x, y).sub(intPoint[0]);
+    const alpha = - (v.x * p.y - v.y * p.x) / det;
+    const beta = (u.x * p.y - u.y * p.x) / det;
+    const gamma = 1 - alpha - beta;
+    const z = pointsInCamCoord[0].z * gamma +
+      pointsInCamCoord[1].z * alpha +
+      pointsInCamCoord[2].z * beta;
+    // const texCoord = texCoords.length > 0 && !texCoords.some(x => x === undefined) ?
+    //   texCoords[0].scale(gamma)
+    //     .add(texCoords[1].scale(alpha))
+    //     .add(texCoords[2].scale(beta))
+    //   : undefined;
+    // compute color
+    // let c = undefined;
+    // if (texCoord) {
+    //   c = colors[0].scale(gamma)
+    //     .add(colors[1].scale(alpha))
+    //     .add(colors[2].scale(beta));
+    // } else {
+    //   c = colors[0].scale(gamma)
+    //     .add(colors[1].scale(alpha))
+    //     .add(colors[2].scale(beta));
+    // }
+    const c = colors[0].scale(gamma)
+        .add(colors[1].scale(alpha))
+        .add(colors[2].scale(beta));
+    const [i, j] = canvas.canvas2grid(x, y);
+    const zBufferIndex = Math.floor(w * i + j);
+    if (z < zBuffer[zBufferIndex]) {
+      zBuffer[zBufferIndex] = z;
+      return c;
+    }
+  }
+  canvas.drawTriangle(intPoint[0], intPoint[1], intPoint[2], shader);
 }
 
 function _lineCameraPlaneIntersection(vertexOut, vertexIn, camera) {

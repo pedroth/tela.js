@@ -5,6 +5,12 @@ export default class Line {
         this.colors = colors;
     }
 
+    getBoundingBox() {
+        if (this.boundingBox) return this.boundingBox;
+        this.boundingBox = this.positions.reduce((box, x) => box.add(new Box(x, x)), Box.EMPTY);
+        return this.boundingBox;
+    }
+
     static builder() {
         return new LineBuilder();
     }

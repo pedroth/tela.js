@@ -72,8 +72,8 @@ export default class Canvas {
   getPxl(x, y) {
     const w = this._width;
     const h = this._height;
-    const i = h - 1 - y;
     const j = x;
+    const i = h - 1 - y;
     let index = 4 * (w * i + j);
     return Color.ofRGBRaw(this._image[index], this._image[index + 1], this._image[index + 2]);
   }
@@ -163,6 +163,27 @@ export default class Canvas {
 
   //========================================================================================
   /*                                                                                      *
+   *                                         UTILS                                        *
+   *                                                                                      */
+  //========================================================================================
+
+
+  grid2canvas(i, j) {
+    const h = this.height;
+    const x = j;
+    const y = h - 1 - i;
+    return [x, y]
+  }
+
+  canvas2grid(x, y) {
+    const h = this.height;
+    const j = x;
+    const i = h - 1 - y;
+    return [i, j];
+  }
+
+  //========================================================================================
+  /*                                                                                      *
    *                                    Static Methods                                    *
    *                                                                                      */
   //========================================================================================
@@ -198,13 +219,22 @@ export default class Canvas {
     });
   }
 
-  static ofImage(image) {
-    const w = image.width;
-    const h = image.height;
-    return Canvas.ofSize(w, h)
-      .map((x, y) => {
-        return image.get(x, y);
-      })
+  static ofImageUrl(url) {
+    return new Promise((resolve) => {
+      const img = new Image(); // DOM image
+      img.src = url;
+      img.onload = () => {
+        const canvasAux = document.createElement("canvas");
+        canvasAux.width = img.width;
+        canvasAux.height = img.height;
+        const contextAux = canvasAux.getContext("2d");
+        contextAux.fillStyle = "rgba(0, 0, 0, 0)";
+        contextAux.globalCompositeOperation = "source-over";
+        contextAux.fillRect(0, 0, canvasAux.width, canvasAux.height);
+        contextAux.drawImage(img, 0, 0);
+        resolve(new Canvas(canvasAux));
+      }
+    });
   }
 }
 
@@ -218,7 +248,6 @@ function drawConvexPolygon(canvas, positions, shader) {
   });
   const finalBox = canvasBox.intersection(boundingBox);
   if (finalBox.isEmpty) return canvas;
-  canvas.drawLine(finalBox.min, finalBox.max, () => Color.RED);
   const [xMin, yMin] = finalBox.min.toArray();
   const [xMax, yMax] = finalBox.max.toArray();
 
@@ -228,6 +257,7 @@ function drawConvexPolygon(canvas, positions, shader) {
         const j = x;
         const i = height - 1 - y;
         const color = shader(x, y);
+        if (!color) continue;
         const index = 4 * (i * width + j);
         canvas._image[index] = color.red * MAX_8BIT;
         canvas._image[index + 1] = color.green * MAX_8BIT;

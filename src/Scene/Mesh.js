@@ -4,15 +4,25 @@ import Box from "../Box/Box.js";
 import Color from "../Color/Color.js";
 import Line from "./Line.js";
 import Triangle from "./Triangle.js";
+import { groupBy } from "../Utils/Utils.js";
 
 const RADIUS = 0.001;
 export default class Mesh {
-    constructor({ vertices, normals, textureCoords, faces, colors }) {
+    constructor({ vertices, normals, textureCoords, faces, colors, texture }) {
         this.vertices = vertices || [];
         this.normals = normals || [];
         this.textureCoords = textureCoords || [];
         this.faces = faces || [];
         this.colors = colors || [];
+        this.texture = texture;
+    }
+
+    /**
+     * Image|Canvas => Mesh
+     */
+    addTexture(image) {
+        this.texture = image;
+        return this;
     }
 
     mapVertices(lambda) {
@@ -24,7 +34,8 @@ export default class Mesh {
             vertices: newVertices,
             normals: this.normals,
             textureCoords: this.textureCoords,
-            faces: this.faces
+            faces: this.faces,
+            texture: this.texture
         })
     }
 
@@ -38,7 +49,8 @@ export default class Mesh {
             normals: this.normals,
             textureCoords: this.textureCoords,
             faces: this.faces,
-            colors: newColors
+            colors: newColors,
+            texture: this.texture
         })
     }
 
@@ -74,7 +86,7 @@ export default class Mesh {
     asLines(name) {
         const lines = {};
         for (let i = 0; i < this.faces.length; i++) {
-            const indices = this.faces[i];
+            const indices = this.faces[i].vertices;
             for (let j = 0; j < indices.length; j++) {
                 const vi = indices[j] - 1;
                 const vj = indices[(j + 1) % indices.length] - 1;
@@ -95,8 +107,18 @@ export default class Mesh {
     asTriangles(name) {
         const triangles = {};
         for (let i = 0; i < this.faces.length; i++) {
-            const indices = this.faces[i].map(x => x - 1);
-            const edge_id = indices
+            const texCoordIndexes = this.faces[i]
+                .textures
+                .map(x => x - 1)
+            const normalIndexes = this
+                .faces[i]
+                .normals
+                .map(x => x - 1)
+            const verticesIndexes = this
+                .faces[i]
+                .vertices
+                .map(x => x - 1);
+            const edge_id = verticesIndexes
                 .sort()
                 .join("_");
             const edge_name = `${name}_${edge_id}`;
@@ -104,8 +126,10 @@ export default class Mesh {
                 Triangle
                     .builder()
                     .name(edge_name)
-                    .positions(...indices.map(j => this.vertices[j]))
-                    .colors(...indices.map(j => this.colors[j] || Color.BLUE))
+                    .texture(this.texture)
+                    .positions(...verticesIndexes.map(j => this.vertices[j]))
+                    .texCoords(...texCoordIndexes.map(j => this.textureCoords[j]))
+                    .colors(...verticesIndexes.map(j => this.colors[j] || Color.BLUE))
                     .build()
 
         }
@@ -115,7 +139,7 @@ export default class Mesh {
     static readObj(objFile) {
         const vertices = [];
         const normals = [];
-        const texture = [];
+        const textureCoords = [];
         const faces = [];
         const lines = objFile.split("\n");
         for (let i = 0; i < lines.length; i++) {
@@ -139,19 +163,32 @@ export default class Mesh {
             }
             if (type === "vt") {
                 // 2 numbers
-                const v = spaces.slice(1, 3)
+                const v = spaces
+                    .slice(1, 3)
                     .map(x => Number.parseFloat(x));
-                texture.push(Vec2(...v));
+                textureCoords.push(Vec2(...v));
                 continue;
             }
             if (type === "f") {
+                const facesInfo = spaces
+                    .slice(1, 4)
+                    .flatMap(x => x.split("/"))
+                    .map(x => Number.parseFloat(x));
+                const length = facesInfo.length;
+                const lengthDiv3 = length / 3;
                 // vertex_index/texture_index/normal_index
-                const v = spaces.slice(1, 4)
-                    .map(x => Number.parseFloat(x.split("/")[0]));
-                faces.push(v);
+                const group = groupBy(facesInfo, (_, i) => i % (Math.floor(lengthDiv3)));
+                const face = { vertices: [], textures: [], normals: [] }
+                Object.keys(group).map(k => {
+                    k = Number.parseInt(k);
+                    if (k === 0) face.vertices = group[k];
+                    if (k === 1) face.textures = group[k];
+                    if (k === 2) face.normals = group[k];
+                });
+                faces.push(face);
                 continue;
             }
         }
-        return new Mesh({ vertices, normals, texture, faces })
+        return new Mesh({ vertices, normals, textureCoords, faces })
     }
 }

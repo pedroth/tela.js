@@ -4,7 +4,8 @@ Abstraction for DOM canvas element. Canvas, can be though as a function from $\t
 
 - $\text{position}$ is a product of two sets: $[0, W-1] \times [0, H-1]$
 - $\text{color}$ is a product of three sets: $\text{red} \times \text{green} \times \text{blue} \times \text{alpha} = [0,1]^C$
-- Where $W$ is the width, $H$ is the height and $C$ is the number of color channels.  
+- Where $W$ is the width, $H$ is the height and $C$ is the number of color channels.
+- The canvas should not be used in `bun/node` environment it should be use only in `browsers`, for those environments use [`Image.js`](../Image/Image.js)
 
 ``` 
  y H-1

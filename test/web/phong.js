@@ -39,28 +39,17 @@ async (canvas, fps, logger) => {
         camera.orbit();
     })
     // scene
-    // const stanfordBunnyObj = await fetch("/assets/bunny.obj").then(x => x.text());
-    // let bunnyMesh = Mesh.readObj(stanfordBunnyObj);
-    // const bunnyBox = bunnyMesh.getBoundingBox();
-    // bunnyMesh = bunnyMesh
-    //     .mapVertices(v =>
-    //         v.sub(bunnyBox.min).div(bunnyBox.diagonal).scale(2).sub(Vec3(1, 1, 1))
-    //     )
-    //     .mapVertices(v => Vec3(-v.y, v.x, v.z))
-    //     .mapVertices(v => Vec3(v.z, v.y, -v.x))
-    //     .mapColors(v =>
-    //         Color.ofRGB(...v.map(x => Math.max(0, Math.min(1, 0.5 * (x + 1)))).toArray())
-    //     )
-    // scene.addList(bunnyMesh.asTriangles("bunny"));
-    scene.add(
-        Triangle
-            .builder()
-            .name("Test")
-            .positions(Vec3(1,0,0), Vec3(0,1,0), Vec3(0,0,1))
-            .build()
-    )
+    const spotObj = await fetch("/assets/spot.obj").then(x => x.text());
+    const texture = await Canvas.ofImageUrl("/assets/spot.png");
+    const spotMesh = Mesh.readObj(spotObj)
+        .addTexture(texture)
+        .mapVertices(v => Vec3(-v.y, v.x, v.z))
+        .mapVertices(v => Vec3(v.z, v.y, -v.x))
+        .mapColors(v =>
+            Color.ofRGB(...v.map(x => Math.max(0, Math.min(1, 0.5 * (x + 1)))).toArray())
+        )
+    scene.addList(spotMesh.asTriangles("spot"));
 
-    // boilerplate for fps
     Animation
         .builder()
         .initialState({ it: 1, oldTime: new Date().getTime() })

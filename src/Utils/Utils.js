@@ -30,6 +30,16 @@ export function or(...lambdas) {
     }
 }
 
+export function groupBy(array, groupFunction) {
+    const ans = {};
+    array.forEach((x, i) => {
+        const key = groupFunction(x, i);
+        if (!ans[key]) ans[key] = [];
+        ans[key].push(x);
+    });
+    return ans;
+}
+
 export function argmin(array, costFunction = x => x) {
     let argminIndex = -1;
     let cost = Number.MAX_VALUE;

@@ -654,7 +654,7 @@ var maxComp = function(u) {
   return u.fold((e, x) => Math.max(e, x), -Number.MAX_VALUE);
 };
 
-class Box {
+class Box2 {
   constructor(min, max) {
     this.isEmpty = min === undefined || max === undefined;
     if (this.isEmpty)
@@ -668,18 +668,18 @@ class Box {
     if (this.isEmpty)
       return box;
     const { min, max } = this;
-    return new Box(min.op(box.min, Math.min), max.op(box.max, Math.max));
+    return new Box2(min.op(box.min, Math.min), max.op(box.max, Math.max));
   }
   union = this.add;
   sub(box) {
     if (this.isEmpty)
-      return Box.EMPTY;
+      return Box2.EMPTY;
     const { min, max } = this;
     const newMin = min.op(box.min, Math.max);
     const newMax = max.op(box.max, Math.min);
     const newDiag = newMax.sub(newMin);
     const isAllPositive = newDiag.fold((e, x) => e && x >= 0, true);
-    return !isAllPositive ? Box.EMPTY : new Box(newMin, newMax);
+    return !isAllPositive ? Box2.EMPTY : new Box2(newMin, newMax);
   }
   intersection = this.sub;
   interceptWith(ray) {
@@ -703,15 +703,15 @@ class Box {
     return none();
   }
   scale(r) {
-    return new Box(this.min.sub(this.center).scale(r), this.max.sub(this.center).scale(r)).move(this.center);
+    return new Box2(this.min.sub(this.center).scale(r), this.max.sub(this.center).scale(r)).move(this.center);
   }
   move(v) {
-    return new Box(this.min.add(v), this.max.add(v));
+    return new Box2(this.min.add(v), this.max.add(v));
   }
   equals(box) {
-    if (!(box instanceof Box))
+    if (!(box instanceof Box2))
       return false;
-    if (this == Box.EMPTY)
+    if (this == Box2.EMPTY)
       return true;
     return this.min.equals(box.min) && this.max.equals(box.max);
   }
@@ -735,9 +735,9 @@ class Box {
     return Vec.fromArray(grad).scale(Math.sign(d)).normalize();
   }
   collidesWith(box) {
-    const vectorCollision = () => !this.sub(new Box(box, box)).isEmpty;
+    const vectorCollision = () => !this.sub(new Box2(box, box)).isEmpty;
     const type2action = {
-      [Box.name]: () => !this.sub(box).isEmpty,
+      [Box2.name]: () => !this.sub(box).isEmpty,
       Vector: vectorCollision,
       Vector3: vectorCollision,
       Vector2: vectorCollision
@@ -753,21 +753,20 @@ class Box {
         max:${this.max.toString()}
     }`;
   }
-  static EMPTY = new Box;
+  static EMPTY = new Box2;
 }
 
 // src/Utils/Constants.
 var drawConvexPolygon = function(canvas, positions, shader) {
   const { width, height } = canvas;
-  const canvasBox = new Box(Vec2(), Vec2(width, height));
-  let boundingBox = Box.EMPTY;
+  const canvasBox = new Box2(Vec2(), Vec2(width, height));
+  let boundingBox = Box2.EMPTY;
   positions.forEach((x) => {
-    boundingBox = boundingBox.add(new Box(x, x));
+    boundingBox = boundingBox.add(new Box2(x, x));
   });
   const finalBox = canvasBox.intersection(boundingBox);
   if (finalBox.isEmpty)
     return canvas;
-  canvas.drawLine(finalBox.min, finalBox.max, () => Color.RED);
   const [xMin, yMin] = finalBox.min.toArray();
   const [xMax, yMax] = finalBox.max.toArray();
   for (let x = xMin;x < xMax; x++) {
@@ -776,6 +775,8 @@ var drawConvexPolygon = function(canvas, positions, shader) {
         const j = x;
         const i = height - 1 - y;
         const color = shader(x, y);
+        if (!color)
+          continue;
         const index = 4 * (i * width + j);
         canvas._image[index] = color.red * MAX_8BIT2;
         canvas._image[index + 1] = color.green * MAX_8BIT2;
@@ -874,15 +875,15 @@ class Canvas {
   getPxl(x, y) {
     const w = this._width;
     const h = this._height;
-    const i = h - 1 - y;
     const j = x;
+    const i = h - 1 - y;
     let index = 4 * (w * i + j);
     return Color.ofRGBRaw(this._image[index], this._image[index + 1], this._image[index + 2]);
   }
   drawLine(p1, p2, shader) {
     const w = this._width;
     const h = this._height;
-    const line = clipLine(p1, p2, new Box(Vec2(0, 0), Vec2(w, h)));
+    const line = clipLine(p1, p2, new Box2(Vec2(0, 0), Vec2(w, h)));
     if (line.length <= 1)
       return;
     const [pi, pf] = line;
@@ -954,6 +955,18 @@ class Canvas {
       })
     };
   }
+  grid2canvas(i, j) {
+    const h = this.height;
+    const x = j;
+    const y = h - 1 - i;
+    return [x, y];
+  }
+  canvas2grid(x, y) {
+    const h = this.height;
+    const j = x;
+    const i = h - 1 - y;
+    return [i, j];
+  }
   static ofSize(width, height) {
     const canvas = document.createElement("canvas");
     canvas.setAttribute("width", width);
@@ -980,11 +993,21 @@ class Canvas {
       };
     });
   }
-  static ofImage(image) {
-    const w = image.width;
-    const h = image.height;
-    return Canvas.ofSize(w, h).map((x, y) => {
-      return image.get(x, y);
+  static ofImageUrl(url) {
+    return new Promise((resolve) => {
+      const img = new Image;
+      img.src = url;
+      img.onload = () => {
+        const canvasAux = document.createElement("canvas");
+        canvasAux.width = img.width;
+        canvasAux.height = img.height;
+        const contextAux = canvasAux.getContext("2d");
+        contextAux.fillStyle = "rgba(0, 0, 0, 0)";
+        contextAux.globalCompositeOperation = "source-over";
+        contextAux.fillRect(0, 0, canvasAux.width, canvasAux.height);
+        contextAux.drawImage(img, 0, 0);
+        resolve(new Canvas(canvasAux));
+      };
     });
   }
 }
@@ -1203,7 +1226,7 @@ class Point {
     if (this.boundingBox)
       return this.boundingBox;
     const n = this.position.dim;
-    this.boundingBox = new Box(this.position.add(Vec.ONES(n).scale(-this.radius)), this.position.add(Vec.ONES(n).scale(this.radius)));
+    this.boundingBox = new Box2(this.position.add(Vec.ONES(n).scale(-this.radius)), this.position.add(Vec.ONES(n).scale(this.radius)));
     return this.boundingBox;
   }
   static builder() {
@@ -1262,6 +1285,12 @@ class Line {
     this.positions = positions;
     this.colors = colors;
   }
+  getBoundingBox() {
+    if (this.boundingBox)
+      return this.boundingBox;
+    this.boundingBox = this.positions.reduce((box, x) => box.add(new Box(x, x)), Box.EMPTY);
+    return this.boundingBox;
+  }
   static builder() {
     return new LineBuilder;
   }
@@ -1300,10 +1329,18 @@ class LineBuilder {
 
 // src/Utils/Constants.j
 class Triangle {
-  constructor(name, positions, colors) {
+  constructor(name, positions, colors, texCoords, texture) {
     this.name = name;
-    this.positions = positions;
     this.colors = colors;
+    this.positions = positions;
+    this.texCoords = texCoords;
+    this.texture = texture;
+  }
+  getBoundingBox() {
+    if (this.boundingBox)
+      return this.boundingBox;
+    this.boundingBox = this.positions.reduce((box, x) => box.add(new Box2(x, x)), Box2.EMPTY);
+    return this.boundingBox;
   }
   static builder() {
     return new TriangleBuilder;
@@ -1315,6 +1352,8 @@ class TriangleBuilder {
     this._name;
     this._positions;
     this._colors;
+    this._texCoords = [];
+    this._texture;
   }
   name(name) {
     this._name = name;
@@ -1328,16 +1367,25 @@ class TriangleBuilder {
     this._colors = [c1, c2, c3];
     return this;
   }
+  texCoords(t1, t2, t3) {
+    this._texCoords = [t1, t2, t3];
+    return this;
+  }
+  texture(image) {
+    this._texture = image;
+    return this;
+  }
   build() {
     const attrs = [
       this._name,
       this._positions,
-      this._colors
+      this._colors,
+      this._texCoords
     ];
     if (attrs.some((x) => x === undefined)) {
       throw new Error("Triangle is incomplete");
     }
-    return new Triangle(...attrs);
+    return new Triangle(...attrs, this._texture);
   }
 }
 
@@ -1361,8 +1409,7 @@ var rasterPoint = function({ canvas, camera, elem, w, h, zBuffer }) {
     for (let l = -radius;l < radius; l++) {
       const xl = Math.max(0, Math.min(w - 1, x + k));
       const yl = Math.floor(y + l);
-      const j = xl;
-      const i = h - 1 - yl;
+      const [i, j] = canvas.canvas2grid(xl, yl);
       const zBufferIndex = Math.floor(w * i + j);
       if (z < zBuffer[zBufferIndex]) {
         zBuffer[zBufferIndex] = z;
@@ -1411,8 +1458,7 @@ var rasterLine = function({ canvas, camera, elem, w, h, zBuffer }) {
     const t = v.dot(p) / vSquared;
     const z = pointsInCamCoord[0].z * (1 - t) + pointsInCamCoord[1].z * t;
     const c = colors[0].scale(1 - t).add(colors[1].scale(t));
-    const j = x;
-    const i = h - 1 - y;
+    const [i, j] = canvas.canvas2grid(x, y);
     const zBufferIndex = Math.floor(w * i + j);
     if (z < zBuffer[zBufferIndex]) {
       zBuffer[zBufferIndex] = z;
@@ -1423,7 +1469,7 @@ var rasterLine = function({ canvas, camera, elem, w, h, zBuffer }) {
 };
 var rasterTriangle = function({ canvas, camera, elem, w, h, zBuffer }) {
   const triangleElem = elem;
-  const { colors, positions } = triangleElem;
+  const { colors, positions, texCoords } = triangleElem;
   const { distanceToPlane } = camera;
   const pointsInCamCoord = positions.map((p) => camera.toCameraCoord(p));
   let inFrustum = [];
@@ -1438,9 +1484,7 @@ var rasterTriangle = function({ canvas, camera, elem, w, h, zBuffer }) {
   });
   if (outFrustum.length >= 1)
     return;
-  const projectedPoint = pointsInCamCoord.map((p) => {
-    return p.scale(distanceToPlane / p.z);
-  });
+  const projectedPoint = pointsInCamCoord.map((p) => p.scale(distanceToPlane / p.z));
   const intPoint = projectedPoint.map((p) => {
     let x = w / 2 + p.x * w;
     let y = h / 2 + p.y * h;
@@ -1448,7 +1492,24 @@ var rasterTriangle = function({ canvas, camera, elem, w, h, zBuffer }) {
     y = Math.floor(y);
     return Vec2(x, y);
   });
-  canvas.drawTriangle(intPoint[0], intPoint[1], intPoint[2], () => Color.BLUE);
+  const u = intPoint[2].sub(intPoint[0]);
+  const v = intPoint[1].sub(intPoint[0]);
+  const det = u.x * v.y - u.y * v.x;
+  const shader = (x, y) => {
+    const p = Vec2(x, y).sub(intPoint[0]);
+    const alpha = -(v.x * p.y - v.y * p.x) / det;
+    const beta = (u.x * p.y - u.y * p.x) / det;
+    const gamma = 1 - alpha - beta;
+    const z = pointsInCamCoord[0].z * gamma + pointsInCamCoord[1].z * alpha + pointsInCamCoord[2].z * beta;
+    const c = colors[0].scale(gamma).add(colors[1].scale(alpha)).add(colors[2].scale(beta));
+    const [i, j] = canvas.canvas2grid(x, y);
+    const zBufferIndex = Math.floor(w * i + j);
+    if (z < zBuffer[zBufferIndex]) {
+      zBuffer[zBufferIndex] = z;
+      return c;
+    }
+  };
+  canvas.drawTriangle(intPoint[0], intPoint[1], intPoint[2], shader);
 };
 var _lineCameraPlaneIntersection = function(vertexOut, vertexIn, camera) {
   const { distanceToPlane } = camera;
@@ -1570,6 +1631,11 @@ __export(exports_Utils, {
       return measureTime;
     }
   },
+  groupBy: () => {
+    {
+      return groupBy;
+    }
+  },
   compose: () => {
     {
       return compose;
@@ -1607,6 +1673,16 @@ function or(...lambdas) {
       continue;
     }
   }
+}
+function groupBy(array, groupFunction) {
+  const ans = {};
+  array.forEach((x, i) => {
+    const key = groupFunction(x, i);
+    if (!ans[key])
+      ans[key] = [];
+    ans[key].push(x);
+  });
+  return ans;
 }
 function argmin(array, costFunction = (x) => x) {
   let argminIndex = -1;
@@ -1672,7 +1748,7 @@ class Node {
   numberOfLeafs = 0;
   leafs = [];
   constructor() {
-    this.box = Box.EMPTY;
+    this.box = Box2.EMPTY;
   }
   add(element) {
     this.numberOfLeafs += 1;
@@ -1854,12 +1930,17 @@ class NaiveScene {
 var RADIUS = 0.001;
 
 class Mesh {
-  constructor({ vertices, normals, textureCoords, faces, colors }) {
+  constructor({ vertices, normals, textureCoords, faces, colors, texture }) {
     this.vertices = vertices || [];
     this.normals = normals || [];
     this.textureCoords = textureCoords || [];
     this.faces = faces || [];
     this.colors = colors || [];
+    this.texture = texture;
+  }
+  addTexture(image) {
+    this.texture = image;
+    return this;
   }
   mapVertices(lambda) {
     const newVertices = [];
@@ -1870,7 +1951,8 @@ class Mesh {
       vertices: newVertices,
       normals: this.normals,
       textureCoords: this.textureCoords,
-      faces: this.faces
+      faces: this.faces,
+      texture: this.texture
     });
   }
   mapColors(lambda) {
@@ -1883,15 +1965,16 @@ class Mesh {
       normals: this.normals,
       textureCoords: this.textureCoords,
       faces: this.faces,
-      colors: newColors
+      colors: newColors,
+      texture: this.texture
     });
   }
   getBoundingBox() {
     if (this.boundingBox)
       return this.boundingBox;
-    this.boundingBox = new Box;
+    this.boundingBox = new Box2;
     for (let i = 0;i < this.vertices.length; i++) {
-      this.boundingBox = this.boundingBox.add(new Box(this.vertices[i].add(Vec3(1, 1, 1).scale(RADIUS)), this.vertices[i].add(Vec3(1, 1, 1).scale(RADIUS))));
+      this.boundingBox = this.boundingBox.add(new Box2(this.vertices[i].add(Vec3(1, 1, 1).scale(RADIUS)), this.vertices[i].add(Vec3(1, 1, 1).scale(RADIUS))));
     }
     return this.boundingBox;
   }
@@ -1905,7 +1988,7 @@ class Mesh {
   asLines(name) {
     const lines = {};
     for (let i = 0;i < this.faces.length; i++) {
-      const indices = this.faces[i];
+      const indices = this.faces[i].vertices;
       for (let j = 0;j < indices.length; j++) {
         const vi = indices[j] - 1;
         const vj = indices[(j + 1) % indices.length] - 1;
@@ -1919,17 +2002,19 @@ class Mesh {
   asTriangles(name) {
     const triangles = {};
     for (let i = 0;i < this.faces.length; i++) {
-      const indices = this.faces[i].map((x) => x - 1);
-      const edge_id = indices.sort().join("_");
+      const texCoordIndexes = this.faces[i].textures.map((x) => x - 1);
+      const normalIndexes = this.faces[i].normals.map((x) => x - 1);
+      const verticesIndexes = this.faces[i].vertices.map((x) => x - 1);
+      const edge_id = verticesIndexes.sort().join("_");
       const edge_name = `${name}_${edge_id}`;
-      triangles[edge_id] = Triangle.builder().name(edge_name).positions(...indices.map((j) => this.vertices[j])).colors(...indices.map((j) => this.colors[j] || Color.BLUE)).build();
+      triangles[edge_id] = Triangle.builder().name(edge_name).texture(this.texture).positions(...verticesIndexes.map((j) => this.vertices[j])).texCoords(...texCoordIndexes.map((j) => this.textureCoords[j])).colors(...verticesIndexes.map((j) => this.colors[j] || Color.BLUE)).build();
     }
     return Object.values(triangles);
   }
   static readObj(objFile) {
     const vertices = [];
     const normals = [];
-    const texture = [];
+    const textureCoords = [];
     const faces = [];
     const lines = objFile.split("\n");
     for (let i = 0;i < lines.length; i++) {
@@ -1950,16 +2035,29 @@ class Mesh {
       }
       if (type === "vt") {
         const v = spaces.slice(1, 3).map((x) => Number.parseFloat(x));
-        texture.push(Vec2(...v));
+        textureCoords.push(Vec2(...v));
         continue;
       }
       if (type === "f") {
-        const v = spaces.slice(1, 4).map((x) => Number.parseFloat(x.split("/")[0]));
-        faces.push(v);
+        const facesInfo = spaces.slice(1, 4).flatMap((x) => x.split("/")).map((x) => Number.parseFloat(x));
+        const length = facesInfo.length;
+        const lengthDiv3 = length / 3;
+        const group = groupBy(facesInfo, (_, i2) => i2 % Math.floor(lengthDiv3));
+        const face = { vertices: [], textures: [], normals: [] };
+        Object.keys(group).map((k) => {
+          k = Number.parseInt(k);
+          if (k === 0)
+            face.vertices = group[k];
+          if (k === 1)
+            face.textures = group[k];
+          if (k === 2)
+            face.normals = group[k];
+        });
+        faces.push(face);
         continue;
       }
     }
-    return new Mesh({ vertices, normals, texture, faces });
+    return new Mesh({ vertices, normals, textureCoords, faces });
   }
 }
 // src/Utils/Co
@@ -1995,7 +2093,7 @@ import {writeFileSync, unlinkSync, readFileSync} from "fs";
 import {execSync, exec} from "child_process";
 
 // src/Utils/Constant
-class Image {
+class Image2 {
   constructor(width, height) {
     this._width = width;
     this._height = height;
@@ -2046,7 +2144,7 @@ class Image {
   drawLine(p1, p2, shader) {
     const w = this._width;
     const h = this._height;
-    const line = clipLine(p1, p2, new Box(Vec2(0, 0), Vec2(w, h)));
+    const line = clipLine(p1, p2, new Box2(Vec2(0, 0), Vec2(w, h)));
     if (line.length <= 1)
       return;
     const [pi, pf] = line;
@@ -2086,11 +2184,23 @@ class Image {
     }
     return imageData;
   }
+  grid2canvas(i, j) {
+    const h = this.height;
+    const x = j;
+    const y = h - 1 - i;
+    return [x, y];
+  }
+  canvas2grid(x, y) {
+    const h = this.height;
+    const j = x;
+    const i = h - 1 - y;
+    return [i, j];
+  }
   static ofUrl(url) {
     return readImageFrom(url);
   }
   static ofSize(width, height) {
-    return new Image(width, height);
+    return new Image2(width, height);
   }
   static ofDOM(canvasDOM) {
     const ctx = canvasDOM.getContext("2d", { willReadFrequently: true });
@@ -2098,7 +2208,7 @@ class Image {
     const h = canvasDOM.height;
     const imageData = ctx.getImageData(0, 0, w, h);
     const data = imageData.data;
-    const image = Image.ofSize(w, h);
+    const image = Image2.ofSize(w, h);
     for (let i = 0;i < data.length; i += 4) {
       const color = Color.ofRGB(data[i] / 255, data[i + 1] / 255, data[i + 2] / 255);
       image._image[Math.floor(i / 4)] = color;
@@ -2107,7 +2217,7 @@ class Image {
   static ofCanvas(canvas) {
     const w = canvas.width;
     const h = canvas.height;
-    return Image.ofSize(w, h).map((x, y) => {
+    return Image2.ofSize(w, h).map((x, y) => {
       return canvas.get(x, y);
     });
   }
@@ -2156,7 +2266,7 @@ function readImageFrom(src) {
   const imageFile = readFileSync(`${fileName}.ppm`);
   const { width: w, height: h, pixels } = parsePPM(Array.from(imageFile));
   unlinkSync(`${fileName}.ppm`);
-  const img = Image.ofSize(w, h);
+  const img = Image2.ofSize(w, h);
   for (let k = 0;k < pixels.length; k++) {
     const { r, g, b } = pixels[k];
     const i = Math.floor(k / w);
@@ -2263,12 +2373,12 @@ export {
   exports_Monads as Monads,
   Mesh,
   Line,
-  Image,
+  Image2 as Image,
   exports_IO as IO,
   DomBuilder_default as DOM,
   Color,
   Canvas,
   Camera,
-  Box,
+  Box2 as Box,
   Animation
 };

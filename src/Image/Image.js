@@ -114,6 +114,20 @@ export default class Image {
         return imageData;
     }
 
+    grid2canvas(i, j) {
+        const h = this.height;
+        const x = j;
+        const y = h - 1 - i;
+        return [x, y]
+    }
+
+    canvas2grid(x, y) {
+        const h = this.height;
+        const j = x;
+        const i = h - 1 - y;
+        return [i, j];
+    }
+
     static ofUrl(url) {
         return readImageFrom(url);
     }
