@@ -1,7 +1,7 @@
 import Box from "../Box/Box.js";
 import Color from "../Color/Color.js";
 import { readImageFrom } from "../IO/IO.js";
-import { clipLine } from "../Utils/Math.js";
+import { clipLine, mod } from "../Utils/Math.js";
 import { Vec2 } from "../Vector/Vector.js";
 
 export default class Image {
@@ -52,9 +52,7 @@ export default class Image {
 
     setPxl(x, y, color) {
         const w = this._width;
-        const h = this._height;
-        const i = h - 1 - y;
-        const j = x;
+        const [i, j] = this.canvas2grid(x, y);
         let index = w * i + j;
         this._image[index] = color;
         return this;
@@ -63,8 +61,9 @@ export default class Image {
     getPxl(x, y) {
         const w = this._width;
         const h = this._height;
-        const i = h - 1 - y;
-        const j = x;
+        let [i, j] = this.canvas2grid(x, y);
+        i = mod(i, h);
+        j = mod(j, w);
         let index = w * i + j;
         return this._image[index];
     }
@@ -83,7 +82,7 @@ export default class Image {
             const [x, y] = lineP.toArray();
             const j = x;
             const i = h - 1 - y;
-            const index = (i * w + j);
+            const index = w * i + j;
             const color = shader(x, y);
             if (!color) continue;
             this._image[index] = color;
@@ -102,7 +101,7 @@ export default class Image {
 
         for (let i = 0; i < h; i++) {
             for (let j = 0; j < w; j++) {
-                let index = (w * i + j);
+                let index = w * i + j;
                 const color = this._image[index];
                 index <<= 2; // multiply by 4
                 imageData[index] = color.red * 255;
@@ -122,9 +121,9 @@ export default class Image {
     }
 
     canvas2grid(x, y) {
-        const h = this.height;
-        const j = x;
-        const i = h - 1 - y;
+        const h = this._height;
+        const j = Math.floor(x);
+        const i = Math.floor(h - 1 - y);
         return [i, j];
     }
 

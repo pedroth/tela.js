@@ -21,7 +21,7 @@ const { measureTime } = Utils;
     const maxT = 20;
     // scene
     const scene = new NaiveScene();
-    const camera = new Camera({ sphericalCoords: Vec3(5, 0, 0) });
+    const camera = new Camera({ sphericalCoords: Vec3(1, 0, 0) });
 
     const spotObj = readFileSync("./assets/spot.obj", { encoding: "utf-8" });
     const spotMesh = Mesh.readObj(spotObj)

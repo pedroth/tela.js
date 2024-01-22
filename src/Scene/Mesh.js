@@ -88,8 +88,8 @@ export default class Mesh {
         for (let i = 0; i < this.faces.length; i++) {
             const indices = this.faces[i].vertices;
             for (let j = 0; j < indices.length; j++) {
-                const vi = indices[j] - 1;
-                const vj = indices[(j + 1) % indices.length] - 1;
+                const vi = indices[j];
+                const vj = indices[(j + 1) % indices.length];
                 const edge_id = [vi, vj].sort().join("_");
                 const edge_name = `${name}_${edge_id}`;
                 lines[edge_id] =
@@ -107,17 +107,15 @@ export default class Mesh {
     asTriangles(name) {
         const triangles = {};
         for (let i = 0; i < this.faces.length; i++) {
-            const texCoordIndexes = this.faces[i]
+            const texCoordIndexes = this
+                .faces[i]
                 .textures
-                .map(x => x - 1)
             const normalIndexes = this
                 .faces[i]
                 .normals
-                .map(x => x - 1)
             const verticesIndexes = this
                 .faces[i]
                 .vertices
-                .map(x => x - 1);
             const edge_id = verticesIndexes
                 .sort()
                 .join("_");
@@ -181,9 +179,10 @@ export default class Mesh {
                 const face = { vertices: [], textures: [], normals: [] }
                 Object.keys(group).map(k => {
                     k = Number.parseInt(k);
-                    if (k === 0) face.vertices = group[k];
-                    if (k === 1) face.textures = group[k];
-                    if (k === 2) face.normals = group[k];
+                    const indices = group[k].map(x => x - 1);
+                    if (k === 0) face.vertices = indices;
+                    if (k === 1) face.textures = indices;
+                    if (k === 2) face.normals = indices;
                 });
                 faces.push(face);
                 continue;

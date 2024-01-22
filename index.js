@@ -418,6 +418,10 @@ const examples = [
         path: "/test/web/simple_shader.js"
     },
     {
+        title: "Earth shader",
+        path: "/test/web/tex_shader.js"
+    },
+    {
         title: "Mandelbrot set shader",
         path: "/test/web/mandelbrot.js"
     },
@@ -458,8 +462,8 @@ const examples = [
         path: "/test/web/wireframe.js"
     },
     {
-        title: "Phong light",
-        path: "/test/web/phong.js"
+        title: "Spot phong shader",
+        path: "/test/web/spot.js"
     },
     {
         title: "SDF test",

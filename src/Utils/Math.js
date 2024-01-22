@@ -1,8 +1,12 @@
-import Vec, { Vec2 } from "../Vector/Vector";
+import { Vec2 } from "../Vector/Vector";
 
 export function smin(a, b, k = 32) {
     const res = Math.exp(-k * a) + Math.exp(-k * b);
     return -Math.log(res) / k;
+}
+
+export function mod(n, m) {
+    return ((n % m) + m) % m;
 }
 
 export function clipLine(p0, p1, box) {
@@ -31,6 +35,13 @@ export function clipLine(p0, p1, box) {
     return lineBoxIntersection(...outStack, box);
 }
 
+//========================================================================================
+/*                                                                                      *
+ *                                       Auxiliary                                       *
+ *                                                                                      */
+//========================================================================================
+
+
 function lineBoxIntersection(start, end, box) {
     const width = box.diagonal.x;
     const height = box.diagonal.y;
@@ -45,10 +56,10 @@ function lineBoxIntersection(start, end, box) {
     const intersectionSolutions = [];
     boundary.forEach(([s, d]) => {
         if (d.x === 0) {
-            const solution = _solveLowTriMatrix(v, -d.y, s.sub(start));
+            const solution = solveLowTriMatrix(v, -d.y, s.sub(start));
             solution !== undefined && intersectionSolutions.push(solution);
         } else {
-            const solution = _solveUpTriMatrix(v, -d.x, s.sub(start));
+            const solution = solveUpTriMatrix(v, -d.x, s.sub(start));
             solution !== undefined && intersectionSolutions.push(solution);
         }
     });
@@ -74,7 +85,7 @@ function lineBoxIntersection(start, end, box) {
  *
  *                      [ v_1,  a] y = f_1
  */
-function _solveLowTriMatrix(v, a, f) {
+function solveLowTriMatrix(v, a, f) {
     const v1 = v.x;
     const v2 = v.y;
     const av1 = a * v1;
@@ -89,7 +100,7 @@ function _solveLowTriMatrix(v, a, f) {
  *
  *					    [ v_1,  0] y = f_1
  */
-function _solveUpTriMatrix(v, a, f) {
+function solveUpTriMatrix(v, a, f) {
     const v1 = v.x;
     const v2 = v.y;
     const av2 = a * v2;

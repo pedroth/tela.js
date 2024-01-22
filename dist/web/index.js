@@ -522,6 +522,9 @@ function smin(a, b, k = 32) {
   const res = Math.exp(-k * a) + Math.exp(-k * b);
   return -Math.log(res) / k;
 }
+function mod(n, m) {
+  return (n % m + m) % m;
+}
 function clipLine(p0, p1, box) {
   const pointStack = [p0, p1];
   const inStack = [];
@@ -557,10 +560,10 @@ var lineBoxIntersection = function(start, end, box) {
   const intersectionSolutions = [];
   boundary.forEach(([s, d]) => {
     if (d.x === 0) {
-      const solution = _solveLowTriMatrix(v, -d.y, s.sub(start));
+      const solution = solveLowTriMatrix(v, -d.y, s.sub(start));
       solution !== undefined && intersectionSolutions.push(solution);
     } else {
-      const solution = _solveUpTriMatrix(v, -d.x, s.sub(start));
+      const solution = solveUpTriMatrix(v, -d.x, s.sub(start));
       solution !== undefined && intersectionSolutions.push(solution);
     }
   });
@@ -580,7 +583,7 @@ var lineBoxIntersection = function(start, end, box) {
   }
   return [start.add(v.scale(validIntersections[0].x))];
 };
-var _solveLowTriMatrix = function(v, a, f) {
+var solveLowTriMatrix = function(v, a, f) {
   const v1 = v.x;
   const v2 = v.y;
   const av1 = a * v1;
@@ -590,7 +593,7 @@ var _solveLowTriMatrix = function(v, a, f) {
   const f2 = f.y;
   return Vec2(f1 / v1, (f2 * v1 - v2 * f1) / av1);
 };
-var _solveUpTriMatrix = function(v, a, f) {
+var solveUpTriMatrix = function(v, a, f) {
   const v1 = v.x;
   const v2 = v.y;
   const av2 = a * v2;
@@ -862,9 +865,7 @@ class Canvas {
   }
   setPxl(x, y, color) {
     const w = this._width;
-    const h = this._height;
-    const j = x;
-    const i = h - 1 - y;
+    const [i, j] = this.canvas2grid(x, y);
     let index = 4 * (w * i + j);
     this._image[index] = color.red * MAX_8BIT2;
     this._image[index + 1] = color.green * MAX_8BIT2;
@@ -875,8 +876,9 @@ class Canvas {
   getPxl(x, y) {
     const w = this._width;
     const h = this._height;
-    const j = x;
-    const i = h - 1 - y;
+    let [i, j] = this.canvas2grid(x, y);
+    i = mod(i, h);
+    j = mod(j, w);
     let index = 4 * (w * i + j);
     return Color.ofRGBRaw(this._image[index], this._image[index + 1], this._image[index + 2]);
   }
@@ -962,9 +964,9 @@ class Canvas {
     return [x, y];
   }
   canvas2grid(x, y) {
-    const h = this.height;
-    const j = x;
-    const i = h - 1 - y;
+    const h = this._height;
+    const j = Math.floor(x);
+    const i = Math.floor(h - 1 - y);
     return [i, j];
   }
   static ofSize(width, height) {
@@ -990,23 +992,6 @@ class Canvas {
         const ctx = canvas.getContext("2d");
         ctx.drawImage(img, 0, 0);
         resolve(Canvas.ofDOM(canvas));
-      };
-    });
-  }
-  static ofImageUrl(url) {
-    return new Promise((resolve) => {
-      const img = new Image;
-      img.src = url;
-      img.onload = () => {
-        const canvasAux = document.createElement("canvas");
-        canvasAux.width = img.width;
-        canvasAux.height = img.height;
-        const contextAux = canvasAux.getContext("2d");
-        contextAux.fillStyle = "rgba(0, 0, 0, 0)";
-        contextAux.globalCompositeOperation = "source-over";
-        contextAux.fillRect(0, 0, canvasAux.width, canvasAux.height);
-        contextAux.drawImage(img, 0, 0);
-        resolve(new Canvas(canvasAux));
       };
     });
   }
@@ -1492,8 +1477,8 @@ var rasterTriangle = function({ canvas, camera, elem, w, h, zBuffer }) {
     y = Math.floor(y);
     return Vec2(x, y);
   });
-  const u = intPoint[2].sub(intPoint[0]);
-  const v = intPoint[1].sub(intPoint[0]);
+  const u = intPoint[1].sub(intPoint[0]);
+  const v = intPoint[2].sub(intPoint[0]);
   const det = u.x * v.y - u.y * v.x;
   const shader = (x, y) => {
     const p = Vec2(x, y).sub(intPoint[0]);
@@ -1503,9 +1488,9 @@ var rasterTriangle = function({ canvas, camera, elem, w, h, zBuffer }) {
     const z = pointsInCamCoord[0].z * gamma + pointsInCamCoord[1].z * alpha + pointsInCamCoord[2].z * beta;
     let c = colors[0].scale(gamma).add(colors[1].scale(alpha)).add(colors[2].scale(beta));
     if (texture && texCoords && texCoords.length > 0 && !texCoords.some((x2) => x2 === undefined)) {
-      const texUV = texCoords[0].scale(gamma).add(texCoords[1].scale(alpha)).add(texCoords[2].scale(beta)).scale(8);
-      const [texU, texV] = [texUV.x % 1, texUV.y % 1];
-      const texColor = texU < 0.5 && texV < 0.5 ? Color.BLACK : texU > 0.5 && texV > 0.5 ? Color.BLACK : Color.WHITE;
+      const texUV = texCoords[0].scale(gamma).add(texCoords[1].scale(alpha)).add(texCoords[2].scale(beta));
+      const [texU, texV] = [texUV.x, texUV.y];
+      const texColor = texture.getPxl(...[texU * w, texV * h]);
       c = c.add(texColor).scale(0.5);
     }
     const [i, j] = canvas.canvas2grid(x, y);
@@ -1996,8 +1981,8 @@ class Mesh {
     for (let i = 0;i < this.faces.length; i++) {
       const indices = this.faces[i].vertices;
       for (let j = 0;j < indices.length; j++) {
-        const vi = indices[j] - 1;
-        const vj = indices[(j + 1) % indices.length] - 1;
+        const vi = indices[j];
+        const vj = indices[(j + 1) % indices.length];
         const edge_id = [vi, vj].sort().join("_");
         const edge_name = `${name}_${edge_id}`;
         lines[edge_id] = Line.builder().name(edge_name).positions(this.vertices[vi], this.vertices[vj]).colors(this.colors[vi] || Color.GREEN, this.colors[vj] || Color.GREEN).build();
@@ -2008,9 +1993,9 @@ class Mesh {
   asTriangles(name) {
     const triangles = {};
     for (let i = 0;i < this.faces.length; i++) {
-      const texCoordIndexes = this.faces[i].textures.map((x) => x - 1);
-      const normalIndexes = this.faces[i].normals.map((x) => x - 1);
-      const verticesIndexes = this.faces[i].vertices.map((x) => x - 1);
+      const texCoordIndexes = this.faces[i].textures;
+      const normalIndexes = this.faces[i].normals;
+      const verticesIndexes = this.faces[i].vertices;
       const edge_id = verticesIndexes.sort().join("_");
       const edge_name = `${name}_${edge_id}`;
       triangles[edge_id] = Triangle.builder().name(edge_name).texture(this.texture).positions(...verticesIndexes.map((j) => this.vertices[j])).texCoords(...texCoordIndexes.map((j) => this.textureCoords[j])).colors(...verticesIndexes.map((j) => this.colors[j] || Color.BLUE)).build();
@@ -2052,12 +2037,13 @@ class Mesh {
         const face = { vertices: [], textures: [], normals: [] };
         Object.keys(group).map((k) => {
           k = Number.parseInt(k);
+          const indices = group[k].map((x) => x - 1);
           if (k === 0)
-            face.vertices = group[k];
+            face.vertices = indices;
           if (k === 1)
-            face.textures = group[k];
+            face.textures = indices;
           if (k === 2)
-            face.normals = group[k];
+            face.normals = indices;
         });
         faces.push(face);
         continue;

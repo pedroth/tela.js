@@ -6,6 +6,8 @@ const { measureTimeWithResult, measureTime } = Utils;
     const width = 640;
     const height = 480;
     const FPS = 25;
+    const dt = 1 / FPS;
+    const maxT = 20;
     // utils
     const size = Vec2(width, height);
     const complexMul = (z, w) => Vec2(z.x * w.x - z.y * w.y, z.x * w.y + z.y * w.x);
@@ -41,7 +43,6 @@ const { measureTimeWithResult, measureTime } = Utils;
     const imageStream = new Stream(
         { time: 0, i: 0, image: mandelbrot(0, Image.ofSize(width, height)) },
         ({ time, i, image }) => {
-            const dt = 1 / FPS;
             const { result: newImage, time: t } = measureTimeWithResult(() => mandelbrot(i + 1, image));
             console.log(`Image took ${t}s`);
             return {
@@ -58,8 +59,8 @@ const { measureTimeWithResult, measureTime } = Utils;
             saveImageStreamToVideo(
                 "./mandelbrot.mp4",
                 imageStream,
-                { fps: 25 }
-            ).until(({ time }) => time < 20);
+                { fps: FPS }
+            ).until(({ time }) => time < maxT);
         })
     )
 })()

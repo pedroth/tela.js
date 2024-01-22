@@ -1,6 +1,6 @@
 import Color from "../Color/Color";
 import { MAX_8BIT } from "../Utils/Constants";
-import { clipLine } from "../Utils/Math";
+import { clipLine, mod } from "../Utils/Math";
 import Box from "../Box/Box"
 import { Vec2 } from "../Vector/Vector";
 
@@ -58,9 +58,7 @@ export default class Canvas {
 
   setPxl(x, y, color) {
     const w = this._width;
-    const h = this._height;
-    const j = x;
-    const i = h - 1 - y;
+    const [i, j] = this.canvas2grid(x, y);
     let index = 4 * (w * i + j);
     this._image[index] = color.red * MAX_8BIT;
     this._image[index + 1] = color.green * MAX_8BIT;
@@ -72,8 +70,9 @@ export default class Canvas {
   getPxl(x, y) {
     const w = this._width;
     const h = this._height;
-    const j = x;
-    const i = h - 1 - y;
+    let [i, j] = this.canvas2grid(x, y);
+    i = mod(i, h);
+    j = mod(j, w);
     let index = 4 * (w * i + j);
     return Color.ofRGBRaw(this._image[index], this._image[index + 1], this._image[index + 2]);
   }
@@ -176,9 +175,9 @@ export default class Canvas {
   }
 
   canvas2grid(x, y) {
-    const h = this.height;
-    const j = x;
-    const i = h - 1 - y;
+    const h = this._height;
+    const j = Math.floor(x);
+    const i = Math.floor(h - 1 - y);
     return [i, j];
   }
 
@@ -216,24 +215,6 @@ export default class Canvas {
         ctx.drawImage(img, 0, 0);
         resolve(Canvas.ofDOM(canvas));
       };
-    });
-  }
-
-  static ofImageUrl(url) {
-    return new Promise((resolve) => {
-      const img = new Image(); // DOM image
-      img.src = url;
-      img.onload = () => {
-        const canvasAux = document.createElement("canvas");
-        canvasAux.width = img.width;
-        canvasAux.height = img.height;
-        const contextAux = canvasAux.getContext("2d");
-        contextAux.fillStyle = "rgba(0, 0, 0, 0)";
-        contextAux.globalCompositeOperation = "source-over";
-        contextAux.fillRect(0, 0, canvasAux.width, canvasAux.height);
-        contextAux.drawImage(img, 0, 0);
-        resolve(new Canvas(canvasAux));
-      }
     });
   }
 }

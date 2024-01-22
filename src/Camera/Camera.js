@@ -257,8 +257,8 @@ function rasterTriangle({ canvas, camera, elem, w, h, zBuffer }) {
       return Vec2(x, y);
     })
   // shader
-  const u = intPoint[2].sub(intPoint[0]);
-  const v = intPoint[1].sub(intPoint[0]);
+  const u = intPoint[1].sub(intPoint[0]);
+  const v = intPoint[2].sub(intPoint[0]);
   const det = u.x * v.y - u.y * v.x; // wedge product
   const shader = (x, y) => {
     const p = Vec2(x, y).sub(intPoint[0]);
@@ -275,11 +275,11 @@ function rasterTriangle({ canvas, camera, elem, w, h, zBuffer }) {
     if (texture && texCoords && texCoords.length > 0 && !texCoords.some(x => x === undefined)) {
       const texUV = texCoords[0].scale(gamma)
         .add(texCoords[1].scale(alpha))
-        .add(texCoords[2].scale(beta))
-        .scale(8);
-      const [texU, texV] = [texUV.x % 1, texUV.y % 1];
-      const texColor = texU < 0.5 && texV < 0.5 ? Color.BLACK : texU > 0.5 && texV > 0.5 ? Color.BLACK : Color.WHITE;
-      // const texColor = texture.getPxl(...[texU * w, texV * h].map(Math.floor));
+        .add(texCoords[2].scale(beta));
+      const [texU, texV] = [texUV.x, texUV.y];
+      // const texColor = texU < 0.5 && texV < 0.5 ? Color.BLACK : texU > 0.5 && texV > 0.5 ? Color.BLACK : Color.WHITE;
+      const texColor = texture.getPxl(...[texU * w, texV * h]);
+      // c = Color.ofRGB(texUV.x, texUV.y, 0);
       c = c.add(texColor).scale(0.5);
     }
     const [i, j] = canvas.canvas2grid(x, y);
