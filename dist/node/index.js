@@ -9,7 +9,7 @@ var __export = (target, all) => {
     });
 };
 
-// src/Utils/Constants.
+// src/Ray/Ray.jstants.
 class Stream {
   constructor(initialState, updateStateFunction) {
     this._head = initialState;
@@ -23,7 +23,7 @@ class Stream {
   }
 }
 
-// src/Utils/Constants.jsssr.
+// src/Ray/Ray.jstants.jsssr.
 class Animation {
   constructor(state, next, doWhile) {
     this.animation = new Stream(state, next);
@@ -75,7 +75,7 @@ class AnimationBuilder {
   }
 }
 
-// src/Utils/Constant
+// src/Ray/Ray.jstant
 var MAX_8BIT = 255;
 
 class Color {
@@ -129,10 +129,10 @@ class Color {
   static WHITE = Color.ofRGB(1, 1, 1);
 }
 
-// src/Utils/Constants.js
+// src/Ray/Ray.jstants.js
 var MAX_8BIT2 = 255;
 
-// src/Utils/Constants.
+// src/Ray/Ray.jstants.
 var _sanitize_input = function(arrayIn, arrayOut) {
   for (let i = 0;i < arrayIn.length; i++) {
     const z = arrayIn[i];
@@ -517,7 +517,7 @@ class Vector2 {
   static ONES = new Vector2(1, 1);
 }
 
-// src/Utils/Constan
+// src/Ray/Ray.jstan
 function smin(a, b, k = 32) {
   const res = Math.exp(-k * a) + Math.exp(-k * b);
   return -Math.log(res) / k;
@@ -601,7 +601,7 @@ var _solveUpTriMatrix = function(v, a, f) {
   return Vec2(f2 / v2, (f1 * v2 - v1 * f2) / av2);
 };
 
-// src/Utils/Constants.
+// src/Ray/Ray.jstants.
 var exports_Monads = {};
 __export(exports_Monads, {
   some: () => {
@@ -649,7 +649,7 @@ function maybe(x) {
   return none(x);
 }
 
-// src/Utils/Cons
+// src/Ray/Ray.js
 var maxComp = function(u) {
   return u.fold((e, x) => Math.max(e, x), -Number.MAX_VALUE);
 };
@@ -756,7 +756,7 @@ class Box2 {
   static EMPTY = new Box2;
 }
 
-// src/Utils/Constants.
+// src/Ray/Ray.jstants.
 var drawConvexPolygon = function(canvas, positions, shader) {
   const { width, height } = canvas;
   const canvasBox = new Box2(Vec2(), Vec2(width, height));
@@ -1012,7 +1012,7 @@ class Canvas {
   }
 }
 
-// src/Utils/Constants.jsssr.js
+// src/Ray/Ray.jstants.jsssr.js
 var isElement = function(o) {
   return typeof HTMLElement === "object" ? o instanceof HTMLElement : o && typeof o === "object" && o !== null && o.nodeType === 1 && typeof o.nodeName === "string";
 };
@@ -1104,7 +1104,7 @@ class DomBuilder {
 }
 var DomBuilder_default = DomBuilder;
 
-// src/Utils/Constants.jsss
+// src/Ray/Ray.jstants.jsss
 class Parallel {
   constructor(numberOfStreams, inputStreamGenerator, partitionFunction, stateGenerator, dependencies, lazyInitialState) {
     this.numberOfStreams = numberOfStreams;
@@ -1178,7 +1178,7 @@ class ParallelBuilder {
   }
 }
 
-// src/Utils/Cons
+// src/Ray/Ray.js
 function Ray(init, dir) {
   const ans = {};
   ans.init = init;
@@ -1187,7 +1187,7 @@ function Ray(init, dir) {
   return ans;
 }
 
-// src/Utils/Constant
+// src/Ray/Ray.jstant
 var sphereInterception = function(point, ray) {
   const { init, dir } = ray;
   const diff = init.sub(point.position);
@@ -1278,7 +1278,7 @@ class PointBuilder {
 }
 var Point_default = Point;
 
-// src/Utils/Constan
+// src/Ray/Ray.jstan
 class Line {
   constructor(name, positions, colors) {
     this.name = name;
@@ -1327,7 +1327,7 @@ class LineBuilder {
   }
 }
 
-// src/Utils/Constants.j
+// src/Ray/Ray.jstants.j
 class Triangle {
   constructor(name, positions, colors, texCoords, texture) {
     this.name = name;
@@ -1389,7 +1389,7 @@ class TriangleBuilder {
   }
 }
 
-// src/Utils/Constants.
+// src/Ray/Ray.jstants.
 var rasterPoint = function({ canvas, camera, elem, w, h, zBuffer }) {
   const point = elem;
   const { distanceToPlane } = camera;
@@ -1469,7 +1469,7 @@ var rasterLine = function({ canvas, camera, elem, w, h, zBuffer }) {
 };
 var rasterTriangle = function({ canvas, camera, elem, w, h, zBuffer }) {
   const triangleElem = elem;
-  const { colors, positions, texCoords } = triangleElem;
+  const { colors, positions, texCoords, texture } = triangleElem;
   const { distanceToPlane } = camera;
   const pointsInCamCoord = positions.map((p) => camera.toCameraCoord(p));
   let inFrustum = [];
@@ -1501,7 +1501,13 @@ var rasterTriangle = function({ canvas, camera, elem, w, h, zBuffer }) {
     const beta = (u.x * p.y - u.y * p.x) / det;
     const gamma = 1 - alpha - beta;
     const z = pointsInCamCoord[0].z * gamma + pointsInCamCoord[1].z * alpha + pointsInCamCoord[2].z * beta;
-    const c = colors[0].scale(gamma).add(colors[1].scale(alpha)).add(colors[2].scale(beta));
+    let c = colors[0].scale(gamma).add(colors[1].scale(alpha)).add(colors[2].scale(beta));
+    if (texture && texCoords && texCoords.length > 0 && !texCoords.some((x2) => x2 === undefined)) {
+      const texUV = texCoords[0].scale(gamma).add(texCoords[1].scale(alpha)).add(texCoords[2].scale(beta)).scale(8);
+      const [texU, texV] = [texUV.x % 1, texUV.y % 1];
+      const texColor = texU < 0.5 && texV < 0.5 ? Color.BLACK : texU > 0.5 && texV > 0.5 ? Color.BLACK : Color.WHITE;
+      c = c.add(texColor).scale(0.5);
+    }
     const [i, j] = canvas.canvas2grid(x, y);
     const zBufferIndex = Math.floor(w * i + j);
     if (z < zBuffer[zBufferIndex]) {
@@ -1608,7 +1614,7 @@ class Camera {
   }
 }
 
-// src/Utils/Constant
+// src/Ray/Ray.jstant
 var exports_Utils = {};
 __export(exports_Utils, {
   or: () => {
@@ -1697,7 +1703,7 @@ function argmin(array, costFunction = (x) => x) {
   return argminIndex;
 }
 
-// src/Utils/Constant
+// src/Ray/Ray.jstant
 class Scene {
   constructor() {
     this.id2ElemMap = {};
@@ -1866,7 +1872,7 @@ class Leaf {
   }
 }
 
-// src/Utils/Constants.jss
+// src/Ray/Ray.jstants.jss
 class NaiveScene {
   constructor() {
     this.id2ElemMap = {};
@@ -1926,7 +1932,7 @@ class NaiveScene {
   }
 }
 
-// src/Utils/Constan
+// src/Ray/Ray.jstan
 var RADIUS = 0.001;
 
 class Mesh {
@@ -2060,7 +2066,7 @@ class Mesh {
     return new Mesh({ vertices, normals, textureCoords, faces });
   }
 }
-// src/Utils/Co
+// src/Ray/Ray.
 var exports_IO = {};
 __export(exports_IO, {
   saveParallelImageStreamToVideo: () => {
@@ -2092,7 +2098,7 @@ __export(exports_IO, {
 import {writeFileSync, unlinkSync, readFileSync} from "fs";
 import {execSync, exec} from "child_process";
 
-// src/Utils/Constant
+// src/Ray/Ray.jstant
 class Image2 {
   constructor(width, height) {
     this._width = width;
@@ -2223,7 +2229,7 @@ class Image2 {
   }
 }
 
-// src/Utils/Co
+// src/Ray/Ray.
 function saveImageToFile(fileAddress, image) {
   const { fileName, extension } = getFileNameAndExtensionFromAddress(fileAddress);
   const ppmName = `${fileName}.ppm`;

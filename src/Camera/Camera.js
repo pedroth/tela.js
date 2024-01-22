@@ -228,7 +228,7 @@ function rasterLine({ canvas, camera, elem, w, h, zBuffer }) {
 
 function rasterTriangle({ canvas, camera, elem, w, h, zBuffer }) {
   const triangleElem = elem;
-  const { colors, positions, texCoords } = triangleElem;
+  const { colors, positions, texCoords, texture } = triangleElem;
   const { distanceToPlane } = camera;
   // camera coords
   const pointsInCamCoord = positions.map((p) => camera.toCameraCoord(p));
@@ -268,25 +268,20 @@ function rasterTriangle({ canvas, camera, elem, w, h, zBuffer }) {
     const z = pointsInCamCoord[0].z * gamma +
       pointsInCamCoord[1].z * alpha +
       pointsInCamCoord[2].z * beta;
-    // const texCoord = texCoords.length > 0 && !texCoords.some(x => x === undefined) ?
-    //   texCoords[0].scale(gamma)
-    //     .add(texCoords[1].scale(alpha))
-    //     .add(texCoords[2].scale(beta))
-    //   : undefined;
     // compute color
-    // let c = undefined;
-    // if (texCoord) {
-    //   c = colors[0].scale(gamma)
-    //     .add(colors[1].scale(alpha))
-    //     .add(colors[2].scale(beta));
-    // } else {
-    //   c = colors[0].scale(gamma)
-    //     .add(colors[1].scale(alpha))
-    //     .add(colors[2].scale(beta));
-    // }
-    const c = colors[0].scale(gamma)
-        .add(colors[1].scale(alpha))
-        .add(colors[2].scale(beta));
+    let c = colors[0].scale(gamma)
+      .add(colors[1].scale(alpha))
+      .add(colors[2].scale(beta));
+    if (texture && texCoords && texCoords.length > 0 && !texCoords.some(x => x === undefined)) {
+      const texUV = texCoords[0].scale(gamma)
+        .add(texCoords[1].scale(alpha))
+        .add(texCoords[2].scale(beta))
+        .scale(8);
+      const [texU, texV] = [texUV.x % 1, texUV.y % 1];
+      const texColor = texU < 0.5 && texV < 0.5 ? Color.BLACK : texU > 0.5 && texV > 0.5 ? Color.BLACK : Color.WHITE;
+      // const texColor = texture.getPxl(...[texU * w, texV * h].map(Math.floor));
+      c = c.add(texColor).scale(0.5);
+    }
     const [i, j] = canvas.canvas2grid(x, y);
     const zBufferIndex = Math.floor(w * i + j);
     if (z < zBuffer[zBufferIndex]) {
