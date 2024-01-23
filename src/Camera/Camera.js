@@ -133,11 +133,12 @@ export default class Camera {
 function rasterPoint({ canvas, camera, elem, w, h, zBuffer }) {
   const point = elem;
   const { distanceToPlane } = camera;
+  const { texCoord, texture, position, color, radius } = point;
   // camera coords
-  let pointInCamCoord = camera.toCameraCoord(point.position)
+  let pointInCamCoord = camera.toCameraCoord(position)
   //frustum culling
   const z = pointInCamCoord.z;
-  if (z < distanceToPlane) return;
+  // if (z < distanceToPlane) return;
   //project
   const projectedPoint = pointInCamCoord
     .scale(distanceToPlane / z);
@@ -147,9 +148,18 @@ function rasterPoint({ canvas, camera, elem, w, h, zBuffer }) {
   x = Math.floor(x);
   y = Math.floor(y);
   if (x < 0 || x >= w || y < 0 || y >= h) return;
-  const radius = Math.ceil((point.radius) * (distanceToPlane / z) * w);
-  for (let k = -radius; k < radius; k++) {
-    for (let l = -radius; l < radius; l++) {
+  const intRadius = Math.ceil((radius) * (distanceToPlane / z) * w);
+  let finalColor = color;
+  if (
+    texture &&
+    texCoord
+  ) {
+    const [texU, texV] = texCoord.toArray();
+    const texColor = texture.getPxl(...[texU * texture.width, texV * texture.height]);
+    finalColor = finalColor.add(texColor).scale(1 / 2);
+  }
+  for (let k = -intRadius; k < intRadius; k++) {
+    for (let l = -intRadius; l < intRadius; l++) {
       const xl = Math.max(0, Math.min(w - 1, x + k));
       const yl = Math.floor(y + l);
       const [i, j] = canvas.canvas2grid(xl, yl);
@@ -159,7 +169,7 @@ function rasterPoint({ canvas, camera, elem, w, h, zBuffer }) {
         canvas.setPxl(
           xl,
           yl,
-          point.color
+          finalColor
         )
       }
     }
@@ -173,27 +183,27 @@ function rasterLine({ canvas, camera, elem, w, h, zBuffer }) {
   // camera coords
   const pointsInCamCoord = positions.map((p) => camera.toCameraCoord(p));
   //frustum culling
-  let inFrustum = [];
-  let outFrustum = [];
-  pointsInCamCoord.forEach((p, i) => {
-    const zCoord = p.z;
-    if (zCoord < distanceToPlane) {
-      outFrustum.push(i);
-    } else {
-      inFrustum.push(i);
-    }
-  });
-  if (outFrustum.length === 2) return;
-  if (outFrustum.length === 1) {
-    const inVertex = inFrustum[0];
-    const outVertex = outFrustum[0];
-    const inter = _lineCameraPlaneIntersection(
-      pointsInCamCoord[outVertex],
-      pointsInCamCoord[inVertex],
-      camera
-    );
-    pointsInCamCoord[outVertex] = inter;
-  }
+  // let inFrustum = [];
+  // let outFrustum = [];
+  // pointsInCamCoord.forEach((p, i) => {
+  //   const zCoord = p.z;
+  //   if (zCoord < distanceToPlane) {
+  //     outFrustum.push(i);
+  //   } else {
+  //     inFrustum.push(i);
+  //   }
+  // });
+  // if (outFrustum.length === 2) return;
+  // if (outFrustum.length === 1) {
+  //   const inVertex = inFrustum[0];
+  //   const outVertex = outFrustum[0];
+  //   const inter = _lineCameraPlaneIntersection(
+  //     pointsInCamCoord[outVertex],
+  //     pointsInCamCoord[inVertex],
+  //     camera
+  //   );
+  //   pointsInCamCoord[outVertex] = inter;
+  // }
   //project
   const projectedPoint = pointsInCamCoord
     .map(p => {
@@ -228,8 +238,8 @@ function rasterLine({ canvas, camera, elem, w, h, zBuffer }) {
 
 function rasterTriangle({ canvas, camera, elem, w, h, zBuffer }) {
   const triangleElem = elem;
-  const { colors, positions, texCoords, texture } = triangleElem;
   const { distanceToPlane } = camera;
+  const { colors, positions, texCoords, texture, } = triangleElem;
   // camera coords
   const pointsInCamCoord = positions.map((p) => camera.toCameraCoord(p));
   //frustum culling
@@ -272,15 +282,24 @@ function rasterTriangle({ canvas, camera, elem, w, h, zBuffer }) {
     let c = colors[0].scale(gamma)
       .add(colors[1].scale(alpha))
       .add(colors[2].scale(beta));
-    if (texture && texCoords && texCoords.length > 0 && !texCoords.some(x => x === undefined)) {
+    if (
+      texture &&
+      texCoords &&
+      texCoords.length > 0 &&
+      !texCoords.some(x => x === undefined)
+    ) {
       const texUV = texCoords[0].scale(gamma)
         .add(texCoords[1].scale(alpha))
         .add(texCoords[2].scale(beta));
-      const [texU, texV] = [texUV.x, texUV.y];
-      // const texColor = texU < 0.5 && texV < 0.5 ? Color.BLACK : texU > 0.5 && texV > 0.5 ? Color.BLACK : Color.WHITE;
-      const texColor = texture.getPxl(...[texU * w, texV * h]);
+      // const baseColor = texU < 0.5 && texV < 0.5 ?
+      //   Color.BLACK :
+      //   texU > 0.5 && texV > 0.5 ?
+      //     Color.BLACK :
+      //     Color.WHITE;
+      const texColor = getTexColor(texUV, texture);
       // c = Color.ofRGB(texUV.x, texUV.y, 0);
-      c = c.add(texColor).scale(0.5);
+      // c = c.add(baseColor).add(texColor).scale(1 / 3);
+      c = c.add(texColor).scale(1 / 2);
     }
     const [i, j] = canvas.canvas2grid(x, y);
     const zBufferIndex = Math.floor(w * i + j);
@@ -292,10 +311,30 @@ function rasterTriangle({ canvas, camera, elem, w, h, zBuffer }) {
   canvas.drawTriangle(intPoint[0], intPoint[1], intPoint[2], shader);
 }
 
-function _lineCameraPlaneIntersection(vertexOut, vertexIn, camera) {
+function lineCameraPlaneIntersection(vertexOut, vertexIn, camera) {
   const { distanceToPlane } = camera;
   const v = vertexIn.sub(vertexOut);
   const alpha = (distanceToPlane - vertexOut.z) / v.z;
   const p = vertexOut.add(v.scale(alpha));
   return p;
+}
+
+function getTexColor(texUV, texture) {
+
+  const size = Vec2(texture.width, texture.height);
+  const texInt = texUV.mul(size);
+  const texInt0 = texInt.map(Math.floor);
+  const texInt1 = texInt0.add(Vec2(1,0));
+  const texInt2 = texInt0.add(Vec2(0,1));
+  const texInt3 = texInt0.add(Vec2(1,1));
+
+  const color0 = texture.getPxl(...texInt0.toArray());
+  const color1 = texture.getPxl(...texInt1.toArray());
+  const color2 = texture.getPxl(...texInt2.toArray());
+  const color3 = texture.getPxl(...texInt3.toArray());
+
+
+
+
+
 }

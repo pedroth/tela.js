@@ -9,7 +9,7 @@ var __export = (target, all) => {
     });
 };
 
-// src/Ray/Ray.js.jsts.
+// src/Utils/Constants.
 class Stream {
   constructor(initialState, updateStateFunction) {
     this._head = initialState;
@@ -23,7 +23,7 @@ class Stream {
   }
 }
 
-// src/Ray/Ray.js.jsts.jsssr.
+// src/Utils/Constants.jsssr.
 class Animation {
   constructor(state, next, doWhile) {
     this.animation = new Stream(state, next);
@@ -75,7 +75,7 @@ class AnimationBuilder {
   }
 }
 
-// src/Ray/Ray.js.jst
+// src/Utils/Constant
 var MAX_8BIT = 255;
 
 class Color {
@@ -129,10 +129,10 @@ class Color {
   static WHITE = Color.ofRGB(1, 1, 1);
 }
 
-// src/Ray/Ray.js.jsts.js
+// src/Utils/Constants.js
 var MAX_8BIT2 = 255;
 
-// src/Ray/Ray.js.jsts.
+// src/Utils/Constants.
 var _sanitize_input = function(arrayIn, arrayOut) {
   for (let i = 0;i < arrayIn.length; i++) {
     const z = arrayIn[i];
@@ -517,7 +517,7 @@ class Vector2 {
   static ONES = new Vector2(1, 1);
 }
 
-// src/Ray/Ray.js.js
+// src/Utils/Constan
 function smin(a, b, k = 32) {
   const res = Math.exp(-k * a) + Math.exp(-k * b);
   return -Math.log(res) / k;
@@ -604,7 +604,7 @@ var solveUpTriMatrix = function(v, a, f) {
   return Vec2(f2 / v2, (f1 * v2 - v1 * f2) / av2);
 };
 
-// src/Ray/Ray.js.jsts.
+// src/Utils/Constants.
 var exports_Monads = {};
 __export(exports_Monads, {
   some: () => {
@@ -652,7 +652,7 @@ function maybe(x) {
   return none(x);
 }
 
-// src/Ray/Ray.js
+// src/Utils/Cons
 var maxComp = function(u) {
   return u.fold((e, x) => Math.max(e, x), -Number.MAX_VALUE);
 };
@@ -759,7 +759,7 @@ class Box2 {
   static EMPTY = new Box2;
 }
 
-// src/Ray/Ray.js.jsts.
+// src/Utils/Constants.
 var drawConvexPolygon = function(canvas, positions, shader) {
   const { width, height } = canvas;
   const canvasBox = new Box2(Vec2(), Vec2(width, height));
@@ -997,7 +997,7 @@ class Canvas {
   }
 }
 
-// src/Ray/Ray.js.jsts.jsssr.js
+// src/Utils/Constants.jsssr.js
 var isElement = function(o) {
   return typeof HTMLElement === "object" ? o instanceof HTMLElement : o && typeof o === "object" && o !== null && o.nodeType === 1 && typeof o.nodeName === "string";
 };
@@ -1089,7 +1089,7 @@ class DomBuilder {
 }
 var DomBuilder_default = DomBuilder;
 
-// src/Ray/Ray.js.jsts.jsss
+// src/Utils/Constants.jsss
 class Parallel {
   constructor(numberOfStreams, inputStreamGenerator, partitionFunction, stateGenerator, dependencies, lazyInitialState) {
     this.numberOfStreams = numberOfStreams;
@@ -1163,7 +1163,7 @@ class ParallelBuilder {
   }
 }
 
-// src/Ray/Ray.js
+// src/Utils/Cons
 function Ray(init, dir) {
   const ans = {};
   ans.init = init;
@@ -1172,7 +1172,7 @@ function Ray(init, dir) {
   return ans;
 }
 
-// src/Ray/Ray.js.jst
+// src/Utils/Constant
 var sphereInterception = function(point, ray) {
   const { init, dir } = ray;
   const diff = init.sub(point.position);
@@ -1190,12 +1190,14 @@ var sphereInterception = function(point, ray) {
 };
 
 class Point {
-  constructor({ name, position, normal, color, radius }) {
+  constructor({ name, position, color, texCoord, normal, radius, texture }) {
     this.name = name;
     this.color = color;
-    this.normal = normal;
     this.radius = radius;
+    this.normals = normal;
+    this.texture = texture;
     this.position = position;
+    this.texCoord = texCoord;
   }
   distanceToPoint(p) {
     return this.position.sub(p).length() - this.radius;
@@ -1222,53 +1224,77 @@ class Point {
 class PointBuilder {
   constructor() {
     this._name;
-    this._color = Color.WHITE;
+    this._texture;
     this._radius = 1;
-    this._normal = Vec3(1, 0, 0);
-    this._position = Vec3(0, 0, 0);
+    this._normal = Vec3();
+    this._color = Color.RED;
+    this._position = Vec3();
+    this._texCoord = Vec2();
   }
   name(name) {
     this._name = name;
     return this;
   }
   color(color) {
+    if (!color)
+      return this;
     this._color = color;
     return this;
   }
-  radius(radius) {
-    this._radius = radius;
-    return this;
-  }
   normal(normal) {
+    if (!normal)
+      return this;
     this._normal = normal;
     return this;
   }
+  radius(radius) {
+    if (!radius)
+      return this;
+    this._radius = radius;
+    return this;
+  }
   position(posVec3) {
+    if (!posVec3)
+      return this;
     this._position = posVec3;
+    return this;
+  }
+  texCoord(t) {
+    if (!t)
+      return this;
+    this._texCoord = t;
+    return this;
+  }
+  texture(image) {
+    this._texture = image;
     return this;
   }
   build() {
     const attrs = {
       name: this._name,
       color: this._color,
-      radius: this._radius,
       normal: this._normal,
-      position: this._position
+      radius: this._radius,
+      position: this._position,
+      texCoord: this._texCoord
     };
     if (Object.values(attrs).some((x) => x === undefined)) {
       throw new Error("Point is incomplete");
     }
-    return new Point(attrs);
+    return new Point({ ...attrs, texture: this._texture });
   }
 }
 var Point_default = Point;
 
-// src/Ray/Ray.js.js
+// src/Utils/Constan
 class Line {
-  constructor(name, positions, colors) {
+  constructor({ name, positions, colors, texCoords, normals, texture }) {
     this.name = name;
-    this.positions = positions;
     this.colors = colors;
+    this.normals = normals;
+    this.texture = texture;
+    this.positions = positions;
+    this.texCoords = texCoords;
   }
   getBoundingBox() {
     if (this.boundingBox)
@@ -1284,42 +1310,60 @@ class Line {
 class LineBuilder {
   constructor() {
     this._name;
-    this._positions;
-    this._colors;
+    this._texture;
+    this._normals = [1, 2].map(() => Vec3());
+    this._colors = [1, 2].map(() => Color.GREEN);
+    this._positions = [1, 2].map(() => Vec3());
+    this._texCoords = [1, 2].map(() => Vec2());
   }
   name(name) {
     this._name = name;
     return this;
   }
-  positions(start, end) {
-    this._positions = [start, end];
+  positions(v1, v2) {
+    this._positions = [v1, v2];
     return this;
   }
-  colors(start, end) {
-    this._colors = [start, end];
+  colors(c1, c2) {
+    this._colors = [c1, c2];
+    return this;
+  }
+  texCoords(t1, t2) {
+    this._texCoords = [t1, t2];
+    return this;
+  }
+  normals(n1, n2) {
+    this._normals = [n1, n2];
+    return this;
+  }
+  texture(image) {
+    this._texture = image;
     return this;
   }
   build() {
-    const attrs = [
-      this._name,
-      this._positions,
-      this._colors
-    ];
-    if (attrs.some((x) => x === undefined)) {
+    const attrs = {
+      name: this._name,
+      colors: this._colors,
+      normals: this._normals,
+      positions: this._positions,
+      texCoords: this._texCoords
+    };
+    if (Object.values(attrs).some((x) => x === undefined)) {
       throw new Error("Line is incomplete");
     }
-    return new Line(...attrs);
+    return new Line({ ...attrs, texture: this._texture });
   }
 }
 
-// src/Ray/Ray.js.jsts.j
+// src/Utils/Constants.j
 class Triangle {
-  constructor(name, positions, colors, texCoords, texture) {
+  constructor({ name, positions, colors, texCoords, normals, texture }) {
     this.name = name;
     this.colors = colors;
+    this.normals = normals;
+    this.texture = texture;
     this.positions = positions;
     this.texCoords = texCoords;
-    this.texture = texture;
   }
   getBoundingBox() {
     if (this.boundingBox)
@@ -1335,10 +1379,11 @@ class Triangle {
 class TriangleBuilder {
   constructor() {
     this._name;
-    this._positions;
-    this._colors;
-    this._texCoords = [];
     this._texture;
+    this._normals = [1, 2, 3].map(() => Vec3());
+    this._colors = [1, 2].map(() => Color.GREEN);
+    this._positions = [1, 2, 3].map(() => Vec3());
+    this._texCoords = [1, 2, 3].map(() => Vec2());
   }
   name(name) {
     this._name = name;
@@ -1356,32 +1401,36 @@ class TriangleBuilder {
     this._texCoords = [t1, t2, t3];
     return this;
   }
+  normals(n1, n2, n3) {
+    this._normals = [n1, n2, n3];
+    return this;
+  }
   texture(image) {
     this._texture = image;
     return this;
   }
   build() {
-    const attrs = [
-      this._name,
-      this._positions,
-      this._colors,
-      this._texCoords
-    ];
-    if (attrs.some((x) => x === undefined)) {
+    const attrs = {
+      name: this._name,
+      colors: this._colors,
+      normals: this._normals,
+      positions: this._positions,
+      texCoords: this._texCoords
+    };
+    if (Object.values(attrs).some((x) => x === undefined)) {
       throw new Error("Triangle is incomplete");
     }
-    return new Triangle(...attrs, this._texture);
+    return new Triangle({ ...attrs, texture: this._texture });
   }
 }
 
-// src/Ray/Ray.js.jsts.
+// src/Utils/Constants.
 var rasterPoint = function({ canvas, camera, elem, w, h, zBuffer }) {
   const point = elem;
   const { distanceToPlane } = camera;
-  let pointInCamCoord = camera.toCameraCoord(point.position);
+  const { texCoord, texture, position, color, radius } = point;
+  let pointInCamCoord = camera.toCameraCoord(position);
   const z = pointInCamCoord.z;
-  if (z < distanceToPlane)
-    return;
   const projectedPoint = pointInCamCoord.scale(distanceToPlane / z);
   let x = w / 2 + projectedPoint.x * w;
   let y = h / 2 + projectedPoint.y * h;
@@ -1389,16 +1438,22 @@ var rasterPoint = function({ canvas, camera, elem, w, h, zBuffer }) {
   y = Math.floor(y);
   if (x < 0 || x >= w || y < 0 || y >= h)
     return;
-  const radius = Math.ceil(point.radius * (distanceToPlane / z) * w);
-  for (let k = -radius;k < radius; k++) {
-    for (let l = -radius;l < radius; l++) {
+  const intRadius = Math.ceil(radius * (distanceToPlane / z) * w);
+  let finalColor = color;
+  if (texture && texCoord) {
+    const [texU, texV] = texCoord.toArray();
+    const texColor = texture.getPxl(...[texU * texture.width, texV * texture.height]);
+    finalColor = finalColor.add(texColor).scale(1 / 2);
+  }
+  for (let k = -intRadius;k < intRadius; k++) {
+    for (let l = -intRadius;l < intRadius; l++) {
       const xl = Math.max(0, Math.min(w - 1, x + k));
       const yl = Math.floor(y + l);
       const [i, j] = canvas.canvas2grid(xl, yl);
       const zBufferIndex = Math.floor(w * i + j);
       if (z < zBuffer[zBufferIndex]) {
         zBuffer[zBufferIndex] = z;
-        canvas.setPxl(xl, yl, point.color);
+        canvas.setPxl(xl, yl, finalColor);
       }
     }
   }
@@ -1408,24 +1463,6 @@ var rasterLine = function({ canvas, camera, elem, w, h, zBuffer }) {
   const { colors, positions } = lineElem;
   const { distanceToPlane } = camera;
   const pointsInCamCoord = positions.map((p) => camera.toCameraCoord(p));
-  let inFrustum = [];
-  let outFrustum = [];
-  pointsInCamCoord.forEach((p, i) => {
-    const zCoord = p.z;
-    if (zCoord < distanceToPlane) {
-      outFrustum.push(i);
-    } else {
-      inFrustum.push(i);
-    }
-  });
-  if (outFrustum.length === 2)
-    return;
-  if (outFrustum.length === 1) {
-    const inVertex = inFrustum[0];
-    const outVertex = outFrustum[0];
-    const inter = _lineCameraPlaneIntersection(pointsInCamCoord[outVertex], pointsInCamCoord[inVertex], camera);
-    pointsInCamCoord[outVertex] = inter;
-  }
   const projectedPoint = pointsInCamCoord.map((p) => {
     return p.scale(distanceToPlane / p.z);
   });
@@ -1454,8 +1491,8 @@ var rasterLine = function({ canvas, camera, elem, w, h, zBuffer }) {
 };
 var rasterTriangle = function({ canvas, camera, elem, w, h, zBuffer }) {
   const triangleElem = elem;
-  const { colors, positions, texCoords, texture } = triangleElem;
   const { distanceToPlane } = camera;
+  const { colors, positions, texCoords, texture } = triangleElem;
   const pointsInCamCoord = positions.map((p) => camera.toCameraCoord(p));
   let inFrustum = [];
   let outFrustum = [];
@@ -1489,9 +1526,8 @@ var rasterTriangle = function({ canvas, camera, elem, w, h, zBuffer }) {
     let c = colors[0].scale(gamma).add(colors[1].scale(alpha)).add(colors[2].scale(beta));
     if (texture && texCoords && texCoords.length > 0 && !texCoords.some((x2) => x2 === undefined)) {
       const texUV = texCoords[0].scale(gamma).add(texCoords[1].scale(alpha)).add(texCoords[2].scale(beta));
-      const [texU, texV] = [texUV.x, texUV.y];
-      const texColor = texture.getPxl(...[texU * w, texV * h]);
-      c = c.add(texColor).scale(0.5);
+      const texColor = getTexColor(texUV, texture);
+      c = c.add(texColor).scale(1 / 2);
     }
     const [i, j] = canvas.canvas2grid(x, y);
     const zBufferIndex = Math.floor(w * i + j);
@@ -1502,12 +1538,17 @@ var rasterTriangle = function({ canvas, camera, elem, w, h, zBuffer }) {
   };
   canvas.drawTriangle(intPoint[0], intPoint[1], intPoint[2], shader);
 };
-var _lineCameraPlaneIntersection = function(vertexOut, vertexIn, camera) {
-  const { distanceToPlane } = camera;
-  const v = vertexIn.sub(vertexOut);
-  const alpha = (distanceToPlane - vertexOut.z) / v.z;
-  const p = vertexOut.add(v.scale(alpha));
-  return p;
+var getTexColor = function(texUV, texture) {
+  const size = Vec2(texture.width, texture.height);
+  const texInt = texUV.mul(size);
+  const texInt0 = texInt.map(Math.floor);
+  const texInt1 = texInt0.add(Vec2(1, 0));
+  const texInt2 = texInt0.add(Vec2(0, 1));
+  const texInt3 = texInt0.add(Vec2(1, 1));
+  const color0 = texture.getPxl(...texInt0.toArray());
+  const color1 = texture.getPxl(...texInt1.toArray());
+  const color2 = texture.getPxl(...texInt2.toArray());
+  const color3 = texture.getPxl(...texInt3.toArray());
 };
 
 class Camera {
@@ -1599,7 +1640,7 @@ class Camera {
   }
 }
 
-// src/Ray/Ray.js.jst
+// src/Utils/Constant
 var exports_Utils = {};
 __export(exports_Utils, {
   or: () => {
@@ -1688,7 +1729,7 @@ function argmin(array, costFunction = (x) => x) {
   return argminIndex;
 }
 
-// src/Ray/Ray.js.jst
+// src/Utils/Constant
 class Scene {
   constructor() {
     this.id2ElemMap = {};
@@ -1857,7 +1898,7 @@ class Leaf {
   }
 }
 
-// src/Ray/Ray.js.jsts.jss
+// src/Utils/Constants.jss
 class NaiveScene {
   constructor() {
     this.id2ElemMap = {};
@@ -1917,7 +1958,7 @@ class NaiveScene {
   }
 }
 
-// src/Ray/Ray.js.js
+// src/Utils/Constan
 var RADIUS = 0.001;
 
 class Mesh {
@@ -1943,7 +1984,8 @@ class Mesh {
       normals: this.normals,
       textureCoords: this.textureCoords,
       faces: this.faces,
-      texture: this.texture
+      texture: this.texture,
+      colors: this.colors
     });
   }
   mapColors(lambda) {
@@ -1970,11 +2012,19 @@ class Mesh {
     return this.boundingBox;
   }
   asPoints(name, radius = RADIUS) {
-    const points = [];
-    for (let i = 0;i < this.vertices.length; i++) {
-      points.push(Point_default.builder().radius(radius).name(`${name}_${i}`).color(this.colors[i] || Color.RED).position(this.vertices[i]).normal(this.normals[i] || Vec3(1, 0, 0)).build());
+    const points = {};
+    for (let i = 0;i < this.faces.length; i++) {
+      const texCoordIndexes = this.faces[i].textures;
+      const normalIndexes = this.faces[i].normals;
+      const verticesIndexes = this.faces[i].vertices;
+      for (let j = 0;j < 3; j++) {
+        const pointName = `${name}_${verticesIndexes[j]}`;
+        if (!(pointName in points)) {
+          points[pointName] = Point_default.builder().name(pointName).radius(radius).texture(this.texture).color(this.colors[verticesIndexes[j]]).normal(this.normals[normalIndexes[j]]).position(this.vertices[verticesIndexes[j]]).texCoord(this.textureCoords[texCoordIndexes[j]]).build();
+        }
+      }
     }
-    return points;
+    return Object.values(points);
   }
   asLines(name) {
     const lines = {};
@@ -1991,14 +2041,14 @@ class Mesh {
     return Object.values(lines);
   }
   asTriangles(name) {
-    const triangles = {};
+    const triangles = [];
     for (let i = 0;i < this.faces.length; i++) {
       const texCoordIndexes = this.faces[i].textures;
       const normalIndexes = this.faces[i].normals;
       const verticesIndexes = this.faces[i].vertices;
       const edge_id = verticesIndexes.sort().join("_");
       const edge_name = `${name}_${edge_id}`;
-      triangles[edge_id] = Triangle.builder().name(edge_name).texture(this.texture).positions(...verticesIndexes.map((j) => this.vertices[j])).texCoords(...texCoordIndexes.map((j) => this.textureCoords[j])).colors(...verticesIndexes.map((j) => this.colors[j] || Color.BLUE)).build();
+      triangles.push(Triangle.builder().name(edge_name).texture(this.texture).normals(...normalIndexes.map((j) => this.normals[j])).positions(...verticesIndexes.map((j) => this.vertices[j])).colors(...verticesIndexes.map((j) => this.colors[j] || Color.BLUE)).texCoords(...!texCoordIndexes.length ? [] : texCoordIndexes.map((j) => this.textureCoords[j])).build());
     }
     return Object.values(triangles);
   }

@@ -1,15 +1,17 @@
 import Box from "../Box/Box.js";
 import Color from "../Color/Color.js";
 import { none, some } from "../Monads/Monads.js";
-import Vec, { Vec3 } from "../Vector/Vector.js";
+import Vec, { Vec2, Vec3 } from "../Vector/Vector.js";
 
 class Point {
-    constructor({ name, position, normal, color, radius }) {
+    constructor({ name, position, color, texCoord, normal, radius, texture }) {
         this.name = name;
         this.color = color;
-        this.normal = normal;
         this.radius = radius;
+        this.normals = normal;
+        this.texture = texture;
         this.position = position;
+        this.texCoord = texCoord;
     }
 
     distanceToPoint(p) {
@@ -45,10 +47,12 @@ class Point {
 class PointBuilder {
     constructor() {
         this._name;
-        this._color = Color.WHITE;
+        this._texture;
         this._radius = 1;
-        this._normal = Vec3(1, 0, 0);
-        this._position = Vec3(0, 0, 0);
+        this._normal = Vec3();
+        this._color = Color.RED;
+        this._position = Vec3();
+        this._texCoord = Vec2();
     }
 
     name(name) {
@@ -57,23 +61,37 @@ class PointBuilder {
     }
 
     color(color) {
+        if (!color) return this;
         this._color = color;
         return this;
     }
 
-
-    radius(radius) {
-        this._radius = radius;
-        return this;
-    }
-
     normal(normal) {
+        if (!normal) return this;
         this._normal = normal;
         return this;
     }
 
+    radius(radius) {
+        if (!radius) return this;
+        this._radius = radius;
+        return this;
+    }
+
     position(posVec3) {
+        if (!posVec3) return this;
         this._position = posVec3;
+        return this;
+    }
+
+    texCoord(t) {
+        if (!t) return this;
+        this._texCoord = t;
+        return this;
+    }
+
+    texture(image) {
+        this._texture = image
         return this;
     }
 
@@ -81,14 +99,15 @@ class PointBuilder {
         const attrs = {
             name: this._name,
             color: this._color,
-            radius: this._radius,
             normal: this._normal,
+            radius: this._radius,
             position: this._position,
+            texCoord: this._texCoord,
         }
         if (Object.values(attrs).some((x) => x === undefined)) {
             throw new Error("Point is incomplete");
         }
-        return new Point(attrs);
+        return new Point({ ...attrs, texture: this._texture });
     }
 }
 

@@ -35,7 +35,8 @@ export default class Mesh {
             normals: this.normals,
             textureCoords: this.textureCoords,
             faces: this.faces,
-            texture: this.texture
+            texture: this.texture,
+            colors: this.colors
         })
     }
 
@@ -67,20 +68,34 @@ export default class Mesh {
     }
 
     asPoints(name, radius = RADIUS) {
-        const points = [];
-        for (let i = 0; i < this.vertices.length; i++) {
-            points.push(
-                Point
-                    .builder()
-                    .radius(radius)
-                    .name(`${name}_${i}`)
-                    .color(this.colors[i] || Color.RED)
-                    .position(this.vertices[i])
-                    .normal(this.normals[i] || Vec3(1, 0, 0))
-                    .build()
-            )
+        const points = {};
+        for (let i = 0; i < this.faces.length; i++) {
+            const texCoordIndexes = this
+                .faces[i]
+                .textures
+            const normalIndexes = this
+                .faces[i]
+                .normals
+            const verticesIndexes = this
+                .faces[i]
+                .vertices
+            for (let j = 0; j < 3; j++) {
+                const pointName = `${name}_${verticesIndexes[j]}`
+                if (!(pointName in points)) {
+                    points[pointName] = Point
+                        .builder()
+                        .name(pointName)
+                        .radius(radius)
+                        .texture(this.texture)
+                        .color(this.colors[verticesIndexes[j]])
+                        .normal(this.normals[normalIndexes[j]])
+                        .position(this.vertices[verticesIndexes[j]])
+                        .texCoord(this.textureCoords[texCoordIndexes[j]])
+                        .build();
+                }
+            }
         }
-        return points;
+        return Object.values(points);
     }
 
     asLines(name) {
@@ -105,7 +120,7 @@ export default class Mesh {
     }
 
     asTriangles(name) {
-        const triangles = {};
+        const triangles = [];
         for (let i = 0; i < this.faces.length; i++) {
             const texCoordIndexes = this
                 .faces[i]
@@ -120,15 +135,17 @@ export default class Mesh {
                 .sort()
                 .join("_");
             const edge_name = `${name}_${edge_id}`;
-            triangles[edge_id] =
+            triangles.push(
                 Triangle
                     .builder()
                     .name(edge_name)
                     .texture(this.texture)
+                    .normals(...normalIndexes.map(j => this.normals[j]))
                     .positions(...verticesIndexes.map(j => this.vertices[j]))
-                    .texCoords(...texCoordIndexes.map(j => this.textureCoords[j]))
                     .colors(...verticesIndexes.map(j => this.colors[j] || Color.BLUE))
+                    .texCoords(...(!texCoordIndexes.length ? [] : texCoordIndexes.map(j => this.textureCoords[j])))
                     .build()
+            )
 
         }
         return Object.values(triangles);

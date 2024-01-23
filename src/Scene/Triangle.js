@@ -1,12 +1,15 @@
 import Box from "../Box/Box";
+import Color from "../Color/Color";
+import { Vec2, Vec3 } from "../Vector/Vector";
 
 export default class Triangle {
-    constructor(name, positions, colors, texCoords, texture) {
+    constructor({name, positions, colors, texCoords, normals, texture}) {
         this.name = name;
         this.colors = colors;
+        this.normals = normals;
+        this.texture = texture;
         this.positions = positions;
         this.texCoords = texCoords;
-        this.texture = texture;
     }
 
     getBoundingBox() {
@@ -23,10 +26,11 @@ export default class Triangle {
 class TriangleBuilder {
     constructor() {
         this._name;
-        this._positions;
-        this._colors;
-        this._texCoords = [];
         this._texture;
+        this._normals = [1,2,3].map(() => Vec3());
+        this._colors = [1,2].map(() => Color.GREEN);
+        this._positions = [1,2,3].map(() => Vec3());
+        this._texCoords = [1,2,3].map(() => Vec2());
     }
 
     name(name) {
@@ -49,21 +53,27 @@ class TriangleBuilder {
         return this;
     }
 
+    normals(n1, n2, n3) {
+        this._normals = [n1, n2, n3];
+        return this;
+    }
+
     texture(image) {
         this._texture = image
         return this;
     }
 
     build() {
-        const attrs = [
-            this._name,
-            this._positions,
-            this._colors,
-            this._texCoords,
-        ];
-        if (attrs.some((x) => x === undefined)) {
+        const attrs = {
+            name: this._name,
+            colors: this._colors,
+            normals: this._normals,
+            positions: this._positions,
+            texCoords: this._texCoords,
+        };
+        if (Object.values(attrs).some((x) => x === undefined)) {
             throw new Error("Triangle is incomplete");
         }
-        return new Triangle(...attrs, this._texture);
+        return new Triangle({...attrs, texture: this._texture});
     }
 }

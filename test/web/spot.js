@@ -39,8 +39,8 @@ async (canvas, fps, logger) => {
         camera.orbit();
     })
     // scene
-    // const spotObj = await fetch("/assets/spot.obj").then(x => x.text());
     const texture = await Canvas.ofUrl("/assets/spot.png");
+    // const spotObj = await fetch("/assets/spot.obj").then(x => x.text());
     // const spotMesh = Mesh.readObj(spotObj)
     //     .addTexture(texture)
     //     .mapVertices(v => Vec3(-v.y, v.x, v.z))
