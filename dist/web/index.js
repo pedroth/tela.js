@@ -9,7 +9,7 @@ var __export = (target, all) => {
     });
 };
 
-// src/Utils/Constants.
+// src/Ray/Ray.js.jsts.
 class Stream {
   constructor(initialState, updateStateFunction) {
     this._head = initialState;
@@ -23,7 +23,7 @@ class Stream {
   }
 }
 
-// src/Utils/Constants.jsssr.
+// src/Ray/Ray.js.jsts.jsssr.
 class Animation {
   constructor(state, next, doWhile) {
     this.animation = new Stream(state, next);
@@ -75,7 +75,7 @@ class AnimationBuilder {
   }
 }
 
-// src/Utils/Constant
+// src/Ray/Ray.js.jst
 var MAX_8BIT = 255;
 
 class Color {
@@ -98,21 +98,26 @@ class Color {
     return Color.ofRGB(this.rgb[0] + color.red, this.rgb[1] + color.green, this.rgb[2] + color.blue);
   }
   scale(r) {
-    const ans = this.rgb.map((c) => Math.min(1, Math.max(0, c * r)));
-    return new Color(ans);
+    const c = this.rgb[0];
+    const g = this.rgb[1];
+    const b = this.rgb[2];
+    return new Color([Math.min(1, Math.max(0, c * r)), Math.min(1, Math.max(0, g * r)), Math.min(1, Math.max(0, b * r))]);
   }
   equals(color) {
     return this.rgb[0] === color.rgb[0] && this.rgb[1] === color.rgb[1] && this.rgb[2] === color.rgb[2];
   }
+  toString() {
+    return `red: ${this.red}, green: ${this.green}, blue: ${this.blue}`;
+  }
   static ofRGB(red = 0, green = 0, blue = 0) {
-    const rgb = new Float64Array(3);
+    const rgb = [];
     rgb[0] = red;
     rgb[1] = green;
     rgb[2] = blue;
     return new Color(rgb);
   }
   static ofRGBRaw(red = 0, green = 0, blue = 0) {
-    const rgb = new Float64Array(3);
+    const rgb = [];
     rgb[0] = red / MAX_8BIT;
     rgb[1] = green / MAX_8BIT;
     rgb[2] = blue / MAX_8BIT;
@@ -129,10 +134,10 @@ class Color {
   static WHITE = Color.ofRGB(1, 1, 1);
 }
 
-// src/Utils/Constants.js
+// src/Ray/Ray.js.jsts.js
 var MAX_8BIT2 = 255;
 
-// src/Utils/Constants.
+// src/Ray/Ray.js.jsts.
 var _sanitize_input = function(arrayIn, arrayOut) {
   for (let i = 0;i < arrayIn.length; i++) {
     const z = arrayIn[i];
@@ -517,13 +522,18 @@ class Vector2 {
   static ONES = new Vector2(1, 1);
 }
 
-// src/Utils/Constan
+// src/Ray/Ray.js.js
 function smin(a, b, k = 32) {
   const res = Math.exp(-k * a) + Math.exp(-k * b);
   return -Math.log(res) / k;
 }
 function mod(n, m) {
   return (n % m + m) % m;
+}
+function lerp(a, b) {
+  if (typeof a === "number" && typeof b === "number")
+    return (t) => a + (b - a) * t;
+  return (t) => a.scale(1 - t).add(b.scale(t));
 }
 function clipLine(p0, p1, box) {
   const pointStack = [p0, p1];
@@ -604,7 +614,7 @@ var solveUpTriMatrix = function(v, a, f) {
   return Vec2(f2 / v2, (f1 * v2 - v1 * f2) / av2);
 };
 
-// src/Utils/Constants.
+// src/Ray/Ray.js.jsts.
 var exports_Monads = {};
 __export(exports_Monads, {
   some: () => {
@@ -652,7 +662,7 @@ function maybe(x) {
   return none(x);
 }
 
-// src/Utils/Cons
+// src/Ray/Ray.js
 var maxComp = function(u) {
   return u.fold((e, x) => Math.max(e, x), -Number.MAX_VALUE);
 };
@@ -759,7 +769,7 @@ class Box2 {
   static EMPTY = new Box2;
 }
 
-// src/Utils/Constants.
+// src/Ray/Ray.js.jsts.
 var drawConvexPolygon = function(canvas, positions, shader) {
   const { width, height } = canvas;
   const canvasBox = new Box2(Vec2(), Vec2(width, height));
@@ -997,7 +1007,7 @@ class Canvas {
   }
 }
 
-// src/Utils/Constants.jsssr.js
+// src/Ray/Ray.js.jsts.jsssr.js
 var isElement = function(o) {
   return typeof HTMLElement === "object" ? o instanceof HTMLElement : o && typeof o === "object" && o !== null && o.nodeType === 1 && typeof o.nodeName === "string";
 };
@@ -1089,7 +1099,7 @@ class DomBuilder {
 }
 var DomBuilder_default = DomBuilder;
 
-// src/Utils/Constants.jsss
+// src/Ray/Ray.js.jsts.jsss
 class Parallel {
   constructor(numberOfStreams, inputStreamGenerator, partitionFunction, stateGenerator, dependencies, lazyInitialState) {
     this.numberOfStreams = numberOfStreams;
@@ -1163,7 +1173,7 @@ class ParallelBuilder {
   }
 }
 
-// src/Utils/Cons
+// src/Ray/Ray.js
 function Ray(init, dir) {
   const ans = {};
   ans.init = init;
@@ -1172,7 +1182,7 @@ function Ray(init, dir) {
   return ans;
 }
 
-// src/Utils/Constant
+// src/Ray/Ray.js.jst
 var sphereInterception = function(point, ray) {
   const { init, dir } = ray;
   const diff = init.sub(point.position);
@@ -1227,7 +1237,7 @@ class PointBuilder {
     this._texture;
     this._radius = 1;
     this._normal = Vec3();
-    this._color = Color.RED;
+    this._color = Color.BLACK;
     this._position = Vec3();
     this._texCoord = Vec2();
   }
@@ -1286,7 +1296,7 @@ class PointBuilder {
 }
 var Point_default = Point;
 
-// src/Utils/Constan
+// src/Ray/Ray.js.js
 class Line {
   constructor({ name, positions, colors, texCoords, normals, texture }) {
     this.name = name;
@@ -1312,7 +1322,7 @@ class LineBuilder {
     this._name;
     this._texture;
     this._normals = [1, 2].map(() => Vec3());
-    this._colors = [1, 2].map(() => Color.GREEN);
+    this._colors = [1, 2].map(() => Color.BLACK);
     this._positions = [1, 2].map(() => Vec3());
     this._texCoords = [1, 2].map(() => Vec2());
   }
@@ -1321,6 +1331,8 @@ class LineBuilder {
     return this;
   }
   positions(v1, v2) {
+    if ([v1, v2].some((x) => !x))
+      return this;
     this._positions = [v1, v2];
     return this;
   }
@@ -1355,7 +1367,7 @@ class LineBuilder {
   }
 }
 
-// src/Utils/Constants.j
+// src/Ray/Ray.js.jsts.j
 class Triangle {
   constructor({ name, positions, colors, texCoords, normals, texture }) {
     this.name = name;
@@ -1375,33 +1387,42 @@ class Triangle {
     return new TriangleBuilder;
   }
 }
+var indx = [1, 2, 3];
 
 class TriangleBuilder {
   constructor() {
     this._name;
     this._texture;
-    this._normals = [1, 2, 3].map(() => Vec3());
-    this._colors = [1, 2].map(() => Color.GREEN);
-    this._positions = [1, 2, 3].map(() => Vec3());
-    this._texCoords = [1, 2, 3].map(() => Vec2());
+    this._normals = indx.map(() => Vec3());
+    this._colors = indx.map(() => Color.BLACK);
+    this._positions = indx.map(() => Vec3());
+    this._texCoords = indx.map(() => Vec2());
   }
   name(name) {
     this._name = name;
     return this;
   }
   positions(v1, v2, v3) {
+    if ([v1, v2, v3].some((x) => !x))
+      return this;
     this._positions = [v1, v2, v3];
     return this;
   }
   colors(c1, c2, c3) {
+    if ([c1, c2, c3].some((x) => !x))
+      return this;
     this._colors = [c1, c2, c3];
     return this;
   }
   texCoords(t1, t2, t3) {
+    if ([t1, t2, t3].some((x) => !x))
+      return this;
     this._texCoords = [t1, t2, t3];
     return this;
   }
   normals(n1, n2, n3) {
+    if ([n1, n2, n3].some((x) => !x))
+      return this;
     this._normals = [n1, n2, n3];
     return this;
   }
@@ -1424,13 +1445,15 @@ class TriangleBuilder {
   }
 }
 
-// src/Utils/Constants.
+// src/Ray/Ray.js.jsts.
 var rasterPoint = function({ canvas, camera, elem, w, h, zBuffer }) {
   const point = elem;
   const { distanceToPlane } = camera;
   const { texCoord, texture, position, color, radius } = point;
   let pointInCamCoord = camera.toCameraCoord(position);
   const z = pointInCamCoord.z;
+  if (z < distanceToPlane)
+    return;
   const projectedPoint = pointInCamCoord.scale(distanceToPlane / z);
   let x = w / 2 + projectedPoint.x * w;
   let y = h / 2 + projectedPoint.y * h;
@@ -1441,8 +1464,7 @@ var rasterPoint = function({ canvas, camera, elem, w, h, zBuffer }) {
   const intRadius = Math.ceil(radius * (distanceToPlane / z) * w);
   let finalColor = color;
   if (texture && texCoord) {
-    const [texU, texV] = texCoord.toArray();
-    const texColor = texture.getPxl(...[texU * texture.width, texV * texture.height]);
+    const texColor = getTexColor(texCoord, texture);
     finalColor = finalColor.add(texColor).scale(1 / 2);
   }
   for (let k = -intRadius;k < intRadius; k++) {
@@ -1463,6 +1485,24 @@ var rasterLine = function({ canvas, camera, elem, w, h, zBuffer }) {
   const { colors, positions } = lineElem;
   const { distanceToPlane } = camera;
   const pointsInCamCoord = positions.map((p) => camera.toCameraCoord(p));
+  let inFrustum = [];
+  let outFrustum = [];
+  pointsInCamCoord.forEach((p, i) => {
+    const zCoord = p.z;
+    if (zCoord < distanceToPlane) {
+      outFrustum.push(i);
+    } else {
+      inFrustum.push(i);
+    }
+  });
+  if (outFrustum.length === 2)
+    return;
+  if (outFrustum.length === 1) {
+    const inVertex = inFrustum[0];
+    const outVertex = outFrustum[0];
+    const inter = lineCameraPlaneIntersection(pointsInCamCoord[outVertex], pointsInCamCoord[inVertex], camera);
+    pointsInCamCoord[outVertex] = inter;
+  }
   const projectedPoint = pointsInCamCoord.map((p) => {
     return p.scale(distanceToPlane / p.z);
   });
@@ -1538,6 +1578,13 @@ var rasterTriangle = function({ canvas, camera, elem, w, h, zBuffer }) {
   };
   canvas.drawTriangle(intPoint[0], intPoint[1], intPoint[2], shader);
 };
+var lineCameraPlaneIntersection = function(vertexOut, vertexIn, camera) {
+  const { distanceToPlane } = camera;
+  const v = vertexIn.sub(vertexOut);
+  const alpha = (distanceToPlane - vertexOut.z) / v.z;
+  const p = vertexOut.add(v.scale(alpha));
+  return p;
+};
 var getTexColor = function(texUV, texture) {
   const size = Vec2(texture.width, texture.height);
   const texInt = texUV.mul(size);
@@ -1549,6 +1596,10 @@ var getTexColor = function(texUV, texture) {
   const color1 = texture.getPxl(...texInt1.toArray());
   const color2 = texture.getPxl(...texInt2.toArray());
   const color3 = texture.getPxl(...texInt3.toArray());
+  const x = texInt.sub(texInt0);
+  const bottomX = lerp(color0, color1)(x.x);
+  const topX = lerp(color2, color3)(x.x);
+  return lerp(bottomX, topX)(x.y);
 };
 
 class Camera {
@@ -1640,7 +1691,7 @@ class Camera {
   }
 }
 
-// src/Utils/Constant
+// src/Ray/Ray.js.jst
 var exports_Utils = {};
 __export(exports_Utils, {
   or: () => {
@@ -1729,7 +1780,7 @@ function argmin(array, costFunction = (x) => x) {
   return argminIndex;
 }
 
-// src/Utils/Constant
+// src/Ray/Ray.js.jst
 class Scene {
   constructor() {
     this.id2ElemMap = {};
@@ -1898,7 +1949,7 @@ class Leaf {
   }
 }
 
-// src/Utils/Constants.jss
+// src/Ray/Ray.js.jsts.jss
 class NaiveScene {
   constructor() {
     this.id2ElemMap = {};
@@ -1958,7 +2009,7 @@ class NaiveScene {
   }
 }
 
-// src/Utils/Constan
+// src/Ray/Ray.js.js
 var RADIUS = 0.001;
 
 class Mesh {
@@ -2035,7 +2086,7 @@ class Mesh {
         const vj = indices[(j + 1) % indices.length];
         const edge_id = [vi, vj].sort().join("_");
         const edge_name = `${name}_${edge_id}`;
-        lines[edge_id] = Line.builder().name(edge_name).positions(this.vertices[vi], this.vertices[vj]).colors(this.colors[vi] || Color.GREEN, this.colors[vj] || Color.GREEN).build();
+        lines[edge_id] = Line.builder().name(edge_name).positions(this.vertices[vi], this.vertices[vj]).colors(this.colors[vi], this.colors[vj]).build();
       }
     }
     return Object.values(lines);
@@ -2043,12 +2094,12 @@ class Mesh {
   asTriangles(name) {
     const triangles = [];
     for (let i = 0;i < this.faces.length; i++) {
-      const texCoordIndexes = this.faces[i].textures;
+      let texCoordIndexes = this.faces[i].textures;
       const normalIndexes = this.faces[i].normals;
       const verticesIndexes = this.faces[i].vertices;
-      const edge_id = verticesIndexes.sort().join("_");
+      const edge_id = verticesIndexes.join("_");
       const edge_name = `${name}_${edge_id}`;
-      triangles.push(Triangle.builder().name(edge_name).texture(this.texture).normals(...normalIndexes.map((j) => this.normals[j])).positions(...verticesIndexes.map((j) => this.vertices[j])).colors(...verticesIndexes.map((j) => this.colors[j] || Color.BLUE)).texCoords(...!texCoordIndexes.length ? [] : texCoordIndexes.map((j) => this.textureCoords[j])).build());
+      triangles.push(Triangle.builder().name(edge_name).texture(this.texture).normals(...normalIndexes.map((j) => this.normals[j])).positions(...verticesIndexes.map((j) => this.vertices[j])).colors(...verticesIndexes.map((j) => this.colors[j])).texCoords(...!texCoordIndexes.length ? [] : texCoordIndexes.map((j) => this.textureCoords[j])).build());
     }
     return Object.values(triangles);
   }

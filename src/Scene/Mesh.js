@@ -112,7 +112,7 @@ export default class Mesh {
                         .builder()
                         .name(edge_name)
                         .positions(this.vertices[vi], this.vertices[vj])
-                        .colors(this.colors[vi] || Color.GREEN, this.colors[vj] || Color.GREEN)
+                        .colors(this.colors[vi], this.colors[vj])
                         .build()
             }
         }
@@ -122,7 +122,7 @@ export default class Mesh {
     asTriangles(name) {
         const triangles = [];
         for (let i = 0; i < this.faces.length; i++) {
-            const texCoordIndexes = this
+            let texCoordIndexes = this
                 .faces[i]
                 .textures
             const normalIndexes = this
@@ -132,7 +132,6 @@ export default class Mesh {
                 .faces[i]
                 .vertices
             const edge_id = verticesIndexes
-                .sort()
                 .join("_");
             const edge_name = `${name}_${edge_id}`;
             triangles.push(
@@ -142,7 +141,7 @@ export default class Mesh {
                     .texture(this.texture)
                     .normals(...normalIndexes.map(j => this.normals[j]))
                     .positions(...verticesIndexes.map(j => this.vertices[j]))
-                    .colors(...verticesIndexes.map(j => this.colors[j] || Color.BLUE))
+                    .colors(...verticesIndexes.map(j => this.colors[j]))
                     .texCoords(...(!texCoordIndexes.length ? [] : texCoordIndexes.map(j => this.textureCoords[j])))
                     .build()
             )
@@ -205,6 +204,7 @@ export default class Mesh {
                 continue;
             }
         }
+        // const newFaces = faces.map((f, i) => i % 2 === 0 ? f : { ...f, textures: [f.textures[0], f.textures[2], f.textures[1]] })
         return new Mesh({ vertices, normals, textureCoords, faces })
     }
 }

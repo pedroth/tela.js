@@ -50,7 +50,7 @@ class PointBuilder {
         this._texture;
         this._radius = 1;
         this._normal = Vec3();
-        this._color = Color.RED;
+        this._color = Color.BLACK;
         this._position = Vec3();
         this._texCoord = Vec2();
     }

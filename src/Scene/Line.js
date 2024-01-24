@@ -27,7 +27,7 @@ class LineBuilder {
         this._name;
         this._texture;
         this._normals = [1, 2].map(() => Vec3());
-        this._colors = [1, 2].map(() => Color.GREEN);
+        this._colors = [1, 2].map(() => Color.BLACK);
         this._positions = [1, 2].map(() => Vec3());
         this._texCoords = [1, 2].map(() => Vec2());
     }
@@ -38,6 +38,7 @@ class LineBuilder {
     }
 
     positions(v1, v2) {
+        if ([v1, v2].some(x => !x)) return this;
         this._positions = [v1, v2];
         return this;
     }

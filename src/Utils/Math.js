@@ -9,6 +9,12 @@ export function mod(n, m) {
     return ((n % m) + m) % m;
 }
 
+export function lerp(a, b) {
+    if (typeof a === "number" && typeof b === "number")
+        return t => a + (b - a) * t;
+    return t => a.scale(1 - t).add(b.scale(t));
+}
+
 export function clipLine(p0, p1, box) {
     const pointStack = [p0, p1];
     const inStack = [];

@@ -27,12 +27,14 @@ export default class Color {
   }
 
   add(color) {
-    return Color.ofRGB(this.rgb[0] + color.red, this.rgb[1] + color.green, this.rgb[2] + color.blue );
+    return Color.ofRGB(this.rgb[0] + color.red, this.rgb[1] + color.green, this.rgb[2] + color.blue);
   }
 
   scale(r) {
-    const ans = this.rgb.map(c => Math.min(1, Math.max(0, c * r)));
-    return new Color(ans);
+    const c = this.rgb[0];
+    const g = this.rgb[1];
+    const b = this.rgb[2];
+    return new Color([Math.min(1, Math.max(0, c * r)), Math.min(1, Math.max(0, g * r)), Math.min(1, Math.max(0, b * r))]);
   }
 
   /**
@@ -48,8 +50,12 @@ export default class Color {
     );
   }
 
+  toString() {
+    return `red: ${this.red}, green: ${this.green}, blue: ${this.blue}`;
+  }
+
   static ofRGB(red = 0, green = 0, blue = 0) {
-    const rgb = new Float64Array(3);
+    const rgb = [];
     rgb[0] = red;
     rgb[1] = green;
     rgb[2] = blue;
@@ -57,7 +63,7 @@ export default class Color {
   }
 
   static ofRGBRaw(red = 0, green = 0, blue = 0) {
-    const rgb = new Float64Array(3);
+    const rgb = [];
     rgb[0] = red / MAX_8BIT;
     rgb[1] = green / MAX_8BIT;
     rgb[2] = blue / MAX_8BIT;

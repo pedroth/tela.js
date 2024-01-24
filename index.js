@@ -418,7 +418,7 @@ const examples = [
         path: "/test/web/simple_shader.js"
     },
     {
-        title: "Earth shader",
+        title: "Flat earth shader",
         path: "/test/web/tex_shader.js"
     },
     {
@@ -462,8 +462,8 @@ const examples = [
         path: "/test/web/wireframe.js"
     },
     {
-        title: "Spot phong shader",
-        path: "/test/web/spot.js"
+        title: "Earth",
+        path: "/test/web/earth.js"
     },
     {
         title: "SDF test",

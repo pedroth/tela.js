@@ -4,6 +4,7 @@ import Ray from "../Ray/Ray.js";
 import Point from "../Scene/Point.js";
 import Line from "../Scene/Line.js";
 import Triangle from "../Scene/Triangle.js";
+import { lerp } from "../Utils/Math.js";
 
 export default class Camera {
   constructor(props = {
@@ -138,7 +139,7 @@ function rasterPoint({ canvas, camera, elem, w, h, zBuffer }) {
   let pointInCamCoord = camera.toCameraCoord(position)
   //frustum culling
   const z = pointInCamCoord.z;
-  // if (z < distanceToPlane) return;
+  if (z < distanceToPlane) return;
   //project
   const projectedPoint = pointInCamCoord
     .scale(distanceToPlane / z);
@@ -154,8 +155,7 @@ function rasterPoint({ canvas, camera, elem, w, h, zBuffer }) {
     texture &&
     texCoord
   ) {
-    const [texU, texV] = texCoord.toArray();
-    const texColor = texture.getPxl(...[texU * texture.width, texV * texture.height]);
+    const texColor = getTexColor(texCoord, texture);
     finalColor = finalColor.add(texColor).scale(1 / 2);
   }
   for (let k = -intRadius; k < intRadius; k++) {
@@ -183,27 +183,27 @@ function rasterLine({ canvas, camera, elem, w, h, zBuffer }) {
   // camera coords
   const pointsInCamCoord = positions.map((p) => camera.toCameraCoord(p));
   //frustum culling
-  // let inFrustum = [];
-  // let outFrustum = [];
-  // pointsInCamCoord.forEach((p, i) => {
-  //   const zCoord = p.z;
-  //   if (zCoord < distanceToPlane) {
-  //     outFrustum.push(i);
-  //   } else {
-  //     inFrustum.push(i);
-  //   }
-  // });
-  // if (outFrustum.length === 2) return;
-  // if (outFrustum.length === 1) {
-  //   const inVertex = inFrustum[0];
-  //   const outVertex = outFrustum[0];
-  //   const inter = _lineCameraPlaneIntersection(
-  //     pointsInCamCoord[outVertex],
-  //     pointsInCamCoord[inVertex],
-  //     camera
-  //   );
-  //   pointsInCamCoord[outVertex] = inter;
-  // }
+  let inFrustum = [];
+  let outFrustum = [];
+  pointsInCamCoord.forEach((p, i) => {
+    const zCoord = p.z;
+    if (zCoord < distanceToPlane) {
+      outFrustum.push(i);
+    } else {
+      inFrustum.push(i);
+    }
+  });
+  if (outFrustum.length === 2) return;
+  if (outFrustum.length === 1) {
+    const inVertex = inFrustum[0];
+    const outVertex = outFrustum[0];
+    const inter = lineCameraPlaneIntersection(
+      pointsInCamCoord[outVertex],
+      pointsInCamCoord[inVertex],
+      camera
+    );
+    pointsInCamCoord[outVertex] = inter;
+  }
   //project
   const projectedPoint = pointsInCamCoord
     .map(p => {
@@ -291,14 +291,7 @@ function rasterTriangle({ canvas, camera, elem, w, h, zBuffer }) {
       const texUV = texCoords[0].scale(gamma)
         .add(texCoords[1].scale(alpha))
         .add(texCoords[2].scale(beta));
-      // const baseColor = texU < 0.5 && texV < 0.5 ?
-      //   Color.BLACK :
-      //   texU > 0.5 && texV > 0.5 ?
-      //     Color.BLACK :
-      //     Color.WHITE;
       const texColor = getTexColor(texUV, texture);
-      // c = Color.ofRGB(texUV.x, texUV.y, 0);
-      // c = c.add(baseColor).add(texColor).scale(1 / 3);
       c = c.add(texColor).scale(1 / 2);
     }
     const [i, j] = canvas.canvas2grid(x, y);
@@ -320,21 +313,29 @@ function lineCameraPlaneIntersection(vertexOut, vertexIn, camera) {
 }
 
 function getTexColor(texUV, texture) {
-
+  // texUV = texUV.scale(16).map(x => x % 1)
+  // return texUV.x < 0.5 && texUV.y < 0.5 ?
+  //   Color.BLACK :
+  //   texUV.x > 0.5 && texUV.y > 0.5 ?
+  //     Color.BLACK :
+  //     Color.WHITE;
+  // return texture.getPxl(texUV.x * texture.width, texUV.y * texture.height);
+  // bi-linear interpolation
   const size = Vec2(texture.width, texture.height);
   const texInt = texUV.mul(size);
+
   const texInt0 = texInt.map(Math.floor);
-  const texInt1 = texInt0.add(Vec2(1,0));
-  const texInt2 = texInt0.add(Vec2(0,1));
-  const texInt3 = texInt0.add(Vec2(1,1));
+  const texInt1 = texInt0.add(Vec2(1, 0));
+  const texInt2 = texInt0.add(Vec2(0, 1));
+  const texInt3 = texInt0.add(Vec2(1, 1));
 
   const color0 = texture.getPxl(...texInt0.toArray());
   const color1 = texture.getPxl(...texInt1.toArray());
   const color2 = texture.getPxl(...texInt2.toArray());
   const color3 = texture.getPxl(...texInt3.toArray());
 
-
-
-
-
+  const x = texInt.sub(texInt0);
+  const bottomX = lerp(color0, color1)(x.x);
+  const topX = lerp(color2, color3)(x.x);
+  return lerp(bottomX, topX)(x.y);
 }
