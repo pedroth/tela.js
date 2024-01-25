@@ -1,7 +1,6 @@
 import { Vec3, Vec2 } from "../Vector/Vector.js";
 import Point from "./Point.js"
 import Box from "../Box/Box.js";
-import Color from "../Color/Color.js";
 import Line from "./Line.js";
 import Triangle from "./Triangle.js";
 import { groupBy } from "../Utils/Utils.js";
@@ -139,10 +138,10 @@ export default class Mesh {
                     .builder()
                     .name(edge_name)
                     .texture(this.texture)
+                    .colors(...verticesIndexes.map(j => this.colors[j]))
                     .normals(...normalIndexes.map(j => this.normals[j]))
                     .positions(...verticesIndexes.map(j => this.vertices[j]))
-                    .colors(...verticesIndexes.map(j => this.colors[j]))
-                    .texCoords(...(!texCoordIndexes.length ? [] : texCoordIndexes.map(j => this.textureCoords[j])))
+                    .texCoords(...texCoordIndexes.map(j => this.textureCoords[j]))
                     .build()
             )
 

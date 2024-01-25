@@ -39,6 +39,7 @@ async (canvas, fps, logger) => {
         camera.orbit();
     })
     // scene
+    // From https://eoimages.gsfc.nasa.gov/images/imagerecords/73000/73751/world.topo.bathy.200407.3x5400x2700.jpg
     const texture = await Canvas.ofUrl("/assets/earth.jpg");
     const earthObj = await fetch("/assets/earth.obj").then(x => x.text());
     const earthMesh = Mesh.readObj(earthObj)

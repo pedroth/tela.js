@@ -9,6 +9,10 @@ export function mod(n, m) {
     return ((n % m) + m) % m;
 }
 
+export function clamp(min = 0, max = 1) {
+    return x => Math.max(min, Math.min(max, x));
+}
+
 export function lerp(a, b) {
     if (typeof a === "number" && typeof b === "number")
         return t => a + (b - a) * t;

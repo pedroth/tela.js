@@ -1,3 +1,4 @@
+import Box from "../Box/Box";
 import Color from "../Color/Color";
 import { Vec2, Vec3 } from "../Vector/Vector";
 
@@ -22,14 +23,15 @@ export default class Line {
     }
 }
 
+const indx = [1, 2];
 class LineBuilder {
     constructor() {
         this._name;
         this._texture;
-        this._normals = [1, 2].map(() => Vec3());
-        this._colors = [1, 2].map(() => Color.BLACK);
-        this._positions = [1, 2].map(() => Vec3());
-        this._texCoords = [1, 2].map(() => Vec2());
+        this._normals = indx.map(() => Vec3());
+        this._colors = indx.map(() => Color.BLACK);
+        this._positions = indx.map(() => Vec3());
+        this._texCoords = indx.map(() => Vec2());
     }
 
     name(name) {
@@ -44,16 +46,19 @@ class LineBuilder {
     }
 
     colors(c1, c2) {
+        if ([c1, c2].some(x => !x)) return this;
         this._colors = [c1, c2];
         return this;
     }
 
     texCoords(t1, t2) {
+        if ([t1, t2].some(x => !x)) return this;
         this._texCoords = [t1, t2];
         return this;
     }
 
     normals(n1, n2) {
+        if ([n1, n2].some(x => !x)) return this;
         this._normals = [n1, n2];
         return this;
     }

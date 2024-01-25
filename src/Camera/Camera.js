@@ -206,9 +206,7 @@ function rasterLine({ canvas, camera, elem, w, h, zBuffer }) {
   }
   //project
   const projectedPoint = pointsInCamCoord
-    .map(p => {
-      return p.scale(distanceToPlane / p.z);
-    })
+    .map(p => p.scale(distanceToPlane / p.z))
   // integer coordinates
   const intPoint = projectedPoint
     .map((p) => {
@@ -312,15 +310,16 @@ function lineCameraPlaneIntersection(vertexOut, vertexIn, camera) {
   return p;
 }
 
-function getTexColor(texUV, texture) {
-  // texUV = texUV.scale(16).map(x => x % 1)
-  // return texUV.x < 0.5 && texUV.y < 0.5 ?
-  //   Color.BLACK :
-  //   texUV.x > 0.5 && texUV.y > 0.5 ?
-  //     Color.BLACK :
-  //     Color.WHITE;
-  // return texture.getPxl(texUV.x * texture.width, texUV.y * texture.height);
-  // bi-linear interpolation
+function getDefaultTexColor(texUV) {
+  texUV = texUV.scale(16).map(x => x % 1)
+  return texUV.x < 0.5 && texUV.y < 0.5 ?
+    Color.BLACK :
+    texUV.x > 0.5 && texUV.y > 0.5 ?
+      Color.BLACK :
+      Color.WHITE;
+}
+
+function getBiLinearTexColor(texUV, texture) {
   const size = Vec2(texture.width, texture.height);
   const texInt = texUV.mul(size);
 
@@ -338,4 +337,8 @@ function getTexColor(texUV, texture) {
   const bottomX = lerp(color0, color1)(x.x);
   const topX = lerp(color2, color3)(x.x);
   return lerp(bottomX, topX)(x.y);
+}
+
+function getTexColor(texUV, texture) {
+  return texture.getPxl(texUV.x * texture.width, texUV.y * texture.height);
 }

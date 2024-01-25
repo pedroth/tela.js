@@ -4,6 +4,8 @@
  * Here colors are represented as [0,1]^3 vector.
  */
 
+import { clamp } from "../Utils/Math";
+
 const MAX_8BIT = 255;
 export default class Color {
   constructor(rbg) {
@@ -31,10 +33,8 @@ export default class Color {
   }
 
   scale(r) {
-    const c = this.rgb[0];
-    const g = this.rgb[1];
-    const b = this.rgb[2];
-    return new Color([Math.min(1, Math.max(0, c * r)), Math.min(1, Math.max(0, g * r)), Math.min(1, Math.max(0, b * r))]);
+    const clampColor = clamp(0, 1);
+    return new Color([clampColor(r * this.red), clampColor(r * this.green), clampColor(r * this.blue)]);
   }
 
   /**
@@ -80,4 +80,6 @@ export default class Color {
   static BLUE = Color.ofRGB(0, 0, 1);
   static BLACK = Color.ofRGB(0, 0, 0);
   static WHITE = Color.ofRGB(1, 1, 1);
+  static GRAY = Color.ofRGB(0.5, 0.5, 0.5);
+  static GREY = Color.ofRGB(0.5, 0.5, 0.5);
 }
