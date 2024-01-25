@@ -3,6 +3,7 @@ import { MAX_8BIT } from "../Utils/Constants";
 import { clipLine, mod } from "../Utils/Math";
 import Box from "../Box/Box"
 import { Vec2 } from "../Vector/Vector";
+import { measureTime } from "../Utils/Utils";
 
 export default class Canvas {
 
@@ -232,9 +233,10 @@ function drawConvexPolygon(canvas, positions, shader) {
   const [xMin, yMin] = finalBox.min.toArray();
   const [xMax, yMax] = finalBox.max.toArray();
 
+  const isInsideFunc = isInsideConvex(positions);
   for (let x = xMin; x < xMax; x++) {
     for (let y = yMin; y < yMax; y++) {
-      if (isInsideConvex(Vec2(x, y), positions)) {
+      if (isInsideFunc(Vec2(x, y))) {
         const j = x;
         const i = height - 1 - y;
         const color = shader(x, y);
@@ -253,25 +255,25 @@ function drawConvexPolygon(canvas, positions, shader) {
 
 
 
-function isInsideConvex(x, positions) {
+function isInsideConvex(positions) {
   const m = positions.length;
   const v = [];
-  const vDotN = [];
+  const n = [];
   for (let i = 0; i < m; i++) {
     const p1 = positions[(i + 1) % m];
     const p0 = positions[i];
     v[i] = p1.sub(p0);
-    const vi = v[i];
-    const n = Vec2(-vi.y, vi.x);
-    const r = x.sub(p0);
-    vDotN[i] = r.dot(n);
+    n[i] = Vec2(-v[i].y, v[i].x);
   }
-  let orientation = v[0].x * v[1].y - v[0].y * v[1].x >= 0 ? 1 : -1;
-  for (let i = 0; i < m; i++) {
-    const myDot = vDotN[i] * orientation;
-    if (myDot < 0) return false;
+  const orientation = v[0].x * v[1].y - v[0].y * v[1].x >= 0 ? 1 : -1;
+  return x => {
+    for (let i = 0; i < m; i++) {
+      const r = x.sub(positions[i]);
+      const myDot = r.dot(n[i]) * orientation;
+      if (myDot < 0) return false;
+    }
+    return true;
   }
-  return true;
 }
 
 

@@ -75,68 +75,6 @@ class AnimationBuilder {
   }
 }
 
-// src/Ray/Ray.jstant
-var MAX_8BIT = 255;
-
-class Color {
-  constructor(rbg) {
-    this.rgb = rbg;
-  }
-  toArray() {
-    return this.rgb;
-  }
-  get red() {
-    return this.rgb[0];
-  }
-  get green() {
-    return this.rgb[1];
-  }
-  get blue() {
-    return this.rgb[2];
-  }
-  add(color) {
-    return Color.ofRGB(this.rgb[0] + color.red, this.rgb[1] + color.green, this.rgb[2] + color.blue);
-  }
-  scale(r) {
-    const c = this.rgb[0];
-    const g = this.rgb[1];
-    const b = this.rgb[2];
-    return new Color([Math.min(1, Math.max(0, c * r)), Math.min(1, Math.max(0, g * r)), Math.min(1, Math.max(0, b * r))]);
-  }
-  equals(color) {
-    return this.rgb[0] === color.rgb[0] && this.rgb[1] === color.rgb[1] && this.rgb[2] === color.rgb[2];
-  }
-  toString() {
-    return `red: ${this.red}, green: ${this.green}, blue: ${this.blue}`;
-  }
-  static ofRGB(red = 0, green = 0, blue = 0) {
-    const rgb = [];
-    rgb[0] = red;
-    rgb[1] = green;
-    rgb[2] = blue;
-    return new Color(rgb);
-  }
-  static ofRGBRaw(red = 0, green = 0, blue = 0) {
-    const rgb = [];
-    rgb[0] = red / MAX_8BIT;
-    rgb[1] = green / MAX_8BIT;
-    rgb[2] = blue / MAX_8BIT;
-    return new Color(rgb);
-  }
-  static random() {
-    const r = () => Math.random();
-    return Color.ofRGB(r(), r(), r());
-  }
-  static RED = Color.ofRGB(1, 0, 0);
-  static GREEN = Color.ofRGB(0, 1, 0);
-  static BLUE = Color.ofRGB(0, 0, 1);
-  static BLACK = Color.ofRGB(0, 0, 0);
-  static WHITE = Color.ofRGB(1, 1, 1);
-}
-
-// src/Ray/Ray.jstants.js
-var MAX_8BIT2 = 255;
-
 // src/Ray/Ray.jstants.
 var _sanitize_input = function(arrayIn, arrayOut) {
   for (let i = 0;i < arrayIn.length; i++) {
@@ -530,10 +468,8 @@ function smin(a, b, k = 32) {
 function mod(n, m) {
   return (n % m + m) % m;
 }
-function lerp(a, b) {
-  if (typeof a === "number" && typeof b === "number")
-    return (t) => a + (b - a) * t;
-  return (t) => a.scale(1 - t).add(b.scale(t));
+function clamp(min = 0, max = 1) {
+  return (x) => Math.max(min, Math.min(max, x));
 }
 function clipLine(p0, p1, box) {
   const pointStack = [p0, p1];
@@ -614,6 +550,68 @@ var solveUpTriMatrix = function(v, a, f) {
   return Vec2(f2 / v2, (f1 * v2 - v1 * f2) / av2);
 };
 
+// src/Ray/Ray.jstant
+var MAX_8BIT = 255;
+
+class Color {
+  constructor(rbg) {
+    this.rgb = rbg;
+  }
+  toArray() {
+    return this.rgb;
+  }
+  get red() {
+    return this.rgb[0];
+  }
+  get green() {
+    return this.rgb[1];
+  }
+  get blue() {
+    return this.rgb[2];
+  }
+  add(color) {
+    return Color.ofRGB(this.rgb[0] + color.red, this.rgb[1] + color.green, this.rgb[2] + color.blue);
+  }
+  scale(r) {
+    const clampColor = clamp(0, 1);
+    return new Color([clampColor(r * this.red), clampColor(r * this.green), clampColor(r * this.blue)]);
+  }
+  equals(color) {
+    return this.rgb[0] === color.rgb[0] && this.rgb[1] === color.rgb[1] && this.rgb[2] === color.rgb[2];
+  }
+  toString() {
+    return `red: ${this.red}, green: ${this.green}, blue: ${this.blue}`;
+  }
+  static ofRGB(red = 0, green = 0, blue = 0) {
+    const rgb = [];
+    rgb[0] = red;
+    rgb[1] = green;
+    rgb[2] = blue;
+    return new Color(rgb);
+  }
+  static ofRGBRaw(red = 0, green = 0, blue = 0) {
+    const rgb = [];
+    rgb[0] = red / MAX_8BIT;
+    rgb[1] = green / MAX_8BIT;
+    rgb[2] = blue / MAX_8BIT;
+    return new Color(rgb);
+  }
+  static random() {
+    const r = () => Math.random();
+    return Color.ofRGB(r(), r(), r());
+  }
+  static RED = Color.ofRGB(1, 0, 0);
+  static GREEN = Color.ofRGB(0, 1, 0);
+  static BLUE = Color.ofRGB(0, 0, 1);
+  static BLACK = Color.ofRGB(0, 0, 0);
+  static WHITE = Color.ofRGB(1, 1, 1);
+  static GRAY = Color.ofRGB(0.5, 0.5, 0.5);
+  static GREY = Color.ofRGB(0.5, 0.5, 0.5);
+}
+
+// src/Ray/Ray.jstants.js
+var MAX_8BIT2 = 255;
+
 // src/Ray/Ray.jstants.
 var exports_Monads = {};
 __export(exports_Monads, {
@@ -667,7 +665,7 @@ var maxComp = function(u) {
   return u.fold((e, x) => Math.max(e, x), -Number.MAX_VALUE);
 };
 
-class Box2 {
+class Box {
   constructor(min, max) {
     this.isEmpty = min === undefined || max === undefined;
     if (this.isEmpty)
@@ -681,18 +679,18 @@ class Box2 {
     if (this.isEmpty)
       return box;
     const { min, max } = this;
-    return new Box2(min.op(box.min, Math.min), max.op(box.max, Math.max));
+    return new Box(min.op(box.min, Math.min), max.op(box.max, Math.max));
   }
   union = this.add;
   sub(box) {
     if (this.isEmpty)
-      return Box2.EMPTY;
+      return Box.EMPTY;
     const { min, max } = this;
     const newMin = min.op(box.min, Math.max);
     const newMax = max.op(box.max, Math.min);
     const newDiag = newMax.sub(newMin);
     const isAllPositive = newDiag.fold((e, x) => e && x >= 0, true);
-    return !isAllPositive ? Box2.EMPTY : new Box2(newMin, newMax);
+    return !isAllPositive ? Box.EMPTY : new Box(newMin, newMax);
   }
   intersection = this.sub;
   interceptWith(ray) {
@@ -716,15 +714,15 @@ class Box2 {
     return none();
   }
   scale(r) {
-    return new Box2(this.min.sub(this.center).scale(r), this.max.sub(this.center).scale(r)).move(this.center);
+    return new Box(this.min.sub(this.center).scale(r), this.max.sub(this.center).scale(r)).move(this.center);
   }
   move(v) {
-    return new Box2(this.min.add(v), this.max.add(v));
+    return new Box(this.min.add(v), this.max.add(v));
   }
   equals(box) {
-    if (!(box instanceof Box2))
+    if (!(box instanceof Box))
       return false;
-    if (this == Box2.EMPTY)
+    if (this == Box.EMPTY)
       return true;
     return this.min.equals(box.min) && this.max.equals(box.max);
   }
@@ -748,9 +746,9 @@ class Box2 {
     return Vec.fromArray(grad).scale(Math.sign(d)).normalize();
   }
   collidesWith(box) {
-    const vectorCollision = () => !this.sub(new Box2(box, box)).isEmpty;
+    const vectorCollision = () => !this.sub(new Box(box, box)).isEmpty;
     const type2action = {
-      [Box2.name]: () => !this.sub(box).isEmpty,
+      [Box.name]: () => !this.sub(box).isEmpty,
       Vector: vectorCollision,
       Vector3: vectorCollision,
       Vector2: vectorCollision
@@ -766,25 +764,115 @@ class Box2 {
         max:${this.max.toString()}
     }`;
   }
-  static EMPTY = new Box2;
+  static EMPTY = new Box;
+}
+
+// src/Ray/Ray.jstant
+var exports_Utils = {};
+__export(exports_Utils, {
+  or: () => {
+    {
+      return or;
+    }
+  },
+  measureTimeWithResult: () => {
+    {
+      return measureTimeWithResult;
+    }
+  },
+  measureTimeWithAsyncResult: () => {
+    {
+      return measureTimeWithAsyncResult;
+    }
+  },
+  measureTime: () => {
+    {
+      return measureTime;
+    }
+  },
+  groupBy: () => {
+    {
+      return groupBy;
+    }
+  },
+  compose: () => {
+    {
+      return compose;
+    }
+  },
+  argmin: () => {
+    {
+      return argmin;
+    }
+  }
+});
+function measureTime(lambda) {
+  const t = performance.now();
+  lambda();
+  return 0.001 * (performance.now() - t);
+}
+async function measureTimeWithAsyncResult(lambda) {
+  const t = performance.now();
+  const result = await lambda();
+  return { result, time: 0.001 * (performance.now() - t) };
+}
+function measureTimeWithResult(lambda) {
+  const t = performance.now();
+  const result = lambda();
+  return { result, time: 0.001 * (performance.now() - t) };
+}
+function compose(f, g) {
+  return (x) => f(g(x));
+}
+function or(...lambdas) {
+  for (let i = 0;i < lambdas.length; i++) {
+    try {
+      return lambdas[i]();
+    } catch (err) {
+      continue;
+    }
+  }
+}
+function groupBy(array, groupFunction) {
+  const ans = {};
+  array.forEach((x, i) => {
+    const key = groupFunction(x, i);
+    if (!ans[key])
+      ans[key] = [];
+    ans[key].push(x);
+  });
+  return ans;
+}
+function argmin(array, costFunction = (x) => x) {
+  let argminIndex = -1;
+  let cost = Number.MAX_VALUE;
+  for (let i = 0;i < array.length; i++) {
+    const newCost = costFunction(array[i]);
+    if (newCost < cost) {
+      cost = newCost;
+      argminIndex = i;
+    }
+  }
+  return argminIndex;
 }
 
 // src/Ray/Ray.jstants.
 var drawConvexPolygon = function(canvas, positions, shader) {
   const { width, height } = canvas;
-  const canvasBox = new Box2(Vec2(), Vec2(width, height));
-  let boundingBox = Box2.EMPTY;
+  const canvasBox = new Box(Vec2(), Vec2(width, height));
+  let boundingBox = Box.EMPTY;
   positions.forEach((x) => {
-    boundingBox = boundingBox.add(new Box2(x, x));
+    boundingBox = boundingBox.add(new Box(x, x));
   });
   const finalBox = canvasBox.intersection(boundingBox);
   if (finalBox.isEmpty)
     return canvas;
   const [xMin, yMin] = finalBox.min.toArray();
   const [xMax, yMax] = finalBox.max.toArray();
+  const isInsideFunc = isInsideConvex(positions);
   for (let x = xMin;x < xMax; x++) {
     for (let y = yMin;y < yMax; y++) {
-      if (isInsideConvex(Vec2(x, y), positions)) {
+      if (isInsideFunc(Vec2(x, y))) {
         const j = x;
         const i = height - 1 - y;
         const color = shader(x, y);
@@ -800,26 +888,26 @@ var drawConvexPolygon = function(canvas, positions, shader) {
   }
   return canvas;
 };
-var isInsideConvex = function(x, positions) {
+var isInsideConvex = function(positions) {
   const m = positions.length;
   const v = [];
-  const vDotN = [];
+  const n = [];
   for (let i = 0;i < m; i++) {
     const p1 = positions[(i + 1) % m];
     const p0 = positions[i];
     v[i] = p1.sub(p0);
-    const vi = v[i];
-    const n = Vec2(-vi.y, vi.x);
-    const r = x.sub(p0);
-    vDotN[i] = r.dot(n);
+    n[i] = Vec2(-v[i].y, v[i].x);
   }
-  let orientation = v[0].x * v[1].y - v[0].y * v[1].x >= 0 ? 1 : -1;
-  for (let i = 0;i < m; i++) {
-    const myDot = vDotN[i] * orientation;
-    if (myDot < 0)
-      return false;
-  }
-  return true;
+  const orientation = v[0].x * v[1].y - v[0].y * v[1].x >= 0 ? 1 : -1;
+  return (x) => {
+    for (let i = 0;i < m; i++) {
+      const r = x.sub(positions[i]);
+      const myDot = r.dot(n[i]) * orientation;
+      if (myDot < 0)
+        return false;
+    }
+    return true;
+  };
 };
 var handleMouse = function(canvas, lambda) {
   return (event) => {
@@ -895,7 +983,7 @@ class Canvas {
   drawLine(p1, p2, shader) {
     const w = this._width;
     const h = this._height;
-    const line = clipLine(p1, p2, new Box2(Vec2(0, 0), Vec2(w, h)));
+    const line = clipLine(p1, p2, new Box(Vec2(0, 0), Vec2(w, h)));
     if (line.length <= 1)
       return;
     const [pi, pf] = line;
@@ -1223,7 +1311,7 @@ class Point {
     if (this.boundingBox)
       return this.boundingBox;
     const n = this.position.dim;
-    this.boundingBox = new Box2(this.position.add(Vec.ONES(n).scale(-this.radius)), this.position.add(Vec.ONES(n).scale(this.radius)));
+    this.boundingBox = new Box(this.position.add(Vec.ONES(n).scale(-this.radius)), this.position.add(Vec.ONES(n).scale(this.radius)));
     return this.boundingBox;
   }
   static builder() {
@@ -1316,15 +1404,16 @@ class Line {
     return new LineBuilder;
   }
 }
+var indx = [1, 2];
 
 class LineBuilder {
   constructor() {
     this._name;
     this._texture;
-    this._normals = [1, 2].map(() => Vec3());
-    this._colors = [1, 2].map(() => Color.BLACK);
-    this._positions = [1, 2].map(() => Vec3());
-    this._texCoords = [1, 2].map(() => Vec2());
+    this._normals = indx.map(() => Vec3());
+    this._colors = indx.map(() => Color.BLACK);
+    this._positions = indx.map(() => Vec3());
+    this._texCoords = indx.map(() => Vec2());
   }
   name(name) {
     this._name = name;
@@ -1337,14 +1426,20 @@ class LineBuilder {
     return this;
   }
   colors(c1, c2) {
+    if ([c1, c2].some((x) => !x))
+      return this;
     this._colors = [c1, c2];
     return this;
   }
   texCoords(t1, t2) {
+    if ([t1, t2].some((x) => !x))
+      return this;
     this._texCoords = [t1, t2];
     return this;
   }
   normals(n1, n2) {
+    if ([n1, n2].some((x) => !x))
+      return this;
     this._normals = [n1, n2];
     return this;
   }
@@ -1380,23 +1475,23 @@ class Triangle {
   getBoundingBox() {
     if (this.boundingBox)
       return this.boundingBox;
-    this.boundingBox = this.positions.reduce((box, x) => box.add(new Box2(x, x)), Box2.EMPTY);
+    this.boundingBox = this.positions.reduce((box, x) => box.add(new Box(x, x)), Box.EMPTY);
     return this.boundingBox;
   }
   static builder() {
     return new TriangleBuilder;
   }
 }
-var indx = [1, 2, 3];
+var indx2 = [1, 2, 3];
 
 class TriangleBuilder {
   constructor() {
     this._name;
     this._texture;
-    this._normals = indx.map(() => Vec3());
-    this._colors = indx.map(() => Color.BLACK);
-    this._positions = indx.map(() => Vec3());
-    this._texCoords = indx.map(() => Vec2());
+    this._normals = indx2.map(() => Vec3());
+    this._colors = indx2.map(() => Color.BLACK);
+    this._positions = indx2.map(() => Vec3());
+    this._texCoords = indx2.map(() => Vec2());
   }
   name(name) {
     this._name = name;
@@ -1503,9 +1598,7 @@ var rasterLine = function({ canvas, camera, elem, w, h, zBuffer }) {
     const inter = lineCameraPlaneIntersection(pointsInCamCoord[outVertex], pointsInCamCoord[inVertex], camera);
     pointsInCamCoord[outVertex] = inter;
   }
-  const projectedPoint = pointsInCamCoord.map((p) => {
-    return p.scale(distanceToPlane / p.z);
-  });
+  const projectedPoint = pointsInCamCoord.map((p) => p.scale(distanceToPlane / p.z));
   const intPoint = projectedPoint.map((p) => {
     let x = w / 2 + p.x * w;
     let y = h / 2 + p.y * h;
@@ -1586,20 +1679,7 @@ var lineCameraPlaneIntersection = function(vertexOut, vertexIn, camera) {
   return p;
 };
 var getTexColor = function(texUV, texture) {
-  const size = Vec2(texture.width, texture.height);
-  const texInt = texUV.mul(size);
-  const texInt0 = texInt.map(Math.floor);
-  const texInt1 = texInt0.add(Vec2(1, 0));
-  const texInt2 = texInt0.add(Vec2(0, 1));
-  const texInt3 = texInt0.add(Vec2(1, 1));
-  const color0 = texture.getPxl(...texInt0.toArray());
-  const color1 = texture.getPxl(...texInt1.toArray());
-  const color2 = texture.getPxl(...texInt2.toArray());
-  const color3 = texture.getPxl(...texInt3.toArray());
-  const x = texInt.sub(texInt0);
-  const bottomX = lerp(color0, color1)(x.x);
-  const topX = lerp(color2, color3)(x.x);
-  return lerp(bottomX, topX)(x.y);
+  return texture.getPxl(texUV.x * texture.width, texUV.y * texture.height);
 };
 
 class Camera {
@@ -1692,95 +1772,6 @@ class Camera {
 }
 
 // src/Ray/Ray.jstant
-var exports_Utils = {};
-__export(exports_Utils, {
-  or: () => {
-    {
-      return or;
-    }
-  },
-  measureTimeWithResult: () => {
-    {
-      return measureTimeWithResult;
-    }
-  },
-  measureTimeWithAsyncResult: () => {
-    {
-      return measureTimeWithAsyncResult;
-    }
-  },
-  measureTime: () => {
-    {
-      return measureTime;
-    }
-  },
-  groupBy: () => {
-    {
-      return groupBy;
-    }
-  },
-  compose: () => {
-    {
-      return compose;
-    }
-  },
-  argmin: () => {
-    {
-      return argmin;
-    }
-  }
-});
-function measureTime(lambda) {
-  const t = performance.now();
-  lambda();
-  return 0.001 * (performance.now() - t);
-}
-async function measureTimeWithAsyncResult(lambda) {
-  const t = performance.now();
-  const result = await lambda();
-  return { result, time: 0.001 * (performance.now() - t) };
-}
-function measureTimeWithResult(lambda) {
-  const t = performance.now();
-  const result = lambda();
-  return { result, time: 0.001 * (performance.now() - t) };
-}
-function compose(f, g) {
-  return (x) => f(g(x));
-}
-function or(...lambdas) {
-  for (let i = 0;i < lambdas.length; i++) {
-    try {
-      return lambdas[i]();
-    } catch (err) {
-      continue;
-    }
-  }
-}
-function groupBy(array, groupFunction) {
-  const ans = {};
-  array.forEach((x, i) => {
-    const key = groupFunction(x, i);
-    if (!ans[key])
-      ans[key] = [];
-    ans[key].push(x);
-  });
-  return ans;
-}
-function argmin(array, costFunction = (x) => x) {
-  let argminIndex = -1;
-  let cost = Number.MAX_VALUE;
-  for (let i = 0;i < array.length; i++) {
-    const newCost = costFunction(array[i]);
-    if (newCost < cost) {
-      cost = newCost;
-      argminIndex = i;
-    }
-  }
-  return argminIndex;
-}
-
-// src/Ray/Ray.jstant
 class Scene {
   constructor() {
     this.id2ElemMap = {};
@@ -1831,7 +1822,7 @@ class Node {
   numberOfLeafs = 0;
   leafs = [];
   constructor() {
-    this.box = Box2.EMPTY;
+    this.box = Box.EMPTY;
   }
   add(element) {
     this.numberOfLeafs += 1;
@@ -2056,9 +2047,9 @@ class Mesh {
   getBoundingBox() {
     if (this.boundingBox)
       return this.boundingBox;
-    this.boundingBox = new Box2;
+    this.boundingBox = new Box;
     for (let i = 0;i < this.vertices.length; i++) {
-      this.boundingBox = this.boundingBox.add(new Box2(this.vertices[i].add(Vec3(1, 1, 1).scale(RADIUS)), this.vertices[i].add(Vec3(1, 1, 1).scale(RADIUS))));
+      this.boundingBox = this.boundingBox.add(new Box(this.vertices[i].add(Vec3(1, 1, 1).scale(RADIUS)), this.vertices[i].add(Vec3(1, 1, 1).scale(RADIUS))));
     }
     return this.boundingBox;
   }
@@ -2099,7 +2090,7 @@ class Mesh {
       const verticesIndexes = this.faces[i].vertices;
       const edge_id = verticesIndexes.join("_");
       const edge_name = `${name}_${edge_id}`;
-      triangles.push(Triangle.builder().name(edge_name).texture(this.texture).normals(...normalIndexes.map((j) => this.normals[j])).positions(...verticesIndexes.map((j) => this.vertices[j])).colors(...verticesIndexes.map((j) => this.colors[j])).texCoords(...!texCoordIndexes.length ? [] : texCoordIndexes.map((j) => this.textureCoords[j])).build());
+      triangles.push(Triangle.builder().name(edge_name).texture(this.texture).colors(...verticesIndexes.map((j) => this.colors[j])).normals(...normalIndexes.map((j) => this.normals[j])).positions(...verticesIndexes.map((j) => this.vertices[j])).texCoords(...texCoordIndexes.map((j) => this.textureCoords[j])).build());
     }
     return Object.values(triangles);
   }
@@ -2236,7 +2227,7 @@ class Image {
   drawLine(p1, p2, shader) {
     const w = this._width;
     const h = this._height;
-    const line = clipLine(p1, p2, new Box2(Vec2(0, 0), Vec2(w, h)));
+    const line = clipLine(p1, p2, new Box(Vec2(0, 0), Vec2(w, h)));
     if (line.length <= 1)
       return;
     const [pi, pf] = line;
@@ -2471,6 +2462,6 @@ export {
   Color,
   Canvas,
   Camera,
-  Box2 as Box,
+  Box,
   Animation
 };
