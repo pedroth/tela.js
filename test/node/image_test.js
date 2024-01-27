@@ -8,7 +8,7 @@ const step = (threshold) => (x) => x < threshold ? 0 : 1;
 const mod = (x) => (n) => ((x % n) + n) % n;
 
 saveImageToFile(
-    "./test0.png",
+    "./simple_shader.png",
     Image.ofSize(width, height)
         .map((x, y) => {
             let u = x / width;
@@ -18,7 +18,7 @@ saveImageToFile(
 )
 
 saveImageToFile(
-    "./test1.jpeg",
+    "./rotation_grid.jpeg",
     Image.ofSize(width, height)
         .map((x, y) => {
             let u = x / (width - 1);

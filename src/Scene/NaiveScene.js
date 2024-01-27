@@ -71,4 +71,8 @@ export default class NaiveScene {
     }
     return closest;
   }
+
+  debugTo(canvas) {
+    return canvas;
+  }
 }

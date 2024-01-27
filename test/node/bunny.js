@@ -1,15 +1,10 @@
 import { Color, Image, Stream, IO, Utils, Mesh, Vec3, Scene, Camera } from "../../dist/node/index.js";
 import { readFileSync } from "fs"
 
-const { measureTime } = Utils;
+const { measureTime, measureTimeWithResult } = Utils;
 const { saveImageStreamToVideo } = IO;
 
-const measureTime2 = lambda => {
-    const t = performance.now();
-    const ans = lambda()
-    return [ans, 1e-3 * (performance.now() - t)];
-}
-
+// constants
 const width = 640;
 const height = 480;
 const FPS = 25;
@@ -35,7 +30,7 @@ const imageStream = new Stream(
         const theta = Math.PI / 4 * time;
         camera.sphericalCoords = Vec3(camera.sphericalCoords.get(0), theta, 0);
         camera.orbit();
-        const [newImage, t] = measureTime2(() => camera.sceneShot(scene).to(image));
+        const { result: newImage, time: t } = measureTimeWithResult(() => camera.sceneShot(scene).to(image));
         console.log(`Image took ${t}s`);
         return {
             time: time + dt,

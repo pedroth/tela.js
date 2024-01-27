@@ -19,6 +19,27 @@ export function lerp(a, b) {
     return t => a.scale(1 - t).add(b.scale(t));
 }
 
+export function isInsideConvex(positions) {
+    const m = positions.length;
+    const v = [];
+    const n = [];
+    for (let i = 0; i < m; i++) {
+      const p1 = positions[(i + 1) % m];
+      const p0 = positions[i];
+      v[i] = p1.sub(p0);
+      n[i] = Vec2(-v[i].y, v[i].x);
+    }
+    const orientation = v[0].x * v[1].y - v[0].y * v[1].x >= 0 ? 1 : -1;
+    return x => {
+      for (let i = 0; i < m; i++) {
+        const r = x.sub(positions[i]);
+        const myDot = r.dot(n[i]) * orientation;
+        if (myDot < 0) return false;
+      }
+      return true;
+    }
+  }
+
 export function clipLine(p0, p1, box) {
     const pointStack = [p0, p1];
     const inStack = [];

@@ -81,7 +81,7 @@ export default class Camera {
     return this.rayShot(lambda);
   }
 
-  reverseShot(scene) {
+  reverseShot(scene, params = { cullBackFaces: true, bilinearTexture: false }) {
     const type2render = {
       [Point.name]: rasterPoint,
       [Line.name]: rasterLine,
@@ -94,7 +94,9 @@ export default class Camera {
         const h = canvas.height;
         const zBuffer = new Float64Array(w * h)
           .fill(Number.MAX_VALUE);
-        scene.getElements().forEach((elem) => {
+        const elements = scene.getElements();
+        for (let i = 0; i < elements.length; i++) {
+          const elem = elements[i];
           if (elem.constructor.name in type2render) {
             type2render[elem.constructor.name]({
               canvas,
@@ -102,10 +104,11 @@ export default class Camera {
               elem,
               w,
               h,
-              zBuffer
+              zBuffer,
+              params
             });
           }
-        });
+        }
         canvas.paint();
         return canvas;
       }
@@ -205,10 +208,10 @@ function rasterLine({ canvas, camera, elem, w, h, zBuffer }) {
     pointsInCamCoord[outVertex] = inter;
   }
   //project
-  const projectedPoint = pointsInCamCoord
+  const projectedPoints = pointsInCamCoord
     .map(p => p.scale(distanceToPlane / p.z))
   // integer coordinates
-  const intPoint = projectedPoint
+  const intPoints = projectedPoints
     .map((p) => {
       let x = w / 2 + p.x * w;
       let y = h / 2 + p.y * h;
@@ -217,10 +220,10 @@ function rasterLine({ canvas, camera, elem, w, h, zBuffer }) {
       return Vec2(x, y);
     })
   // shader
-  const v = intPoint[1].sub(intPoint[0]);
+  const v = intPoints[1].sub(intPoints[0]);
   const vSquared = v.squareLength();
   const shader = (x, y) => {
-    const p = Vec2(x, y).sub(intPoint[0]);
+    const p = Vec2(x, y).sub(intPoints[0]);
     const t = v.dot(p) / vSquared;
     const z = pointsInCamCoord[0].z * (1 - t) + pointsInCamCoord[1].z * t;
     const c = colors[0].scale(1 - t).add(colors[1].scale(t));
@@ -231,15 +234,27 @@ function rasterLine({ canvas, camera, elem, w, h, zBuffer }) {
       return c;
     }
   }
-  canvas.drawLine(intPoint[0], intPoint[1], shader);
+  canvas.drawLine(intPoints[0], intPoints[1], shader);
 }
 
-function rasterTriangle({ canvas, camera, elem, w, h, zBuffer }) {
+function rasterTriangle({ canvas, camera, elem, w, h, zBuffer, params }) {
   const triangleElem = elem;
   const { distanceToPlane } = camera;
   const { colors, positions, texCoords, texture, } = triangleElem;
   // camera coords
   const pointsInCamCoord = positions.map((p) => camera.toCameraCoord(p));
+  // back face culling
+  if (params.cullBackFaces) {
+    const du = pointsInCamCoord[1].sub(pointsInCamCoord[0]);
+    const dv = pointsInCamCoord[2].sub(pointsInCamCoord[0]);
+    const n = Vec3(
+      du.y * dv.z - du.z * dv.y,
+      du.x * dv.z - du.z * dv.x,
+      du.x * dv.y - du.y * dv.x
+    );
+    const triangleDot = Vec3(0, 0, 1).dot(n);
+    if (triangleDot < 0) return
+  }
   //frustum culling
   let inFrustum = [];
   let outFrustum = [];
@@ -253,10 +268,10 @@ function rasterTriangle({ canvas, camera, elem, w, h, zBuffer }) {
   });
   if (outFrustum.length >= 1) return;
   //project
-  const projectedPoint = pointsInCamCoord
+  const projectedPoints = pointsInCamCoord
     .map(p => p.scale(distanceToPlane / p.z))
   // integer coordinates
-  const intPoint = projectedPoint
+  const intPoints = projectedPoints
     .map((p) => {
       let x = w / 2 + p.x * w;
       let y = h / 2 + p.y * h;
@@ -265,11 +280,12 @@ function rasterTriangle({ canvas, camera, elem, w, h, zBuffer }) {
       return Vec2(x, y);
     })
   // shader
-  const u = intPoint[1].sub(intPoint[0]);
-  const v = intPoint[2].sub(intPoint[0]);
+  const u = intPoints[1].sub(intPoints[0]);
+  const v = intPoints[2].sub(intPoints[0]);
   const det = u.x * v.y - u.y * v.x; // wedge product
+  if(det === 0) return;
   const shader = (x, y) => {
-    const p = Vec2(x, y).sub(intPoint[0]);
+    const p = Vec2(x, y).sub(intPoints[0]);
     const alpha = - (v.x * p.y - v.y * p.x) / det;
     const beta = (u.x * p.y - u.y * p.x) / det;
     const gamma = 1 - alpha - beta;
@@ -289,7 +305,7 @@ function rasterTriangle({ canvas, camera, elem, w, h, zBuffer }) {
       const texUV = texCoords[0].scale(gamma)
         .add(texCoords[1].scale(alpha))
         .add(texCoords[2].scale(beta));
-      const texColor = getTexColor(texUV, texture);
+      const texColor = params.bilinearTexture ? getBiLinearTexColor(texUV, texture) : getTexColor(texUV, texture);
       c = c.add(texColor).scale(1 / 2);
     }
     const [i, j] = canvas.canvas2grid(x, y);
@@ -299,7 +315,7 @@ function rasterTriangle({ canvas, camera, elem, w, h, zBuffer }) {
       return c;
     }
   }
-  canvas.drawTriangle(intPoint[0], intPoint[1], intPoint[2], shader);
+  canvas.drawTriangle(intPoints[0], intPoints[1], intPoints[2], shader);
 }
 
 function lineCameraPlaneIntersection(vertexOut, vertexIn, camera) {

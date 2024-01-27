@@ -51,7 +51,7 @@ async (canvas, fps, logger) => {
         .mapColors(v =>
             Color.ofRGB(...v.map(x => Math.max(0, Math.min(1, 0.5 * (x + 1)))).toArray())
         )
-    scene.add(...bunnyMesh.asPoints("bunny", 0.05));
+    scene.addList(bunnyMesh.asPoints("bunny", 0.02));
 
     // boilerplate for fps
     Animation

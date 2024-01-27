@@ -43,6 +43,7 @@ async (canvas, fps, logger) => {
     const texture = await Canvas.ofUrl("/assets/earth.jpg");
     const earthObj = await fetch("/assets/earth.obj").then(x => x.text());
     const earthMesh = Mesh.readObj(earthObj)
+        .mapColors(() => Color.ofRGB(0.25, 0.25, 0.25))
         .addTexture(texture)
     scene.addList(earthMesh.asTriangles("earth"));
     Animation

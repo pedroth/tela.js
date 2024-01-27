@@ -31,14 +31,11 @@ const { measureTimeWithResult, measureTime } = Utils;
     const imageStream = new Stream(
         { time: 0, i: 0, image: initialImage },
         ({ time, i, image }) => {
+            const speed = 0.25;
             const box = new Box(
-                Vec2(-time, -time),
-                Vec2(1 + time, 1 + time)
+                Vec2(-speed * time + time, -speed * time + time),
+                Vec2(1 + speed * time + time, 1 + speed * time + time)
             );
-            // const box = new Box(
-            //     Vec2(time, time),
-            //     Vec2(1 + time, 1 + time)
-            // );
             const { result: newImage, time: t } = measureTimeWithResult(
                 () => shader(image, box)
             );

@@ -9,7 +9,7 @@ var __export = (target, all) => {
     });
 };
 
-// src/Ray/Ray.jstants.
+// src/Utils/Constants.
 class Stream {
   constructor(initialState, updateStateFunction) {
     this._head = initialState;
@@ -23,7 +23,7 @@ class Stream {
   }
 }
 
-// src/Ray/Ray.jstants.jsssr.
+// src/Utils/Constants.jsssr.
 class Animation {
   constructor(state, next, doWhile) {
     this.animation = new Stream(state, next);
@@ -75,7 +75,7 @@ class AnimationBuilder {
   }
 }
 
-// src/Ray/Ray.jstants.
+// src/Utils/Constants.
 var _sanitize_input = function(arrayIn, arrayOut) {
   for (let i = 0;i < arrayIn.length; i++) {
     const z = arrayIn[i];
@@ -460,7 +460,7 @@ class Vector2 {
   static ONES = new Vector2(1, 1);
 }
 
-// src/Ray/Ray.jstan
+// src/Utils/Constan
 function smin(a, b, k = 32) {
   const res = Math.exp(-k * a) + Math.exp(-k * b);
   return -Math.log(res) / k;
@@ -470,6 +470,32 @@ function mod(n, m) {
 }
 function clamp(min = 0, max = 1) {
   return (x) => Math.max(min, Math.min(max, x));
+}
+function lerp(a, b) {
+  if (typeof a === "number" && typeof b === "number")
+    return (t) => a + (b - a) * t;
+  return (t) => a.scale(1 - t).add(b.scale(t));
+}
+function isInsideConvex(positions) {
+  const m = positions.length;
+  const v = [];
+  const n = [];
+  for (let i = 0;i < m; i++) {
+    const p1 = positions[(i + 1) % m];
+    const p0 = positions[i];
+    v[i] = p1.sub(p0);
+    n[i] = Vec2(-v[i].y, v[i].x);
+  }
+  const orientation = v[0].x * v[1].y - v[0].y * v[1].x >= 0 ? 1 : -1;
+  return (x) => {
+    for (let i = 0;i < m; i++) {
+      const r = x.sub(positions[i]);
+      const myDot = r.dot(n[i]) * orientation;
+      if (myDot < 0)
+        return false;
+    }
+    return true;
+  };
 }
 function clipLine(p0, p1, box) {
   const pointStack = [p0, p1];
@@ -550,7 +576,7 @@ var solveUpTriMatrix = function(v, a, f) {
   return Vec2(f2 / v2, (f1 * v2 - v1 * f2) / av2);
 };
 
-// src/Ray/Ray.jstant
+// src/Utils/Constant
 var MAX_8BIT = 255;
 
 class Color {
@@ -609,10 +635,10 @@ class Color {
   static GREY = Color.ofRGB(0.5, 0.5, 0.5);
 }
 
-// src/Ray/Ray.jstants.js
+// src/Utils/Constants.js
 var MAX_8BIT2 = 255;
 
-// src/Ray/Ray.jstants.
+// src/Utils/Constants.
 var exports_Monads = {};
 __export(exports_Monads, {
   some: () => {
@@ -660,7 +686,7 @@ function maybe(x) {
   return none(x);
 }
 
-// src/Ray/Ray.js
+// src/Utils/Cons
 var maxComp = function(u) {
   return u.fold((e, x) => Math.max(e, x), -Number.MAX_VALUE);
 };
@@ -767,7 +793,7 @@ class Box {
   static EMPTY = new Box;
 }
 
-// src/Ray/Ray.jstant
+// src/Utils/Constant
 var exports_Utils = {};
 __export(exports_Utils, {
   or: () => {
@@ -856,7 +882,7 @@ function argmin(array, costFunction = (x) => x) {
   return argminIndex;
 }
 
-// src/Ray/Ray.jstants.
+// src/Utils/Constants.
 var drawConvexPolygon = function(canvas, positions, shader) {
   const { width, height } = canvas;
   const canvasBox = new Box(Vec2(), Vec2(width, height));
@@ -887,27 +913,6 @@ var drawConvexPolygon = function(canvas, positions, shader) {
     }
   }
   return canvas;
-};
-var isInsideConvex = function(positions) {
-  const m = positions.length;
-  const v = [];
-  const n = [];
-  for (let i = 0;i < m; i++) {
-    const p1 = positions[(i + 1) % m];
-    const p0 = positions[i];
-    v[i] = p1.sub(p0);
-    n[i] = Vec2(-v[i].y, v[i].x);
-  }
-  const orientation = v[0].x * v[1].y - v[0].y * v[1].x >= 0 ? 1 : -1;
-  return (x) => {
-    for (let i = 0;i < m; i++) {
-      const r = x.sub(positions[i]);
-      const myDot = r.dot(n[i]) * orientation;
-      if (myDot < 0)
-        return false;
-    }
-    return true;
-  };
 };
 var handleMouse = function(canvas, lambda) {
   return (event) => {
@@ -1095,7 +1100,7 @@ class Canvas {
   }
 }
 
-// src/Ray/Ray.jstants.jsssr.js
+// src/Utils/Constants.jsssr.js
 var isElement = function(o) {
   return typeof HTMLElement === "object" ? o instanceof HTMLElement : o && typeof o === "object" && o !== null && o.nodeType === 1 && typeof o.nodeName === "string";
 };
@@ -1187,7 +1192,7 @@ class DomBuilder {
 }
 var DomBuilder_default = DomBuilder;
 
-// src/Ray/Ray.jstants.jsss
+// src/Utils/Constants.jsss
 class Parallel {
   constructor(numberOfStreams, inputStreamGenerator, partitionFunction, stateGenerator, dependencies, lazyInitialState) {
     this.numberOfStreams = numberOfStreams;
@@ -1261,7 +1266,7 @@ class ParallelBuilder {
   }
 }
 
-// src/Ray/Ray.js
+// src/Utils/Cons
 function Ray(init, dir) {
   const ans = {};
   ans.init = init;
@@ -1270,7 +1275,7 @@ function Ray(init, dir) {
   return ans;
 }
 
-// src/Ray/Ray.jstant
+// src/Utils/Constant
 var sphereInterception = function(point, ray) {
   const { init, dir } = ray;
   const diff = init.sub(point.position);
@@ -1384,7 +1389,7 @@ class PointBuilder {
 }
 var Point_default = Point;
 
-// src/Ray/Ray.jstan
+// src/Utils/Constan
 class Line {
   constructor({ name, positions, colors, texCoords, normals, texture }) {
     this.name = name;
@@ -1462,7 +1467,7 @@ class LineBuilder {
   }
 }
 
-// src/Ray/Ray.jstants.j
+// src/Utils/Constants.j
 class Triangle {
   constructor({ name, positions, colors, texCoords, normals, texture }) {
     this.name = name;
@@ -1540,7 +1545,7 @@ class TriangleBuilder {
   }
 }
 
-// src/Ray/Ray.jstants.
+// src/Utils/Constants.
 var rasterPoint = function({ canvas, camera, elem, w, h, zBuffer }) {
   const point = elem;
   const { distanceToPlane } = camera;
@@ -1598,18 +1603,18 @@ var rasterLine = function({ canvas, camera, elem, w, h, zBuffer }) {
     const inter = lineCameraPlaneIntersection(pointsInCamCoord[outVertex], pointsInCamCoord[inVertex], camera);
     pointsInCamCoord[outVertex] = inter;
   }
-  const projectedPoint = pointsInCamCoord.map((p) => p.scale(distanceToPlane / p.z));
-  const intPoint = projectedPoint.map((p) => {
+  const projectedPoints = pointsInCamCoord.map((p) => p.scale(distanceToPlane / p.z));
+  const intPoints = projectedPoints.map((p) => {
     let x = w / 2 + p.x * w;
     let y = h / 2 + p.y * h;
     x = Math.floor(x);
     y = Math.floor(y);
     return Vec2(x, y);
   });
-  const v = intPoint[1].sub(intPoint[0]);
+  const v = intPoints[1].sub(intPoints[0]);
   const vSquared = v.squareLength();
   const shader = (x, y) => {
-    const p = Vec2(x, y).sub(intPoint[0]);
+    const p = Vec2(x, y).sub(intPoints[0]);
     const t = v.dot(p) / vSquared;
     const z = pointsInCamCoord[0].z * (1 - t) + pointsInCamCoord[1].z * t;
     const c = colors[0].scale(1 - t).add(colors[1].scale(t));
@@ -1620,13 +1625,21 @@ var rasterLine = function({ canvas, camera, elem, w, h, zBuffer }) {
       return c;
     }
   };
-  canvas.drawLine(intPoint[0], intPoint[1], shader);
+  canvas.drawLine(intPoints[0], intPoints[1], shader);
 };
-var rasterTriangle = function({ canvas, camera, elem, w, h, zBuffer }) {
+var rasterTriangle = function({ canvas, camera, elem, w, h, zBuffer, params }) {
   const triangleElem = elem;
   const { distanceToPlane } = camera;
   const { colors, positions, texCoords, texture } = triangleElem;
   const pointsInCamCoord = positions.map((p) => camera.toCameraCoord(p));
+  if (params.cullBackFaces) {
+    const du = pointsInCamCoord[1].sub(pointsInCamCoord[0]);
+    const dv = pointsInCamCoord[2].sub(pointsInCamCoord[0]);
+    const n = Vec3(du.y * dv.z - du.z * dv.y, du.x * dv.z - du.z * dv.x, du.x * dv.y - du.y * dv.x);
+    const triangleDot = Vec3(0, 0, 1).dot(n);
+    if (triangleDot < 0)
+      return;
+  }
   let inFrustum = [];
   let outFrustum = [];
   pointsInCamCoord.forEach((p, i) => {
@@ -1639,19 +1652,21 @@ var rasterTriangle = function({ canvas, camera, elem, w, h, zBuffer }) {
   });
   if (outFrustum.length >= 1)
     return;
-  const projectedPoint = pointsInCamCoord.map((p) => p.scale(distanceToPlane / p.z));
-  const intPoint = projectedPoint.map((p) => {
+  const projectedPoints = pointsInCamCoord.map((p) => p.scale(distanceToPlane / p.z));
+  const intPoints = projectedPoints.map((p) => {
     let x = w / 2 + p.x * w;
     let y = h / 2 + p.y * h;
     x = Math.floor(x);
     y = Math.floor(y);
     return Vec2(x, y);
   });
-  const u = intPoint[1].sub(intPoint[0]);
-  const v = intPoint[2].sub(intPoint[0]);
+  const u = intPoints[1].sub(intPoints[0]);
+  const v = intPoints[2].sub(intPoints[0]);
   const det = u.x * v.y - u.y * v.x;
+  if (det === 0)
+    return;
   const shader = (x, y) => {
-    const p = Vec2(x, y).sub(intPoint[0]);
+    const p = Vec2(x, y).sub(intPoints[0]);
     const alpha = -(v.x * p.y - v.y * p.x) / det;
     const beta = (u.x * p.y - u.y * p.x) / det;
     const gamma = 1 - alpha - beta;
@@ -1659,7 +1674,7 @@ var rasterTriangle = function({ canvas, camera, elem, w, h, zBuffer }) {
     let c = colors[0].scale(gamma).add(colors[1].scale(alpha)).add(colors[2].scale(beta));
     if (texture && texCoords && texCoords.length > 0 && !texCoords.some((x2) => x2 === undefined)) {
       const texUV = texCoords[0].scale(gamma).add(texCoords[1].scale(alpha)).add(texCoords[2].scale(beta));
-      const texColor = getTexColor(texUV, texture);
+      const texColor = params.bilinearTexture ? getBiLinearTexColor(texUV, texture) : getTexColor(texUV, texture);
       c = c.add(texColor).scale(1 / 2);
     }
     const [i, j] = canvas.canvas2grid(x, y);
@@ -1669,7 +1684,7 @@ var rasterTriangle = function({ canvas, camera, elem, w, h, zBuffer }) {
       return c;
     }
   };
-  canvas.drawTriangle(intPoint[0], intPoint[1], intPoint[2], shader);
+  canvas.drawTriangle(intPoints[0], intPoints[1], intPoints[2], shader);
 };
 var lineCameraPlaneIntersection = function(vertexOut, vertexIn, camera) {
   const { distanceToPlane } = camera;
@@ -1677,6 +1692,22 @@ var lineCameraPlaneIntersection = function(vertexOut, vertexIn, camera) {
   const alpha = (distanceToPlane - vertexOut.z) / v.z;
   const p = vertexOut.add(v.scale(alpha));
   return p;
+};
+var getBiLinearTexColor = function(texUV, texture) {
+  const size = Vec2(texture.width, texture.height);
+  const texInt = texUV.mul(size);
+  const texInt0 = texInt.map(Math.floor);
+  const texInt1 = texInt0.add(Vec2(1, 0));
+  const texInt2 = texInt0.add(Vec2(0, 1));
+  const texInt3 = texInt0.add(Vec2(1, 1));
+  const color0 = texture.getPxl(...texInt0.toArray());
+  const color1 = texture.getPxl(...texInt1.toArray());
+  const color2 = texture.getPxl(...texInt2.toArray());
+  const color3 = texture.getPxl(...texInt3.toArray());
+  const x = texInt.sub(texInt0);
+  const bottomX = lerp(color0, color1)(x.x);
+  const topX = lerp(color2, color3)(x.x);
+  return lerp(bottomX, topX)(x.y);
 };
 var getTexColor = function(texUV, texture) {
   return texture.getPxl(texUV.x * texture.width, texUV.y * texture.height);
@@ -1735,7 +1766,7 @@ class Camera {
     };
     return this.rayShot(lambda);
   }
-  reverseShot(scene) {
+  reverseShot(scene, params = { cullBackFaces: true, bilinearTexture: false }) {
     const type2render = {
       [Point_default.name]: rasterPoint,
       [Line.name]: rasterLine,
@@ -1747,7 +1778,9 @@ class Camera {
         const w = canvas.width;
         const h = canvas.height;
         const zBuffer = new Float64Array(w * h).fill(Number.MAX_VALUE);
-        scene.getElements().forEach((elem) => {
+        const elements = scene.getElements();
+        for (let i = 0;i < elements.length; i++) {
+          const elem = elements[i];
           if (elem.constructor.name in type2render) {
             type2render[elem.constructor.name]({
               canvas,
@@ -1755,10 +1788,11 @@ class Camera {
               elem,
               w,
               h,
-              zBuffer
+              zBuffer,
+              params
             });
           }
-        });
+        }
         canvas.paint();
         return canvas;
       }
@@ -1771,7 +1805,10 @@ class Camera {
   }
 }
 
-// src/Ray/Ray.jstant
+// src/Utils/Constant
+var drawBox = function(canvas, box) {
+};
+
 class Scene {
   constructor() {
     this.id2ElemMap = {};
@@ -1814,6 +1851,20 @@ class Scene {
       grad.push(this.distanceToPoint(p.add(Vec.e(n)(i).scale(epsilon))) - d);
     }
     return Vec.fromArray(grad).scale(Math.sign(d)).normalize();
+  }
+  debug(props) {
+    const { camera, canvas } = props;
+    let { node, level } = props;
+    node = node || this.boundingBoxScene;
+    level = level || 0;
+    drawBox({ camera, canvas, box: node.box, level });
+    if (!node.isLeaf && node.left) {
+      this.debug({ canvas, camera, node: node.left, level: level + 1 });
+    }
+    if (!node.isLeaf && node.right) {
+      this.debug({ canvas, camera, node: node.right, level: level + 1 });
+    }
+    return canvas;
   }
 }
 
@@ -1940,7 +1991,7 @@ class Leaf {
   }
 }
 
-// src/Ray/Ray.jstants.jss
+// src/Utils/Constants.jss
 class NaiveScene {
   constructor() {
     this.id2ElemMap = {};
@@ -1998,9 +2049,12 @@ class NaiveScene {
     }
     return closest;
   }
+  debugTo(canvas) {
+    return canvas;
+  }
 }
 
-// src/Ray/Ray.jstan
+// src/Utils/Constan
 var RADIUS = 0.001;
 
 class Mesh {
@@ -2144,7 +2198,7 @@ class Mesh {
     return new Mesh({ vertices, normals, textureCoords, faces });
   }
 }
-// src/Ray/Ray.
+// src/Utils/Co
 var exports_IO = {};
 __export(exports_IO, {
   saveParallelImageStreamToVideo: () => {
@@ -2176,7 +2230,36 @@ __export(exports_IO, {
 import {writeFileSync, unlinkSync, readFileSync} from "fs";
 import {execSync, exec} from "child_process";
 
-// src/Ray/Ray.jstant
+// src/Utils/Constant
+var drawConvexPolygon2 = function(canvas, positions, shader) {
+  const { width, height } = canvas;
+  const canvasBox = new Box(Vec2(), Vec2(width, height));
+  let boundingBox = Box.EMPTY;
+  positions.forEach((x) => {
+    boundingBox = boundingBox.add(new Box(x, x));
+  });
+  const finalBox = canvasBox.intersection(boundingBox);
+  if (finalBox.isEmpty)
+    return canvas;
+  const [xMin, yMin] = finalBox.min.toArray();
+  const [xMax, yMax] = finalBox.max.toArray();
+  const isInsideFunc = isInsideConvex(positions);
+  for (let x = xMin;x < xMax; x++) {
+    for (let y = yMin;y < yMax; y++) {
+      if (isInsideFunc(Vec2(x, y))) {
+        const j = x;
+        const i = height - 1 - y;
+        const color = shader(x, y);
+        if (!color)
+          continue;
+        const index = width * i + j;
+        canvas._image[index] = color;
+      }
+    }
+  }
+  return canvas;
+};
+
 class Image {
   constructor(width, height) {
     this._width = width;
@@ -2247,6 +2330,9 @@ class Image {
     }
     return this;
   }
+  drawTriangle(x1, x2, x3, shader) {
+    return drawConvexPolygon2(this, [x1, x2, x3], shader);
+  }
   array() {
     return this.toArray();
   }
@@ -2306,7 +2392,7 @@ class Image {
   }
 }
 
-// src/Ray/Ray.
+// src/Utils/Co
 function saveImageToFile(fileAddress, image) {
   const { fileName, extension } = getFileNameAndExtensionFromAddress(fileAddress);
   const ppmName = `${fileName}.ppm`;

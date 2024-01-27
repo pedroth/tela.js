@@ -1,6 +1,6 @@
 import Color from "../Color/Color";
 import { MAX_8BIT } from "../Utils/Constants";
-import { clipLine, mod } from "../Utils/Math";
+import { clipLine, isInsideConvex, mod } from "../Utils/Math";
 import Box from "../Box/Box"
 import { Vec2 } from "../Vector/Vector";
 import { measureTime } from "../Utils/Utils";
@@ -251,31 +251,6 @@ function drawConvexPolygon(canvas, positions, shader) {
   }
   return canvas;
 }
-
-
-
-
-function isInsideConvex(positions) {
-  const m = positions.length;
-  const v = [];
-  const n = [];
-  for (let i = 0; i < m; i++) {
-    const p1 = positions[(i + 1) % m];
-    const p0 = positions[i];
-    v[i] = p1.sub(p0);
-    n[i] = Vec2(-v[i].y, v[i].x);
-  }
-  const orientation = v[0].x * v[1].y - v[0].y * v[1].x >= 0 ? 1 : -1;
-  return x => {
-    for (let i = 0; i < m; i++) {
-      const r = x.sub(positions[i]);
-      const myDot = r.dot(n[i]) * orientation;
-      if (myDot < 0) return false;
-    }
-    return true;
-  }
-}
-
 
 function handleMouse(canvas, lambda) {
   return event => {

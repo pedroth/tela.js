@@ -55,6 +55,21 @@ export default class Scene {
     }
     return Vec.fromArray(grad).scale(Math.sign(d)).normalize();
   }
+
+  debug(props) {
+    const { camera, canvas } = props;
+    let { node, level } = props;
+    node = node || this.boundingBoxScene;
+    level = level || 0;
+    drawBox({ camera, canvas, box: node.box, level });
+    if (!node.isLeaf && node.left) {
+      this.debug({ canvas, camera, node: node.left, level: level + 1 })
+    }
+    if (!node.isLeaf && node.right) {
+      this.debug({ canvas, camera, node: node.right, level: level + 1 })
+    }
+    return canvas;
+  }
 }
 
 class Node {
@@ -193,4 +208,15 @@ class Leaf {
     // return this.box.interceptWith(ray).map(pos => [pos, this.box.estimateNormal(pos)]);
     return this.element.interceptWith(ray);
   }
+}
+
+
+//========================================================================================
+/*                                                                                      *
+ *                                         UTILS                                        *
+ *                                                                                      */
+//========================================================================================
+
+function drawBox(canvas, box) {
+
 }

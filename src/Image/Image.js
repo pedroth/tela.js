@@ -1,7 +1,7 @@
 import Box from "../Box/Box.js";
 import Color from "../Color/Color.js";
 import { readImageFrom } from "../IO/IO.js";
-import { clipLine, mod } from "../Utils/Math.js";
+import { clipLine, isInsideConvex, mod } from "../Utils/Math.js";
 import { Vec2 } from "../Vector/Vector.js";
 
 export default class Image {
@@ -90,6 +90,10 @@ export default class Image {
         return this;
     }
 
+    drawTriangle(x1, x2, x3, shader) {
+        return drawConvexPolygon(this, [x1, x2, x3], shader);
+    }
+
     array() {
         return this.toArray();
     }
@@ -156,4 +160,34 @@ export default class Image {
                 return canvas.get(x, y);
             })
     }
+}
+
+
+
+function drawConvexPolygon(canvas, positions, shader) {
+    const { width, height } = canvas;
+    const canvasBox = new Box(Vec2(), Vec2(width, height));
+    let boundingBox = Box.EMPTY;
+    positions.forEach((x) => {
+        boundingBox = boundingBox.add(new Box(x, x));
+    });
+    const finalBox = canvasBox.intersection(boundingBox);
+    if (finalBox.isEmpty) return canvas;
+    const [xMin, yMin] = finalBox.min.toArray();
+    const [xMax, yMax] = finalBox.max.toArray();
+
+    const isInsideFunc = isInsideConvex(positions);
+    for (let x = xMin; x < xMax; x++) {
+        for (let y = yMin; y < yMax; y++) {
+            if (isInsideFunc(Vec2(x, y))) {
+                const j = x;
+                const i = height - 1 - y;
+                const color = shader(x, y);
+                if (!color) continue;
+                const index = width * i + j;
+                canvas._image[index] = color;
+            }
+        }
+    }
+    return canvas;
 }

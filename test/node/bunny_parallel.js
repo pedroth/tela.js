@@ -37,7 +37,7 @@ const { measureTimeWithAsyncResult } = Utils;
                 return { scene };
             })
             .inputStreamGenerator((i) => ({ time: i * dt, width, height }))
-            .partitionFunction((_, i) => i % (numberOfProcessors / 2))
+            .partitionFunction((_, i) => i % (numberOfProcessors))
             .stateGenerator(({ time, width, height, scene }) => bunny({ time, width, height, scene }), [bunny])
             .build()
 

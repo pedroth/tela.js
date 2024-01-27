@@ -45,11 +45,7 @@ async (canvas, fps, logger) => {
     spotMesh = spotMesh
         .mapVertices(v => Vec3(-v.y, v.x, v.z))
         .mapVertices(v => Vec3(v.z, v.y, -v.x))
-        .mapColors(v =>
-            Color.ofRGB(...v
-                .map(x => Math.max(0, Math.min(1, 0.5 * (x + 1)))).toArray()
-            )
-        )
+        .mapColors((v) => Color.ofRGB(1 - v.x, v.y))
     scene.addList(spotMesh.asPoints("spot", 0.05));
 
     const stanfordBunnyObj = await fetch("/assets/bunny.obj")
