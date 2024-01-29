@@ -458,7 +458,7 @@ const examples = [
         path: "/test/web/bunny.js"
     },
     {
-        title: "Wire frame bunny and spot",
+        title: "Wire frame spot",
         path: "/test/web/wireframe.js"
     },
     {
@@ -501,7 +501,7 @@ function execCode(code) {
             const script = DOM.of("script").build();
             script.type = "module";
             script.textContent = `
-            import {Canvas, DOM, Color, Animation, Scene, Camera, Vec2, Vec3, Vec, Box, Point, Mesh, NaiveScene, Line, Triangle} from "/dist/web/index.js"
+            import {Canvas, DOM, Color, Animation, Scene, Camera, Vec2, Vec3, Vec, Box, Point, Mesh, NaiveScene, Line, Triangle,clamp } from "/dist/web/index.js"
             Animation.globalAnimationIds.forEach(id => {
                 window.cancelAnimationFrame(id)
             });

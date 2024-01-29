@@ -14,13 +14,13 @@ const { saveImageStreamToVideo } = IO;
     const camera = new Camera({ sphericalCoords: Vec3(100, Math.PI, 0) });
     // scene
     const obj = readFileSync("./assets/megaman.obj", { encoding: "utf-8" });
-    let mesh = Mesh.readObj(obj);
+    let mesh = Mesh.readObj(obj, "mesh");
     mesh = mesh
         .addTexture(await Image.ofUrl("./assets/megaman.png"))
         .mapColors(() => Color.ofRGB(0.25, 0.25, 0.25))
         .mapVertices(v => Vec3(-v.y, v.x, v.z))
         .mapVertices(v => Vec3(v.z, v.y, -v.x))
-    scene.addList(mesh.asTriangles("mesh"));
+    scene.addList(mesh.asTriangles());
 
     const imageStream = new Stream(
         { time: 0, i: 0, image: camera.reverseShot(scene, {cullBackFaces: false}).to(Image.ofSize(width, height)) },

@@ -40,7 +40,7 @@ async (canvas, fps, logger) => {
     })
     // scene
     const stanfordBunnyObj = await fetch("/assets/bunny.obj").then(x => x.text());
-    let bunnyMesh = Mesh.readObj(stanfordBunnyObj);
+    let bunnyMesh = Mesh.readObj(stanfordBunnyObj, "bunny");
     const bunnyBox = bunnyMesh.getBoundingBox();
     bunnyMesh = bunnyMesh
         .mapVertices(v =>
@@ -51,7 +51,7 @@ async (canvas, fps, logger) => {
         .mapColors(v =>
             Color.ofRGB(...v.map(x => Math.max(0, Math.min(1, 0.5 * (x + 1)))).toArray())
         )
-    scene.addList(bunnyMesh.asPoints("bunny", 0.02));
+    scene.addList(bunnyMesh.asPoints(0.02));
 
     // boilerplate for fps
     Animation

@@ -1,4 +1,4 @@
-import { Color, Image, Stream, IO, Utils, Mesh, Vec3, Scene, Camera } from "../../dist/node/index.js";
+import { Color, Image, Stream, IO, Utils, Mesh, Vec3, Scene, Camera, clamp } from "../../dist/node/index.js";
 import { readFileSync } from "fs"
 
 const { measureTime, measureTimeWithResult } = Utils;
@@ -12,17 +12,17 @@ const dt = 1 / FPS;
 const maxT = 10;
 
 // scene
-const scene = new Scene()
+const scene = new Scene();
 const camera = new Camera({ sphericalCoords: Vec3(5, 0, 0) });
-const stanfordBunnyObj = readFileSync("./assets/bunny.obj", { encoding: "utf-8" });
-let bunnyMesh = Mesh.readObj(stanfordBunnyObj);
+const stanfordBunnyObj = readFileSync("./assets/bunny_orig.obj", { encoding: "utf-8" });
+let bunnyMesh = Mesh.readObj(stanfordBunnyObj, "bunny");
 const bunnyBox = bunnyMesh.getBoundingBox();
 bunnyMesh = bunnyMesh
     .mapVertices(v => v.sub(bunnyBox.min).div(bunnyBox.diagonal).scale(2).sub(Vec3(1, 1, 1)))
     .mapVertices(v => Vec3(-v.y, v.x, v.z))
     .mapVertices(v => Vec3(v.z, v.y, -v.x))
-    .mapColors(v => Color.ofRGB(...v.map(x => Math.max(0, Math.min(1, 0.5 * (x + 1)))).toArray()));
-scene.add(...bunnyMesh.asPoints("bunny", 0.05));
+    .mapColors(v => Color.ofRGB(...v.map(x => clamp()((x + 1) / 2)).toArray()));
+scene.add(...bunnyMesh.asPoints(0.05));
 
 const imageStream = new Stream(
     { time: 0, image: camera.sceneShot(scene).to(Image.ofSize(width, height)) },

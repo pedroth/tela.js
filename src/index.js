@@ -36,3 +36,4 @@ export {
 
 export * as Utils from "./Utils/Utils.js";
 export * as Monads from "./Monads/Monads.js";
+export * from "./Utils/Math.js"

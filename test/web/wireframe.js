@@ -1,3 +1,4 @@
+
 /* eslint-disable no-undef */
 async (canvas, fps, logger) => {
     // resize incoming canvas:Canvas object.
@@ -41,43 +42,29 @@ async (canvas, fps, logger) => {
     // scene
     const spotObj = await fetch("/assets/spot.obj")
         .then(x => x.text());
-    let spotMesh = Mesh.readObj(spotObj);
+    let spotMesh = Mesh.readObj(spotObj, "spot");
     spotMesh = spotMesh
         .addTexture(await Canvas.ofUrl("/assets/spot.png"))
         .mapVertices(v => Vec3(-v.y, v.x, v.z))
         .mapVertices(v => Vec3(v.z, v.y, -v.x))
         .mapColors(() => Color.ofRGB(0.25, 0.25, 0.25))
         .mapVertices(v => v.add(Vec3(0, 0, 0)))
-    scene.addList(spotMesh.asTriangles("spot"));
+    scene.addList(spotMesh.asTriangles());
 
-    const stanfordBunnyObj = await fetch("/assets/bunny.obj")
-        .then(x => x.text());
-    let bunnyMesh = Mesh.readObj(stanfordBunnyObj);
-    const bunnyBox = bunnyMesh.getBoundingBox();
-    bunnyMesh = bunnyMesh
-        .mapVertices(v =>
-            v
-                .sub(bunnyBox.min)
-                .div(bunnyBox.diagonal)
-                .scale(2)
-                .sub(Vec3(1, 1, 1))
-        )
-        .mapVertices(v => Vec3(-v.y, v.x, v.z))
-        .mapVertices(v => Vec3(v.z, v.y, -v.x))
-        .mapVertices(v => v.add(Vec3(0, -1, 0)))
-        .mapColors(v =>
-            Color.ofRGB(...v
-                .map(x => Math.max(0, Math.min(1, 0.5 * (x + 1)))).toArray()
-            )
-        )
-    scene.addList(bunnyMesh.asLines("bunny"));
+    scene.addList(
+        spotMesh
+            .mapVertices(v => v.scale(1.03))
+            .mapColors(() => Color.ofRGB(0, 0.5, 0.7))
+            .setName("spot-lines")
+            .asLines()
+    )
 
     // boilerplate for fps
     Animation
         .builder()
         .initialState({ it: 1, oldTime: new Date().getTime() })
         .nextState(({ it, oldTime }) => {
-            camera.reverseShot(scene, {bilinearTexture: false}).to(canvas);
+            camera.reverseShot(scene).to(canvas);
             const dt = (new Date().getTime() - oldTime) * 1e-3;
             logger.print(Math.floor(1 / dt));
             return {

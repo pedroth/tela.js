@@ -23,7 +23,7 @@ const { measureTimeWithResult, measureTime } = Utils;
                 point: Point
                     .builder()
                     .name(`pxl_${k}`)
-                    .radius(0.01)
+                    .radius(1e-5)
                     .position(initial)
                     .color(img.getPxl(x, y))
                     .build()
@@ -69,10 +69,6 @@ const { measureTimeWithResult, measureTime } = Utils;
             }
         }
     })();
-
-    // let image = camera.reverseShot(scene).to(Image.ofSize(width, height));
-    // saveImageToFile("test0.jpg", image);
-    // saveImageToFile("test1.jpg", image.fill(Color.BLACK));
 
     const imageStream = new Stream(
         { time: 0, image: camera.reverseShot(scene).to(Image.ofSize(width, height)) },

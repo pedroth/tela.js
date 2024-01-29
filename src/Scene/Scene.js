@@ -1,10 +1,12 @@
 
 import Box from "../Box/Box.js";
-import Vec from "../Vector/Vector.js";
+import Vec, { Vec3 } from "../Vector/Vector.js";
 import { smin } from "../Utils/Math.js";
 import { argmin } from "../Utils/Utils.js";
 import { none, some } from "../Monads/Monads.js";
 import Color from "../Color/Color.js";
+import NaiveScene from "./NaiveScene.js";
+import Mesh from "./Mesh.js";
 
 export default class Scene {
   constructor() {
@@ -59,15 +61,23 @@ export default class Scene {
 
   debug(props) {
     const { camera, canvas } = props;
-    let { node, level } = props;
+    let { node, level, level2colors } = props;
     node = node || this.boundingBoxScene;
     level = level || 0;
-    drawBox({ camera, canvas, box: node.box, level });
+    level2colors = level2colors || [];
+    if (level === 0) {
+      const maxLevels = Math.round(Math.log2(node.numberOfLeafs));
+      for (let i = 0; i <= maxLevels; i++)
+        level2colors.push(
+          Color.RED.scale(1 - i / maxLevels).add(Color.BLUE.scale(i / maxLevels))
+        );
+    }
+    drawBox({ camera, canvas, box: node.box, level, level2colors });
     if (!node.isLeaf && node.left) {
-      this.debug({ canvas, camera, node: node.left, level: level + 1 })
+      this.debug({ canvas, camera, node: node.left, level: level + 1, level2colors })
     }
     if (!node.isLeaf && node.right) {
-      this.debug({ canvas, camera, node: node.right, level: level + 1 })
+      this.debug({ canvas, camera, node: node.right, level: level + 1, level2colors })
     }
     return canvas;
   }
@@ -218,26 +228,8 @@ class Leaf {
  *                                                                                      */
 //========================================================================================
 
-const UNIT_BOX_VERTEX = [
-  Vec3(),
-  Vec3(1,0,0),
-  Vec3(1,1,0),
-  Vec3(0,1,0),
-  Vec3(0,0,1),
-  Vec3(1,0,1),
-  Vec3(1,1,1),
-  Vec3(0,1,1),
-]
-const UNIT_BOX_LINES = [
-  [0,1],
-  [1,2],
-  [2,3],
-  [3,0],
-  []
-]
-function drawBox(camera, canvas, box, level) {
-  const maxLevels = 10;
-  const level2colors = [...Array(maxLevels)].map((_, i) => Color.RED.scale(1 - i / maxLevels).add(Color.BLUE.scale(i / maxLevels)));
-  const 
-
+function drawBox({ camera, canvas, box, level, level2colors }) {
+  const auxScene = new NaiveScene();
+  auxScene.addList(Mesh.ofBox(box).mapColors(() => level2colors[level]).asLines())
+  camera.reverseShot(auxScene, { clearScreen: false }).to(canvas);
 }

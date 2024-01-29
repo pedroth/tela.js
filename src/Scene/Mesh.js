@@ -4,16 +4,62 @@ import Box from "../Box/Box.js";
 import Line from "./Line.js";
 import Triangle from "./Triangle.js";
 import { groupBy } from "../Utils/Utils.js";
-
+//========================================================================================
+/*                                                                                      *
+ *                                       CONSTANTS                                      *
+ *                                                                                      */
+//========================================================================================
+let MESH_COUNTER = 0;
 const RADIUS = 0.001;
+
+const UNIT_BOX_VERTEX = [
+    Vec3(),
+    Vec3(1, 0, 0),
+    Vec3(1, 1, 0),
+    Vec3(0, 1, 0),
+    Vec3(0, 0, 1),
+    Vec3(1, 0, 1),
+    Vec3(1, 1, 1),
+    Vec3(0, 1, 1),
+]
+const UNIT_BOX_FACES = [
+    // x-y
+    [0, 1, 2],
+    [2, 3, 0],
+    [4, 5, 6],
+    [6, 7, 4],
+    // x-z
+    [0, 1, 4],
+    [4, 5, 1],
+    [2, 3, 6],
+    [6, 7, 3],
+    // y-z
+    [0, 3, 7],
+    [7, 4, 0],
+    [1, 2, 6],
+    [6, 5, 1]
+]
+
+//========================================================================================
+/*                                                                                      *
+ *                                      MAIN CLASS                                      *
+ *                                                                                      */
+//========================================================================================
+
 export default class Mesh {
-    constructor({ vertices, normals, textureCoords, faces, colors, texture }) {
+    constructor({ name, vertices, normals, textureCoords, faces, colors, texture }) {
         this.vertices = vertices || [];
         this.normals = normals || [];
         this.textureCoords = textureCoords || [];
         this.faces = faces || [];
         this.colors = colors || [];
         this.texture = texture;
+        this.name = name;
+    }
+
+    setName(name) {
+        this.name = name;
+        return this;
     }
 
     /**
@@ -30,6 +76,7 @@ export default class Mesh {
             newVertices.push(lambda(this.vertices[i]));
         }
         return new Mesh({
+            name: this.name,
             vertices: newVertices,
             normals: this.normals,
             textureCoords: this.textureCoords,
@@ -45,12 +92,13 @@ export default class Mesh {
             newColors.push(lambda(this.vertices[i]));
         }
         return new Mesh({
+            name: this.name,
             vertices: this.vertices,
             normals: this.normals,
             textureCoords: this.textureCoords,
             faces: this.faces,
             colors: newColors,
-            texture: this.texture
+            texture: this.texture,
         })
     }
 
@@ -66,7 +114,7 @@ export default class Mesh {
         return this.boundingBox;
     }
 
-    asPoints(name, radius = RADIUS) {
+    asPoints(radius = RADIUS) {
         const points = {};
         for (let i = 0; i < this.faces.length; i++) {
             const texCoordIndexes = this
@@ -79,7 +127,7 @@ export default class Mesh {
                 .faces[i]
                 .vertices
             for (let j = 0; j < 3; j++) {
-                const pointName = `${name}_${verticesIndexes[j]}`
+                const pointName = `${this.name}_${verticesIndexes[j]}`
                 if (!(pointName in points)) {
                     points[pointName] = Point
                         .builder()
@@ -97,7 +145,7 @@ export default class Mesh {
         return Object.values(points);
     }
 
-    asLines(name) {
+    asLines() {
         const lines = {};
         for (let i = 0; i < this.faces.length; i++) {
             const indices = this.faces[i].vertices;
@@ -105,7 +153,7 @@ export default class Mesh {
                 const vi = indices[j];
                 const vj = indices[(j + 1) % indices.length];
                 const edge_id = [vi, vj].sort().join("_");
-                const edge_name = `${name}_${edge_id}`;
+                const edge_name = `${this.name}_${edge_id}`;
                 lines[edge_id] =
                     Line
                         .builder()
@@ -118,7 +166,7 @@ export default class Mesh {
         return Object.values(lines);
     }
 
-    asTriangles(name) {
+    asTriangles() {
         const triangles = [];
         for (let i = 0; i < this.faces.length; i++) {
             let texCoordIndexes = this
@@ -132,7 +180,7 @@ export default class Mesh {
                 .vertices
             const edge_id = verticesIndexes
                 .join("_");
-            const edge_name = `${name}_${edge_id}`;
+            const edge_name = `${this.name}_${edge_id}`;
             triangles.push(
                 Triangle
                     .builder()
@@ -149,7 +197,7 @@ export default class Mesh {
         return Object.values(triangles);
     }
 
-    static readObj(objFile) {
+    static readObj(objFile, name = `Mesh_${MESH_COUNTER++}`) {
         const vertices = [];
         const normals = [];
         const textureCoords = [];
@@ -204,6 +252,11 @@ export default class Mesh {
             }
         }
         // const newFaces = faces.map((f, i) => i % 2 === 0 ? f : { ...f, textures: [f.textures[0], f.textures[2], f.textures[1]] })
-        return new Mesh({ vertices, normals, textureCoords, faces })
+        return new Mesh({ name, vertices, normals, textureCoords, faces })
+    }
+
+    static ofBox(box, name) {
+        const vertices = UNIT_BOX_VERTEX.map(v => v.mul(box.diagonal).add(box.min))
+        return new Mesh({ name: name, vertices, faces: UNIT_BOX_FACES.map(indx => ({ vertices: indx })) });
     }
 }

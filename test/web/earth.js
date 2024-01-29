@@ -42,15 +42,19 @@ async (canvas, fps, logger) => {
     // From https://eoimages.gsfc.nasa.gov/images/imagerecords/73000/73751/world.topo.bathy.200407.3x5400x2700.jpg
     const texture = await Canvas.ofUrl("/assets/earth.jpg");
     const earthObj = await fetch("/assets/earth.obj").then(x => x.text());
-    const earthMesh = Mesh.readObj(earthObj)
+    const earthMesh = Mesh.readObj(earthObj, "earth")
         .mapColors(() => Color.ofRGB(0.25, 0.25, 0.25))
         .addTexture(texture)
-    scene.addList(earthMesh.asTriangles("earth"));
+    scene.addList(earthMesh.asTriangles());
     Animation
         .builder()
         .initialState({ it: 1, oldTime: new Date().getTime() })
         .nextState(({ it, oldTime }) => {
-            camera.reverseShot(scene).to(canvas);
+            camera.reverseShot(
+                scene,
+                { cullBackFaces: true, bilinearTextures: false, clipCameraPlane: false }
+            )
+                .to(canvas);
             const dt = (new Date().getTime() - oldTime) * 1e-3;
             logger.print(Math.floor(1 / dt));
             return {

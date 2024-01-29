@@ -1580,7 +1580,7 @@ var rasterPoint = function({ canvas, camera, elem, w, h, zBuffer }) {
     }
   }
 };
-var rasterLine = function({ canvas, camera, elem, w, h, zBuffer }) {
+var rasterLine = function({ canvas, camera, elem, w, h, zBuffer, params }) {
   const lineElem = elem;
   const { colors, positions } = lineElem;
   const { distanceToPlane } = camera;
@@ -1595,7 +1595,7 @@ var rasterLine = function({ canvas, camera, elem, w, h, zBuffer }) {
       inFrustum.push(i);
     }
   });
-  if (outFrustum.length === 2)
+  if (params.clipCameraPlane && outFrustum.length === 2)
     return;
   if (outFrustum.length === 1) {
     const inVertex = inFrustum[0];
@@ -1650,7 +1650,7 @@ var rasterTriangle = function({ canvas, camera, elem, w, h, zBuffer, params }) {
       inFrustum.push(i);
     }
   });
-  if (outFrustum.length >= 1)
+  if (params.clipCameraPlane && outFrustum.length >= 1)
     return;
   const projectedPoints = pointsInCamCoord.map((p) => p.scale(distanceToPlane / p.z));
   const intPoints = projectedPoints.map((p) => {
@@ -1725,6 +1725,13 @@ class Camera {
     this.distanceToPlane = distanceToPlane || 1;
     this.orbit();
   }
+  clone() {
+    return new Camera({
+      sphericalCoordinates: this.sphericalCoords,
+      focalPoint: this.focalPoint,
+      distanceToPlane: this.distanceToPlane
+    });
+  }
   orbit() {
     const [rho, theta, phi] = this.sphericalCoords.toArray();
     const cosT = Math.cos(theta);
@@ -1746,8 +1753,8 @@ class Camera {
         const h = canvas.height;
         return canvas.map((x, y) => {
           const dirInLocal = [
-            2 * (x / w) - 1,
-            2 * (y / h) - 1,
+            (x - w / 2) / w,
+            (y - h / 2) / h,
             1
           ];
           const dir = this.basis[0].scale(dirInLocal[0]).add(this.basis[1].scale(dirInLocal[1])).add(this.basis[2].scale(dirInLocal[2])).normalize();
@@ -1756,7 +1763,7 @@ class Camera {
       }
     };
   }
-  sceneShot(scene) {
+  sceneShot(scene, params = {}) {
     const lambda = (ray) => {
       return scene.interceptWith(ray).map(([, normal]) => {
         return Color.ofRGB((normal.get(0) + 1) / 2, (normal.get(1) + 1) / 2, (normal.get(2) + 1) / 2);
@@ -1766,15 +1773,19 @@ class Camera {
     };
     return this.rayShot(lambda);
   }
-  reverseShot(scene, params = { cullBackFaces: true, bilinearTexture: false }) {
+  reverseShot(scene, params = {}) {
     const type2render = {
       [Point_default.name]: rasterPoint,
       [Line.name]: rasterLine,
       [Triangle.name]: rasterTriangle
     };
+    params.cullBackFaces = params?.cullBackFaces ?? true;
+    params.bilinearTexture = params?.bilinearTexture ?? false;
+    params.clipCameraPlane = params?.clipCameraPlane ?? true;
+    params.clearScreen = params?.clearScreen ?? true;
     return {
       to: (canvas) => {
-        canvas.fill(Color.BLACK);
+        params.clearScreen && canvas.fill(Color.BLACK);
         const w = canvas.width;
         const h = canvas.height;
         const zBuffer = new Float64Array(w * h).fill(Number.MAX_VALUE);
@@ -1805,8 +1816,255 @@ class Camera {
   }
 }
 
+// src/Utils/Constants.jss
+class NaiveScene {
+  constructor() {
+    this.id2ElemMap = {};
+    this.sceneElements = [];
+  }
+  add(...elements) {
+    return this.addList(elements);
+  }
+  addList(elements) {
+    for (let i = 0;i < elements.length; i++) {
+      const elem = elements[i];
+      const { name } = elem;
+      this.id2ElemMap[name] = elem;
+      this.sceneElements.push(elem);
+    }
+    return this;
+  }
+  clear() {
+    this.id2ElemMap = {};
+    this.sceneElements = [];
+  }
+  getElements() {
+    return this.sceneElements;
+  }
+  distanceToPoint(p) {
+    const elements = this.sceneElements;
+    let distance = Number.MAX_VALUE;
+    for (let i = 0;i < elements.length; i++) {
+      distance = smin(distance, elements[i].distanceToPoint(p));
+    }
+    return;
+  }
+  estimateNormal(p) {
+    const epsilon = 0.001;
+    const n = p.dim;
+    const grad = [];
+    const d = this.distanceToPoint(p);
+    for (let i = 0;i < n; i++) {
+      grad.push(this.distanceToPoint(p.add(Vec.e(n)(i).scale(epsilon))) - d);
+    }
+    return Vec.fromArray(grad).scale(Math.sign(d)).normalize();
+  }
+  interceptWith(ray) {
+    const points = this.sceneElements;
+    let closestDistance = Number.MAX_VALUE;
+    let closest = none();
+    for (let i = 0;i < points.length; i++) {
+      points[i].interceptWith(ray).map(([pos, normal]) => {
+        const distance = ray.init.sub(pos).length();
+        if (distance < closestDistance) {
+          closest = some([pos, normal]);
+          closestDistance = distance;
+        }
+      });
+    }
+    return closest;
+  }
+  debugTo(canvas) {
+    return canvas;
+  }
+}
+
+// src/Utils/Constan
+var MESH_COUNTER = 0;
+var RADIUS = 0.001;
+var UNIT_BOX_VERTEX = [
+  Vec3(),
+  Vec3(1, 0, 0),
+  Vec3(1, 1, 0),
+  Vec3(0, 1, 0),
+  Vec3(0, 0, 1),
+  Vec3(1, 0, 1),
+  Vec3(1, 1, 1),
+  Vec3(0, 1, 1)
+];
+var UNIT_BOX_FACES = [
+  [0, 1, 2],
+  [2, 3, 0],
+  [4, 5, 6],
+  [6, 7, 4],
+  [0, 1, 4],
+  [4, 5, 1],
+  [2, 3, 6],
+  [6, 7, 3],
+  [0, 3, 7],
+  [7, 4, 0],
+  [1, 2, 6],
+  [6, 5, 1]
+];
+
+class Mesh {
+  constructor({ name, vertices, normals, textureCoords, faces, colors, texture }) {
+    this.vertices = vertices || [];
+    this.normals = normals || [];
+    this.textureCoords = textureCoords || [];
+    this.faces = faces || [];
+    this.colors = colors || [];
+    this.texture = texture;
+    this.name = name;
+  }
+  setName(name) {
+    this.name = name;
+    return this;
+  }
+  addTexture(image) {
+    this.texture = image;
+    return this;
+  }
+  mapVertices(lambda) {
+    const newVertices = [];
+    for (let i = 0;i < this.vertices.length; i++) {
+      newVertices.push(lambda(this.vertices[i]));
+    }
+    return new Mesh({
+      name: this.name,
+      vertices: newVertices,
+      normals: this.normals,
+      textureCoords: this.textureCoords,
+      faces: this.faces,
+      texture: this.texture,
+      colors: this.colors
+    });
+  }
+  mapColors(lambda) {
+    const newColors = [];
+    for (let i = 0;i < this.vertices.length; i++) {
+      newColors.push(lambda(this.vertices[i]));
+    }
+    return new Mesh({
+      name: this.name,
+      vertices: this.vertices,
+      normals: this.normals,
+      textureCoords: this.textureCoords,
+      faces: this.faces,
+      colors: newColors,
+      texture: this.texture
+    });
+  }
+  getBoundingBox() {
+    if (this.boundingBox)
+      return this.boundingBox;
+    this.boundingBox = new Box;
+    for (let i = 0;i < this.vertices.length; i++) {
+      this.boundingBox = this.boundingBox.add(new Box(this.vertices[i].add(Vec3(1, 1, 1).scale(RADIUS)), this.vertices[i].add(Vec3(1, 1, 1).scale(RADIUS))));
+    }
+    return this.boundingBox;
+  }
+  asPoints(radius = RADIUS) {
+    const points = {};
+    for (let i = 0;i < this.faces.length; i++) {
+      const texCoordIndexes = this.faces[i].textures;
+      const normalIndexes = this.faces[i].normals;
+      const verticesIndexes = this.faces[i].vertices;
+      for (let j = 0;j < 3; j++) {
+        const pointName = `${this.name}_${verticesIndexes[j]}`;
+        if (!(pointName in points)) {
+          points[pointName] = Point_default.builder().name(pointName).radius(radius).texture(this.texture).color(this.colors[verticesIndexes[j]]).normal(this.normals[normalIndexes[j]]).position(this.vertices[verticesIndexes[j]]).texCoord(this.textureCoords[texCoordIndexes[j]]).build();
+        }
+      }
+    }
+    return Object.values(points);
+  }
+  asLines() {
+    const lines = {};
+    for (let i = 0;i < this.faces.length; i++) {
+      const indices = this.faces[i].vertices;
+      for (let j = 0;j < indices.length; j++) {
+        const vi = indices[j];
+        const vj = indices[(j + 1) % indices.length];
+        const edge_id = [vi, vj].sort().join("_");
+        const edge_name = `${this.name}_${edge_id}`;
+        lines[edge_id] = Line.builder().name(edge_name).positions(this.vertices[vi], this.vertices[vj]).colors(this.colors[vi], this.colors[vj]).build();
+      }
+    }
+    return Object.values(lines);
+  }
+  asTriangles() {
+    const triangles = [];
+    for (let i = 0;i < this.faces.length; i++) {
+      let texCoordIndexes = this.faces[i].textures;
+      const normalIndexes = this.faces[i].normals;
+      const verticesIndexes = this.faces[i].vertices;
+      const edge_id = verticesIndexes.join("_");
+      const edge_name = `${this.name}_${edge_id}`;
+      triangles.push(Triangle.builder().name(edge_name).texture(this.texture).colors(...verticesIndexes.map((j) => this.colors[j])).normals(...normalIndexes.map((j) => this.normals[j])).positions(...verticesIndexes.map((j) => this.vertices[j])).texCoords(...texCoordIndexes.map((j) => this.textureCoords[j])).build());
+    }
+    return Object.values(triangles);
+  }
+  static readObj(objFile, name = `Mesh_${MESH_COUNTER++}`) {
+    const vertices = [];
+    const normals = [];
+    const textureCoords = [];
+    const faces = [];
+    const lines = objFile.split("\n");
+    for (let i = 0;i < lines.length; i++) {
+      const line = lines[i];
+      const spaces = line.split(" ");
+      const type = spaces[0];
+      if (!type)
+        continue;
+      if (type === "v") {
+        const v = spaces.slice(1, 4).map((x) => Number.parseFloat(x));
+        vertices.push(Vec3(...v));
+        continue;
+      }
+      if (type === "vn") {
+        const v = spaces.slice(1, 4).map((x) => Number.parseFloat(x));
+        normals.push(Vec3(...v));
+        continue;
+      }
+      if (type === "vt") {
+        const v = spaces.slice(1, 3).map((x) => Number.parseFloat(x));
+        textureCoords.push(Vec2(...v));
+        continue;
+      }
+      if (type === "f") {
+        const facesInfo = spaces.slice(1, 4).flatMap((x) => x.split("/")).map((x) => Number.parseFloat(x));
+        const length = facesInfo.length;
+        const lengthDiv3 = length / 3;
+        const group = groupBy(facesInfo, (_, i2) => i2 % Math.floor(lengthDiv3));
+        const face = { vertices: [], textures: [], normals: [] };
+        Object.keys(group).map((k) => {
+          k = Number.parseInt(k);
+          const indices = group[k].map((x) => x - 1);
+          if (k === 0)
+            face.vertices = indices;
+          if (k === 1)
+            face.textures = indices;
+          if (k === 2)
+            face.normals = indices;
+        });
+        faces.push(face);
+        continue;
+      }
+    }
+    return new Mesh({ name, vertices, normals, textureCoords, faces });
+  }
+  static ofBox(box, name) {
+    const vertices = UNIT_BOX_VERTEX.map((v) => v.mul(box.diagonal).add(box.min));
+    return new Mesh({ name, vertices, faces: UNIT_BOX_FACES.map((indx3) => ({ vertices: indx3 })) });
+  }
+}
+
 // src/Utils/Constant
-var drawBox = function(canvas, box) {
+var drawBox = function({ camera, canvas, box, level, level2colors }) {
+  const auxScene = new NaiveScene;
+  auxScene.addList(Mesh.ofBox(box).mapColors(() => level2colors[level]).asLines());
+  camera.reverseShot(auxScene, { clearScreen: false }).to(canvas);
 };
 
 class Scene {
@@ -1854,15 +2112,21 @@ class Scene {
   }
   debug(props) {
     const { camera, canvas } = props;
-    let { node, level } = props;
+    let { node, level, level2colors } = props;
     node = node || this.boundingBoxScene;
     level = level || 0;
-    drawBox({ camera, canvas, box: node.box, level });
+    level2colors = level2colors || [];
+    if (level === 0) {
+      const maxLevels = Math.round(Math.log2(node.numberOfLeafs));
+      for (let i = 0;i <= maxLevels; i++)
+        level2colors.push(Color.RED.scale(1 - i / maxLevels).add(Color.BLUE.scale(i / maxLevels)));
+    }
+    drawBox({ camera, canvas, box: node.box, level, level2colors });
     if (!node.isLeaf && node.left) {
-      this.debug({ canvas, camera, node: node.left, level: level + 1 });
+      this.debug({ canvas, camera, node: node.left, level: level + 1, level2colors });
     }
     if (!node.isLeaf && node.right) {
-      this.debug({ canvas, camera, node: node.right, level: level + 1 });
+      this.debug({ canvas, camera, node: node.right, level: level + 1, level2colors });
     }
     return canvas;
   }
@@ -1988,214 +2252,6 @@ class Leaf {
   }
   interceptWith(ray, depth) {
     return this.element.interceptWith(ray);
-  }
-}
-
-// src/Utils/Constants.jss
-class NaiveScene {
-  constructor() {
-    this.id2ElemMap = {};
-    this.sceneElements = [];
-  }
-  add(...elements) {
-    return this.addList(elements);
-  }
-  addList(elements) {
-    for (let i = 0;i < elements.length; i++) {
-      const elem = elements[i];
-      const { name } = elem;
-      this.id2ElemMap[name] = elem;
-      this.sceneElements.push(elem);
-    }
-    return this;
-  }
-  clear() {
-    this.id2ElemMap = {};
-    this.sceneElements = [];
-  }
-  getElements() {
-    return this.sceneElements;
-  }
-  distanceToPoint(p) {
-    const elements = this.sceneElements;
-    let distance = Number.MAX_VALUE;
-    for (let i = 0;i < elements.length; i++) {
-      distance = smin(distance, elements[i].distanceToPoint(p));
-    }
-    return;
-  }
-  estimateNormal(p) {
-    const epsilon = 0.001;
-    const n = p.dim;
-    const grad = [];
-    const d = this.distanceToPoint(p);
-    for (let i = 0;i < n; i++) {
-      grad.push(this.distanceToPoint(p.add(Vec.e(n)(i).scale(epsilon))) - d);
-    }
-    return Vec.fromArray(grad).scale(Math.sign(d)).normalize();
-  }
-  interceptWith(ray) {
-    const points = this.sceneElements;
-    let closestDistance = Number.MAX_VALUE;
-    let closest = none();
-    for (let i = 0;i < points.length; i++) {
-      points[i].interceptWith(ray).map(([pos, normal]) => {
-        const distance = ray.init.sub(pos).length();
-        if (distance < closestDistance) {
-          closest = some([pos, normal]);
-          closestDistance = distance;
-        }
-      });
-    }
-    return closest;
-  }
-  debugTo(canvas) {
-    return canvas;
-  }
-}
-
-// src/Utils/Constan
-var RADIUS = 0.001;
-
-class Mesh {
-  constructor({ vertices, normals, textureCoords, faces, colors, texture }) {
-    this.vertices = vertices || [];
-    this.normals = normals || [];
-    this.textureCoords = textureCoords || [];
-    this.faces = faces || [];
-    this.colors = colors || [];
-    this.texture = texture;
-  }
-  addTexture(image) {
-    this.texture = image;
-    return this;
-  }
-  mapVertices(lambda) {
-    const newVertices = [];
-    for (let i = 0;i < this.vertices.length; i++) {
-      newVertices.push(lambda(this.vertices[i]));
-    }
-    return new Mesh({
-      vertices: newVertices,
-      normals: this.normals,
-      textureCoords: this.textureCoords,
-      faces: this.faces,
-      texture: this.texture,
-      colors: this.colors
-    });
-  }
-  mapColors(lambda) {
-    const newColors = [];
-    for (let i = 0;i < this.vertices.length; i++) {
-      newColors.push(lambda(this.vertices[i]));
-    }
-    return new Mesh({
-      vertices: this.vertices,
-      normals: this.normals,
-      textureCoords: this.textureCoords,
-      faces: this.faces,
-      colors: newColors,
-      texture: this.texture
-    });
-  }
-  getBoundingBox() {
-    if (this.boundingBox)
-      return this.boundingBox;
-    this.boundingBox = new Box;
-    for (let i = 0;i < this.vertices.length; i++) {
-      this.boundingBox = this.boundingBox.add(new Box(this.vertices[i].add(Vec3(1, 1, 1).scale(RADIUS)), this.vertices[i].add(Vec3(1, 1, 1).scale(RADIUS))));
-    }
-    return this.boundingBox;
-  }
-  asPoints(name, radius = RADIUS) {
-    const points = {};
-    for (let i = 0;i < this.faces.length; i++) {
-      const texCoordIndexes = this.faces[i].textures;
-      const normalIndexes = this.faces[i].normals;
-      const verticesIndexes = this.faces[i].vertices;
-      for (let j = 0;j < 3; j++) {
-        const pointName = `${name}_${verticesIndexes[j]}`;
-        if (!(pointName in points)) {
-          points[pointName] = Point_default.builder().name(pointName).radius(radius).texture(this.texture).color(this.colors[verticesIndexes[j]]).normal(this.normals[normalIndexes[j]]).position(this.vertices[verticesIndexes[j]]).texCoord(this.textureCoords[texCoordIndexes[j]]).build();
-        }
-      }
-    }
-    return Object.values(points);
-  }
-  asLines(name) {
-    const lines = {};
-    for (let i = 0;i < this.faces.length; i++) {
-      const indices = this.faces[i].vertices;
-      for (let j = 0;j < indices.length; j++) {
-        const vi = indices[j];
-        const vj = indices[(j + 1) % indices.length];
-        const edge_id = [vi, vj].sort().join("_");
-        const edge_name = `${name}_${edge_id}`;
-        lines[edge_id] = Line.builder().name(edge_name).positions(this.vertices[vi], this.vertices[vj]).colors(this.colors[vi], this.colors[vj]).build();
-      }
-    }
-    return Object.values(lines);
-  }
-  asTriangles(name) {
-    const triangles = [];
-    for (let i = 0;i < this.faces.length; i++) {
-      let texCoordIndexes = this.faces[i].textures;
-      const normalIndexes = this.faces[i].normals;
-      const verticesIndexes = this.faces[i].vertices;
-      const edge_id = verticesIndexes.join("_");
-      const edge_name = `${name}_${edge_id}`;
-      triangles.push(Triangle.builder().name(edge_name).texture(this.texture).colors(...verticesIndexes.map((j) => this.colors[j])).normals(...normalIndexes.map((j) => this.normals[j])).positions(...verticesIndexes.map((j) => this.vertices[j])).texCoords(...texCoordIndexes.map((j) => this.textureCoords[j])).build());
-    }
-    return Object.values(triangles);
-  }
-  static readObj(objFile) {
-    const vertices = [];
-    const normals = [];
-    const textureCoords = [];
-    const faces = [];
-    const lines = objFile.split("\n");
-    for (let i = 0;i < lines.length; i++) {
-      const line = lines[i];
-      const spaces = line.split(" ");
-      const type = spaces[0];
-      if (!type)
-        continue;
-      if (type === "v") {
-        const v = spaces.slice(1, 4).map((x) => Number.parseFloat(x));
-        vertices.push(Vec3(...v));
-        continue;
-      }
-      if (type === "vn") {
-        const v = spaces.slice(1, 4).map((x) => Number.parseFloat(x));
-        normals.push(Vec3(...v));
-        continue;
-      }
-      if (type === "vt") {
-        const v = spaces.slice(1, 3).map((x) => Number.parseFloat(x));
-        textureCoords.push(Vec2(...v));
-        continue;
-      }
-      if (type === "f") {
-        const facesInfo = spaces.slice(1, 4).flatMap((x) => x.split("/")).map((x) => Number.parseFloat(x));
-        const length = facesInfo.length;
-        const lengthDiv3 = length / 3;
-        const group = groupBy(facesInfo, (_, i2) => i2 % Math.floor(lengthDiv3));
-        const face = { vertices: [], textures: [], normals: [] };
-        Object.keys(group).map((k) => {
-          k = Number.parseInt(k);
-          const indices = group[k].map((x) => x - 1);
-          if (k === 0)
-            face.vertices = indices;
-          if (k === 1)
-            face.textures = indices;
-          if (k === 2)
-            face.normals = indices;
-        });
-        faces.push(face);
-        continue;
-      }
-    }
-    return new Mesh({ vertices, normals, textureCoords, faces });
   }
 }
 // src/Utils/Co
@@ -2529,6 +2585,12 @@ function saveParallelImageStreamToVideo(fileAddress, parallelStreamOfImages, { f
   });
 }
 export {
+  smin,
+  mod,
+  lerp,
+  isInsideConvex,
+  clipLine,
+  clamp,
   Vec3,
   Vec2,
   Vec,

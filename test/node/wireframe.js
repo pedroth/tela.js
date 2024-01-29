@@ -7,7 +7,8 @@ import {
     NaiveScene,
     Camera,
     Vec3,
-    Mesh
+    Mesh,
+    clamp
 } from "../../dist/node/index.js";
 import { readFileSync } from "fs";
 const { saveImageStreamToVideo } = IO;
@@ -24,15 +25,15 @@ const { measureTime } = Utils;
     const camera = new Camera({ sphericalCoords: Vec3(5, 0, 0) });
 
     const spotObj = readFileSync("./assets/spot.obj", { encoding: "utf-8" });
-    const spotMesh = Mesh.readObj(spotObj)
+    const spotMesh = Mesh.readObj(spotObj, "spot")
         .mapVertices(v => Vec3(-v.y, v.x, v.z))
         .mapVertices(v => Vec3(v.z, v.y, -v.x))
         .mapColors(() => Color.ofRGB(0.25, 0.25, 0.25))
         .addTexture(await Image.ofUrl("./assets/spot.png"))
-    scene.addList(spotMesh.asTriangles("spot"));
+    scene.addList(spotMesh.asTriangles());
 
     const stanfordBunnyObj = readFileSync("./assets/bunny.obj", { encoding: "utf-8" })
-    let bunnyMesh = Mesh.readObj(stanfordBunnyObj);
+    let bunnyMesh = Mesh.readObj(stanfordBunnyObj, "bunny");
     const bunnyBox = bunnyMesh.getBoundingBox();
     bunnyMesh = bunnyMesh
         .mapVertices(v =>
@@ -45,20 +46,12 @@ const { measureTime } = Utils;
         .mapVertices(v => Vec3(-v.y, v.x, v.z))
         .mapVertices(v => Vec3(v.z, v.y, -v.x))
         .mapColors(v =>
-            Color.ofRGB(...v
-                .map(x =>
-                    Math.max(
-                        0,
-                        Math.min(
-                            1,
-                            0.5 * (x + 1)
-                        )
-                    )
-                )
-                .toArray()
+            Color.ofRGB(
+                ...v.map(x => clamp()(0.5 * (x + 1)))
+                    .toArray()
             )
         )
-    scene.addList(bunnyMesh.asLines("bunny"));
+    scene.addList(bunnyMesh.asLines());
 
     const imageStream = new Stream(
         { time: 0, i: 0, image: Image.ofSize(width, height) },

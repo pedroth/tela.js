@@ -19,6 +19,14 @@ export default class Camera {
     this.orbit();
   }
 
+  clone() {
+    return new Camera({
+      sphericalCoordinates: this.sphericalCoords,
+      focalPoint: this.focalPoint,
+      distanceToPlane: this.distanceToPlane
+    })
+  }
+
   orbit() {
     const [rho, theta, phi] = this.sphericalCoords.toArray();
     const cosT = Math.cos(theta);
@@ -50,8 +58,8 @@ export default class Camera {
         const h = canvas.height;
         return canvas.map((x, y) => {
           const dirInLocal = [
-            2 * (x / w) - 1,
-            2 * (y / h) - 1,
+            (x - w / 2) / w,
+            (y - h / 2) / h,
             1
           ]
           const dir = this.basis[0].scale(dirInLocal[0])
@@ -64,7 +72,7 @@ export default class Camera {
     }
   }
 
-  sceneShot(scene) {
+  sceneShot(scene, params = {}) {
     const lambda = ray => {
       return scene.interceptWith(ray)
         .map(([, normal]) => {
@@ -81,15 +89,19 @@ export default class Camera {
     return this.rayShot(lambda);
   }
 
-  reverseShot(scene, params = { cullBackFaces: true, bilinearTexture: false }) {
+  reverseShot(scene, params = {}) {
     const type2render = {
       [Point.name]: rasterPoint,
       [Line.name]: rasterLine,
       [Triangle.name]: rasterTriangle,
     }
+    params.cullBackFaces = params?.cullBackFaces ?? true;
+    params.bilinearTexture = params?.bilinearTexture ?? false;
+    params.clipCameraPlane = params?.clipCameraPlane ?? true;
+    params.clearScreen = params?.clearScreen ?? true;
     return {
       to: canvas => {
-        canvas.fill(Color.BLACK);
+        params.clearScreen && canvas.fill(Color.BLACK);
         const w = canvas.width;
         const h = canvas.height;
         const zBuffer = new Float64Array(w * h)
@@ -179,7 +191,7 @@ function rasterPoint({ canvas, camera, elem, w, h, zBuffer }) {
   }
 }
 
-function rasterLine({ canvas, camera, elem, w, h, zBuffer }) {
+function rasterLine({ canvas, camera, elem, w, h, zBuffer, params }) {
   const lineElem = elem;
   const { colors, positions } = lineElem;
   const { distanceToPlane } = camera;
@@ -196,7 +208,7 @@ function rasterLine({ canvas, camera, elem, w, h, zBuffer }) {
       inFrustum.push(i);
     }
   });
-  if (outFrustum.length === 2) return;
+  if (params.clipCameraPlane && outFrustum.length === 2) return;
   if (outFrustum.length === 1) {
     const inVertex = inFrustum[0];
     const outVertex = outFrustum[0];
@@ -266,7 +278,7 @@ function rasterTriangle({ canvas, camera, elem, w, h, zBuffer, params }) {
       inFrustum.push(i);
     }
   });
-  if (outFrustum.length >= 1) return;
+  if (params.clipCameraPlane && outFrustum.length >= 1) return;
   //project
   const projectedPoints = pointsInCamCoord
     .map(p => p.scale(distanceToPlane / p.z))
@@ -283,7 +295,7 @@ function rasterTriangle({ canvas, camera, elem, w, h, zBuffer, params }) {
   const u = intPoints[1].sub(intPoints[0]);
   const v = intPoints[2].sub(intPoints[0]);
   const det = u.x * v.y - u.y * v.x; // wedge product
-  if(det === 0) return;
+  if (det === 0) return;
   const shader = (x, y) => {
     const p = Vec2(x, y).sub(intPoints[0]);
     const alpha = - (v.x * p.y - v.y * p.x) / det;

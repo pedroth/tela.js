@@ -7,7 +7,7 @@ const { measureTimeWithAsyncResult } = Utils;
     const width = 640;
     const height = 480;
     const FPS = 25;
-    const maxT = 60;
+    const maxT = 20;
     const numberOfProcessors = os.cpus().length;
     const numOfFrames = Math.floor(FPS * maxT);
 
