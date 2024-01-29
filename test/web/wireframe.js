@@ -43,10 +43,12 @@ async (canvas, fps, logger) => {
         .then(x => x.text());
     let spotMesh = Mesh.readObj(spotObj);
     spotMesh = spotMesh
+        .addTexture(await Canvas.ofUrl("/assets/spot.png"))
         .mapVertices(v => Vec3(-v.y, v.x, v.z))
         .mapVertices(v => Vec3(v.z, v.y, -v.x))
-        .mapColors((v) => Color.ofRGB(1 - v.x, v.y))
-    scene.addList(spotMesh.asPoints("spot", 0.05));
+        .mapColors(() => Color.ofRGB(0.25, 0.25, 0.25))
+        .mapVertices(v => v.add(Vec3(0, 0, 0)))
+    scene.addList(spotMesh.asTriangles("spot"));
 
     const stanfordBunnyObj = await fetch("/assets/bunny.obj")
         .then(x => x.text());
@@ -62,6 +64,7 @@ async (canvas, fps, logger) => {
         )
         .mapVertices(v => Vec3(-v.y, v.x, v.z))
         .mapVertices(v => Vec3(v.z, v.y, -v.x))
+        .mapVertices(v => v.add(Vec3(0, -1, 0)))
         .mapColors(v =>
             Color.ofRGB(...v
                 .map(x => Math.max(0, Math.min(1, 0.5 * (x + 1)))).toArray()
@@ -74,7 +77,7 @@ async (canvas, fps, logger) => {
         .builder()
         .initialState({ it: 1, oldTime: new Date().getTime() })
         .nextState(({ it, oldTime }) => {
-            camera.reverseShot(scene).to(canvas);
+            camera.reverseShot(scene, {bilinearTexture: false}).to(canvas);
             const dt = (new Date().getTime() - oldTime) * 1e-3;
             logger.print(Math.floor(1 / dt));
             return {

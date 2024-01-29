@@ -4,6 +4,7 @@ import Vec from "../Vector/Vector.js";
 import { smin } from "../Utils/Math.js";
 import { argmin } from "../Utils/Utils.js";
 import { none, some } from "../Monads/Monads.js";
+import Color from "../Color/Color.js";
 
 export default class Scene {
   constructor() {
@@ -217,6 +218,26 @@ class Leaf {
  *                                                                                      */
 //========================================================================================
 
-function drawBox(canvas, box) {
+const UNIT_BOX_VERTEX = [
+  Vec3(),
+  Vec3(1,0,0),
+  Vec3(1,1,0),
+  Vec3(0,1,0),
+  Vec3(0,0,1),
+  Vec3(1,0,1),
+  Vec3(1,1,1),
+  Vec3(0,1,1),
+]
+const UNIT_BOX_LINES = [
+  [0,1],
+  [1,2],
+  [2,3],
+  [3,0],
+  []
+]
+function drawBox(camera, canvas, box, level) {
+  const maxLevels = 10;
+  const level2colors = [...Array(maxLevels)].map((_, i) => Color.RED.scale(1 - i / maxLevels).add(Color.BLUE.scale(i / maxLevels)));
+  const 
 
 }

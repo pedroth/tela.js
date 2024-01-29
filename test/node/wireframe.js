@@ -21,27 +21,15 @@ const { measureTime } = Utils;
     const maxT = 20;
     // scene
     const scene = new NaiveScene();
-    const camera = new Camera({ sphericalCoords: Vec3(1, 0, 0) });
+    const camera = new Camera({ sphericalCoords: Vec3(5, 0, 0) });
 
     const spotObj = readFileSync("./assets/spot.obj", { encoding: "utf-8" });
     const spotMesh = Mesh.readObj(spotObj)
         .mapVertices(v => Vec3(-v.y, v.x, v.z))
         .mapVertices(v => Vec3(v.z, v.y, -v.x))
-        .mapColors(v =>
-            Color.ofRGB(...v
-                .map(x =>
-                    Math.max(
-                        0,
-                        Math.min(
-                            1,
-                            0.5 * (x + 1)
-                        )
-                    )
-                )
-                .toArray()
-            )
-        );
-    scene.addList(spotMesh.asPoints("spot", 0.05));
+        .mapColors(() => Color.ofRGB(0.25, 0.25, 0.25))
+        .addTexture(await Image.ofUrl("./assets/spot.png"))
+    scene.addList(spotMesh.asTriangles("spot"));
 
     const stanfordBunnyObj = readFileSync("./assets/bunny.obj", { encoding: "utf-8" })
     let bunnyMesh = Mesh.readObj(stanfordBunnyObj);
