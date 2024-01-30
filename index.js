@@ -458,6 +458,10 @@ const examples = [
         path: "/test/web/bunny.js"
     },
     {
+        title: "Bunny explodes",
+        path: "/test/web/bunny_explode.js"
+    },
+    {
         title: "Wire frame spot",
         path: "/test/web/wireframe.js"
     },
