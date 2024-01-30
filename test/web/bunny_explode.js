@@ -44,9 +44,7 @@ async (canvas, fps, logger) => {
     let bunnyMesh = Mesh.readObj(stanfordBunnyObj, "bunny");
     const bunnyBox = bunnyMesh.getBoundingBox();
     bunnyMesh = bunnyMesh
-        .mapVertices(v =>
-            v.sub(bunnyBox.min).div(bunnyBox.diagonal).scale(2).sub(Vec3(1, 1, 1))
-        )
+        .mapVertices(v =>v.sub(bunnyBox.min).div(bunnyBox.diagonal).scale(2).sub(Vec3(1, 1, 1)))
         .mapVertices(v => Vec3(-v.y, v.x, v.z))
         .mapVertices(v => Vec3(v.z, v.y, -v.x))
         .mapVertices(v => v.add(Vec3(0, 0, 5)))

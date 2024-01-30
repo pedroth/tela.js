@@ -6,7 +6,8 @@ import { argmin } from "../Utils/Utils.js";
 import { none, some } from "../Monads/Monads.js";
 import Color from "../Color/Color.js";
 import NaiveScene from "./NaiveScene.js";
-import Mesh from "./Mesh.js";
+import Line from "./Line.js";
+const STATS = { leafCount: [] }
 
 export default class Scene {
   constructor() {
@@ -41,7 +42,9 @@ export default class Scene {
   }
 
   interceptWith(ray, level) {
-    return this.boundingBoxScene.interceptWith(ray, level);
+    STATS.leafCount.push(0);
+    const ans = this.boundingBoxScene.interceptWith(ray, level);
+    return ans;
   }
 
   distanceToPoint(p) {
@@ -61,24 +64,27 @@ export default class Scene {
 
   debug(props) {
     const { camera, canvas } = props;
-    let { node, level, level2colors } = props;
+    let { node, level, level2colors, debugScene } = props;
     node = node || this.boundingBoxScene;
     level = level || 0;
     level2colors = level2colors || [];
+    debugScene = debugScene || new NaiveScene();
     if (level === 0) {
-      const maxLevels = Math.round(Math.log2(node.numberOfLeafs));
+      let maxLevels = Math.round(Math.log2(node.numberOfLeafs));
+      maxLevels = maxLevels === 0 ? 1 : maxLevels;
       for (let i = 0; i <= maxLevels; i++)
         level2colors.push(
           Color.RED.scale(1 - i / maxLevels).add(Color.BLUE.scale(i / maxLevels))
         );
     }
-    drawBox({ camera, canvas, box: node.box, level, level2colors });
+    if (level > 10 && level < 12) debugScene = drawBox({ box: node.box, level, level2colors, debugScene });
     if (!node.isLeaf && node.left) {
-      this.debug({ canvas, camera, node: node.left, level: level + 1, level2colors })
+      this.debug({ canvas, camera, node: node.left, level: level + 1, level2colors, debugScene })
     }
     if (!node.isLeaf && node.right) {
-      this.debug({ canvas, camera, node: node.right, level: level + 1, level2colors })
+      this.debug({ canvas, camera, node: node.right, level: level + 1, level2colors, debugScene })
     }
+    if (level === 0) return camera.reverseShot(debugScene, { clearScreen: true }).to(canvas);
     return canvas;
   }
 }
@@ -86,14 +92,12 @@ export default class Scene {
 class Node {
   isLeaf = false;
   numberOfLeafs = 0;
-  leafs = [];
   constructor() {
     this.box = Box.EMPTY;
   }
 
   add(element) {
     this.numberOfLeafs += 1;
-    this.leafs.push(element);
     const elemBox = element.getBoundingBox();
     this.box = this.box.add(elemBox);
     if (!this.left) {
@@ -159,11 +163,13 @@ class Node {
     index2Action[index]();
   }
 
+
   interceptWith(ray, depth = 1) {
     // if (this.numberOfLeafs === 5) {
     //   // return this.getRandomLeaf().interceptWith(ray, 10);
     //   return this.box.interceptWith(ray).map(p => [p, this.box.estimateNormal(p)]);
     // }
+    STATS.leafCount[STATS.leafCount.length - 1] = STATS.leafCount[STATS.leafCount.length - 1] + 1
     return this.box.interceptWith(ray).flatMap(() => {
       const children = [this.left, this.right].filter(x => x);
       const hits = [];
@@ -184,10 +190,6 @@ class Node {
     const children = [this.left, this.right];
     const index = argmin(children, c => c.box.distanceToPoint(p));
     return children[index].distanceToPoint(p);
-  }
-
-  getElements() {
-    return this.leafs;
   }
 
   getRandomLeaf() {
@@ -216,6 +218,7 @@ class Leaf {
   }
 
   interceptWith(ray, depth) {
+    STATS.leafCount[STATS.leafCount.length - 1] = STATS.leafCount[STATS.leafCount.length - 1] + 1
     // return this.box.interceptWith(ray).map(pos => [pos, this.box.estimateNormal(pos)]);
     return this.element.interceptWith(ray);
   }
@@ -227,9 +230,43 @@ class Leaf {
  *                                         UTILS                                        *
  *                                                                                      */
 //========================================================================================
+const UNIT_BOX_VERTEX = [
+  Vec3(),
+  Vec3(1, 0, 0),
+  Vec3(1, 1, 0),
+  Vec3(0, 1, 0),
+  Vec3(0, 0, 1),
+  Vec3(1, 0, 1),
+  Vec3(1, 1, 1),
+  Vec3(0, 1, 1),
+]
 
-function drawBox({ camera, canvas, box, level, level2colors }) {
-  const auxScene = new NaiveScene();
-  auxScene.addList(Mesh.ofBox(box).mapColors(() => level2colors[level]).asLines())
-  camera.reverseShot(auxScene, { clearScreen: false }).to(canvas);
+const UNIT_BOX_FACES = [
+  [0, 1],
+  [1, 2],
+  [2, 3],
+  [3, 0],
+  [4, 5],
+  [5, 6],
+  [6, 7],
+  [7, 4],
+  [0, 4],
+  [1, 5],
+  [3, 7],
+  [2, 6],
+]
+
+function drawBox({ box, level, level2colors, debugScene }) {
+  const vertices = UNIT_BOX_VERTEX.map(v => v.mul(box.diagonal).add(box.min))
+  const lines = UNIT_BOX_FACES
+    .map(([i, j]) =>
+      Line
+        .builder()
+        .name(`debug_box_${level}_${i}_${j}`)
+        .positions(vertices[i], vertices[j])
+        .colors(level2colors[level], level2colors[level])
+        .build()
+    )
+  debugScene.addList(lines);
+  return debugScene;
 }

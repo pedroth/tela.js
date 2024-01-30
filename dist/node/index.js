@@ -1751,7 +1751,7 @@ class Camera {
       to: (canvas) => {
         const w = canvas.width;
         const h = canvas.height;
-        return canvas.map((x, y) => {
+        const ans = canvas.map((x, y) => {
           const dirInLocal = [
             (x - w / 2) / w,
             (y - h / 2) / h,
@@ -1760,6 +1760,7 @@ class Camera {
           const dir = this.basis[0].scale(dirInLocal[0]).add(this.basis[1].scale(dirInLocal[1])).add(this.basis[2].scale(dirInLocal[2])).normalize();
           return lambdaWithRays(Ray(this.eye, dir));
         });
+        return ans;
       }
     };
   }
@@ -1879,9 +1880,206 @@ class NaiveScene {
   }
 }
 
-// src/Utils/Constan
-var MESH_COUNTER = 0;
-var RADIUS = 0.001;
+// src/Utils/Constant
+var drawBox = function({ box, level, level2colors, debugScene }) {
+  const vertices = UNIT_BOX_VERTEX.map((v) => v.mul(box.diagonal).add(box.min));
+  const lines = UNIT_BOX_FACES.map(([i, j]) => Line.builder().name(`debug_box_${level}_${i}_${j}`).positions(vertices[i], vertices[j]).colors(level2colors[level], level2colors[level]).build());
+  debugScene.addList(lines);
+  return debugScene;
+};
+var STATS = { leafCount: [] };
+
+class Scene {
+  constructor() {
+    this.id2ElemMap = {};
+    this.sceneElements = [];
+    this.boundingBoxScene = new Node;
+  }
+  add(...elements) {
+    return this.addList(elements);
+  }
+  addList(elements) {
+    for (let i = 0;i < elements.length; i++) {
+      const elem = elements[i];
+      const { name } = elem;
+      this.id2ElemMap[name] = elem;
+      this.sceneElements.push(elem);
+      this.boundingBoxScene.add(elem);
+    }
+    return this;
+  }
+  clear() {
+    this.id2ElemMap = {};
+    this.sceneElements = [];
+    this.boundingBoxScene = new Node;
+  }
+  getElements() {
+    return this.sceneElements;
+  }
+  interceptWith(ray, level) {
+    STATS.leafCount.push(0);
+    const ans = this.boundingBoxScene.interceptWith(ray, level);
+    return ans;
+  }
+  distanceToPoint(p) {
+    return this.boundingBoxScene.distanceToPoint(p);
+  }
+  estimateNormal(p) {
+    const epsilon = 0.001;
+    const n = p.dim;
+    const grad = [];
+    const d = this.distanceToPoint(p);
+    for (let i = 0;i < n; i++) {
+      grad.push(this.distanceToPoint(p.add(Vec.e(n)(i).scale(epsilon))) - d);
+    }
+    return Vec.fromArray(grad).scale(Math.sign(d)).normalize();
+  }
+  debug(props) {
+    const { camera, canvas } = props;
+    let { node, level, level2colors, debugScene } = props;
+    node = node || this.boundingBoxScene;
+    level = level || 0;
+    level2colors = level2colors || [];
+    debugScene = debugScene || new NaiveScene;
+    if (level === 0) {
+      let maxLevels = Math.round(Math.log2(node.numberOfLeafs));
+      maxLevels = maxLevels === 0 ? 1 : maxLevels;
+      for (let i = 0;i <= maxLevels; i++)
+        level2colors.push(Color.RED.scale(1 - i / maxLevels).add(Color.BLUE.scale(i / maxLevels)));
+    }
+    if (level > 10 && level < 12)
+      debugScene = drawBox({ box: node.box, level, level2colors, debugScene });
+    if (!node.isLeaf && node.left) {
+      this.debug({ canvas, camera, node: node.left, level: level + 1, level2colors, debugScene });
+    }
+    if (!node.isLeaf && node.right) {
+      this.debug({ canvas, camera, node: node.right, level: level + 1, level2colors, debugScene });
+    }
+    if (level === 0)
+      return camera.reverseShot(debugScene, { clearScreen: true }).to(canvas);
+    return canvas;
+  }
+}
+
+class Node {
+  isLeaf = false;
+  numberOfLeafs = 0;
+  constructor() {
+    this.box = Box.EMPTY;
+  }
+  add(element) {
+    this.numberOfLeafs += 1;
+    const elemBox = element.getBoundingBox();
+    this.box = this.box.add(elemBox);
+    if (!this.left) {
+      this.left = new Leaf(element);
+    } else if (!this.right) {
+      this.right = new Leaf(element);
+    } else {
+      this._addElementWhenTreeIsFull(element, elemBox);
+    }
+    return this;
+  }
+  _addElementWhenTreeIsFull(element, elemBox) {
+    if (this.left.isLeaf && this.right.isLeaf) {
+      this._addWithLeafs(element);
+    } else {
+      const minIndex = argmin([
+        this.left.box.distanceToBox(elemBox),
+        this.right.box.distanceToBox(elemBox)
+      ]);
+      this._updateChildren(minIndex, element);
+    }
+  }
+  _updateChildren(minIndex, element) {
+    let child = [this.left, this.right][minIndex];
+    if (!child.isLeaf) {
+      child.add(element);
+    } else {
+      const aux = child.element;
+      if (minIndex === 0)
+        this.left = new Node().add(aux).add(element);
+      if (minIndex === 1)
+        this.right = new Node().add(aux).add(element);
+    }
+  }
+  _addWithLeafs(element) {
+    const elemBox = element.getBoundingBox();
+    const distances = [
+      elemBox.distanceToBox(this.left.box),
+      elemBox.distanceToBox(this.right.box),
+      this.left.box.distanceToBox(this.right.box)
+    ];
+    const index = argmin(distances);
+    const index2Action = {
+      0: () => {
+        const aux = this.left;
+        this.left = new Node;
+        this.left.add(aux.element).add(element);
+      },
+      1: () => {
+        const aux = this.right;
+        this.right = new Node;
+        this.right.add(aux.element).add(element);
+      },
+      2: () => {
+        const aux = this.left;
+        this.left = new Node;
+        this.left.add(aux.element).add(this.right.element);
+        this.right = new Leaf(element);
+      }
+    };
+    index2Action[index]();
+  }
+  interceptWith(ray, depth = 1) {
+    STATS.leafCount[STATS.leafCount.length - 1] = STATS.leafCount[STATS.leafCount.length - 1] + 1;
+    return this.box.interceptWith(ray).flatMap(() => {
+      const children = [this.left, this.right].filter((x) => x);
+      const hits = [];
+      for (let i = 0;i < children.length; i++) {
+        const maybeHit = children[i].interceptWith(ray, depth + 1);
+        if (maybeHit.isSome())
+          hits.push(maybeHit.orElse());
+      }
+      const minIndex = argmin(hits, ([point]) => point.sub(ray.init).length());
+      if (minIndex === -1)
+        return none();
+      return some(hits[minIndex]);
+    });
+  }
+  distanceToPoint(p) {
+    if (this.numberOfLeafs <= 2) {
+      return this.getElements().reduce((e, leaf) => smin(e, leaf.distanceToPoint(p)), 1000);
+    }
+    const children = [this.left, this.right];
+    const index = argmin(children, (c) => c.box.distanceToPoint(p));
+    return children[index].distanceToPoint(p);
+  }
+  getRandomLeaf() {
+    return Math.random() < 0.5 ? this.left.getRandomLeaf() : this.right.getRandomLeaf();
+  }
+}
+
+class Leaf {
+  isLeaf = true;
+  constructor(element) {
+    this.element = element;
+    this.box = element.getBoundingBox();
+  }
+  distanceToPoint(x) {
+    return this.element.distanceToPoint(x);
+  }
+  getLeafs() {
+    return [this];
+  }
+  getRandomLeaf() {
+    return this;
+  }
+  interceptWith(ray, depth) {
+    STATS.leafCount[STATS.leafCount.length - 1] = STATS.leafCount[STATS.leafCount.length - 1] + 1;
+    return this.element.interceptWith(ray);
+  }
+}
 var UNIT_BOX_VERTEX = [
   Vec3(),
   Vec3(1, 0, 0),
@@ -1893,6 +2091,34 @@ var UNIT_BOX_VERTEX = [
   Vec3(0, 1, 1)
 ];
 var UNIT_BOX_FACES = [
+  [0, 1],
+  [1, 2],
+  [2, 3],
+  [3, 0],
+  [4, 5],
+  [5, 6],
+  [6, 7],
+  [7, 4],
+  [0, 4],
+  [1, 5],
+  [3, 7],
+  [2, 6]
+];
+
+// src/Utils/Constan
+var MESH_COUNTER = 0;
+var RADIUS = 0.001;
+var UNIT_BOX_VERTEX2 = [
+  Vec3(),
+  Vec3(1, 0, 0),
+  Vec3(1, 1, 0),
+  Vec3(0, 1, 0),
+  Vec3(0, 0, 1),
+  Vec3(1, 0, 1),
+  Vec3(1, 1, 1),
+  Vec3(0, 1, 1)
+];
+var UNIT_BOX_FACES2 = [
   [0, 1, 2],
   [2, 3, 0],
   [4, 5, 6],
@@ -1915,7 +2141,7 @@ class Mesh {
     this.faces = faces || [];
     this.colors = colors || [];
     this.texture = texture;
-    this.name = name;
+    this.name = name || `Mesh_${MESH_COUNTER++}`;
   }
   setName(name) {
     this.name = name;
@@ -2055,203 +2281,8 @@ class Mesh {
     return new Mesh({ name, vertices, normals, textureCoords, faces });
   }
   static ofBox(box, name) {
-    const vertices = UNIT_BOX_VERTEX.map((v) => v.mul(box.diagonal).add(box.min));
-    return new Mesh({ name, vertices, faces: UNIT_BOX_FACES.map((indx3) => ({ vertices: indx3 })) });
-  }
-}
-
-// src/Utils/Constant
-var drawBox = function({ camera, canvas, box, level, level2colors }) {
-  const auxScene = new NaiveScene;
-  auxScene.addList(Mesh.ofBox(box).mapColors(() => level2colors[level]).asLines());
-  camera.reverseShot(auxScene, { clearScreen: false }).to(canvas);
-};
-
-class Scene {
-  constructor() {
-    this.id2ElemMap = {};
-    this.sceneElements = [];
-    this.boundingBoxScene = new Node;
-  }
-  add(...elements) {
-    return this.addList(elements);
-  }
-  addList(elements) {
-    for (let i = 0;i < elements.length; i++) {
-      const elem = elements[i];
-      const { name } = elem;
-      this.id2ElemMap[name] = elem;
-      this.sceneElements.push(elem);
-      this.boundingBoxScene.add(elem);
-    }
-    return this;
-  }
-  clear() {
-    this.id2ElemMap = {};
-    this.sceneElements = [];
-    this.boundingBoxScene = new Node;
-  }
-  getElements() {
-    return this.sceneElements;
-  }
-  interceptWith(ray, level) {
-    return this.boundingBoxScene.interceptWith(ray, level);
-  }
-  distanceToPoint(p) {
-    return this.boundingBoxScene.distanceToPoint(p);
-  }
-  estimateNormal(p) {
-    const epsilon = 0.001;
-    const n = p.dim;
-    const grad = [];
-    const d = this.distanceToPoint(p);
-    for (let i = 0;i < n; i++) {
-      grad.push(this.distanceToPoint(p.add(Vec.e(n)(i).scale(epsilon))) - d);
-    }
-    return Vec.fromArray(grad).scale(Math.sign(d)).normalize();
-  }
-  debug(props) {
-    const { camera, canvas } = props;
-    let { node, level, level2colors } = props;
-    node = node || this.boundingBoxScene;
-    level = level || 0;
-    level2colors = level2colors || [];
-    if (level === 0) {
-      const maxLevels = Math.round(Math.log2(node.numberOfLeafs));
-      for (let i = 0;i <= maxLevels; i++)
-        level2colors.push(Color.RED.scale(1 - i / maxLevels).add(Color.BLUE.scale(i / maxLevels)));
-    }
-    drawBox({ camera, canvas, box: node.box, level, level2colors });
-    if (!node.isLeaf && node.left) {
-      this.debug({ canvas, camera, node: node.left, level: level + 1, level2colors });
-    }
-    if (!node.isLeaf && node.right) {
-      this.debug({ canvas, camera, node: node.right, level: level + 1, level2colors });
-    }
-    return canvas;
-  }
-}
-
-class Node {
-  isLeaf = false;
-  numberOfLeafs = 0;
-  leafs = [];
-  constructor() {
-    this.box = Box.EMPTY;
-  }
-  add(element) {
-    this.numberOfLeafs += 1;
-    this.leafs.push(element);
-    const elemBox = element.getBoundingBox();
-    this.box = this.box.add(elemBox);
-    if (!this.left) {
-      this.left = new Leaf(element);
-    } else if (!this.right) {
-      this.right = new Leaf(element);
-    } else {
-      this._addElementWhenTreeIsFull(element, elemBox);
-    }
-    return this;
-  }
-  _addElementWhenTreeIsFull(element, elemBox) {
-    if (this.left.isLeaf && this.right.isLeaf) {
-      this._addWithLeafs(element);
-    } else {
-      const minIndex = argmin([
-        this.left.box.distanceToBox(elemBox),
-        this.right.box.distanceToBox(elemBox)
-      ]);
-      this._updateChildren(minIndex, element);
-    }
-  }
-  _updateChildren(minIndex, element) {
-    let child = [this.left, this.right][minIndex];
-    if (!child.isLeaf) {
-      child.add(element);
-    } else {
-      const aux = child.element;
-      if (minIndex === 0)
-        this.left = new Node().add(aux).add(element);
-      if (minIndex === 1)
-        this.right = new Node().add(aux).add(element);
-    }
-  }
-  _addWithLeafs(element) {
-    const elemBox = element.getBoundingBox();
-    const distances = [
-      elemBox.distanceToBox(this.left.box),
-      elemBox.distanceToBox(this.right.box),
-      this.left.box.distanceToBox(this.right.box)
-    ];
-    const index = argmin(distances);
-    const index2Action = {
-      0: () => {
-        const aux = this.left;
-        this.left = new Node;
-        this.left.add(aux.element).add(element);
-      },
-      1: () => {
-        const aux = this.right;
-        this.right = new Node;
-        this.right.add(aux.element).add(element);
-      },
-      2: () => {
-        const aux = this.left;
-        this.left = new Node;
-        this.left.add(aux.element).add(this.right.element);
-        this.right = new Leaf(element);
-      }
-    };
-    index2Action[index]();
-  }
-  interceptWith(ray, depth = 1) {
-    return this.box.interceptWith(ray).flatMap(() => {
-      const children = [this.left, this.right].filter((x) => x);
-      const hits = [];
-      for (let i = 0;i < children.length; i++) {
-        const maybeHit = children[i].interceptWith(ray, depth + 1);
-        if (maybeHit.isSome())
-          hits.push(maybeHit.orElse());
-      }
-      const minIndex = argmin(hits, ([point]) => point.sub(ray.init).length());
-      if (minIndex === -1)
-        return none();
-      return some(hits[minIndex]);
-    });
-  }
-  distanceToPoint(p) {
-    if (this.numberOfLeafs <= 2) {
-      return this.getElements().reduce((e, leaf) => smin(e, leaf.distanceToPoint(p)), 1000);
-    }
-    const children = [this.left, this.right];
-    const index = argmin(children, (c) => c.box.distanceToPoint(p));
-    return children[index].distanceToPoint(p);
-  }
-  getElements() {
-    return this.leafs;
-  }
-  getRandomLeaf() {
-    return Math.random() < 0.5 ? this.left.getRandomLeaf() : this.right.getRandomLeaf();
-  }
-}
-
-class Leaf {
-  isLeaf = true;
-  constructor(element) {
-    this.element = element;
-    this.box = element.getBoundingBox();
-  }
-  distanceToPoint(x) {
-    return this.element.distanceToPoint(x);
-  }
-  getLeafs() {
-    return [this];
-  }
-  getRandomLeaf() {
-    return this;
-  }
-  interceptWith(ray, depth) {
-    return this.element.interceptWith(ray);
+    const vertices = UNIT_BOX_VERTEX2.map((v) => v.mul(box.diagonal).add(box.min));
+    return new Mesh({ name, vertices, faces: UNIT_BOX_FACES2.map((indx3) => ({ vertices: indx3 })) });
   }
 }
 // src/Utils/Co

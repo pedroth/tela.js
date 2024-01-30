@@ -54,7 +54,7 @@ export default class Mesh {
         this.faces = faces || [];
         this.colors = colors || [];
         this.texture = texture;
-        this.name = name;
+        this.name = name || `Mesh_${MESH_COUNTER++}`;
     }
 
     setName(name) {

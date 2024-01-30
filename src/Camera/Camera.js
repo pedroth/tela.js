@@ -56,7 +56,7 @@ export default class Camera {
       to: canvas => {
         const w = canvas.width;
         const h = canvas.height;
-        return canvas.map((x, y) => {
+        const ans = canvas.map((x, y) => {
           const dirInLocal = [
             (x - w / 2) / w,
             (y - h / 2) / h,
@@ -68,6 +68,7 @@ export default class Camera {
             .normalize()
           return lambdaWithRays(Ray(this.eye, dir));
         });
+        return ans;
       }
     }
   }
