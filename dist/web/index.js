@@ -1712,6 +1712,7 @@ var getBiLinearTexColor = function(texUV, texture) {
 var getTexColor = function(texUV, texture) {
   return texture.getPxl(texUV.x * texture.width, texUV.y * texture.height);
 };
+var STATS = { it: [] };
 
 class Camera {
   constructor(props = {
@@ -1810,6 +1811,32 @@ class Camera {
       }
     };
   }
+  sdfShot(scene) {
+    const lambda = (ray) => {
+      const maxIte = 50;
+      const epsilon = 0.000001;
+      let p = ray.init;
+      let t = scene.distanceToPoint(p);
+      let minT = t;
+      for (let i = 0;i < maxIte; i++) {
+        p = ray.trace(t);
+        const d = scene.distanceToPoint(p);
+        t += d;
+        if (d < epsilon) {
+          STATS.it.push(i);
+          const normal = scene.estimateNormal(p);
+          return Color.ofRGB((normal.x + 1) / 2, (normal.y + 1) / 2, (normal.z + 1) / 2);
+        }
+        if (d > minT) {
+          STATS.it.push(i);
+          break;
+        }
+        minT = d;
+      }
+      return Color.BLACK;
+    };
+    return this.rayShot(lambda);
+  }
   toCameraCoord(x) {
     let pointInCamCoord = x.sub(this.eye);
     pointInCamCoord = Vec3(this.basis[0].dot(pointInCamCoord), this.basis[1].dot(pointInCamCoord), this.basis[2].dot(pointInCamCoord));
@@ -1848,7 +1875,7 @@ class NaiveScene {
     for (let i = 0;i < elements.length; i++) {
       distance = smin(distance, elements[i].distanceToPoint(p));
     }
-    return;
+    return distance;
   }
   estimateNormal(p) {
     const epsilon = 0.001;
@@ -1887,8 +1914,6 @@ var drawBox = function({ box, level, level2colors, debugScene }) {
   debugScene.addList(lines);
   return debugScene;
 };
-var STATS = { leafCount: [] };
-
 class Scene {
   constructor() {
     this.id2ElemMap = {};
@@ -1916,8 +1941,13 @@ class Scene {
   getElements() {
     return this.sceneElements;
   }
+  getElementInBox(box) {
+    return this.boundingBoxScene.getElemIn(box);
+  }
+  getElementNear(p) {
+    return this.boundingBoxScene.getElemNear(p);
+  }
   interceptWith(ray, level) {
-    STATS.leafCount.push(0);
     const ans = this.boundingBoxScene.interceptWith(ray, level);
     return ans;
   }
@@ -1925,7 +1955,7 @@ class Scene {
     return this.boundingBoxScene.distanceToPoint(p);
   }
   estimateNormal(p) {
-    const epsilon = 0.001;
+    const epsilon = 0.000001;
     const n = p.dim;
     const grad = [];
     const d = this.distanceToPoint(p);
@@ -1980,6 +2010,40 @@ class Node {
     }
     return this;
   }
+  interceptWith(ray, depth = 1) {
+    return this.box.interceptWith(ray).flatMap(() => {
+      const children = [this.left, this.right].filter((x) => x);
+      const hits = [];
+      for (let i = 0;i < children.length; i++) {
+        const maybeHit = children[i].interceptWith(ray, depth + 1);
+        if (maybeHit.isSome())
+          hits.push(maybeHit.orElse());
+      }
+      const minIndex = argmin(hits, ([point]) => point.sub(ray.init).length());
+      if (minIndex === -1)
+        return none();
+      return some(hits[minIndex]);
+    });
+  }
+  distanceToPoint(p) {
+    return Math.min(this.left.distanceToPoint(p), this.right.distanceToPoint(p));
+  }
+  getElemIn(box) {
+    const children = [this.left, this.right].filter((x) => x);
+    for (let i = 0;i < children.length; i++) {
+      if (!children[i].box.sub(box).isEmpty) {
+        return children[i].getElemIn(box);
+      }
+    }
+  }
+  getElemNear(p) {
+    const children = [this.left, this.right].filter((x) => x);
+    const index = argmin(children, (n) => n.box.distanceToPoint(p));
+    return children[index].getElemNear(p);
+  }
+  getRandomLeaf() {
+    return Math.random() < 0.5 ? this.left.getRandomLeaf() : this.right.getRandomLeaf();
+  }
   _addElementWhenTreeIsFull(element, elemBox) {
     if (this.left.isLeaf && this.right.isLeaf) {
       this._addWithLeafs(element);
@@ -2031,33 +2095,6 @@ class Node {
     };
     index2Action[index]();
   }
-  interceptWith(ray, depth = 1) {
-    STATS.leafCount[STATS.leafCount.length - 1] = STATS.leafCount[STATS.leafCount.length - 1] + 1;
-    return this.box.interceptWith(ray).flatMap(() => {
-      const children = [this.left, this.right].filter((x) => x);
-      const hits = [];
-      for (let i = 0;i < children.length; i++) {
-        const maybeHit = children[i].interceptWith(ray, depth + 1);
-        if (maybeHit.isSome())
-          hits.push(maybeHit.orElse());
-      }
-      const minIndex = argmin(hits, ([point]) => point.sub(ray.init).length());
-      if (minIndex === -1)
-        return none();
-      return some(hits[minIndex]);
-    });
-  }
-  distanceToPoint(p) {
-    if (this.numberOfLeafs <= 2) {
-      return this.getElements().reduce((e, leaf) => smin(e, leaf.distanceToPoint(p)), 1000);
-    }
-    const children = [this.left, this.right];
-    const index = argmin(children, (c) => c.box.distanceToPoint(p));
-    return children[index].distanceToPoint(p);
-  }
-  getRandomLeaf() {
-    return Math.random() < 0.5 ? this.left.getRandomLeaf() : this.right.getRandomLeaf();
-  }
 }
 
 class Leaf {
@@ -2075,8 +2112,15 @@ class Leaf {
   getRandomLeaf() {
     return this;
   }
-  interceptWith(ray, depth) {
-    STATS.leafCount[STATS.leafCount.length - 1] = STATS.leafCount[STATS.leafCount.length - 1] + 1;
+  getElemIn(box) {
+    if (!box.sub(this.box).isEmpty)
+      return some(this.element);
+    return none();
+  }
+  getElemNear() {
+    return this.element;
+  }
+  interceptWith(ray) {
     return this.element.interceptWith(ray);
   }
 }

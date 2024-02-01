@@ -1,13 +1,13 @@
 
 import Box from "../Box/Box.js";
 import Vec, { Vec3 } from "../Vector/Vector.js";
-import { smin } from "../Utils/Math.js";
 import { argmin } from "../Utils/Utils.js";
 import { none, some } from "../Monads/Monads.js";
 import Color from "../Color/Color.js";
 import NaiveScene from "./NaiveScene.js";
 import Line from "./Line.js";
-const STATS = { leafCount: [] }
+
+const STATS = { distCount: [] }
 
 export default class Scene {
   constructor() {
@@ -41,8 +41,15 @@ export default class Scene {
     return this.sceneElements;
   }
 
+  getElementInBox(box) {
+    return this.boundingBoxScene.getElemIn(box);
+  }
+
+  getElementNear(p) {
+    return this.boundingBoxScene.getElemNear(p);
+  }
+
   interceptWith(ray, level) {
-    STATS.leafCount.push(0);
     const ans = this.boundingBoxScene.interceptWith(ray, level);
     return ans;
   }
@@ -52,7 +59,7 @@ export default class Scene {
   }
 
   estimateNormal(p) {
-    const epsilon = 1e-3;
+    const epsilon = 1e-6;
     const n = p.dim;
     const grad = [];
     const d = this.distanceToPoint(p);
@@ -110,6 +117,44 @@ class Node {
     return this;
   }
 
+  interceptWith(ray, depth = 1) {
+    return this.box.interceptWith(ray).flatMap(() => {
+      const children = [this.left, this.right].filter(x => x);
+      const hits = [];
+      for (let i = 0; i < children.length; i++) {
+        const maybeHit = children[i].interceptWith(ray, depth + 1);
+        if (maybeHit.isSome()) hits.push(maybeHit.orElse());
+      }
+      const minIndex = argmin(hits, ([point]) => point.sub(ray.init).length());
+      if (minIndex === -1) return none();
+      return some(hits[minIndex]);
+    })
+  }
+
+  distanceToPoint(p) {
+    // STATS.distCount[STATS.distCount.length - 1] = STATS.distCount[STATS.distCount.length - 1] + 1;
+    return Math.min(this.left.distanceToPoint(p), this.right.distanceToPoint(p));
+  }
+
+  getElemIn(box) {
+    const children = [this.left, this.right].filter(x => x);
+    for (let i = 0; i < children.length; i++) {
+      if (!children[i].box.sub(box).isEmpty) {
+        return children[i].getElemIn(box);
+      }
+    }
+  }
+
+  getElemNear(p) {
+    const children = [this.left, this.right].filter(x => x);
+    const index = argmin(children, n => n.box.distanceToPoint(p));
+    return children[index].getElemNear(p);
+  }
+
+  getRandomLeaf() {
+    return Math.random() < 0.5 ? this.left.getRandomLeaf() : this.right.getRandomLeaf();
+  }
+
   _addElementWhenTreeIsFull(element, elemBox) {
     if (this.left.isLeaf && this.right.isLeaf) {
       this._addWithLeafs(element);
@@ -162,39 +207,6 @@ class Node {
     }
     index2Action[index]();
   }
-
-
-  interceptWith(ray, depth = 1) {
-    // if (this.numberOfLeafs === 5) {
-    //   // return this.getRandomLeaf().interceptWith(ray, 10);
-    //   return this.box.interceptWith(ray).map(p => [p, this.box.estimateNormal(p)]);
-    // }
-    STATS.leafCount[STATS.leafCount.length - 1] = STATS.leafCount[STATS.leafCount.length - 1] + 1
-    return this.box.interceptWith(ray).flatMap(() => {
-      const children = [this.left, this.right].filter(x => x);
-      const hits = [];
-      for (let i = 0; i < children.length; i++) {
-        const maybeHit = children[i].interceptWith(ray, depth + 1);
-        if (maybeHit.isSome()) hits.push(maybeHit.orElse());
-      }
-      const minIndex = argmin(hits, ([point]) => point.sub(ray.init).length());
-      if (minIndex === -1) return none();
-      return some(hits[minIndex]);
-    })
-  }
-
-  distanceToPoint(p) {
-    if (this.numberOfLeafs <= 2) {
-      return this.getElements().reduce((e, leaf) => smin(e, leaf.distanceToPoint(p)), 1000);
-    }
-    const children = [this.left, this.right];
-    const index = argmin(children, c => c.box.distanceToPoint(p));
-    return children[index].distanceToPoint(p);
-  }
-
-  getRandomLeaf() {
-    return Math.random() < 0.5 ? this.left.getRandomLeaf() : this.right.getRandomLeaf();
-  }
 }
 
 class Leaf {
@@ -205,7 +217,6 @@ class Leaf {
   }
 
   distanceToPoint(x) {
-    // return this.box.distanceToPoint(x);
     return this.element.distanceToPoint(x);
   }
 
@@ -217,9 +228,16 @@ class Leaf {
     return this;
   }
 
-  interceptWith(ray, depth) {
-    STATS.leafCount[STATS.leafCount.length - 1] = STATS.leafCount[STATS.leafCount.length - 1] + 1
-    // return this.box.interceptWith(ray).map(pos => [pos, this.box.estimateNormal(pos)]);
+  getElemIn(box) {
+    if (!box.sub(this.box).isEmpty) return some(this.element);
+    return none();
+  }
+
+  getElemNear() {
+    return this.element;
+  }
+
+  interceptWith(ray) {
     return this.element.interceptWith(ray);
   }
 }

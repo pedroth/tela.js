@@ -38,7 +38,7 @@ export default class NaiveScene {
     for (let i = 0; i < elements.length; i++) {
       distance = smin(distance, elements[i].distanceToPoint(p));
     }
-    return
+    return distance;
   }
 
   estimateNormal(p) {

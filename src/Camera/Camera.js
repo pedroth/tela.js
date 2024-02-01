@@ -6,6 +6,9 @@ import Line from "../Scene/Line.js";
 import Triangle from "../Scene/Triangle.js";
 import { lerp } from "../Utils/Math.js";
 
+const STATS = { it: [] }
+
+
 export default class Camera {
   constructor(props = {
     sphericalCoords: Vec3(2, 0, 0),
@@ -126,6 +129,37 @@ export default class Camera {
         return canvas;
       }
     }
+  }
+
+  sdfShot(scene) {
+    const lambda = ray => {
+      const maxIte = 50;
+      const epsilon = 1e-6;
+      let p = ray.init;
+      let t = scene.distanceToPoint(p);
+      let minT = t;
+      for (let i = 0; i < maxIte; i++) {
+        p = ray.trace(t);
+        const d = scene.distanceToPoint(p);
+        t += d;
+        if (d < epsilon) {
+          STATS.it.push(i);
+          const normal = scene.estimateNormal(p);
+          return Color.ofRGB(
+            (normal.x + 1) / 2,
+            (normal.y + 1) / 2,
+            (normal.z + 1) / 2
+          )
+        }
+        if (d > minT) {
+          STATS.it.push(i);
+          break;
+        }
+        minT = d;
+      }
+      return Color.BLACK;
+    }
+    return this.rayShot(lambda);
   }
 
   toCameraCoord(x) {
