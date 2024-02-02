@@ -9,7 +9,7 @@ var __export = (target, all) => {
     });
 };
 
-// src/Ray/Ray.jstants.
+// src/Utils/Constants.
 class Stream {
   constructor(initialState, updateStateFunction) {
     this._head = initialState;
@@ -23,7 +23,7 @@ class Stream {
   }
 }
 
-// src/Ray/Ray.jstants.jsssr.
+// src/Utils/Constants.jsssr.
 class Animation {
   constructor(state, next, doWhile) {
     this.animation = new Stream(state, next);
@@ -75,7 +75,7 @@ class AnimationBuilder {
   }
 }
 
-// src/Ray/Ray.jstants.
+// src/Utils/Constants.
 var _sanitize_input = function(arrayIn, arrayOut) {
   for (let i = 0;i < arrayIn.length; i++) {
     const z = arrayIn[i];
@@ -460,7 +460,7 @@ class Vector2 {
   static ONES = new Vector2(1, 1);
 }
 
-// src/Ray/Ray.jstan
+// src/Utils/Constan
 function smin(a, b, k = 32) {
   const res = Math.exp(-k * a) + Math.exp(-k * b);
   return -Math.log(res) / k;
@@ -576,7 +576,7 @@ var solveUpTriMatrix = function(v, a, f) {
   return Vec2(f2 / v2, (f1 * v2 - v1 * f2) / av2);
 };
 
-// src/Ray/Ray.jstant
+// src/Utils/Constant
 var MAX_8BIT = 255;
 
 class Color {
@@ -635,10 +635,10 @@ class Color {
   static GREY = Color.ofRGB(0.5, 0.5, 0.5);
 }
 
-// src/Ray/Ray.jstants.js
+// src/Utils/Constants.js
 var MAX_8BIT2 = 255;
 
-// src/Ray/Ray.jstants.
+// src/Utils/Constants.
 var exports_Monads = {};
 __export(exports_Monads, {
   some: () => {
@@ -686,7 +686,7 @@ function maybe(x) {
   return none(x);
 }
 
-// src/Ray/Ray.js
+// src/Utils/Cons
 var maxComp = function(u) {
   return u.fold((e, x) => Math.max(e, x), -Number.MAX_VALUE);
 };
@@ -793,7 +793,7 @@ class Box {
   static EMPTY = new Box;
 }
 
-// src/Ray/Ray.jstant
+// src/Utils/Constant
 var exports_Utils = {};
 __export(exports_Utils, {
   or: () => {
@@ -882,7 +882,7 @@ function argmin(array, costFunction = (x) => x) {
   return argminIndex;
 }
 
-// src/Ray/Ray.jstants.
+// src/Utils/Constants.
 var drawConvexPolygon = function(canvas, positions, shader) {
   const { width, height } = canvas;
   const canvasBox = new Box(Vec2(), Vec2(width, height));
@@ -1100,7 +1100,7 @@ class Canvas {
   }
 }
 
-// src/Ray/Ray.jstants.jsssr.js
+// src/Utils/Constants.jsssr.js
 var isElement = function(o) {
   return typeof HTMLElement === "object" ? o instanceof HTMLElement : o && typeof o === "object" && o !== null && o.nodeType === 1 && typeof o.nodeName === "string";
 };
@@ -1192,7 +1192,7 @@ class DomBuilder {
 }
 var DomBuilder_default = DomBuilder;
 
-// src/Ray/Ray.jstants.jsss
+// src/Utils/Constants.jsss
 class Parallel {
   constructor(numberOfStreams, inputStreamGenerator, partitionFunction, stateGenerator, dependencies, lazyInitialState) {
     this.numberOfStreams = numberOfStreams;
@@ -1266,7 +1266,7 @@ class ParallelBuilder {
   }
 }
 
-// src/Ray/Ray.js
+// src/Utils/Cons
 function Ray(init, dir) {
   const ans = {};
   ans.init = init;
@@ -1275,7 +1275,7 @@ function Ray(init, dir) {
   return ans;
 }
 
-// src/Ray/Ray.jstant
+// src/Utils/Constant
 var sphereInterception = function(point, ray) {
   const { init, dir } = ray;
   const diff = init.sub(point.position);
@@ -1389,7 +1389,7 @@ class PointBuilder {
 }
 var Point_default = Point;
 
-// src/Ray/Ray.jstan
+// src/Utils/Constan
 class Line {
   constructor({ name, positions, colors, texCoords, normals, texture }) {
     this.name = name;
@@ -1467,7 +1467,7 @@ class LineBuilder {
   }
 }
 
-// src/Ray/Ray.jstants.j
+// src/Utils/Constants.j
 class Triangle {
   constructor({ name, positions, colors, texCoords, normals, texture }) {
     this.name = name;
@@ -1545,7 +1545,7 @@ class TriangleBuilder {
   }
 }
 
-// src/Ray/Ray.jstants.
+// src/Utils/Constants.
 var rasterPoint = function({ canvas, camera, elem, w, h, zBuffer }) {
   const point = elem;
   const { distanceToPlane } = camera;
@@ -1844,7 +1844,7 @@ class Camera {
   }
 }
 
-// src/Ray/Ray.jstants.jss
+// src/Utils/Constants.jss
 class NaiveScene {
   constructor() {
     this.id2ElemMap = {};
@@ -1873,7 +1873,7 @@ class NaiveScene {
     const elements = this.sceneElements;
     let distance = Number.MAX_VALUE;
     for (let i = 0;i < elements.length; i++) {
-      distance = smin(distance, elements[i].distanceToPoint(p));
+      distance = Math.min(distance, elements[i].distanceToPoint(p));
     }
     return distance;
   }
@@ -1907,13 +1907,14 @@ class NaiveScene {
   }
 }
 
-// src/Ray/Ray.jstant
+// src/Utils/Constant
 var drawBox = function({ box, level, level2colors, debugScene }) {
   const vertices = UNIT_BOX_VERTEX.map((v) => v.mul(box.diagonal).add(box.min));
   const lines = UNIT_BOX_FACES.map(([i, j]) => Line.builder().name(`debug_box_${level}_${i}_${j}`).positions(vertices[i], vertices[j]).colors(level2colors[level], level2colors[level]).build());
   debugScene.addList(lines);
   return debugScene;
 };
+
 class Scene {
   constructor() {
     this.id2ElemMap = {};
@@ -1948,8 +1949,7 @@ class Scene {
     return this.boundingBoxScene.getElemNear(p);
   }
   interceptWith(ray, level) {
-    const ans = this.boundingBoxScene.interceptWith(ray, level);
-    return ans;
+    return this.boundingBoxScene.interceptWith(ray, level);
   }
   distanceToPoint(p) {
     return this.boundingBoxScene.distanceToPoint(p);
@@ -1977,8 +1977,7 @@ class Scene {
       for (let i = 0;i <= maxLevels; i++)
         level2colors.push(Color.RED.scale(1 - i / maxLevels).add(Color.BLUE.scale(i / maxLevels)));
     }
-    if (level > 10 && level < 12)
-      debugScene = drawBox({ box: node.box, level, level2colors, debugScene });
+    debugScene = drawBox({ box: node.box, level, level2colors, debugScene });
     if (!node.isLeaf && node.left) {
       this.debug({ canvas, camera, node: node.left, level: level + 1, level2colors, debugScene });
     }
@@ -1986,7 +1985,7 @@ class Scene {
       this.debug({ canvas, camera, node: node.right, level: level + 1, level2colors, debugScene });
     }
     if (level === 0)
-      return camera.reverseShot(debugScene, { clearScreen: true }).to(canvas);
+      return camera.reverseShot(debugScene, { clearScreen: false }).to(canvas);
     return canvas;
   }
 }
@@ -2026,7 +2025,9 @@ class Node {
     });
   }
   distanceToPoint(p) {
-    return Math.min(this.left.distanceToPoint(p), this.right.distanceToPoint(p));
+    const children = [this.left, this.right];
+    const index = argmin(children, (c) => c.box.distanceToPoint(p));
+    return children[index].distanceToPoint(p);
   }
   getElemIn(box) {
     const children = [this.left, this.right].filter((x) => x);
@@ -2149,7 +2150,63 @@ var UNIT_BOX_FACES = [
   [2, 6]
 ];
 
-// src/Ray/Ray.jstan
+// src/Utils/Constan
+class Path {
+  constructor({ name, positions, colors }) {
+    this.name = name;
+    this.colors = colors;
+    this.positions = positions;
+  }
+  getBoundingBox() {
+    if (this.boundingBox)
+      return this.boundingBox;
+    this.boundingBox = this.positions.reduce((box, x) => box.add(new Box(x, x)), Box.EMPTY);
+    return this.boundingBox;
+  }
+  asLines() {
+    const lines = [];
+    for (let i = 0;i < this.positions.length - 1; i++) {
+      lines.push(Line.builder().name(`${this.name}_${i}_${i + 1}`).positions(this.positions[i], this.positions[i + 1]).colors(this.colors[i], this.colors[i + 1]).build());
+    }
+    return lines;
+  }
+  static builder() {
+    return new PathBuilder;
+  }
+}
+
+class PathBuilder {
+  constructor() {
+    this._name;
+    this._colors;
+    this._positions;
+  }
+  name(name) {
+    this._name = name;
+    return this;
+  }
+  positions(positions = []) {
+    this._positions = positions;
+    return this;
+  }
+  colors(colors = []) {
+    this._colors = colors;
+    return this;
+  }
+  build() {
+    const attrs = {
+      name: this._name,
+      colors: this._colors,
+      positions: this._positions
+    };
+    if (Object.values(attrs).some((x) => x === undefined)) {
+      throw new Error("Line is incomplete");
+    }
+    return new Path({ ...attrs });
+  }
+}
+
+// src/Utils/Constan
 var MESH_COUNTER = 0;
 var RADIUS = 0.001;
 var UNIT_BOX_VERTEX2 = [
@@ -2343,7 +2400,9 @@ export {
   Triangle,
   Stream,
   Scene,
+  Ray,
   Point_default as Point,
+  Path,
   Parallel,
   NaiveScene,
   exports_Monads as Monads,

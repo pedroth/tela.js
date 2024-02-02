@@ -1873,7 +1873,7 @@ class NaiveScene {
     const elements = this.sceneElements;
     let distance = Number.MAX_VALUE;
     for (let i = 0;i < elements.length; i++) {
-      distance = smin(distance, elements[i].distanceToPoint(p));
+      distance = Math.min(distance, elements[i].distanceToPoint(p));
     }
     return distance;
   }
@@ -1914,6 +1914,7 @@ var drawBox = function({ box, level, level2colors, debugScene }) {
   debugScene.addList(lines);
   return debugScene;
 };
+
 class Scene {
   constructor() {
     this.id2ElemMap = {};
@@ -1948,8 +1949,7 @@ class Scene {
     return this.boundingBoxScene.getElemNear(p);
   }
   interceptWith(ray, level) {
-    const ans = this.boundingBoxScene.interceptWith(ray, level);
-    return ans;
+    return this.boundingBoxScene.interceptWith(ray, level);
   }
   distanceToPoint(p) {
     return this.boundingBoxScene.distanceToPoint(p);
@@ -1977,8 +1977,7 @@ class Scene {
       for (let i = 0;i <= maxLevels; i++)
         level2colors.push(Color.RED.scale(1 - i / maxLevels).add(Color.BLUE.scale(i / maxLevels)));
     }
-    if (level > 10 && level < 12)
-      debugScene = drawBox({ box: node.box, level, level2colors, debugScene });
+    debugScene = drawBox({ box: node.box, level, level2colors, debugScene });
     if (!node.isLeaf && node.left) {
       this.debug({ canvas, camera, node: node.left, level: level + 1, level2colors, debugScene });
     }
@@ -1986,7 +1985,7 @@ class Scene {
       this.debug({ canvas, camera, node: node.right, level: level + 1, level2colors, debugScene });
     }
     if (level === 0)
-      return camera.reverseShot(debugScene, { clearScreen: true }).to(canvas);
+      return camera.reverseShot(debugScene, { clearScreen: false }).to(canvas);
     return canvas;
   }
 }
@@ -2026,7 +2025,9 @@ class Node {
     });
   }
   distanceToPoint(p) {
-    return Math.min(this.left.distanceToPoint(p), this.right.distanceToPoint(p));
+    const children = [this.left, this.right];
+    const index = argmin(children, (c) => c.box.distanceToPoint(p));
+    return children[index].distanceToPoint(p);
   }
   getElemIn(box) {
     const children = [this.left, this.right].filter((x) => x);
@@ -2148,6 +2149,62 @@ var UNIT_BOX_FACES = [
   [3, 7],
   [2, 6]
 ];
+
+// src/Utils/Constan
+class Path {
+  constructor({ name, positions, colors }) {
+    this.name = name;
+    this.colors = colors;
+    this.positions = positions;
+  }
+  getBoundingBox() {
+    if (this.boundingBox)
+      return this.boundingBox;
+    this.boundingBox = this.positions.reduce((box, x) => box.add(new Box(x, x)), Box.EMPTY);
+    return this.boundingBox;
+  }
+  asLines() {
+    const lines = [];
+    for (let i = 0;i < this.positions.length - 1; i++) {
+      lines.push(Line.builder().name(`${this.name}_${i}_${i + 1}`).positions(this.positions[i], this.positions[i + 1]).colors(this.colors[i], this.colors[i + 1]).build());
+    }
+    return lines;
+  }
+  static builder() {
+    return new PathBuilder;
+  }
+}
+
+class PathBuilder {
+  constructor() {
+    this._name;
+    this._colors;
+    this._positions;
+  }
+  name(name) {
+    this._name = name;
+    return this;
+  }
+  positions(positions = []) {
+    this._positions = positions;
+    return this;
+  }
+  colors(colors = []) {
+    this._colors = colors;
+    return this;
+  }
+  build() {
+    const attrs = {
+      name: this._name,
+      colors: this._colors,
+      positions: this._positions
+    };
+    if (Object.values(attrs).some((x) => x === undefined)) {
+      throw new Error("Line is incomplete");
+    }
+    return new Path({ ...attrs });
+  }
+}
 
 // src/Utils/Constan
 var MESH_COUNTER = 0;
@@ -2673,7 +2730,9 @@ export {
   Triangle,
   Stream,
   Scene,
+  Ray,
   Point_default as Point,
+  Path,
   Parallel,
   NaiveScene,
   exports_Monads as Monads,

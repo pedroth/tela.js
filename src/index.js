@@ -11,15 +11,19 @@ import Vec, { Vec2, Vec3 } from "./Vector/Vector.js"
 import Box from "./Box/Box.js"
 import Point from "./Scene/Point.js"
 import Line from "./Scene/Line.js"
+import Path from "./Scene/Path.js"
 import Triangle from "./Scene/Triangle.js"
 import Mesh from "./Scene/Mesh.js"
+import Ray from "./Ray/Ray.js"
 
 export {
     Box,
     DOM,
+    Ray,
     Vec,
     Mesh,
     Line,
+    Path,
     Vec2,
     Vec3,
     Color,

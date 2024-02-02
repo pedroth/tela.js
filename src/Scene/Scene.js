@@ -7,8 +7,6 @@ import Color from "../Color/Color.js";
 import NaiveScene from "./NaiveScene.js";
 import Line from "./Line.js";
 
-const STATS = { distCount: [] }
-
 export default class Scene {
   constructor() {
     this.id2ElemMap = {};
@@ -50,8 +48,7 @@ export default class Scene {
   }
 
   interceptWith(ray, level) {
-    const ans = this.boundingBoxScene.interceptWith(ray, level);
-    return ans;
+    return this.boundingBoxScene.interceptWith(ray, level);
   }
 
   distanceToPoint(p) {
@@ -84,14 +81,14 @@ export default class Scene {
           Color.RED.scale(1 - i / maxLevels).add(Color.BLUE.scale(i / maxLevels))
         );
     }
-    if (level > 10 && level < 12) debugScene = drawBox({ box: node.box, level, level2colors, debugScene });
+    debugScene = drawBox({ box: node.box, level, level2colors, debugScene });
     if (!node.isLeaf && node.left) {
       this.debug({ canvas, camera, node: node.left, level: level + 1, level2colors, debugScene })
     }
     if (!node.isLeaf && node.right) {
       this.debug({ canvas, camera, node: node.right, level: level + 1, level2colors, debugScene })
     }
-    if (level === 0) return camera.reverseShot(debugScene, { clearScreen: true }).to(canvas);
+    if (level === 0) return camera.reverseShot(debugScene, { clearScreen: false }).to(canvas);
     return canvas;
   }
 }
@@ -132,8 +129,9 @@ class Node {
   }
 
   distanceToPoint(p) {
-    // STATS.distCount[STATS.distCount.length - 1] = STATS.distCount[STATS.distCount.length - 1] + 1;
-    return Math.min(this.left.distanceToPoint(p), this.right.distanceToPoint(p));
+    const children = [this.left, this.right];
+    const index = argmin(children, c => c.box.distanceToPoint(p));
+    return children[index].distanceToPoint(p);
   }
 
   getElemIn(box) {

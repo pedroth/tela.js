@@ -162,6 +162,8 @@ export default class Camera {
     return this.rayShot(lambda);
   }
 
+  
+
   toCameraCoord(x) {
     let pointInCamCoord = x.sub(this.eye);
     pointInCamCoord = Vec3(

@@ -480,6 +480,10 @@ const examples = [
     {
         title: "image to rgb space",
         path: "/test/web/image2rgb.js"
+    },
+    {
+        title: "debug path tracer",
+        path: "/test/web/debug_path_tracer.js"
     }
 ];
 
@@ -505,7 +509,7 @@ function execCode(code) {
             const script = DOM.of("script").build();
             script.type = "module";
             script.textContent = `
-            import {Canvas, DOM, Color, Animation, Scene, Camera, Vec2, Vec3, Vec, Box, Point, Mesh, NaiveScene, Line, Triangle,clamp } from "/dist/web/index.js"
+            import {Path, Ray, Canvas, DOM, Color, Animation, Scene, Camera, Vec2, Vec3, Vec, Box, Point, Mesh, NaiveScene, Line, Triangle,clamp } from "/dist/web/index.js"
             Animation.globalAnimationIds.forEach(id => {
                 window.cancelAnimationFrame(id)
             });
