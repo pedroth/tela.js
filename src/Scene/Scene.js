@@ -72,7 +72,7 @@ export default class Scene {
   }
 
   getElemNear(p) {
-    const samples = 3;
+    const samples = 50;
     const nearestElemMap = {};
     for (let i = 0; i < samples; i++) {
       const elem = this.boundingBoxScene.getElemNear(p);
@@ -80,7 +80,7 @@ export default class Scene {
         nearestElemMap[elem.name] = { count: 0, elem };
       }
       const obj = nearestElemMap[elem.name];
-      nearestElemMap[elem.name] = { count: obj.count, elem };
+      nearestElemMap[elem.name] = { count: obj.count + 1, elem };
     }
     return Object.values(nearestElemMap).sort((a, b) => a.count - b.count).at(-1).elem;
   }
@@ -164,13 +164,13 @@ class Node {
   distanceToPoint(p) {
     const children = [this.left, this.right].filter(x => x);
     const index = argmin(children, n => n.box.center.sub(p).length());
-    return Math.random() < 0.999 ? children[index].distanceToPoint(p) : children[(1 - index) % 2].distanceToPoint(p);
+    return Math.random() < 0.75 ? children[index].distanceToPoint(p) : children[(1 - index) % 2].distanceToPoint(p);
   }
 
   getElemNear(p) {
     const children = [this.left, this.right].filter(x => x);
     const index = argmin(children, n => n.box.center.sub(p).length());
-    return Math.random() < 0.999 ? children[index].getElemNear(p) : children[(1 - index) % 2].getElemNear(p);
+    return Math.random() < 0.75 ? children[index].getElemNear(p) : children[(1 - index) % 2].getElemNear(p);
   }
 
   getElemIn(box) {
