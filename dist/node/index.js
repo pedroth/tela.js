@@ -1957,7 +1957,12 @@ class Scene {
     return this.boundingBoxScene.interceptWith(ray, level);
   }
   distanceToPoint(p) {
-    return this.boundingBoxScene.distanceToPoint(p);
+    const samples = 10;
+    let distance = 0;
+    for (let i = 0;i < samples; i++) {
+      distance += this.boundingBoxScene.distanceToPoint(p);
+    }
+    return distance / samples;
   }
   estimateNormal(p) {
     const epsilon = 0.000000001;
@@ -1970,7 +1975,17 @@ class Scene {
     return Vec.fromArray(grad).scale(Math.sign(d)).normalize();
   }
   getElemNear(p) {
-    return this.boundingBoxScene.getElemNear(p);
+    const samples = 3;
+    const nearestElemMap = {};
+    for (let i = 0;i < samples; i++) {
+      const elem = this.boundingBoxScene.getElemNear(p);
+      if (!(elem.name in nearestElemMap)) {
+        nearestElemMap[elem.name] = { count: 0, elem };
+      }
+      const obj = nearestElemMap[elem.name];
+      nearestElemMap[elem.name] = { count: obj.count, elem };
+    }
+    return Object.values(nearestElemMap).sort((a, b) => a.count - b.count).at(-1).elem;
   }
   debug(props) {
     const { camera, canvas } = props;
@@ -2046,18 +2061,14 @@ class Node {
     });
   }
   distanceToPoint(p) {
-    const children = [this.left, this.right];
-    const childrenAndGrandChildren = children.flatMap((x) => x.isLeaf ? [x, undefined] : [x.left, x.right]);
-    let index = argmin(childrenAndGrandChildren, (n) => !n ? Number.MAX_VALUE : n.box.center.sub(p).length());
-    index = Math.floor(index / 2);
-    return children[index].distanceToPoint(p);
+    const children = [this.left, this.right].filter((x) => x);
+    const index = argmin(children, (n) => n.box.center.sub(p).length());
+    return Math.random() < 0.999 ? children[index].distanceToPoint(p) : children[(1 - index) % 2].distanceToPoint(p);
   }
   getElemNear(p) {
-    const children = [this.left, this.right];
-    const childrenAndGrandChildren = children.flatMap((x) => x.isLeaf ? [x, undefined] : [x.left, x.right]);
-    let index = argmin(childrenAndGrandChildren, (n) => !n ? Number.MAX_VALUE : n.box.center.sub(p).length());
-    index = Math.floor(index / 2);
-    return children[index].getElemNear(p);
+    const children = [this.left, this.right].filter((x) => x);
+    const index = argmin(children, (n) => n.box.center.sub(p).length());
+    return Math.random() < 0.999 ? children[index].getElemNear(p) : children[(1 - index) % 2].getElemNear(p);
   }
   getElemIn(box) {
     const children = [this.left, this.right].filter((x) => x);

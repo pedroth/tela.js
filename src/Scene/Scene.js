@@ -1,7 +1,7 @@
 
 import Box from "../Box/Box.js";
 import Vec, { Vec3 } from "../Vector/Vector.js";
-import { argmin } from "../Utils/Utils.js";
+import { argmin, groupBy } from "../Utils/Utils.js";
 import { none, some } from "../Monads/Monads.js";
 import Color from "../Color/Color.js";
 import NaiveScene from "./NaiveScene.js";
@@ -52,16 +52,12 @@ export default class Scene {
   }
 
   distanceToPoint(p) {
-    // const stack = [];
-    // stack.push(this.boundingBoxScene);
-    // while (stack.length) {
-    //   const node = stack.pop();
-    //   if (node.isLeaf) return node.distanceToPoint(p);
-    //   const children = [node.left, node.right].filter(x => x);
-    //   const index = argmin(children, c => Math.abs(c.box.distanceToPoint(p)));
-    //   stack.push(children[index]);
-    // }
-    return this.boundingBoxScene.distanceToPoint(p)
+    const samples = 10;
+    let distance = 0;
+    for (let i = 0; i < samples; i++) {
+      distance += this.boundingBoxScene.distanceToPoint(p)
+    }
+    return distance / samples;
   }
 
   estimateNormal(p) {
@@ -76,7 +72,17 @@ export default class Scene {
   }
 
   getElemNear(p) {
-    return this.boundingBoxScene.getElemNear(p);
+    const samples = 3;
+    const nearestElemMap = {};
+    for (let i = 0; i < samples; i++) {
+      const elem = this.boundingBoxScene.getElemNear(p);
+      if (!(elem.name in nearestElemMap)) {
+        nearestElemMap[elem.name] = { count: 0, elem };
+      }
+      const obj = nearestElemMap[elem.name];
+      nearestElemMap[elem.name] = { count: obj.count, elem };
+    }
+    return Object.values(nearestElemMap).sort((a, b) => a.count - b.count).at(-1).elem;
   }
 
   debug(props) {
@@ -156,19 +162,15 @@ class Node {
   }
 
   distanceToPoint(p) {
-    const children = [this.left, this.right]
-    const childrenAndGrandChildren = children.flatMap(x => x.isLeaf ? [x, undefined] : [x.left, x.right]);
-    let index = argmin(childrenAndGrandChildren, n => !n ? Number.MAX_VALUE : n.box.center.sub(p).length());
-    index = Math.floor(index / 2);
-    return children[index].distanceToPoint(p);
+    const children = [this.left, this.right].filter(x => x);
+    const index = argmin(children, n => n.box.center.sub(p).length());
+    return Math.random() < 0.999 ? children[index].distanceToPoint(p) : children[(1 - index) % 2].distanceToPoint(p);
   }
 
   getElemNear(p) {
-    const children = [this.left, this.right]
-    const childrenAndGrandChildren = children.flatMap(x => x.isLeaf ? [x, undefined] : [x.left, x.right]);
-    let index = argmin(childrenAndGrandChildren, n => !n ? Number.MAX_VALUE : n.box.center.sub(p).length());
-    index = Math.floor(index / 2);
-    return children[index].getElemNear(p);
+    const children = [this.left, this.right].filter(x => x);
+    const index = argmin(children, n => n.box.center.sub(p).length());
+    return Math.random() < 0.999 ? children[index].getElemNear(p) : children[(1 - index) % 2].getElemNear(p);
   }
 
   getElemIn(box) {
