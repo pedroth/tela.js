@@ -2046,13 +2046,17 @@ class Node {
     });
   }
   distanceToPoint(p) {
-    const children = [this.left, this.right].filter((x) => x);
-    const index = argmin(children, (n) => n.box.center.sub(p).length());
+    const children = [this.left, this.right];
+    const childrenAndGrandChildren = children.flatMap((x) => x.isLeaf ? [x, undefined] : [x.left, x.right]);
+    let index = argmin(childrenAndGrandChildren, (n) => !n ? Number.MAX_VALUE : n.box.center.sub(p).length());
+    index = Math.floor(index / 2);
     return children[index].distanceToPoint(p);
   }
   getElemNear(p) {
-    const children = [this.left, this.right].filter((x) => x);
-    const index = argmin(children, (n) => n.box.center.sub(p).length());
+    const children = [this.left, this.right];
+    const childrenAndGrandChildren = children.flatMap((x) => x.isLeaf ? [x, undefined] : [x.left, x.right]);
+    let index = argmin(childrenAndGrandChildren, (n) => !n ? Number.MAX_VALUE : n.box.center.sub(p).length());
+    index = Math.floor(index / 2);
     return children[index].getElemNear(p);
   }
   getElemIn(box) {
