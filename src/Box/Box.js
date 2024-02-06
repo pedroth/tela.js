@@ -1,5 +1,5 @@
 import { none, some } from "../Monads/Monads";
-import Vec, { Vec2, Vec3 } from "../Vector/Vector";
+import Vec from "../Vector/Vector";
 
 
 export default class Box {

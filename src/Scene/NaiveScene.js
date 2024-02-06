@@ -2,6 +2,7 @@
 import { none, some } from "../Monads/Monads.js";
 import Vec from "../Vector/Vector.js";
 import { smin } from "../Utils/Math.js";
+import { argmin } from "../Utils/Utils.js";
 
 export default class NaiveScene {
   constructor() {
@@ -72,7 +73,11 @@ export default class NaiveScene {
     return closest;
   }
 
-  debugTo(canvas) {
-    return canvas;
+  getElemNear(p) {
+    return this.sceneElements[argmin(this.sceneElements, x => x.distanceToPoint(p))];
+  }
+
+  debug(params) {
+    return params.canvas;
   }
 }

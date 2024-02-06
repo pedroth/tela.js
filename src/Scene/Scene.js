@@ -52,11 +52,20 @@ export default class Scene {
   }
 
   distanceToPoint(p) {
+    // const stack = [];
+    // stack.push(this.boundingBoxScene);
+    // while (stack.length) {
+    //   const node = stack.pop();
+    //   if (node.isLeaf) return node.distanceToPoint(p);
+    //   const children = [node.left, node.right].filter(x => x);
+    //   const index = argmin(children, c => Math.abs(c.box.distanceToPoint(p)));
+    //   stack.push(children[index]);
+    // }
     return this.boundingBoxScene.distanceToPoint(p)
   }
 
   estimateNormal(p) {
-    const epsilon = 1e-6;
+    const epsilon = 1e-9;
     const n = p.dim;
     const grad = [];
     const d = this.distanceToPoint(p);
@@ -64,6 +73,10 @@ export default class Scene {
       grad.push(this.distanceToPoint(p.add(Vec.e(n)(i).scale(epsilon))) - d);
     }
     return Vec.fromArray(grad).scale(Math.sign(d)).normalize();
+  }
+
+  getElemNear(p) {
+    return this.boundingBoxScene.getElemNear(p);
   }
 
   debug(props) {
@@ -90,6 +103,20 @@ export default class Scene {
     }
     if (level === 0) return camera.reverseShot(debugScene, { clearScreen: false }).to(canvas);
     return canvas;
+  }
+
+  rebuild() {
+    let nodeOrLeafStack = this.sceneElements.map(x => new Leaf(x));
+    while (nodeOrLeafStack.length > 1) {
+      const nodeOrLeaf = nodeOrLeafStack[0];
+      nodeOrLeafStack = nodeOrLeafStack.slice(1);
+      const minIndex = argmin(nodeOrLeafStack, x => nodeOrLeaf.box.distanceToBox(x.box));
+      const newNode = nodeOrLeaf.join(nodeOrLeafStack[minIndex]);
+      nodeOrLeafStack.splice(minIndex, 1); // mutates array
+      nodeOrLeafStack.push(newNode);
+    }
+    this.boundingBoxScene = nodeOrLeafStack.pop();
+    return this;
   }
 }
 
@@ -129,9 +156,10 @@ class Node {
   }
 
   distanceToPoint(p) {
-    const children = [this.left, this.right];
-    const index = argmin(children, c => c.box.distanceToPoint(p));
-    return children[index].distanceToPoint(p);
+    const left = this.left.box.distanceToPoint(p);
+    const right = this.right.box.distanceToPoint(p);
+    if (left < right) return this.left.distanceToPoint(p);
+    return this.right.distanceToPoint(p);
   }
 
   getElemIn(box) {
@@ -151,6 +179,16 @@ class Node {
 
   getRandomLeaf() {
     return Math.random() < 0.5 ? this.left.getRandomLeaf() : this.right.getRandomLeaf();
+  }
+
+  join(nodeOrLeaf) {
+    if (nodeOrLeaf.isLeaf) return this.add(nodeOrLeaf.element);
+    const newNode = new Node();
+    newNode.left = this;
+    newNode.right = nodeOrLeaf;
+    newNode.box = this.box.add(nodeOrLeaf.box);
+    newNode.numberOfLeafs = newNode.left.numberOfLeafs + newNode.right.numberOfLeafs;
+    return newNode;
   }
 
   _addElementWhenTreeIsFull(element, elemBox) {
@@ -238,6 +276,11 @@ class Leaf {
   interceptWith(ray) {
     return this.element.interceptWith(ray);
   }
+
+  join(nodeOrLeaf) {
+    if (nodeOrLeaf.isLeaf) return new Node().add(this.element).add(nodeOrLeaf.element);
+    return nodeOrLeaf.join(this);
+  }
 }
 
 
@@ -273,6 +316,7 @@ const UNIT_BOX_FACES = [
 ]
 
 function drawBox({ box, level, level2colors, debugScene }) {
+  if (box.isEmpty) return;
   const vertices = UNIT_BOX_VERTEX.map(v => v.mul(box.diagonal).add(box.min))
   const lines = UNIT_BOX_FACES
     .map(([i, j]) =>

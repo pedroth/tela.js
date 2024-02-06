@@ -873,7 +873,7 @@ function argmin(array, costFunction = (x) => x) {
   let argminIndex = -1;
   let cost = Number.MAX_VALUE;
   for (let i = 0;i < array.length; i++) {
-    const newCost = costFunction(array[i]);
+    const newCost = costFunction(array[i], i);
     if (newCost < cost) {
       cost = newCost;
       argminIndex = i;
@@ -1902,13 +1902,18 @@ class NaiveScene {
     }
     return closest;
   }
-  debugTo(canvas) {
-    return canvas;
+  getElemNear(p) {
+    return this.sceneElements[argmin(this.sceneElements, (x) => x.distanceToPoint(p))];
+  }
+  debug(params) {
+    return params.canvas;
   }
 }
 
 // src/Utils/Constant
 var drawBox = function({ box, level, level2colors, debugScene }) {
+  if (box.isEmpty)
+    return;
   const vertices = UNIT_BOX_VERTEX.map((v) => v.mul(box.diagonal).add(box.min));
   const lines = UNIT_BOX_FACES.map(([i, j]) => Line.builder().name(`debug_box_${level}_${i}_${j}`).positions(vertices[i], vertices[j]).colors(level2colors[level], level2colors[level]).build());
   debugScene.addList(lines);
@@ -1955,7 +1960,7 @@ class Scene {
     return this.boundingBoxScene.distanceToPoint(p);
   }
   estimateNormal(p) {
-    const epsilon = 0.000001;
+    const epsilon = 0.000000001;
     const n = p.dim;
     const grad = [];
     const d = this.distanceToPoint(p);
@@ -1963,6 +1968,9 @@ class Scene {
       grad.push(this.distanceToPoint(p.add(Vec.e(n)(i).scale(epsilon))) - d);
     }
     return Vec.fromArray(grad).scale(Math.sign(d)).normalize();
+  }
+  getElemNear(p) {
+    return this.boundingBoxScene.getElemNear(p);
   }
   debug(props) {
     const { camera, canvas } = props;
@@ -1987,6 +1995,19 @@ class Scene {
     if (level === 0)
       return camera.reverseShot(debugScene, { clearScreen: false }).to(canvas);
     return canvas;
+  }
+  rebuild() {
+    let nodeOrLeafStack = this.sceneElements.map((x) => new Leaf(x));
+    while (nodeOrLeafStack.length > 1) {
+      const nodeOrLeaf = nodeOrLeafStack[0];
+      nodeOrLeafStack = nodeOrLeafStack.slice(1);
+      const minIndex = argmin(nodeOrLeafStack, (x) => nodeOrLeaf.box.distanceToBox(x.box));
+      const newNode = nodeOrLeaf.join(nodeOrLeafStack[minIndex]);
+      nodeOrLeafStack.splice(minIndex, 1);
+      nodeOrLeafStack.push(newNode);
+    }
+    this.boundingBoxScene = nodeOrLeafStack.pop();
+    return this;
   }
 }
 
@@ -2025,9 +2046,11 @@ class Node {
     });
   }
   distanceToPoint(p) {
-    const children = [this.left, this.right];
-    const index = argmin(children, (c) => c.box.distanceToPoint(p));
-    return children[index].distanceToPoint(p);
+    const left = this.left.box.distanceToPoint(p);
+    const right = this.right.box.distanceToPoint(p);
+    if (left < right)
+      return this.left.distanceToPoint(p);
+    return this.right.distanceToPoint(p);
   }
   getElemIn(box) {
     const children = [this.left, this.right].filter((x) => x);
@@ -2044,6 +2067,16 @@ class Node {
   }
   getRandomLeaf() {
     return Math.random() < 0.5 ? this.left.getRandomLeaf() : this.right.getRandomLeaf();
+  }
+  join(nodeOrLeaf) {
+    if (nodeOrLeaf.isLeaf)
+      return this.add(nodeOrLeaf.element);
+    const newNode = new Node;
+    newNode.left = this;
+    newNode.right = nodeOrLeaf;
+    newNode.box = this.box.add(nodeOrLeaf.box);
+    newNode.numberOfLeafs = newNode.left.numberOfLeafs + newNode.right.numberOfLeafs;
+    return newNode;
   }
   _addElementWhenTreeIsFull(element, elemBox) {
     if (this.left.isLeaf && this.right.isLeaf) {
@@ -2123,6 +2156,11 @@ class Leaf {
   }
   interceptWith(ray) {
     return this.element.interceptWith(ray);
+  }
+  join(nodeOrLeaf) {
+    if (nodeOrLeaf.isLeaf)
+      return new Node().add(this.element).add(nodeOrLeaf.element);
+    return nodeOrLeaf.join(this);
   }
 }
 var UNIT_BOX_VERTEX = [

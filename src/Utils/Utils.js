@@ -45,7 +45,7 @@ export function argmin(array, costFunction = x => x) {
     let cost = Number.MAX_VALUE;
     // faster than forEach
     for (let i = 0; i < array.length; i++) {
-        const newCost = costFunction(array[i]);
+        const newCost = costFunction(array[i], i);
         if (newCost < cost) {
             cost = newCost;
             argminIndex = i;

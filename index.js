@@ -484,6 +484,10 @@ const examples = [
     {
         title: "debug path tracer",
         path: "/test/web/debug_path_tracer.js"
+    },
+    {
+        title: "debug dist func",
+        path: "/test/web/debug_dist_func.js"
     }
 ];
 
