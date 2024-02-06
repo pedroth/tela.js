@@ -488,6 +488,10 @@ const examples = [
     {
         title: "debug dist func",
         path: "/test/web/debug_dist_func.js"
+    },
+    {
+        title: "debug voronoi",
+        path: "/test/web/debug_voronoi.js"
     }
 ];
 

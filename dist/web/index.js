@@ -51,7 +51,7 @@ class Animation {
 
 class AnimationBuilder {
   constructor() {
-    this._state = null;
+    this._state = {};
     this._next = null;
     this._end = null;
   }
@@ -2046,11 +2046,14 @@ class Node {
     });
   }
   distanceToPoint(p) {
-    const left = this.left.box.distanceToPoint(p);
-    const right = this.right.box.distanceToPoint(p);
-    if (left < right)
-      return this.left.distanceToPoint(p);
-    return this.right.distanceToPoint(p);
+    const children = [this.left, this.right].filter((x) => x);
+    const index = argmin(children, (n) => n.box.center.sub(p).length());
+    return children[index].distanceToPoint(p);
+  }
+  getElemNear(p) {
+    const children = [this.left, this.right].filter((x) => x);
+    const index = argmin(children, (n) => n.box.center.sub(p).length());
+    return children[index].getElemNear(p);
   }
   getElemIn(box) {
     const children = [this.left, this.right].filter((x) => x);
@@ -2059,11 +2062,6 @@ class Node {
         return children[i].getElemIn(box);
       }
     }
-  }
-  getElemNear(p) {
-    const children = [this.left, this.right].filter((x) => x);
-    const index = argmin(children, (n) => n.box.distanceToPoint(p));
-    return children[index].getElemNear(p);
   }
   getRandomLeaf() {
     return Math.random() < 0.5 ? this.left.getRandomLeaf() : this.right.getRandomLeaf();

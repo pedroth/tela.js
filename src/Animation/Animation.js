@@ -30,7 +30,7 @@ export default class Animation {
 
 class AnimationBuilder {
   constructor() {
-    this._state = null;
+    this._state = {};
     this._next = null;
     this._end = null;
   }
