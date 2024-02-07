@@ -52,16 +52,41 @@ export default class Scene {
   }
 
   distanceToPoint(p) {
-    // const stack = [];
-    // stack.push(this.boundingBoxScene);
-    // while (stack.length) {
-    //   const node = stack.pop();
-    //   if (node.isLeaf) return node.distanceToPoint(p);
-    //   const children = [node.left, node.right].filter(x => x);
-    //   const index = argmin(children, c => Math.abs(c.box.distanceToPoint(p)));
-    //   stack.push(children[index]);
-    // }
-    return this.boundingBoxScene.distanceToPoint(p)
+    if (this.boundingBoxScene.numberOfLeafs < 2) {
+      return this.boundingBoxScene.distanceToPoint(p);
+    }
+    let stack = [this.boundingBoxScene.left, this.boundingBoxScene.right];
+    stack = stack
+      .map(x => ({ node: x, distance: x.box.distanceToPoint(p) }))
+      .sort((a, b) => a.distance - b.distance);
+    while (stack.length) {
+      const { node } = stack[0];
+      stack = stack.slice(1);
+      if (node.isLeaf) return node.distanceToPoint(p);
+      const children = [node.left, node.right]
+        .filter(x => x)
+        .map(x => ({ node: x, distance: x.box.distanceToPoint(p) }));
+      stack = stack.concat(children).sort((a, b) => a.distance - b.distance);
+    }
+  }
+
+  getElemNear(p) {
+    if (this.boundingBoxScene.numberOfLeafs < 2) {
+      return this.boundingBoxScene.distanceToPoint(p);
+    }
+    let stack = [this.boundingBoxScene.left, this.boundingBoxScene.right];
+    stack = stack
+      .map(x => ({ node: x, distance: x.box.distanceToPoint(p) }))
+      .sort((a, b) => a.distance - b.distance);
+    while (stack.length) {
+      const { node } = stack[0];
+      stack = stack.slice(1);
+      if (node.isLeaf) return node.getElemNear(p);
+      const children = [node.left, node.right]
+        .filter(x => x)
+        .map(x => ({ node: x, distance: x.box.distanceToPoint(p) }));
+      stack = stack.concat(children).sort((a, b) => a.distance - b.distance);
+    }
   }
 
   estimateNormal(p) {
@@ -73,10 +98,6 @@ export default class Scene {
       grad.push(this.distanceToPoint(p.add(Vec.e(n)(i).scale(epsilon))) - d);
     }
     return Vec.fromArray(grad).scale(Math.sign(d)).normalize();
-  }
-
-  getElemNear(p) {
-    return this.boundingBoxScene.getElemNear(p);
   }
 
   debug(props) {
