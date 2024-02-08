@@ -6,6 +6,7 @@ import { none, some } from "../Monads/Monads.js";
 import Color from "../Color/Color.js";
 import NaiveScene from "./NaiveScene.js";
 import Line from "./Line.js";
+import PQueue from "../PQueue/PQueue.js";
 
 export default class Scene {
   constructor() {
@@ -55,37 +56,33 @@ export default class Scene {
     if (this.boundingBoxScene.numberOfLeafs < 2) {
       return this.boundingBoxScene.distanceToPoint(p);
     }
-    let stack = [this.boundingBoxScene.left, this.boundingBoxScene.right];
-    stack = stack
-      .map(x => ({ node: x, distance: x.box.distanceToPoint(p) }))
-      .sort((a, b) => a.distance - b.distance);
+    const initial = [this.boundingBoxScene.left, this.boundingBoxScene.right]
+      .map(x => ({ node: x, distance: Math.abs(x.box.distanceToPoint(p)) }));
+    let stack = PQueue.ofArray(initial, (a,b) => a.distance - b.distance);
     while (stack.length) {
-      const { node } = stack[0];
-      stack = stack.slice(1);
+      const { node } = stack.pop();
       if (node.isLeaf) return node.distanceToPoint(p);
       const children = [node.left, node.right]
         .filter(x => x)
-        .map(x => ({ node: x, distance: x.box.distanceToPoint(p) }));
-      stack = stack.concat(children).sort((a, b) => a.distance - b.distance);
+        .map(x => ({ node: x, distance: Math.abs(x.box.distanceToPoint(p)) }));
+      children.forEach(c => stack.push(c));
     }
   }
 
   getElemNear(p) {
     if (this.boundingBoxScene.numberOfLeafs < 2) {
-      return this.boundingBoxScene.distanceToPoint(p);
+      return this.boundingBoxScene.getElemNear(p);
     }
-    let stack = [this.boundingBoxScene.left, this.boundingBoxScene.right];
-    stack = stack
-      .map(x => ({ node: x, distance: x.box.distanceToPoint(p) }))
-      .sort((a, b) => a.distance - b.distance);
+    const initial = [this.boundingBoxScene.left, this.boundingBoxScene.right]
+      .map(x => ({ node: x, distance: Math.abs(x.box.distanceToPoint(p)) }));
+    let stack = PQueue.ofArray(initial, (a,b) => a.distance - b.distance);
     while (stack.length) {
-      const { node } = stack[0];
-      stack = stack.slice(1);
+      const { node } = stack.pop();
       if (node.isLeaf) return node.getElemNear(p);
       const children = [node.left, node.right]
         .filter(x => x)
-        .map(x => ({ node: x, distance: x.box.distanceToPoint(p) }));
-      stack = stack.concat(children).sort((a, b) => a.distance - b.distance);
+        .map(x => ({ node: x, distance: Math.abs(x.box.distanceToPoint(p)) }));
+      children.forEach(c => stack.push(c));
     }
   }
 
