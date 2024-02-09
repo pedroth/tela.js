@@ -1712,7 +1712,6 @@ var getBiLinearTexColor = function(texUV, texture) {
 var getTexColor = function(texUV, texture) {
   return texture.getPxl(texUV.x * texture.width, texUV.y * texture.height);
 };
-var STATS = { it: [] };
 
 class Camera {
   constructor(props = {
@@ -1823,12 +1822,10 @@ class Camera {
         const d = scene.distanceToPoint(p);
         t += d;
         if (d < epsilon) {
-          STATS.it.push(i);
           const normal = scene.estimateNormal(p);
           return Color.ofRGB((normal.x + 1) / 2, (normal.y + 1) / 2, (normal.z + 1) / 2);
         }
         if (d > minT) {
-          STATS.it.push(i);
           break;
         }
         minT = d;

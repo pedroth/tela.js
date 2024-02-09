@@ -12,14 +12,14 @@ const dt = 1 / FPS;
 const maxT = 10;
 
 // scene
-const scene = new NaiveScene();
+const scene = new Scene();
 const camera = new Camera({ sphericalCoords: Vec3(5, 0, 0) });
 const obj = readFileSync("./assets/spot.obj", { encoding: "utf-8" });
 let mesh = Mesh.readObj(obj, "mesh");
 mesh = mesh
     .mapVertices(v => Vec3(-v.y, v.x, v.z))
     .mapVertices(v => Vec3(v.z, v.y, -v.x))
-scene.addList(mesh.asPoints(0.01));
+scene.addList(mesh.asPoints(0.05));
 
 const canvas = Image.ofSize(width, height);
 const imageStream = new Stream(

@@ -9,7 +9,7 @@ var __export = (target, all) => {
     });
 };
 
-// src/PQueue/PQueue.js
+// src/Utils/Constants.
 class Stream {
   constructor(initialState, updateStateFunction) {
     this._head = initialState;
@@ -23,7 +23,7 @@ class Stream {
   }
 }
 
-// src/PQueue/PQueue.jsjsssr.
+// src/Utils/Constants.jsssr.
 class Animation {
   constructor(state, next, doWhile) {
     this.animation = new Stream(state, next);
@@ -75,7 +75,7 @@ class AnimationBuilder {
   }
 }
 
-// src/PQueue/PQueue.js
+// src/Utils/Constants.
 var _sanitize_input = function(arrayIn, arrayOut) {
   for (let i = 0;i < arrayIn.length; i++) {
     const z = arrayIn[i];
@@ -460,7 +460,7 @@ class Vector2 {
   static ONES = new Vector2(1, 1);
 }
 
-// src/PQueue/PQueue
+// src/Utils/Constan
 function smin(a, b, k = 32) {
   const res = Math.exp(-k * a) + Math.exp(-k * b);
   return -Math.log(res) / k;
@@ -576,7 +576,7 @@ var solveUpTriMatrix = function(v, a, f) {
   return Vec2(f2 / v2, (f1 * v2 - v1 * f2) / av2);
 };
 
-// src/PQueue/PQueue.
+// src/Utils/Constant
 var MAX_8BIT = 255;
 
 class Color {
@@ -635,10 +635,10 @@ class Color {
   static GREY = Color.ofRGB(0.5, 0.5, 0.5);
 }
 
-// src/PQueue/PQueue.jsjs
+// src/Utils/Constants.js
 var MAX_8BIT2 = 255;
 
-// src/PQueue/PQueue.js
+// src/Utils/Constants.
 var exports_Monads = {};
 __export(exports_Monads, {
   some: () => {
@@ -686,7 +686,7 @@ function maybe(x) {
   return none(x);
 }
 
-// src/PQueue/PQu
+// src/Utils/Cons
 var maxComp = function(u) {
   return u.fold((e, x) => Math.max(e, x), -Number.MAX_VALUE);
 };
@@ -793,7 +793,7 @@ class Box {
   static EMPTY = new Box;
 }
 
-// src/PQueue/PQueue.
+// src/Utils/Constant
 var exports_Utils = {};
 __export(exports_Utils, {
   or: () => {
@@ -882,7 +882,7 @@ function argmin(array, costFunction = (x) => x) {
   return argminIndex;
 }
 
-// src/PQueue/PQueue.js
+// src/Utils/Constants.
 var drawConvexPolygon = function(canvas, positions, shader) {
   const { width, height } = canvas;
   const canvasBox = new Box(Vec2(), Vec2(width, height));
@@ -1100,7 +1100,7 @@ class Canvas {
   }
 }
 
-// src/PQueue/PQueue.jsjsssr.js
+// src/Utils/Constants.jsssr.js
 var isElement = function(o) {
   return typeof HTMLElement === "object" ? o instanceof HTMLElement : o && typeof o === "object" && o !== null && o.nodeType === 1 && typeof o.nodeName === "string";
 };
@@ -1192,7 +1192,7 @@ class DomBuilder {
 }
 var DomBuilder_default = DomBuilder;
 
-// src/PQueue/PQueue.jsjsss
+// src/Utils/Constants.jsss
 class Parallel {
   constructor(numberOfStreams, inputStreamGenerator, partitionFunction, stateGenerator, dependencies, lazyInitialState) {
     this.numberOfStreams = numberOfStreams;
@@ -1266,7 +1266,7 @@ class ParallelBuilder {
   }
 }
 
-// src/PQueue/PQu
+// src/Utils/Cons
 function Ray(init, dir) {
   const ans = {};
   ans.init = init;
@@ -1275,7 +1275,7 @@ function Ray(init, dir) {
   return ans;
 }
 
-// src/PQueue/PQueue.
+// src/Utils/Constant
 var sphereInterception = function(point, ray) {
   const { init, dir } = ray;
   const diff = init.sub(point.position);
@@ -1389,7 +1389,7 @@ class PointBuilder {
 }
 var Point_default = Point;
 
-// src/PQueue/PQueue
+// src/Utils/Constan
 class Line {
   constructor({ name, positions, colors, texCoords, normals, texture }) {
     this.name = name;
@@ -1467,7 +1467,7 @@ class LineBuilder {
   }
 }
 
-// src/PQueue/PQueue.jsj
+// src/Utils/Constants.j
 class Triangle {
   constructor({ name, positions, colors, texCoords, normals, texture }) {
     this.name = name;
@@ -1545,7 +1545,7 @@ class TriangleBuilder {
   }
 }
 
-// src/PQueue/PQueue.js
+// src/Utils/Constants.
 var rasterPoint = function({ canvas, camera, elem, w, h, zBuffer }) {
   const point = elem;
   const { distanceToPlane } = camera;
@@ -1712,7 +1712,6 @@ var getBiLinearTexColor = function(texUV, texture) {
 var getTexColor = function(texUV, texture) {
   return texture.getPxl(texUV.x * texture.width, texUV.y * texture.height);
 };
-var STATS = { it: [] };
 
 class Camera {
   constructor(props = {
@@ -1823,12 +1822,10 @@ class Camera {
         const d = scene.distanceToPoint(p);
         t += d;
         if (d < epsilon) {
-          STATS.it.push(i);
           const normal = scene.estimateNormal(p);
           return Color.ofRGB((normal.x + 1) / 2, (normal.y + 1) / 2, (normal.z + 1) / 2);
         }
         if (d > minT) {
-          STATS.it.push(i);
           break;
         }
         minT = d;
@@ -1844,7 +1841,7 @@ class Camera {
   }
 }
 
-// src/PQueue/PQueue.jsjss
+// src/Utils/Constants.jss
 class NaiveScene {
   constructor() {
     this.id2ElemMap = {};
@@ -1910,7 +1907,7 @@ class NaiveScene {
   }
 }
 
-// src/PQueue/PQueue.js
+// src/Utils/Constants.
 var heapifyBuilder = function(data, comparator) {
   return (rootIndex) => {
     const leftIndex = 2 * rootIndex + 1;
@@ -1976,7 +1973,7 @@ class PQueue {
   }
 }
 
-// src/PQueue/PQueue.
+// src/Utils/Constant
 var drawBox = function({ box, level, level2colors, debugScene }) {
   if (box.isEmpty)
     return;
@@ -2274,7 +2271,7 @@ var UNIT_BOX_FACES = [
   [2, 6]
 ];
 
-// src/PQueue/PQueue
+// src/Utils/Constan
 class Path {
   constructor({ name, positions, colors }) {
     this.name = name;
@@ -2330,7 +2327,7 @@ class PathBuilder {
   }
 }
 
-// src/PQueue/PQueue
+// src/Utils/Constan
 var MESH_COUNTER = 0;
 var RADIUS = 0.001;
 var UNIT_BOX_VERTEX2 = [
@@ -2510,7 +2507,7 @@ class Mesh {
     return new Mesh({ name, vertices, faces: UNIT_BOX_FACES2.map((indx3) => ({ vertices: indx3 })) });
   }
 }
-// src/PQueue/P
+// src/Utils/Co
 var exports_IO = {};
 __export(exports_IO, {
   saveParallelImageStreamToVideo: () => {
@@ -2542,7 +2539,7 @@ __export(exports_IO, {
 import {writeFileSync, unlinkSync, readFileSync} from "fs";
 import {execSync, exec} from "child_process";
 
-// src/PQueue/PQueue.
+// src/Utils/Constant
 var drawConvexPolygon2 = function(canvas, positions, shader) {
   const { width, height } = canvas;
   const canvasBox = new Box(Vec2(), Vec2(width, height));
@@ -2704,7 +2701,7 @@ class Image {
   }
 }
 
-// src/PQueue/P
+// src/Utils/Co
 function saveImageToFile(fileAddress, image) {
   const { fileName, extension } = getFileNameAndExtensionFromAddress(fileAddress);
   const ppmName = `${fileName}.ppm`;

@@ -6,9 +6,6 @@ import Line from "../Scene/Line.js";
 import Triangle from "../Scene/Triangle.js";
 import { lerp } from "../Utils/Math.js";
 
-const STATS = { it: [] }
-
-
 export default class Camera {
   constructor(props = {
     sphericalCoords: Vec3(2, 0, 0),
@@ -143,7 +140,6 @@ export default class Camera {
         const d = scene.distanceToPoint(p);
         t += d;
         if (d < epsilon) {
-          STATS.it.push(i);
           const normal = scene.estimateNormal(p);
           return Color.ofRGB(
             (normal.x + 1) / 2,
@@ -152,7 +148,6 @@ export default class Camera {
           )
         }
         if (d > minT) {
-          STATS.it.push(i);
           break;
         }
         minT = d;
