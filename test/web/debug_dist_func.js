@@ -109,19 +109,16 @@ async (canvas, fps, logger) => {
             const x = j;
             const y = i;
             const initial = Vec3(0, x / n, y / n);
-            return {
-                init: initial,
-                point: Point
-                    .builder()
-                    .name(`pxl_${k}`)
-                    .radius(1e-2)
-                    .position(initial.add(Vec.RANDOM(3)).map(x => 2 * x - 1))
-                    .color(Color.GRAY)
-                    .build()
-            }
+            return Point
+                .builder()
+                .name(`pxl_${k}`)
+                .radius(1e-2)
+                .position(initial.add(Vec.RANDOM(3)).map(x => 2 * x - 1))
+                .color(Color.GRAY)
+                .build()
         });
-    scene.addList(grid.map(({ point }) => point));
-    nscene.addList(grid.map(({ point }) => point));
+    scene.addList(grid);
+    nscene.addList(grid);
 
     function line(init, end, color) {
         const name = `line_${Math.floor(Math.random() * 1000)}`;

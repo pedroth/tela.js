@@ -1,3 +1,6 @@
+/**
+ * Priority Queue implemented as a min priority queue, although it can be made max priority queue(using the proper comparator).
+ */
 export default class PQueue {
     constructor(comparator = (a, b) => a - b) {
         this.data = [];
@@ -29,13 +32,9 @@ export default class PQueue {
     pop() {
         if (!this.data.length) return;
         const v = this.data[0];
-        this.data = this.data.slice(1);
-        if (!this.data.length <= 1) return v;
-        // the last element is by default a max/min heap, since it is a leaf
-        // exchange first with last
-        const temp = this.data[0];
-        this.data[0] = this.data.at(-1);
-        this.data[this.data.length - 1] = temp;
+        if (this.data.length <= 1) return v;
+        this.data[0] = this.data[this.data.length-1];
+        this.data = this.data.slice(0, -1);
         this.data = heapifyBuilder(this.data, this.comparator)(0);
         return v;
     }
@@ -55,10 +54,10 @@ function heapifyBuilder(data, comparator) {
         const leftIndex = 2 * rootIndex + 1;
         const rightIndex = 2 * rootIndex + 2;
         let minIndex = rootIndex;
-        if (comparator(data[leftIndex], data[rootIndex]) <= 0) {
+        if (leftIndex < data.length && comparator(data[leftIndex], data[rootIndex]) < 0) {
             minIndex = leftIndex;
         }
-        if (comparator(data[rightIndex], data[minIndex]) <= 0) {
+        if (rightIndex < data.length && comparator(data[rightIndex], data[minIndex]) < 0) {
             minIndex = rightIndex;
         }
         if (minIndex !== rootIndex) {

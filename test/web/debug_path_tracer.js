@@ -99,26 +99,23 @@ async (canvas, fps, logger) => {
     // scene.addList(mesh.asPoints(0.05));
 
     // scene.rebuild();
-     const n = 2;
-     const grid = [...Array(n * n)]
+    const n = 2;
+    const grid = [...Array(n * n)]
         .map((_, k) => {
             const i = Math.floor(k / n);
             const j = k % n;
             const x = j;
             const y = i;
             const initial = Vec3(0, x / n, y / n);
-            return {
-                init: initial,
-                point: Point
-                    .builder()
-                    .name(`pxl_${k}`)
-                    .radius(1e-2)
-                    .position(initial.add(Vec.RANDOM(3)).map(x=> 2*x-1))
-                    .color(Color.GRAY)
-                    .build()
-            }
+            return Point
+                .builder()
+                .name(`pxl_${k}`)
+                .radius(1e-2)
+                .position(initial.add(Vec.RANDOM(3)).map(x => 2 * x - 1))
+                .color(Color.GRAY)
+                .build()
         });
-    scene.addList(grid.map(({ point }) => point));
+    scene.addList(grid);
 
     function line(init, end, color) {
         const name = `line_${Math.floor(Math.random() * 1000)}`;
@@ -191,7 +188,7 @@ async (canvas, fps, logger) => {
                 );
                 p = ray.trace(t);
                 const d = scene.distanceToPoint(p);
-                debugScene.addList(sphere(p, d, Color.ofRGB(0, 1- i / 10, 0)));
+                debugScene.addList(sphere(p, d, Color.ofRGB(0, 1 - i / 10, 0)));
                 // debugScene.add(line(p, ray.trace(d), Color.ofRGB(i / 5, 0, 0)));
                 t += d;
                 if (d < epsilon) {
@@ -212,33 +209,13 @@ async (canvas, fps, logger) => {
         }
     }
 
-    function debugDist(p) {
-        return () => {
-            const debugScene = new NaiveScene();
-            debugScene.add(
-                Point
-                    .builder()
-                    .name("start")
-                    .position(p)
-                    .color(Color.BLUE)
-                    .radius(0.05)
-                    .build()
-            )
-            debugScene.addList(sphere(p, scene.distanceToPoint(p), Color.ofRGB(1,1,0)));
-            debugScene.add(line(p, scene.getElemNear(p).position, Color.ofRGB(0,1,1)))
-            debugScene.addList(sphere(p, nscene.distanceToPoint(p), Color.GREEN));
-            debugScene.add(line(p, nscene.getElemNear(p).position, Color.RED))
-            camera.reverseShot(debugScene, { clearScreen: false }).to(canvas);
-        }
-    }
-
     // boilerplate for fps
     Animation
         .builder()
         .initialState({ it: 1, time: 0, oldTime: new Date().getTime() })
         .nextState(({ it, time, oldTime }) => {
             camera.reverseShot(scene).to(canvas);
-            scene.debug({camera, canvas})
+            scene.debug({ camera, canvas })
             const freq = 0.05;
             let t = time % 10;
             debugRay(Ray(Vec3(0, -5, 2), Vec3(0, Math.cos(freq * t), -Math.sin(freq * t))))();

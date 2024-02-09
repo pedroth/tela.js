@@ -9,7 +9,7 @@ var __export = (target, all) => {
     });
 };
 
-// src/Utils/Constants.
+// src/PQueue/PQueue.js
 class Stream {
   constructor(initialState, updateStateFunction) {
     this._head = initialState;
@@ -23,7 +23,7 @@ class Stream {
   }
 }
 
-// src/Utils/Constants.jsssr.
+// src/PQueue/PQueue.jsjsssr.
 class Animation {
   constructor(state, next, doWhile) {
     this.animation = new Stream(state, next);
@@ -75,7 +75,7 @@ class AnimationBuilder {
   }
 }
 
-// src/Utils/Constants.
+// src/PQueue/PQueue.js
 var _sanitize_input = function(arrayIn, arrayOut) {
   for (let i = 0;i < arrayIn.length; i++) {
     const z = arrayIn[i];
@@ -460,7 +460,7 @@ class Vector2 {
   static ONES = new Vector2(1, 1);
 }
 
-// src/Utils/Constan
+// src/PQueue/PQueue
 function smin(a, b, k = 32) {
   const res = Math.exp(-k * a) + Math.exp(-k * b);
   return -Math.log(res) / k;
@@ -576,7 +576,7 @@ var solveUpTriMatrix = function(v, a, f) {
   return Vec2(f2 / v2, (f1 * v2 - v1 * f2) / av2);
 };
 
-// src/Utils/Constant
+// src/PQueue/PQueue.
 var MAX_8BIT = 255;
 
 class Color {
@@ -635,10 +635,10 @@ class Color {
   static GREY = Color.ofRGB(0.5, 0.5, 0.5);
 }
 
-// src/Utils/Constants.js
+// src/PQueue/PQueue.jsjs
 var MAX_8BIT2 = 255;
 
-// src/Utils/Constants.
+// src/PQueue/PQueue.js
 var exports_Monads = {};
 __export(exports_Monads, {
   some: () => {
@@ -686,7 +686,7 @@ function maybe(x) {
   return none(x);
 }
 
-// src/Utils/Cons
+// src/PQueue/PQu
 var maxComp = function(u) {
   return u.fold((e, x) => Math.max(e, x), -Number.MAX_VALUE);
 };
@@ -793,7 +793,7 @@ class Box {
   static EMPTY = new Box;
 }
 
-// src/Utils/Constant
+// src/PQueue/PQueue.
 var exports_Utils = {};
 __export(exports_Utils, {
   or: () => {
@@ -882,7 +882,7 @@ function argmin(array, costFunction = (x) => x) {
   return argminIndex;
 }
 
-// src/Utils/Constants.
+// src/PQueue/PQueue.js
 var drawConvexPolygon = function(canvas, positions, shader) {
   const { width, height } = canvas;
   const canvasBox = new Box(Vec2(), Vec2(width, height));
@@ -1100,7 +1100,7 @@ class Canvas {
   }
 }
 
-// src/Utils/Constants.jsssr.js
+// src/PQueue/PQueue.jsjsssr.js
 var isElement = function(o) {
   return typeof HTMLElement === "object" ? o instanceof HTMLElement : o && typeof o === "object" && o !== null && o.nodeType === 1 && typeof o.nodeName === "string";
 };
@@ -1192,7 +1192,7 @@ class DomBuilder {
 }
 var DomBuilder_default = DomBuilder;
 
-// src/Utils/Constants.jsss
+// src/PQueue/PQueue.jsjsss
 class Parallel {
   constructor(numberOfStreams, inputStreamGenerator, partitionFunction, stateGenerator, dependencies, lazyInitialState) {
     this.numberOfStreams = numberOfStreams;
@@ -1266,7 +1266,7 @@ class ParallelBuilder {
   }
 }
 
-// src/Utils/Cons
+// src/PQueue/PQu
 function Ray(init, dir) {
   const ans = {};
   ans.init = init;
@@ -1275,7 +1275,7 @@ function Ray(init, dir) {
   return ans;
 }
 
-// src/Utils/Constant
+// src/PQueue/PQueue.
 var sphereInterception = function(point, ray) {
   const { init, dir } = ray;
   const diff = init.sub(point.position);
@@ -1389,7 +1389,7 @@ class PointBuilder {
 }
 var Point_default = Point;
 
-// src/Utils/Constan
+// src/PQueue/PQueue
 class Line {
   constructor({ name, positions, colors, texCoords, normals, texture }) {
     this.name = name;
@@ -1467,7 +1467,7 @@ class LineBuilder {
   }
 }
 
-// src/Utils/Constants.j
+// src/PQueue/PQueue.jsj
 class Triangle {
   constructor({ name, positions, colors, texCoords, normals, texture }) {
     this.name = name;
@@ -1545,7 +1545,7 @@ class TriangleBuilder {
   }
 }
 
-// src/Utils/Constants.
+// src/PQueue/PQueue.js
 var rasterPoint = function({ canvas, camera, elem, w, h, zBuffer }) {
   const point = elem;
   const { distanceToPlane } = camera;
@@ -1844,7 +1844,7 @@ class Camera {
   }
 }
 
-// src/Utils/Constants.jss
+// src/PQueue/PQueue.jsjss
 class NaiveScene {
   constructor() {
     this.id2ElemMap = {};
@@ -1910,16 +1910,16 @@ class NaiveScene {
   }
 }
 
-// src/Utils/Constants.
+// src/PQueue/PQueue.js
 var heapifyBuilder = function(data, comparator) {
   return (rootIndex) => {
     const leftIndex = 2 * rootIndex + 1;
     const rightIndex = 2 * rootIndex + 2;
     let minIndex = rootIndex;
-    if (comparator(data[leftIndex], data[rootIndex]) <= 0) {
+    if (leftIndex < data.length && comparator(data[leftIndex], data[rootIndex]) < 0) {
       minIndex = leftIndex;
     }
-    if (comparator(data[rightIndex], data[minIndex]) <= 0) {
+    if (rightIndex < data.length && comparator(data[rightIndex], data[minIndex]) < 0) {
       minIndex = rightIndex;
     }
     if (minIndex !== rootIndex) {
@@ -1960,12 +1960,10 @@ class PQueue {
     if (!this.data.length)
       return;
     const v = this.data[0];
-    this.data = this.data.slice(1);
-    if (!this.data.length <= 1)
+    if (this.data.length <= 1)
       return v;
-    const temp = this.data[0];
-    this.data[0] = this.data.at(-1);
-    this.data[this.data.length - 1] = temp;
+    this.data[0] = this.data[this.data.length - 1];
+    this.data = this.data.slice(0, -1);
     this.data = heapifyBuilder(this.data, this.comparator)(0);
     return v;
   }
@@ -1978,7 +1976,7 @@ class PQueue {
   }
 }
 
-// src/Utils/Constant
+// src/PQueue/PQueue.
 var drawBox = function({ box, level, level2colors, debugScene }) {
   if (box.isEmpty)
     return;
@@ -2028,13 +2026,13 @@ class Scene {
     if (this.boundingBoxScene.numberOfLeafs < 2) {
       return this.boundingBoxScene.distanceToPoint(p);
     }
-    const initial = [this.boundingBoxScene.left, this.boundingBoxScene.right].map((x) => ({ node: x, distance: Math.abs(x.box.distanceToPoint(p)) }));
+    const initial = [this.boundingBoxScene.left, this.boundingBoxScene.right].map((x) => ({ node: x, distance: x.box.distanceToPoint(p) }));
     let stack = PQueue.ofArray(initial, (a, b) => a.distance - b.distance);
     while (stack.length) {
       const { node } = stack.pop();
       if (node.isLeaf)
         return node.distanceToPoint(p);
-      const children = [node.left, node.right].filter((x) => x).map((x) => ({ node: x, distance: Math.abs(x.box.distanceToPoint(p)) }));
+      const children = [node.left, node.right].filter((x) => x).map((x) => ({ node: x, distance: x.box.distanceToPoint(p) }));
       children.forEach((c) => stack.push(c));
     }
   }
@@ -2042,13 +2040,13 @@ class Scene {
     if (this.boundingBoxScene.numberOfLeafs < 2) {
       return this.boundingBoxScene.getElemNear(p);
     }
-    const initial = [this.boundingBoxScene.left, this.boundingBoxScene.right].map((x) => ({ node: x, distance: Math.abs(x.box.distanceToPoint(p)) }));
+    const initial = [this.boundingBoxScene.left, this.boundingBoxScene.right].map((x) => ({ node: x, distance: x.box.distanceToPoint(p) }));
     let stack = PQueue.ofArray(initial, (a, b) => a.distance - b.distance);
     while (stack.length) {
       const { node } = stack.pop();
       if (node.isLeaf)
         return node.getElemNear(p);
-      const children = [node.left, node.right].filter((x) => x).map((x) => ({ node: x, distance: Math.abs(x.box.distanceToPoint(p)) }));
+      const children = [node.left, node.right].filter((x) => x).map((x) => ({ node: x, distance: x.box.distanceToPoint(p) }));
       children.forEach((c) => stack.push(c));
     }
   }
@@ -2276,7 +2274,7 @@ var UNIT_BOX_FACES = [
   [2, 6]
 ];
 
-// src/Utils/Constan
+// src/PQueue/PQueue
 class Path {
   constructor({ name, positions, colors }) {
     this.name = name;
@@ -2332,7 +2330,7 @@ class PathBuilder {
   }
 }
 
-// src/Utils/Constan
+// src/PQueue/PQueue
 var MESH_COUNTER = 0;
 var RADIUS = 0.001;
 var UNIT_BOX_VERTEX2 = [
@@ -2512,7 +2510,7 @@ class Mesh {
     return new Mesh({ name, vertices, faces: UNIT_BOX_FACES2.map((indx3) => ({ vertices: indx3 })) });
   }
 }
-// src/Utils/Co
+// src/PQueue/P
 var exports_IO = {};
 __export(exports_IO, {
   saveParallelImageStreamToVideo: () => {
@@ -2544,7 +2542,7 @@ __export(exports_IO, {
 import {writeFileSync, unlinkSync, readFileSync} from "fs";
 import {execSync, exec} from "child_process";
 
-// src/Utils/Constant
+// src/PQueue/PQueue.
 var drawConvexPolygon2 = function(canvas, positions, shader) {
   const { width, height } = canvas;
   const canvasBox = new Box(Vec2(), Vec2(width, height));
@@ -2706,7 +2704,7 @@ class Image {
   }
 }
 
-// src/Utils/Co
+// src/PQueue/P
 function saveImageToFile(fileAddress, image) {
   const { fileName, extension } = getFileNameAndExtensionFromAddress(fileAddress);
   const ppmName = `${fileName}.ppm`;

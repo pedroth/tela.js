@@ -57,14 +57,14 @@ export default class Scene {
       return this.boundingBoxScene.distanceToPoint(p);
     }
     const initial = [this.boundingBoxScene.left, this.boundingBoxScene.right]
-      .map(x => ({ node: x, distance: Math.abs(x.box.distanceToPoint(p)) }));
+      .map(x => ({ node: x, distance: x.box.distanceToPoint(p) }));
     let stack = PQueue.ofArray(initial, (a,b) => a.distance - b.distance);
     while (stack.length) {
       const { node } = stack.pop();
       if (node.isLeaf) return node.distanceToPoint(p);
       const children = [node.left, node.right]
         .filter(x => x)
-        .map(x => ({ node: x, distance: Math.abs(x.box.distanceToPoint(p)) }));
+        .map(x => ({ node: x, distance: x.box.distanceToPoint(p) }));
       children.forEach(c => stack.push(c));
     }
   }
@@ -74,14 +74,14 @@ export default class Scene {
       return this.boundingBoxScene.getElemNear(p);
     }
     const initial = [this.boundingBoxScene.left, this.boundingBoxScene.right]
-      .map(x => ({ node: x, distance: Math.abs(x.box.distanceToPoint(p)) }));
+      .map(x => ({ node: x, distance: x.box.distanceToPoint(p) }));
     let stack = PQueue.ofArray(initial, (a,b) => a.distance - b.distance);
     while (stack.length) {
       const { node } = stack.pop();
       if (node.isLeaf) return node.getElemNear(p);
       const children = [node.left, node.right]
         .filter(x => x)
-        .map(x => ({ node: x, distance: Math.abs(x.box.distanceToPoint(p)) }));
+        .map(x => ({ node: x, distance: x.box.distanceToPoint(p) }));
       children.forEach(c => stack.push(c));
     }
   }

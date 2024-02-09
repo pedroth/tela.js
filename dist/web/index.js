@@ -1916,10 +1916,10 @@ var heapifyBuilder = function(data, comparator) {
     const leftIndex = 2 * rootIndex + 1;
     const rightIndex = 2 * rootIndex + 2;
     let minIndex = rootIndex;
-    if (comparator(data[leftIndex], data[rootIndex]) <= 0) {
+    if (leftIndex < data.length && comparator(data[leftIndex], data[rootIndex]) < 0) {
       minIndex = leftIndex;
     }
-    if (comparator(data[rightIndex], data[minIndex]) <= 0) {
+    if (rightIndex < data.length && comparator(data[rightIndex], data[minIndex]) < 0) {
       minIndex = rightIndex;
     }
     if (minIndex !== rootIndex) {
@@ -1960,12 +1960,10 @@ class PQueue {
     if (!this.data.length)
       return;
     const v = this.data[0];
-    this.data = this.data.slice(1);
-    if (!this.data.length <= 1)
+    if (this.data.length <= 1)
       return v;
-    const temp = this.data[0];
-    this.data[0] = this.data.at(-1);
-    this.data[this.data.length - 1] = temp;
+    this.data[0] = this.data[this.data.length - 1];
+    this.data = this.data.slice(0, -1);
     this.data = heapifyBuilder(this.data, this.comparator)(0);
     return v;
   }
@@ -2028,13 +2026,13 @@ class Scene {
     if (this.boundingBoxScene.numberOfLeafs < 2) {
       return this.boundingBoxScene.distanceToPoint(p);
     }
-    const initial = [this.boundingBoxScene.left, this.boundingBoxScene.right].map((x) => ({ node: x, distance: Math.abs(x.box.distanceToPoint(p)) }));
+    const initial = [this.boundingBoxScene.left, this.boundingBoxScene.right].map((x) => ({ node: x, distance: x.box.distanceToPoint(p) }));
     let stack = PQueue.ofArray(initial, (a, b) => a.distance - b.distance);
     while (stack.length) {
       const { node } = stack.pop();
       if (node.isLeaf)
         return node.distanceToPoint(p);
-      const children = [node.left, node.right].filter((x) => x).map((x) => ({ node: x, distance: Math.abs(x.box.distanceToPoint(p)) }));
+      const children = [node.left, node.right].filter((x) => x).map((x) => ({ node: x, distance: x.box.distanceToPoint(p) }));
       children.forEach((c) => stack.push(c));
     }
   }
@@ -2042,13 +2040,13 @@ class Scene {
     if (this.boundingBoxScene.numberOfLeafs < 2) {
       return this.boundingBoxScene.getElemNear(p);
     }
-    const initial = [this.boundingBoxScene.left, this.boundingBoxScene.right].map((x) => ({ node: x, distance: Math.abs(x.box.distanceToPoint(p)) }));
+    const initial = [this.boundingBoxScene.left, this.boundingBoxScene.right].map((x) => ({ node: x, distance: x.box.distanceToPoint(p) }));
     let stack = PQueue.ofArray(initial, (a, b) => a.distance - b.distance);
     while (stack.length) {
       const { node } = stack.pop();
       if (node.isLeaf)
         return node.getElemNear(p);
-      const children = [node.left, node.right].filter((x) => x).map((x) => ({ node: x, distance: Math.abs(x.box.distanceToPoint(p)) }));
+      const children = [node.left, node.right].filter((x) => x).map((x) => ({ node: x, distance: x.box.distanceToPoint(p) }));
       children.forEach((c) => stack.push(c));
     }
   }
