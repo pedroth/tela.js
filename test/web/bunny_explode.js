@@ -56,11 +56,12 @@ async (canvas, fps, logger) => {
     scene.addList(bunnyPoints);
     // physics
     const g = -9.8;
+    const variance = 5;
     const bunnyPhysics = dt => {
         for (let i = 0; i < bunnyPoints.length; i++) {
             const acceleration = Vec3(0, 0, g);
             bunnySpeeds[i] = bunnyPoints[i].position.z <= 0 ?
-                Vec3().map(() => 10 * (2 * Math.random() - 1)) :
+                Vec3().map(() => variance * (2 * Math.random() - 1)) :
                 bunnySpeeds[i].add(acceleration.scale(dt));
             bunnyPoints[i].position = bunnyPoints[i].position.add(bunnySpeeds[i].scale(dt));
         }

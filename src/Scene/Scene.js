@@ -53,20 +53,7 @@ export default class Scene {
   }
 
   distanceToPoint(p) {
-    if (this.boundingBoxScene.numberOfLeafs < 2) {
-      return this.boundingBoxScene.distanceToPoint(p);
-    }
-    const initial = [this.boundingBoxScene.left, this.boundingBoxScene.right]
-      .map(x => ({ node: x, distance: x.box.distanceToPoint(p) }));
-    let stack = PQueue.ofArray(initial, (a,b) => a.distance - b.distance);
-    while (stack.length) {
-      const { node } = stack.pop();
-      if (node.isLeaf) return node.distanceToPoint(p);
-      const children = [node.left, node.right]
-        .filter(x => x)
-        .map(x => ({ node: x, distance: x.box.distanceToPoint(p) }));
-      children.forEach(c => stack.push(c));
-    }
+    return this.getElemNear(p).distanceToPoint(p);
   }
 
   getElemNear(p) {
@@ -75,7 +62,7 @@ export default class Scene {
     }
     const initial = [this.boundingBoxScene.left, this.boundingBoxScene.right]
       .map(x => ({ node: x, distance: x.box.distanceToPoint(p) }));
-    let stack = PQueue.ofArray(initial, (a,b) => a.distance - b.distance);
+    let stack = PQueue.ofArray(initial, (a, b) => a.distance - b.distance);
     while (stack.length) {
       const { node } = stack.pop();
       if (node.isLeaf) return node.getElemNear(p);

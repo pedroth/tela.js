@@ -23,14 +23,14 @@ const { measureTimeWithAsyncResult } = Utils;
             .builder()
             .numberOfStreams(numOfFrames)
             .lazyInitialState(() => {
-                const scene = new NaiveScene();
+                const scene = new Scene();
                 // eslint-disable-next-line no-undef
                 const obj = fs.readFileSync("./assets/spot.obj", { encoding: "utf-8" });
                 let mesh = Mesh.readObj(obj, "mesh");
                 mesh = mesh
                     .mapVertices(v => Vec3(-v.y, v.x, v.z))
                     .mapVertices(v => Vec3(v.z, v.y, -v.x))
-                scene.add(...mesh.asPoints(0.01));
+                scene.add(...mesh.asPoints(0.05));
                 return { scene };
             })
             .inputStreamGenerator((i) => ({ time: i * dt, width, height }))
