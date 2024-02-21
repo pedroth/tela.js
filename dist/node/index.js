@@ -9,7 +9,7 @@ var __export = (target, all) => {
     });
 };
 
-// src/PQueue/PQueue.js
+// src/Utils/Constants.
 class Stream {
   constructor(initialState, updateStateFunction) {
     this._head = initialState;
@@ -23,7 +23,7 @@ class Stream {
   }
 }
 
-// src/PQueue/PQueue.jsjsssr.
+// src/Utils/Constants.jsssr.
 class Animation {
   constructor(state, next, doWhile) {
     this.animation = new Stream(state, next);
@@ -75,7 +75,7 @@ class AnimationBuilder {
   }
 }
 
-// src/PQueue/PQueue.js
+// src/Utils/Constants.
 var _sanitize_input = function(arrayIn, arrayOut) {
   for (let i = 0;i < arrayIn.length; i++) {
     const z = arrayIn[i];
@@ -460,7 +460,7 @@ class Vector2 {
   static ONES = new Vector2(1, 1);
 }
 
-// src/PQueue/PQueue
+// src/Utils/Constan
 function smin(a, b, k = 32) {
   const res = Math.exp(-k * a) + Math.exp(-k * b);
   return -Math.log(res) / k;
@@ -576,7 +576,7 @@ var solveUpTriMatrix = function(v, a, f) {
   return Vec2(f2 / v2, (f1 * v2 - v1 * f2) / av2);
 };
 
-// src/PQueue/PQueue.
+// src/Utils/Constant
 var MAX_8BIT = 255;
 
 class Color {
@@ -635,10 +635,10 @@ class Color {
   static GREY = Color.ofRGB(0.5, 0.5, 0.5);
 }
 
-// src/PQueue/PQueue.jsjs
+// src/Utils/Constants.js
 var MAX_8BIT2 = 255;
 
-// src/PQueue/PQueue.js
+// src/Utils/Constants.
 var exports_Monads = {};
 __export(exports_Monads, {
   some: () => {
@@ -686,7 +686,7 @@ function maybe(x) {
   return none(x);
 }
 
-// src/PQueue/PQu
+// src/Utils/Cons
 var maxComp = function(u) {
   return u.fold((e, x) => Math.max(e, x), -Number.MAX_VALUE);
 };
@@ -700,6 +700,7 @@ class Box {
     this.max = max.op(min, Math.max);
     this.center = min.add(max).scale(1 / 2);
     this.diagonal = max.sub(min);
+    this.dim = min.dim;
   }
   add(box) {
     if (this.isEmpty)
@@ -790,10 +791,13 @@ class Box {
         max:${this.max.toString()}
     }`;
   }
+  sample() {
+    return this.min.add(Vec.RANDOM(this.dim).mul(this.diagonal));
+  }
   static EMPTY = new Box;
 }
 
-// src/PQueue/PQueue.
+// src/Utils/Constant
 var exports_Utils = {};
 __export(exports_Utils, {
   or: () => {
@@ -882,7 +886,7 @@ function argmin(array, costFunction = (x) => x) {
   return argminIndex;
 }
 
-// src/PQueue/PQueue.js
+// src/Utils/Constants.
 var drawConvexPolygon = function(canvas, positions, shader) {
   const { width, height } = canvas;
   const canvasBox = new Box(Vec2(), Vec2(width, height));
@@ -1100,7 +1104,7 @@ class Canvas {
   }
 }
 
-// src/PQueue/PQueue.jsjsssr.js
+// src/Utils/Constants.jsssr.js
 var isElement = function(o) {
   return typeof HTMLElement === "object" ? o instanceof HTMLElement : o && typeof o === "object" && o !== null && o.nodeType === 1 && typeof o.nodeName === "string";
 };
@@ -1192,7 +1196,7 @@ class DomBuilder {
 }
 var DomBuilder_default = DomBuilder;
 
-// src/PQueue/PQueue.jsjsss
+// src/Utils/Constants.jsss
 class Parallel {
   constructor(numberOfStreams, inputStreamGenerator, partitionFunction, stateGenerator, dependencies, lazyInitialState) {
     this.numberOfStreams = numberOfStreams;
@@ -1266,7 +1270,7 @@ class ParallelBuilder {
   }
 }
 
-// src/PQueue/PQu
+// src/Utils/Cons
 function Ray(init, dir) {
   const ans = {};
   ans.init = init;
@@ -1275,7 +1279,7 @@ function Ray(init, dir) {
   return ans;
 }
 
-// src/PQueue/PQueue.
+// src/Utils/Constant
 var sphereInterception = function(point, ray) {
   const { init, dir } = ray;
   const diff = init.sub(point.position);
@@ -1389,7 +1393,7 @@ class PointBuilder {
 }
 var Point_default = Point;
 
-// src/PQueue/PQueue
+// src/Utils/Constan
 class Line {
   constructor({ name, positions, colors, texCoords, normals, texture }) {
     this.name = name;
@@ -1467,7 +1471,7 @@ class LineBuilder {
   }
 }
 
-// src/PQueue/PQueue.jsj
+// src/Utils/Constants.j
 class Triangle {
   constructor({ name, positions, colors, texCoords, normals, texture }) {
     this.name = name;
@@ -1545,7 +1549,7 @@ class TriangleBuilder {
   }
 }
 
-// src/PQueue/PQueue.js
+// src/Utils/Constants.
 var rasterPoint = function({ canvas, camera, elem, w, h, zBuffer }) {
   const point = elem;
   const { distanceToPlane } = camera;
@@ -1841,7 +1845,7 @@ class Camera {
   }
 }
 
-// src/PQueue/PQueue.jsjss
+// src/Utils/Constants.jss
 class NaiveScene {
   constructor() {
     this.id2ElemMap = {};
@@ -1907,7 +1911,7 @@ class NaiveScene {
   }
 }
 
-// src/PQueue/PQueue.js
+// src/Utils/Constants.
 var heapifyBuilder = function(data, comparator) {
   return (rootIndex) => {
     const leftIndex = 2 * rootIndex + 1;
@@ -1973,7 +1977,7 @@ class PQueue {
   }
 }
 
-// src/PQueue/PQueue.
+// src/Utils/Constant
 var drawBox = function({ box, level, level2colors, debugScene }) {
   if (box.isEmpty)
     return;
@@ -2208,6 +2212,7 @@ class Leaf {
   constructor(element) {
     this.element = element;
     this.box = element.getBoundingBox();
+    this.numberOfLeafs = 1;
   }
   distanceToPoint(x) {
     return this.element.distanceToPoint(x);
@@ -2260,7 +2265,7 @@ var UNIT_BOX_FACES = [
   [2, 6]
 ];
 
-// src/PQueue/PQueue
+// src/Utils/Constan
 class Path {
   constructor({ name, positions, colors }) {
     this.name = name;
@@ -2316,7 +2321,7 @@ class PathBuilder {
   }
 }
 
-// src/PQueue/PQueue
+// src/Utils/Constan
 var MESH_COUNTER = 0;
 var RADIUS = 0.001;
 var UNIT_BOX_VERTEX2 = [
@@ -2496,7 +2501,301 @@ class Mesh {
     return new Mesh({ name, vertices, faces: UNIT_BOX_FACES2.map((indx3) => ({ vertices: indx3 })) });
   }
 }
-// src/PQueue/P
+
+// src/Utils/Constants
+var clusterLeafs = function(box, leafs, it = 10) {
+  const clusters = [box.sample(), box.sample()];
+  const clusterIndexes = [];
+  for (let i = 0;i < it; i++) {
+    for (let i2 = 0;i2 < clusters.length; i2++) {
+      clusterIndexes[i2] = [];
+    }
+    for (let j = 0;j < leafs.length; j++) {
+      const leafPosition = leafs[j].box.center;
+      const kIndex = argmin(clusters, (c) => c.sub(leafPosition).length());
+      clusterIndexes[kIndex].push(j);
+    }
+    for (let j = 0;j < clusters.length; j++) {
+      if (clusterIndexes[j].length === 0) {
+        const dataPoints = clusterIndexes[(j + 1) % clusters.length];
+        clusterIndexes[j].push(dataPoints[Math.floor(Math.random() * dataPoints.length)]);
+      }
+    }
+    for (let j = 0;j < clusters.length; j++) {
+      let acc = Vec.ZERO(box.dim);
+      for (let k = 0;k < clusterIndexes[j].length; k++) {
+        const leafPosition = leafs[clusterIndexes[j][k]].box.center;
+        acc = acc.add(leafPosition);
+      }
+      clusters[j] = acc.scale(1 / clusterIndexes[j].length);
+    }
+  }
+  return [...clusterIndexes].map((indxs) => indxs.map((indx3) => leafs[indx3]));
+};
+var leafsInterceptWith = function(leafs, ray) {
+  let closestDistance = Number.MAX_VALUE;
+  let closest = none();
+  for (let i = 0;i < leafs.length; i++) {
+    leafs[i].interceptWith(ray).map(([pos, normal]) => {
+      const distance = ray.init.sub(pos).length();
+      if (distance < closestDistance) {
+        closest = some([pos, normal]);
+        closestDistance = distance;
+      }
+    });
+  }
+  return closest;
+};
+var drawBox2 = function({ box, level, level2colors, debugScene }) {
+  if (box.isEmpty)
+    return;
+  const vertices = UNIT_BOX_VERTEX3.map((v) => v.mul(box.diagonal).add(box.min));
+  const lines = UNIT_BOX_FACES3.map(([i, j]) => Line.builder().name(`debug_box_${level}_${i}_${j}`).positions(vertices[i], vertices[j]).colors(level2colors[level], level2colors[level]).build());
+  debugScene.addList(lines);
+  return debugScene;
+};
+
+class KScene {
+  constructor(k = 10) {
+    this.k = k;
+    this.id2ElemMap = {};
+    this.sceneElements = [];
+    this.boundingBoxScene = new Node2(k);
+  }
+  add(...elements) {
+    return this.addList(elements);
+  }
+  addList(elements) {
+    for (let i = 0;i < elements.length; i++) {
+      const elem = elements[i];
+      const { name } = elem;
+      this.id2ElemMap[name] = elem;
+      this.sceneElements.push(elem);
+      this.boundingBoxScene.add(elem);
+    }
+    return this;
+  }
+  clear() {
+    this.id2ElemMap = {};
+    this.sceneElements = [];
+    this.boundingBoxScene = new Node2(this.k);
+  }
+  getElements() {
+    return this.sceneElements;
+  }
+  getElementInBox(box) {
+    return this.boundingBoxScene.getElemIn(box);
+  }
+  getElementNear(p) {
+    return this.boundingBoxScene.getElemNear(p);
+  }
+  interceptWith(ray, level) {
+    return this.boundingBoxScene.interceptWith(ray, level);
+  }
+  distanceToPoint(p) {
+    return this.getElemNear(p).distanceToPoint(p);
+  }
+  getElemNear(p) {
+    return this.boundingBoxScene.getElemNear(p);
+  }
+  estimateNormal(p) {
+    const epsilon = 0.000000001;
+    const n = p.dim;
+    const grad = [];
+    const d = this.distanceToPoint(p);
+    for (let i = 0;i < n; i++) {
+      grad.push(this.distanceToPoint(p.add(Vec.e(n)(i).scale(epsilon))) - d);
+    }
+    return Vec.fromArray(grad).scale(Math.sign(d)).normalize();
+  }
+  debug(props) {
+    const { camera, canvas } = props;
+    let { node, level, level2colors, debugScene } = props;
+    node = node || this.boundingBoxScene;
+    level = level || 0;
+    level2colors = level2colors || [];
+    debugScene = debugScene || new NaiveScene;
+    if (level === 0) {
+      let maxLevels = Math.round(Math.log2(node.numberOfLeafs));
+      maxLevels = maxLevels === 0 ? 1 : maxLevels;
+      for (let i = 0;i <= maxLevels; i++)
+        level2colors.push(Color.RED.scale(1 - i / maxLevels).add(Color.BLUE.scale(i / maxLevels)));
+    }
+    debugScene = drawBox2({ box: node.box, level, level2colors, debugScene });
+    if (!node.isLeaf && node.left) {
+      this.debug({ canvas, camera, node: node.left, level: level + 1, level2colors, debugScene });
+    }
+    if (!node.isLeaf && node.right) {
+      this.debug({ canvas, camera, node: node.right, level: level + 1, level2colors, debugScene });
+    }
+    if (level === 0)
+      return camera.reverseShot(debugScene, { clearScreen: false }).to(canvas);
+    return canvas;
+  }
+  rebuild() {
+    let groupsStack = clusterLeafs(this.boundingBoxScene.box, this.sceneElements.map((x) => new Leaf2(x)));
+    while (groupsStack.map((x) => x.length > this.k).some((x) => x)) {
+      const groupOfLeafs = groupsStack.pop();
+      if (groupOfLeafs.length > this.k) {
+        const box = groupOfLeafs.reduce((e, x) => e.add(x.box), new Box);
+        const [left, right] = clusterLeafs(box, groupOfLeafs);
+        groupsStack.push(left);
+        groupsStack.push(right);
+      }
+    }
+    let nodeOrLeafStack = groupsStack.map((group) => group.reduce((e, x) => e.add(x.element), new Node2(this.k)));
+    while (nodeOrLeafStack.length > 1) {
+      const nodeOrLeaf = nodeOrLeafStack[0];
+      nodeOrLeafStack = nodeOrLeafStack.slice(1);
+      const minIndex = argmin(nodeOrLeafStack, (x) => nodeOrLeaf.box.distanceToBox(x.box));
+      const newNode = nodeOrLeaf.join(nodeOrLeafStack[minIndex]);
+      nodeOrLeafStack.splice(minIndex, 1);
+      nodeOrLeafStack.push(newNode);
+    }
+    this.boundingBoxScene = nodeOrLeafStack.pop();
+    return this;
+  }
+}
+
+class Node2 {
+  isLeaf = false;
+  numberOfLeafs = 0;
+  constructor(k) {
+    this.k = k;
+    this.box = Box.EMPTY;
+    this.leafs = [];
+  }
+  add(element) {
+    this.numberOfLeafs += 1;
+    const elemBox = element.getBoundingBox();
+    this.box = this.box.add(elemBox);
+    if (!this.left && !this.right) {
+      this.leafs.push(new Leaf2(element));
+      if (this.leafs.length < this.k)
+        return this;
+      const [lefts, rights] = clusterLeafs(this.box, this.leafs);
+      this.left = new Node2(this.k).addList(lefts.map((x) => x.element));
+      this.right = new Node2(this.k).addList(rights.map((x) => x.element));
+      this.leafs = [];
+    } else {
+      const children = [this.left, this.right];
+      const index = argmin(children, (x) => element.boundingBox.distanceToBox(x.box));
+      children[index].add(element);
+    }
+    return this;
+  }
+  addList(elements) {
+    for (let i = 0;i < elements.length; i++) {
+      this.add(elements[i]);
+    }
+    return this;
+  }
+  interceptWith(ray, depth = 1) {
+    if (this.leafs.length > 0) {
+      return leafsInterceptWith(this.leafs, ray);
+    }
+    return this.box.interceptWith(ray).flatMap(() => {
+      const children = [this.left, this.right];
+      const hits = [];
+      for (let i = 0;i < children.length; i++) {
+        const maybeHit = children[i].interceptWith(ray, depth + 1);
+        if (maybeHit.isSome())
+          hits.push(maybeHit.orElse());
+      }
+      const minIndex = argmin(hits, ([point]) => point.sub(ray.init).length());
+      if (minIndex === -1)
+        return none();
+      return some(hits[minIndex]);
+    });
+  }
+  distanceToPoint(p) {
+    return this.getElemNear(p).distanceToPoint(p);
+  }
+  getElemNear(p) {
+    if (this.leafs.length > 0) {
+      const minIndex = argmin(this.leafs, (x) => x.distanceToPoint(p));
+      return this.leafs[minIndex].element;
+    }
+    const children = [this.left, this.right];
+    const index = argmin(children, (n) => n.box.center.sub(p).length());
+    return children[index].getElemNear(p);
+  }
+  getElemIn(box) {
+    const children = this.children.filter((x) => x);
+    for (let i = 0;i < children.length; i++) {
+      if (!children[i].box.sub(box).isEmpty) {
+        return children[i].getElemIn(box);
+      }
+    }
+  }
+  getRandomLeaf() {
+    const index = Math.floor(Math.random() * this.children.length);
+    return this.children[index].isLeaf ? this.children[index] : this.children[index].getRandomLeaf();
+  }
+  join(nodeOrLeaf) {
+    if (nodeOrLeaf.isLeaf)
+      return this.add(nodeOrLeaf.element);
+    const newNode = new Node2(this.k);
+    newNode.left = this;
+    newNode.right = nodeOrLeaf;
+    newNode.box = this.box.add(nodeOrLeaf.box);
+    newNode.numberOfLeafs = newNode.left.numberOfLeafs + newNode.right.numberOfLeafs;
+    return newNode;
+  }
+}
+
+class Leaf2 {
+  isLeaf = true;
+  constructor(element) {
+    this.element = element;
+    this.box = element.getBoundingBox();
+  }
+  distanceToPoint(x) {
+    return this.element.distanceToPoint(x);
+  }
+  getLeafs() {
+    return [this];
+  }
+  getRandomLeaf() {
+    return this;
+  }
+  getElemIn(box) {
+    if (!box.sub(this.box).isEmpty)
+      return some(this.element);
+    return none();
+  }
+  getElemNear() {
+    return this.element;
+  }
+  interceptWith(ray) {
+    return this.element.interceptWith(ray);
+  }
+}
+var UNIT_BOX_VERTEX3 = [
+  Vec3(),
+  Vec3(1, 0, 0),
+  Vec3(1, 1, 0),
+  Vec3(0, 1, 0),
+  Vec3(0, 0, 1),
+  Vec3(1, 0, 1),
+  Vec3(1, 1, 1),
+  Vec3(0, 1, 1)
+];
+var UNIT_BOX_FACES3 = [
+  [0, 1],
+  [1, 2],
+  [2, 3],
+  [3, 0],
+  [4, 5],
+  [5, 6],
+  [6, 7],
+  [7, 4],
+  [0, 4],
+  [1, 5],
+  [3, 7],
+  [2, 6]
+];
+// src/Utils/Co
 var exports_IO = {};
 __export(exports_IO, {
   saveParallelImageStreamToVideo: () => {
@@ -2528,7 +2827,7 @@ __export(exports_IO, {
 import {writeFileSync, unlinkSync, readFileSync} from "fs";
 import {execSync, exec} from "child_process";
 
-// src/PQueue/PQueue.
+// src/Utils/Constant
 var drawConvexPolygon2 = function(canvas, positions, shader) {
   const { width, height } = canvas;
   const canvasBox = new Box(Vec2(), Vec2(width, height));
@@ -2690,7 +2989,7 @@ class Image {
   }
 }
 
-// src/PQueue/P
+// src/Utils/Co
 function saveImageToFile(fileAddress, image) {
   const { fileName, extension } = getFileNameAndExtensionFromAddress(fileAddress);
   const ppmName = `${fileName}.ppm`;
@@ -2848,6 +3147,7 @@ export {
   exports_Monads as Monads,
   Mesh,
   Line,
+  KScene,
   Image,
   exports_IO as IO,
   DomBuilder_default as DOM,

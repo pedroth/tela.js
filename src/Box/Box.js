@@ -10,6 +10,7 @@ export default class Box {
         this.max = max.op(min, Math.max);
         this.center = min.add(max).scale(1 / 2);
         this.diagonal = max.sub(min);
+        this.dim = min.dim;
     }
 
     add(box) {
@@ -109,6 +110,10 @@ export default class Box {
         min:${this.min.toString()},
         max:${this.max.toString()}
     }`
+    }
+
+    sample() {
+        return this.min.add(Vec.RANDOM(this.dim).mul(this.diagonal));
     }
 
     static EMPTY = new Box();

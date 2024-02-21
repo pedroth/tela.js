@@ -15,6 +15,7 @@ import Path from "./Scene/Path.js"
 import Triangle from "./Scene/Triangle.js"
 import Mesh from "./Scene/Mesh.js"
 import Ray from "./Ray/Ray.js"
+import KScene from "./Scene/KScene.js"
 
 export {
     Box,
@@ -31,6 +32,7 @@ export {
     Scene,
     Canvas,
     Camera,
+    KScene,
     Stream,
     Parallel,
     Triangle,

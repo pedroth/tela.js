@@ -454,6 +454,10 @@ const examples = [
         path: "/test/web/six_spheres.js"
     },
     {
+        title: "n points",
+        path: "/test/web/n-points.js"
+    },
+    {
         title: "Point cloud bunny",
         path: "/test/web/bunny.js"
     },
@@ -517,7 +521,7 @@ function execCode(code) {
             const script = DOM.of("script").build();
             script.type = "module";
             script.textContent = `
-            import {Path, Ray, Canvas, DOM, Color, Animation, Scene, Camera, Vec2, Vec3, Vec, Box, Point, Mesh, NaiveScene, Line, Triangle,clamp } from "/dist/web/index.js"
+            import {Path, Ray, Canvas, DOM, Color, Animation, Scene, KScene, Camera, Vec2, Vec3, Vec, Box, Point, Mesh, NaiveScene, Line, Triangle,clamp } from "/dist/web/index.js"
             Animation.globalAnimationIds.forEach(id => {
                 window.cancelAnimationFrame(id)
             });

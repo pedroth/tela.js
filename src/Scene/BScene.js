@@ -8,7 +8,7 @@ import NaiveScene from "./NaiveScene.js";
 import Line from "./Line.js";
 import PQueue from "../PQueue/PQueue.js";
 
-export default class Scene {
+export default class BScene {
   constructor() {
     this.id2ElemMap = {};
     this.sceneElements = [];
@@ -20,6 +20,7 @@ export default class Scene {
   }
 
   addList(elements) {
+    // elements = shuffle(elements);
     for (let i = 0; i < elements.length; i++) {
       const elem = elements[i];
       const { name } = elem;
@@ -295,6 +296,16 @@ class Leaf {
  *                                                                                      */
 //========================================================================================
 
+function isBalanced(node) {
+  const n = node.numberOfLeafs;
+  if (n <= 2) return true;
+  const childrenLeafs = [node.left, node.right].map(x => x.numberOfLeafs);
+  let acc = true;
+  childrenLeafs.forEach(x => acc = n >> 1 === x && acc);
+  return !acc && isBalanced(node.left) && isBalanced(node.right);
+}
+
+
 const UNIT_BOX_VERTEX = [
   Vec3(),
   Vec3(1, 0, 0),
@@ -335,4 +346,16 @@ function drawBox({ box, level, level2colors, debugScene }) {
     )
   debugScene.addList(lines);
   return debugScene;
+}
+
+function shuffle(elements) {
+  for (let i = elements.length - 1; i > 0; i--) {
+    // random number between 0 and i
+    const r = Math.floor(Math.random() * (i + 1));
+    //swap in place
+    const temp = elements[i];
+    elements[i] = elements[r];
+    elements[r] = temp;
+  }
+  return elements;
 }
