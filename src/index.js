@@ -6,6 +6,8 @@ import Stream from "./Stream/Stream.js"
 import Parallel from "./Parallel/Parallel.js"
 import Camera from "./Camera/Camera.js"
 import Scene from "./Scene/Scene.js"
+import BScene from "./Scene/BScene.js"
+import KScene from "./Scene/KScene.js"
 import NaiveScene from "./Scene/NaiveScene.js"
 import Vec, { Vec2, Vec3 } from "./Vector/Vector.js"
 import Box from "./Box/Box.js"
@@ -15,7 +17,6 @@ import Path from "./Scene/Path.js"
 import Triangle from "./Scene/Triangle.js"
 import Mesh from "./Scene/Mesh.js"
 import Ray from "./Ray/Ray.js"
-import KScene from "./Scene/KScene.js"
 
 export {
     Box,
@@ -32,6 +33,7 @@ export {
     Scene,
     Canvas,
     Camera,
+    BScene,
     KScene,
     Stream,
     Parallel,

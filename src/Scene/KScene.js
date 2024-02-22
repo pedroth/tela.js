@@ -7,6 +7,7 @@ import PQueue from "../PQueue/PQueue.js";
 import NaiveScene from "./NaiveScene.js";
 import Color from "../Color/Color.js";
 import Line from "./Line.js";
+import Point from "./Point.js"
 
 export default class KScene {
     constructor(k = 10) {
@@ -58,7 +59,27 @@ export default class KScene {
     }
 
     getElemNear(p) {
-        return this.boundingBoxScene.getElemNear(p);
+        if (this.boundingBoxScene.leafs.length > 0) {
+            return this.boundingBoxScene.getElemNear(p);
+        }
+        const initial = [this.boundingBoxScene.left, this.boundingBoxScene.right]
+            .map(x => ({ node: x, distance: x.box.distanceToPoint(p) }));
+        let stack = PQueue.ofArray(initial, (a, b) => a.distance - b.distance);
+        while (stack.length) {
+            const { leaf, node } = stack.pop();
+            if (leaf) return leaf.getElemNear(p);
+            if (node.leafs.length > 0) {
+                node
+                    .leafs
+                    .forEach(leaf =>
+                        stack.push({ leaf, distance: leaf.box.distanceToPoint(p) })
+                    );
+            }
+            const children = [node.left, node.right]
+                .filter(x => x)
+                .map(x => ({ node: x, distance: x.box.distanceToPoint(p) }));
+            children.forEach(c => stack.push(c));
+        }
     }
 
     estimateNormal(p) {
@@ -80,7 +101,7 @@ export default class KScene {
         level2colors = level2colors || [];
         debugScene = debugScene || new NaiveScene();
         if (level === 0) {
-            let maxLevels = Math.round(Math.log2(node.numberOfLeafs));
+            let maxLevels = Math.round(Math.log2(node.numberOfLeafs / this.k)) + 1;
             maxLevels = maxLevels === 0 ? 1 : maxLevels;
             for (let i = 0; i <= maxLevels; i++)
                 level2colors.push(

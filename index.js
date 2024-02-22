@@ -394,7 +394,7 @@ function footer() {
             DOM.of("hr"),
             DOM.of("p")
                 .addClass("center")
-                .inner("© 2023 Pedroth")
+                .inner(`© ${new Date().getFullYear()} Pedroth`)
         )
 }
 
@@ -521,7 +521,7 @@ function execCode(code) {
             const script = DOM.of("script").build();
             script.type = "module";
             script.textContent = `
-            import {Path, Ray, Canvas, DOM, Color, Animation, Scene, KScene, Camera, Vec2, Vec3, Vec, Box, Point, Mesh, NaiveScene, Line, Triangle,clamp } from "/dist/web/index.js"
+            import {Path, Ray, Canvas, DOM, Color, Animation, Scene, KScene, BScene, Camera, Vec2, Vec3, Vec, Box, Point, Mesh, NaiveScene, Line, Triangle,clamp } from "/dist/web/index.js"
             Animation.globalAnimationIds.forEach(id => {
                 window.cancelAnimationFrame(id)
             });

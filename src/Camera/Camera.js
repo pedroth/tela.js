@@ -130,8 +130,8 @@ export default class Camera {
 
   sdfShot(scene) {
     const lambda = ray => {
-      const maxIte = 50;
-      const epsilon = 1e-6;
+      const maxIte = 25;
+      const epsilon = 1e-3;
       let p = ray.init;
       let t = scene.distanceToPoint(p);
       let minT = t;
