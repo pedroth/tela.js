@@ -800,6 +800,11 @@ class Box {
 // src/Utils/Utils.js
 var exports_Utils = {};
 __export(exports_Utils, {
+  shuffle: () => {
+    {
+      return shuffle;
+    }
+  },
   or: () => {
     {
       return or;
@@ -884,6 +889,15 @@ function argmin(array, costFunction = (x) => x) {
     }
   }
   return argminIndex;
+}
+function shuffle(elements) {
+  for (let i = elements.length - 1;i > 0; i--) {
+    const r = Math.floor(Math.random() * (i + 1));
+    const temp = elements[i];
+    elements[i] = elements[r];
+    elements[r] = temp;
+  }
+  return elements;
 }
 
 // src/Canvas/Canvas.js
@@ -1874,7 +1888,7 @@ class NaiveScene {
     const elements = this.sceneElements;
     let distance = Number.MAX_VALUE;
     for (let i = 0;i < elements.length; i++) {
-      distance = Math.min(distance, elements[i].distanceToPoint(p));
+      distance = smin(distance, elements[i].distanceToPoint(p));
     }
     return distance;
   }
@@ -2274,6 +2288,7 @@ var drawBox2 = function({ box, level, level2colors, debugScene }) {
   debugScene.addList(lines);
   return debugScene;
 };
+
 class BScene {
   constructor() {
     this.id2ElemMap = {};
@@ -2305,15 +2320,6 @@ class BScene {
     return this.boundingBoxScene.getElemIn(box);
   }
   getElementNear(p) {
-    return this.boundingBoxScene.getElemNear(p);
-  }
-  interceptWith(ray, level) {
-    return this.boundingBoxScene.interceptWith(ray, level);
-  }
-  distanceToPoint(p) {
-    return this.getElemNear(p).distanceToPoint(p);
-  }
-  getElemNear(p) {
     if (this.boundingBoxScene.numberOfLeafs < 2) {
       return this.boundingBoxScene.getElemNear(p);
     }
@@ -2326,6 +2332,12 @@ class BScene {
       const children = [node.left, node.right].filter((x) => x).map((x) => ({ node: x, distance: x.box.distanceToPoint(p) }));
       children.forEach((c) => stack.push(c));
     }
+  }
+  interceptWith(ray, level) {
+    return this.boundingBoxScene.interceptWith(ray, level);
+  }
+  distanceToPoint(p) {
+    return this.getElementNear(p).distanceToPoint(p);
   }
   estimateNormal(p) {
     const epsilon = 0.000000001;
@@ -2421,12 +2433,14 @@ class Node2 {
     return children[index].getElemNear(p);
   }
   getElemIn(box) {
+    let elements = [];
     const children = [this.left, this.right].filter((x) => x);
     for (let i = 0;i < children.length; i++) {
       if (!children[i].box.sub(box).isEmpty) {
-        return children[i].getElemIn(box);
+        elements = elements.concat(children[i].getElemIn(box));
       }
     }
+    return elements;
   }
   getRandomLeaf() {
     return Math.random() < 0.5 ? this.left.getRandomLeaf() : this.right.getRandomLeaf();
@@ -2512,8 +2526,8 @@ class Leaf2 {
   }
   getElemIn(box) {
     if (!box.sub(this.box).isEmpty)
-      return some(this.element);
-    return none();
+      return [this.element];
+    return [];
   }
   getElemNear() {
     return this.element;
@@ -2637,15 +2651,6 @@ class KScene {
     return this.boundingBoxScene.getElemIn(box);
   }
   getElementNear(p) {
-    return this.boundingBoxScene.getElemNear(p);
-  }
-  interceptWith(ray, level) {
-    return this.boundingBoxScene.interceptWith(ray, level);
-  }
-  distanceToPoint(p) {
-    return this.getElemNear(p).distanceToPoint(p);
-  }
-  getElemNear(p) {
     if (this.boundingBoxScene.leafs.length > 0) {
       return this.boundingBoxScene.getElemNear(p);
     }
@@ -2661,6 +2666,12 @@ class KScene {
       const children = [node.left, node.right].filter((x) => x).map((x) => ({ node: x, distance: x.box.distanceToPoint(p) }));
       children.forEach((c) => stack.push(c));
     }
+  }
+  interceptWith(ray, level) {
+    return this.boundingBoxScene.interceptWith(ray, level);
+  }
+  distanceToPoint(p) {
+    return this.getElementNear(p).distanceToPoint(p);
   }
   estimateNormal(p) {
     const epsilon = 0.000000001;
@@ -2785,12 +2796,18 @@ class Node3 {
     return children[index].getElemNear(p);
   }
   getElemIn(box) {
-    const children = this.children.filter((x) => x);
+    let elements = [];
+    if (this.leafs.length > 0) {
+      this.leafs.forEach((leaf) => !leaf.box.sub(box).isEmpty && elements.push(leaf.element));
+      return elements;
+    }
+    const children = [this.left, this.right];
     for (let i = 0;i < children.length; i++) {
       if (!children[i].box.sub(box).isEmpty) {
-        return children[i].getElemIn(box);
+        elements = elements.concat(children[i].getElemIn(box));
       }
     }
+    return elements;
   }
   getRandomLeaf() {
     const index = Math.floor(Math.random() * this.children.length);
@@ -2825,8 +2842,8 @@ class Leaf3 {
   }
   getElemIn(box) {
     if (!box.sub(this.box).isEmpty)
-      return some(this.element);
-    return none();
+      return [this.element];
+    return [];
   }
   getElemNear() {
     return this.element;

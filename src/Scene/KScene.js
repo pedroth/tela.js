@@ -7,7 +7,6 @@ import PQueue from "../PQueue/PQueue.js";
 import NaiveScene from "./NaiveScene.js";
 import Color from "../Color/Color.js";
 import Line from "./Line.js";
-import Point from "./Point.js"
 
 export default class KScene {
     constructor(k = 10) {
@@ -47,18 +46,6 @@ export default class KScene {
     }
 
     getElementNear(p) {
-        return this.boundingBoxScene.getElemNear(p);
-    }
-
-    interceptWith(ray, level) {
-        return this.boundingBoxScene.interceptWith(ray, level);
-    }
-
-    distanceToPoint(p) {
-        return this.getElemNear(p).distanceToPoint(p);
-    }
-
-    getElemNear(p) {
         if (this.boundingBoxScene.leafs.length > 0) {
             return this.boundingBoxScene.getElemNear(p);
         }
@@ -80,6 +67,14 @@ export default class KScene {
                 .map(x => ({ node: x, distance: x.box.distanceToPoint(p) }));
             children.forEach(c => stack.push(c));
         }
+    }
+
+    interceptWith(ray, level) {
+        return this.boundingBoxScene.interceptWith(ray, level);
+    }
+
+    distanceToPoint(p) {
+        return this.getElementNear(p).distanceToPoint(p);
     }
 
     estimateNormal(p) {
@@ -216,12 +211,21 @@ class Node {
     }
 
     getElemIn(box) {
-        const children = this.children.filter(x => x);
+        let elements = [];
+        if (this.leafs.length > 0) {
+            this.leafs.forEach(leaf =>
+                !leaf.box.sub(box).isEmpty &&
+                elements.push(leaf.element)
+            );
+            return elements;
+        }
+        const children = [this.left, this.right];
         for (let i = 0; i < children.length; i++) {
             if (!children[i].box.sub(box).isEmpty) {
-                return children[i].getElemIn(box);
+                elements = elements.concat(children[i].getElemIn(box));
             }
         }
+        return elements;
     }
 
     getRandomLeaf() {
@@ -261,8 +265,8 @@ class Leaf {
     }
 
     getElemIn(box) {
-        if (!box.sub(this.box).isEmpty) return some(this.element);
-        return none();
+        if (!box.sub(this.box).isEmpty) return [this.element];
+        return [];
     }
 
     getElemNear() {

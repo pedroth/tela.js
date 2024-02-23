@@ -53,3 +53,15 @@ export function argmin(array, costFunction = x => x) {
     }
     return argminIndex;
 }
+
+export function shuffle(elements) {
+    for (let i = elements.length - 1; i > 0; i--) {
+        // random number between 0 and i
+        const r = Math.floor(Math.random() * (i + 1));
+        //swap in place
+        const temp = elements[i];
+        elements[i] = elements[r];
+        elements[r] = temp;
+    }
+    return elements;
+}

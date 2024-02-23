@@ -18,7 +18,7 @@ let mesh = Mesh.readObj(obj, "mesh");
 mesh = mesh
     .mapVertices(v => Vec3(-v.y, v.x, v.z))
     .mapVertices(v => Vec3(v.z, v.y, -v.x))
-const scenes = [new BScene(), new KScene(100), new NaiveScene()];
+const scenes = [new KScene(25), new BScene(), new NaiveScene()];
 
 // test
 scenes.forEach(scene => {

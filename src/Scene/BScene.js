@@ -20,7 +20,6 @@ export default class BScene {
   }
 
   addList(elements) {
-    // elements = shuffle(elements);
     for (let i = 0; i < elements.length; i++) {
       const elem = elements[i];
       const { name } = elem;
@@ -46,18 +45,6 @@ export default class BScene {
   }
 
   getElementNear(p) {
-    return this.boundingBoxScene.getElemNear(p);
-  }
-
-  interceptWith(ray, level) {
-    return this.boundingBoxScene.interceptWith(ray, level);
-  }
-
-  distanceToPoint(p) {
-    return this.getElemNear(p).distanceToPoint(p);
-  }
-
-  getElemNear(p) {
     if (this.boundingBoxScene.numberOfLeafs < 2) {
       return this.boundingBoxScene.getElemNear(p);
     }
@@ -72,6 +59,14 @@ export default class BScene {
         .map(x => ({ node: x, distance: x.box.distanceToPoint(p) }));
       children.forEach(c => stack.push(c));
     }
+  }
+
+  interceptWith(ray, level) {
+    return this.boundingBoxScene.interceptWith(ray, level);
+  }
+
+  distanceToPoint(p) {
+    return this.getElementNear(p).distanceToPoint(p);
   }
 
   estimateNormal(p) {
@@ -174,12 +169,14 @@ class Node {
   }
 
   getElemIn(box) {
+    let elements = [];
     const children = [this.left, this.right].filter(x => x);
     for (let i = 0; i < children.length; i++) {
       if (!children[i].box.sub(box).isEmpty) {
-        return children[i].getElemIn(box);
+        elements = elements.concat(children[i].getElemIn(box));
       }
     }
+    return elements;
   }
 
   getRandomLeaf() {
@@ -271,8 +268,8 @@ class Leaf {
   }
 
   getElemIn(box) {
-    if (!box.sub(this.box).isEmpty) return some(this.element);
-    return none();
+    if (!box.sub(this.box).isEmpty) return [this.element];
+    return [];
   }
 
   getElemNear() {
@@ -348,14 +345,3 @@ function drawBox({ box, level, level2colors, debugScene }) {
   return debugScene;
 }
 
-function shuffle(elements) {
-  for (let i = elements.length - 1; i > 0; i--) {
-    // random number between 0 and i
-    const r = Math.floor(Math.random() * (i + 1));
-    //swap in place
-    const temp = elements[i];
-    elements[i] = elements[r];
-    elements[r] = temp;
-  }
-  return elements;
-}
