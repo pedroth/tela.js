@@ -61,9 +61,12 @@ async (canvas, fps, logger) => {
         for (let i = 0; i < bunnyPoints.length; i++) {
             const acceleration = Vec3(0, 0, g);
             bunnySpeeds[i] = bunnyPoints[i].position.z <= 0 ?
-                Vec3().map(() => variance * (2 * Math.random() - 1)) :
+                Vec3().map(() => variance * (2 * Math.random() - 1))
+                .add(Vec3(0, 0, -bunnyPoints[i].position.z)) :
                 bunnySpeeds[i].add(acceleration.scale(dt));
-            bunnyPoints[i].position = bunnyPoints[i].position.add(bunnySpeeds[i].scale(dt));
+            bunnyPoints[i].position = bunnyPoints[i]
+            .position
+            .add(bunnySpeeds[i].scale(dt));
         }
     }
 
