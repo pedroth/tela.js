@@ -2928,8 +2928,9 @@ class VoxelScene {
     for (let n = 0;n < maxIte; n++) {
       let p = ray.trace(t);
       const newElements = this.gridMap[this.hash(p)];
-      if (newElements?.length)
+      if (newElements?.length) {
         elements = elements.concat(newElements);
+      }
       t += this.gridSpace;
     }
     if (elements?.length) {
