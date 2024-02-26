@@ -9,6 +9,7 @@ import Scene from "./Scene/Scene.js"
 import BScene from "./Scene/BScene.js"
 import KScene from "./Scene/KScene.js"
 import NaiveScene from "./Scene/NaiveScene.js"
+import VoxelScene from "./Scene/VoxelScene.js"
 import Vec, { Vec2, Vec3 } from "./Vector/Vector.js"
 import Box from "./Box/Box.js"
 import Point from "./Scene/Point.js"
@@ -40,6 +41,7 @@ export {
     Triangle,
     Animation,
     NaiveScene,
+    VoxelScene,
 }
 
 export * as Utils from "./Utils/Utils.js";

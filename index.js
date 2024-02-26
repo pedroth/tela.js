@@ -482,6 +482,10 @@ const examples = [
         path: "/test/web/signed_bunny.js"
     },
     {
+        title: "voxel test",
+        path: "/test/web/debug_voxel_test.js"
+    },
+    {
         title: "image to rgb space",
         path: "/test/web/image2rgb.js"
     },
@@ -521,7 +525,7 @@ function execCode(code) {
             const script = DOM.of("script").build();
             script.type = "module";
             script.textContent = `
-            import {Path, Ray, Canvas, DOM, Color, Animation, Scene, KScene, BScene, Camera, Vec2, Vec3, Vec, Box, Point, Mesh, NaiveScene, Line, Triangle,clamp } from "/dist/web/index.js"
+            import {Path, Ray, Canvas, DOM, Color, Animation, Scene, KScene, BScene, Camera, Vec2, Vec3, Vec, Box, Point, Mesh, NaiveScene, VoxelScene, Line, Triangle,clamp } from "/dist/web/index.js"
             Animation.globalAnimationIds.forEach(id => {
                 window.cancelAnimationFrame(id)
             });

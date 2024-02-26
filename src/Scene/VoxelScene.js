@@ -1,22 +1,22 @@
 
 import { none, some } from "../Monads/Monads.js";
-import { argmin } from "../Utils/Utils.js";
-import Vec from "../Vector/Vector.js";
+import Vec, { Vec3 } from "../Vector/Vector.js";
+import Line from "./Line.js";
 
 export default class VoxelScene {
-    constructor(gridSpace = 1) {
+    // after some tests, found that gridSpace ~ 4 * E[size of elements];
+    constructor(gridSpace = 0.1) {
         this.id2ElemMap = {};
         this.sceneElements = [];
-        this.gridMap = new Map();
+        this.gridMap = {};
         this.gridSpace = gridSpace;
     }
 
     // Hash function from https://www.youtube.com/watch?v=D2M8jTtKi44
-    hash(element) {
-        const box = element.getBoundingBox();
-        const integerCoord = box.center.map(z => Math.floor(z / this.gridSpace));
+    hash(p) {
+        const integerCoord = p.map(z => Math.floor(z / this.gridSpace));
         const h = (integerCoord.x * 92837111) ^ (integerCoord.y * 689287499) ^ (integerCoord.z * 283923481);
-        return h;
+        return Math.abs(h);
     }
 
     add(...elements) {
@@ -29,11 +29,11 @@ export default class VoxelScene {
             const { name } = elem;
             this.id2ElemMap[name] = elem;
             this.sceneElements.push(elem);
-            const h = this.hash(elem);
-            if (!this.gridMap.has(h)) {
-                this.gridMap.set(h, []);
+            const h = this.hash(elem.getBoundingBox().center);
+            if (!(h in this.gridMap)) {
+                this.gridMap[h] = [];
             }
-            let cell = this.gridMap.get(h);
+            let cell = this.gridMap[h];
             cell.push(elem);
         }
         return this;
@@ -42,7 +42,7 @@ export default class VoxelScene {
     clear() {
         this.id2ElemMap = {};
         this.sceneElements = [];
-        this.gridMap = new Map();
+        this.gridMap = {};
     }
 
     getElements() {
@@ -58,17 +58,17 @@ export default class VoxelScene {
     }
 
     interceptWith(ray) {
-        // TODO
-        const maxIte = 100;
+        const maxDist = 10;
+        const maxIte = maxDist / this.gridSpace;
         let t = 0;
         let elements = [];
         for (let n = 0; n < maxIte; n++) {
             let p = ray.trace(t);
-            elements = this.gridMap.get(this.hash(p));
-            if (elements.length) break;
+            const newElements = this.gridMap[this.hash(p)];
+            if (newElements?.length) elements = elements.concat(newElements);
             t += this.gridSpace;
         }
-        if (elements.length) {
+        if (elements?.length) {
             let closestDistance = Number.MAX_VALUE;
             let closest = none();
             for (let i = 0; i < elements.length; i++) {
@@ -105,7 +105,9 @@ export default class VoxelScene {
     }
 
     debug(props) {
-        const { canvas } = props;
+        const { camera, canvas } = props;
+        
+        
         return canvas;
     }
 
@@ -113,4 +115,3 @@ export default class VoxelScene {
         return this;
     }
 }
-
