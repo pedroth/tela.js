@@ -797,109 +797,6 @@ class Box {
   static EMPTY = new Box;
 }
 
-// src/Utils/Utils.js
-var exports_Utils = {};
-__export(exports_Utils, {
-  shuffle: () => {
-    {
-      return shuffle;
-    }
-  },
-  or: () => {
-    {
-      return or;
-    }
-  },
-  measureTimeWithResult: () => {
-    {
-      return measureTimeWithResult;
-    }
-  },
-  measureTimeWithAsyncResult: () => {
-    {
-      return measureTimeWithAsyncResult;
-    }
-  },
-  measureTime: () => {
-    {
-      return measureTime;
-    }
-  },
-  groupBy: () => {
-    {
-      return groupBy;
-    }
-  },
-  compose: () => {
-    {
-      return compose;
-    }
-  },
-  argmin: () => {
-    {
-      return argmin;
-    }
-  }
-});
-function measureTime(lambda) {
-  const t = performance.now();
-  lambda();
-  return 0.001 * (performance.now() - t);
-}
-async function measureTimeWithAsyncResult(lambda) {
-  const t = performance.now();
-  const result = await lambda();
-  return { result, time: 0.001 * (performance.now() - t) };
-}
-function measureTimeWithResult(lambda) {
-  const t = performance.now();
-  const result = lambda();
-  return { result, time: 0.001 * (performance.now() - t) };
-}
-function compose(f, g) {
-  return (x) => f(g(x));
-}
-function or(...lambdas) {
-  for (let i = 0;i < lambdas.length; i++) {
-    try {
-      return lambdas[i]();
-    } catch (err) {
-      continue;
-    }
-  }
-}
-function groupBy(array, groupFunction) {
-  const ans = {};
-  array.forEach((x, i) => {
-    const key = groupFunction(x, i);
-    if (!ans[key])
-      ans[key] = [];
-    ans[key].push(x);
-  });
-  return ans;
-}
-function argmin(array, costFunction = (x) => x) {
-  let argminIndex = -1;
-  let cost = Number.MAX_VALUE;
-  for (let i = 0;i < array.length; i++) {
-    const newCost = costFunction(array[i], i);
-    if (newCost < cost) {
-      cost = newCost;
-      argminIndex = i;
-    }
-  }
-  return argminIndex;
-}
-function shuffle(elements) {
-  for (let i = elements.length - 1;i > 0; i--) {
-    const r = Math.floor(Math.random() * (i + 1));
-    const temp = elements[i];
-    elements[i] = elements[r];
-    elements[r] = temp;
-  }
-  return elements;
-}
-
 // src/Canvas/Canvas.js
 var drawConvexPolygon = function(canvas, positions, shader) {
   const { width, height } = canvas;
@@ -964,6 +861,60 @@ class Canvas {
   }
   fill(color) {
     return this.map(() => color);
+  }
+  mapParallel(lambda, dependencies = [], vars = {}) {
+    return new Promise((resolve) => {
+      const n = this._image.length;
+      const w = this._width;
+      const h = this._height;
+      const N = navigator.hardwareConcurrency;
+      const fun = ({ _start_, _end_, _width_, _height_, _worker_id_, _vars_ }) => {
+        const image = Array(_end_ - _start_ + 1).fill();
+        let index = 0;
+        for (let k = _start_;k < _end_; k += 4) {
+          const i = Math.floor(k / (4 * _width_));
+          const j = Math.floor(k / 4 % _width_);
+          const x = j;
+          const y = _height_ - 1 - i;
+          const color = lambda(x, y, { ..._vars_ });
+          if (!color)
+            return;
+          image[index] = color.red;
+          image[index + 1] = color.green;
+          image[index + 2] = color.blue;
+          image[index + 3] = 1;
+          index += 4;
+        }
+        return { image, _start_, _end_, _worker_id_ };
+      };
+      const worker = createWorker(fun, lambda, dependencies);
+      const workers = [...Array(N)].map(() => worker);
+      const allWorkersDone = [...Array(N)].fill(false);
+      workers.forEach((worker2, k) => {
+        const ratio = Math.floor(n / N);
+        worker2.postMessage({
+          _start_: k * ratio,
+          _end_: Math.min(n, (k + 1) * ratio) - 1,
+          _width_: w,
+          _height_: h,
+          _worker_id_: k,
+          _vars_: vars
+        });
+        worker2.onmessage = (event) => {
+          const { image, _start_, _end_, _worker_id_ } = event.data;
+          let index = 0;
+          for (let i = _start_;i < _end_; i++) {
+            this._image[i] = Math.floor(image[index] * MAX_8BIT2);
+            index++;
+          }
+          allWorkersDone[_worker_id_] = true;
+          if (allWorkersDone.every((x) => x)) {
+            console.log(">>>> finished", _worker_id_);
+            return resolve(this.paint());
+          }
+        };
+      });
+    });
   }
   map(lambda) {
     const n = this._image.length;
@@ -1117,6 +1068,20 @@ class Canvas {
     });
   }
 }
+var createWorker = (main, lambda, dependencies) => {
+  const workerFile = `
+  ${dependencies.map((d) => d.toString()).join("\n")}
+  ${Color.toString()}
+  const lambda = ${lambda.toString()};
+  const __main__ = ${main.toString()}; 
+  onmessage = e => {
+      const input = e.data
+      const output = __main__(input);
+      self.postMessage(output);
+  };
+  `;
+  return new Worker(URL.createObjectURL(new Blob([workerFile])));
+};
 
 // src/DomBuilder/DomBuilder.js
 var isElement = function(o) {
@@ -1857,6 +1822,139 @@ class Camera {
     pointInCamCoord = Vec3(this.basis[0].dot(pointInCamCoord), this.basis[1].dot(pointInCamCoord), this.basis[2].dot(pointInCamCoord));
     return pointInCamCoord;
   }
+}
+
+// src/Utils/Utils.js
+var exports_Utils = {};
+__export(exports_Utils, {
+  shuffle: () => {
+    {
+      return shuffle;
+    }
+  },
+  or: () => {
+    {
+      return or;
+    }
+  },
+  memoize: () => {
+    {
+      return memoize;
+    }
+  },
+  measureTimeWithResult: () => {
+    {
+      return measureTimeWithResult;
+    }
+  },
+  measureTimeWithAsyncResult: () => {
+    {
+      return measureTimeWithAsyncResult;
+    }
+  },
+  measureTime: () => {
+    {
+      return measureTime;
+    }
+  },
+  groupBy: () => {
+    {
+      return groupBy;
+    }
+  },
+  compose: () => {
+    {
+      return compose;
+    }
+  },
+  arrayIsEqual: () => {
+    {
+      return arrayIsEqual;
+    }
+  },
+  argmin: () => {
+    {
+      return argmin;
+    }
+  }
+});
+function measureTime(lambda) {
+  const t = performance.now();
+  lambda();
+  return 0.001 * (performance.now() - t);
+}
+async function measureTimeWithAsyncResult(lambda) {
+  const t = performance.now();
+  const result = await lambda();
+  return { result, time: 0.001 * (performance.now() - t) };
+}
+function measureTimeWithResult(lambda) {
+  const t = performance.now();
+  const result = lambda();
+  return { result, time: 0.001 * (performance.now() - t) };
+}
+function compose(f, g) {
+  return (x) => f(g(x));
+}
+function or(...lambdas) {
+  for (let i = 0;i < lambdas.length; i++) {
+    try {
+      return lambdas[i]();
+    } catch (err) {
+      continue;
+    }
+  }
+}
+function groupBy(array, groupFunction) {
+  const ans = {};
+  array.forEach((x, i) => {
+    const key = groupFunction(x, i);
+    if (!ans[key])
+      ans[key] = [];
+    ans[key].push(x);
+  });
+  return ans;
+}
+function argmin(array, costFunction = (x) => x) {
+  let argminIndex = -1;
+  let cost = Number.MAX_VALUE;
+  for (let i = 0;i < array.length; i++) {
+    const newCost = costFunction(array[i], i);
+    if (newCost < cost) {
+      cost = newCost;
+      argminIndex = i;
+    }
+  }
+  return argminIndex;
+}
+function shuffle(elements) {
+  for (let i = elements.length - 1;i > 0; i--) {
+    const r = Math.floor(Math.random() * (i + 1));
+    const temp = elements[i];
+    elements[i] = elements[r];
+    elements[r] = temp;
+  }
+  return elements;
+}
+function arrayIsEqual(a, b) {
+  if (a.length !== b.length)
+    return false;
+  for (let i = 0;i < a.length; i++) {
+    if (a[i] !== b[i])
+      return false;
+  }
+  return true;
+}
+function memoize(func) {
+  const cache = {};
+  return (...args) => {
+    const key = JSON.stringify(args);
+    if (key in cache)
+      return cache[key];
+    const ans = func(...args);
+    cache[key] = ans;
+    return ans;
+  };
 }
 
 // src/Scene/NaiveScene.js

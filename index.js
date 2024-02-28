@@ -442,6 +442,10 @@ const examples = [
         path: "/test/web/amazing_shader_2.js"
     },
     {
+        title: "Parallel shader",
+        path: "/test/web/parallel_shader.js"
+    },
+    {
         title: "Wave simulation",
         path: "/test/web/wave_equation.js"
     },

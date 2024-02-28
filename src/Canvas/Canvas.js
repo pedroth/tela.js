@@ -3,7 +3,6 @@ import { MAX_8BIT } from "../Utils/Constants";
 import { clipLine, isInsideConvex, mod } from "../Utils/Math";
 import Box from "../Box/Box"
 import { Vec2 } from "../Vector/Vector";
-import { measureTime } from "../Utils/Utils";
 
 export default class Canvas {
 
@@ -13,7 +12,7 @@ export default class Canvas {
     this._height = canvas.height;
     this._ctx = this._canvas.getContext("2d", { willReadFrequently: true });
     this._imageData = this._ctx.getImageData(0, 0, this._width, this._height);
-    this._image = this._imageData.data;
+    this._image = this._imageData.data; // by changing this, imageData is change magically
   }
 
   get width() {
@@ -33,6 +32,61 @@ export default class Canvas {
     */
   fill(color) {
     return this.map(() => color);
+  }
+
+  mapParallel(lambda, dependencies = [], vars = {}) {
+    return new Promise((resolve) => {
+      const n = this._image.length;
+      const w = this._width;
+      const h = this._height;
+      const N = navigator.hardwareConcurrency;
+      const fun = ({ _start_, _end_, _width_, _height_, _worker_id_, _vars_ }) => {
+        const image = Array(_end_ - _start_ + 1).fill();
+        let index = 0;
+        for (let k = _start_; k < _end_; k += 4) {
+          const i = Math.floor(k / (4 * _width_));
+          const j = Math.floor((k / 4) % _width_);
+          const x = j;
+          const y = _height_ - 1 - i;
+          const color = lambda(x, y, { ..._vars_ });
+          if (!color) return;
+          image[index] = color.red;
+          image[index + 1] = color.green;
+          image[index + 2] = color.blue;
+          image[index + 3] = 1;
+          index += 4;
+        }
+        return { image, _start_, _end_, _worker_id_ };
+      }
+      const worker = createWorker(fun, lambda, dependencies);
+      const workers = [...Array(N)]
+        .map(() => worker);
+      const allWorkersDone = [...Array(N)].fill(false);
+      workers.forEach((worker, k) => {
+        const ratio = Math.floor(n / N);
+        worker.postMessage({
+          _start_: k * ratio,
+          _end_: Math.min(n, (k + 1) * ratio) - 1,
+          _width_: w,
+          _height_: h,
+          _worker_id_: k,
+          _vars_: vars
+        });
+        worker.onmessage = (event) => {
+          const { image, _start_, _end_, _worker_id_ } = event.data;
+          let index = 0;
+          for (let i = _start_; i < _end_; i++) {
+            this._image[i] = Math.floor(image[index] * MAX_8BIT);
+            index++;
+          }
+          allWorkersDone[_worker_id_] = true;
+          if (allWorkersDone.every(x => x)) {
+            console.log(">>>> finished", _worker_id_);
+            return resolve(this.paint());
+          }
+        };
+      })
+    });
   }
 
   /**
@@ -264,3 +318,25 @@ function handleMouse(canvas, lambda) {
     return lambda(x, y);
   }
 }
+
+//========================================================================================
+/*                                                                                      *
+ *                                         UTILS                                        *
+ *                                                                                      */
+//========================================================================================
+
+
+const createWorker = (main, lambda, dependencies) => {
+  const workerFile = `
+  ${dependencies.map(d => d.toString()).join("\n")}
+  ${Color.toString()}
+  const lambda = ${lambda.toString()};
+  const __main__ = ${main.toString()}; 
+  onmessage = e => {
+      const input = e.data
+      const output = __main__(input);
+      self.postMessage(output);
+  };
+  `;
+  return new Worker(URL.createObjectURL(new Blob([workerFile])));
+};
