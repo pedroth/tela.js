@@ -1986,7 +1986,7 @@ class NaiveScene {
     const elements = this.sceneElements;
     let distance = Number.MAX_VALUE;
     for (let i = 0;i < elements.length; i++) {
-      distance = smin(distance, elements[i].distanceToPoint(p));
+      distance = Math.min(distance, elements[i].distanceToPoint(p));
     }
     return distance;
   }
