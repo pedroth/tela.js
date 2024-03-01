@@ -192,6 +192,14 @@ const getIframeDefaultBody = () => `
 </div>
 `;
 
+function execBtn() {
+    return DOM
+        .of("button")
+        .style("margin-left: auto")
+        .inner("Run code")
+        .event("click", () => AppState.editor.forEach(e => execCode(e.getValue())))
+}
+
 function exampleSelector() {
     const select = DOM.of("select")
         .attr("title", "Examples")
@@ -211,11 +219,11 @@ function exampleSelector() {
         AppState.editor.forEach(async editor => {
             const exampleTxt = await getExampleFromPath(examplePath);
             editor.setValue(exampleTxt)
+            execCode(exampleTxt);
+
         })
     });
     return DOM.of("div")
-        .addClass("margin flex")
-        .style("margin-bottom: 0.25rem")
         .appendChild(
             DOM.of("span")
                 .style("margin-right: 0.5rem")
@@ -226,8 +234,11 @@ function exampleSelector() {
 
 function headerTools() {
     return DOM.of("div")
+        .addClass("flex")
+        .style("margin-bottom: 0.25rem")
         .appendChild(
             exampleSelector(),
+            execBtn()
         );
 }
 
@@ -235,12 +246,12 @@ function header() {
     return DOM.of("header")
         .appendChild(
             DOM.of("h2").inner("Tela.js playground"),
-            headerTools()
         )
 }
 
 async function input() {
     const container = DOM.of("div");
+    container.appendChild(headerTools())
     // eslint-disable-next-line no-undef
     require.config({ paths: { vs: './vs-monaco/package/min/vs' } });
     const editor = await new Promise((re) => {
@@ -263,7 +274,6 @@ async function input() {
         debounce(() => {
             const newInput = editor.getValue();
             TelaLocalStorage.setItem("input", newInput);
-            execCode(newInput);
         })
     );
     AppState.editor = some(editor);
@@ -569,6 +579,7 @@ function getSelectedExample() {
     AppState.editor.forEach(async editor => {
         const examplePath = examples.filter(({ title }) => getSelectedExample() === title)[0].path;
         const exampleTxt = TelaLocalStorage.getItem("input") || await getExampleFromPath(examplePath);
-        editor.setValue(exampleTxt)
+        editor.setValue(exampleTxt);
+        setTimeout(() => execCode(exampleTxt), 100); // needs this for some unknown reason
     });
 })()
