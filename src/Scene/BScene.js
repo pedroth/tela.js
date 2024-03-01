@@ -1,12 +1,12 @@
 
 import Box from "../Box/Box.js";
-import Vec, { Vec3 } from "../Vector/Vector.js";
+import Vec from "../Vector/Vector.js";
 import { argmin } from "../Utils/Utils.js";
 import { none, some } from "../Monads/Monads.js";
 import Color from "../Color/Color.js";
 import NaiveScene from "./NaiveScene.js";
-import Line from "./Line.js";
 import PQueue from "../PQueue/PQueue.js";
+import { drawBox } from "../Utils/Utils3D.js";
 
 export default class BScene {
   constructor() {
@@ -95,7 +95,7 @@ export default class BScene {
           Color.RED.scale(1 - i / maxLevels).add(Color.BLUE.scale(i / maxLevels))
         );
     }
-    debugScene = drawBox({ box: node.box, level, level2colors, debugScene });
+    debugScene = drawBox({ box: node.box, color: level2colors[level], debugScene });
     if (!node.isLeaf && node.left) {
       this.debug({ canvas, camera, node: node.left, level: level + 1, level2colors, debugScene })
     }
@@ -301,47 +301,3 @@ function isBalanced(node) {
   childrenLeafs.forEach(x => acc = n >> 1 === x && acc);
   return !acc && isBalanced(node.left) && isBalanced(node.right);
 }
-
-
-const UNIT_BOX_VERTEX = [
-  Vec3(),
-  Vec3(1, 0, 0),
-  Vec3(1, 1, 0),
-  Vec3(0, 1, 0),
-  Vec3(0, 0, 1),
-  Vec3(1, 0, 1),
-  Vec3(1, 1, 1),
-  Vec3(0, 1, 1),
-]
-
-const UNIT_BOX_FACES = [
-  [0, 1],
-  [1, 2],
-  [2, 3],
-  [3, 0],
-  [4, 5],
-  [5, 6],
-  [6, 7],
-  [7, 4],
-  [0, 4],
-  [1, 5],
-  [3, 7],
-  [2, 6],
-]
-
-function drawBox({ box, level, level2colors, debugScene }) {
-  if (box.isEmpty) return;
-  const vertices = UNIT_BOX_VERTEX.map(v => v.mul(box.diagonal).add(box.min))
-  const lines = UNIT_BOX_FACES
-    .map(([i, j]) =>
-      Line
-        .builder()
-        .name(`debug_box_${level}_${i}_${j}`)
-        .positions(vertices[i], vertices[j])
-        .colors(level2colors[level], level2colors[level])
-        .build()
-    )
-  debugScene.addList(lines);
-  return debugScene;
-}
-

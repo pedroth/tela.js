@@ -2089,16 +2089,41 @@ class PQueue {
   }
 }
 
-// src/Scene/Scene.js
-var drawBox = function({ box, level, level2colors, debugScene }) {
+// src/Utils/Utils3D.js
+function drawBox({ box, color, debugScene }) {
   if (box.isEmpty)
     return;
   const vertices = UNIT_BOX_VERTEX.map((v) => v.mul(box.diagonal).add(box.min));
-  const lines = UNIT_BOX_FACES.map(([i, j]) => Line.builder().name(`debug_box_${level}_${i}_${j}`).positions(vertices[i], vertices[j]).colors(level2colors[level], level2colors[level]).build());
+  const lines = UNIT_BOX_FACES.map(([i, j]) => Line.builder().name(`debug_box_${i}_${j}`).positions(vertices[i], vertices[j]).colors(color, color).build());
   debugScene.addList(lines);
   return debugScene;
-};
+}
+var UNIT_BOX_VERTEX = [
+  Vec3(),
+  Vec3(1, 0, 0),
+  Vec3(1, 1, 0),
+  Vec3(0, 1, 0),
+  Vec3(0, 0, 1),
+  Vec3(1, 0, 1),
+  Vec3(1, 1, 1),
+  Vec3(0, 1, 1)
+];
+var UNIT_BOX_FACES = [
+  [0, 1],
+  [1, 2],
+  [2, 3],
+  [3, 0],
+  [4, 5],
+  [5, 6],
+  [6, 7],
+  [7, 4],
+  [0, 4],
+  [1, 5],
+  [3, 7],
+  [2, 6]
+];
 
+// src/Scene/Scene.js
 class Scene {
   constructor() {
     this.id2ElemMap = {};
@@ -2175,7 +2200,7 @@ class Scene {
       for (let i = 0;i <= maxLevels; i++)
         level2colors.push(Color.RED.scale(1 - i / maxLevels).add(Color.BLUE.scale(i / maxLevels)));
     }
-    debugScene = drawBox({ box: node.box, level, level2colors, debugScene });
+    debugScene = drawBox({ box: node.box, color: level2colors[level], debugScene });
     if (!node.isLeaf && node.left) {
       this.debug({ canvas, camera, node: node.left, level: level + 1, level2colors, debugScene });
     }
@@ -2352,41 +2377,8 @@ class Leaf {
     return nodeOrLeaf.join(this);
   }
 }
-var UNIT_BOX_VERTEX = [
-  Vec3(),
-  Vec3(1, 0, 0),
-  Vec3(1, 1, 0),
-  Vec3(0, 1, 0),
-  Vec3(0, 0, 1),
-  Vec3(1, 0, 1),
-  Vec3(1, 1, 1),
-  Vec3(0, 1, 1)
-];
-var UNIT_BOX_FACES = [
-  [0, 1],
-  [1, 2],
-  [2, 3],
-  [3, 0],
-  [4, 5],
-  [5, 6],
-  [6, 7],
-  [7, 4],
-  [0, 4],
-  [1, 5],
-  [3, 7],
-  [2, 6]
-];
 
 // src/Scene/BScene.js
-var drawBox2 = function({ box, level, level2colors, debugScene }) {
-  if (box.isEmpty)
-    return;
-  const vertices = UNIT_BOX_VERTEX2.map((v) => v.mul(box.diagonal).add(box.min));
-  const lines = UNIT_BOX_FACES2.map(([i, j]) => Line.builder().name(`debug_box_${level}_${i}_${j}`).positions(vertices[i], vertices[j]).colors(level2colors[level], level2colors[level]).build());
-  debugScene.addList(lines);
-  return debugScene;
-};
-
 class BScene {
   constructor() {
     this.id2ElemMap = {};
@@ -2460,7 +2452,7 @@ class BScene {
       for (let i = 0;i <= maxLevels; i++)
         level2colors.push(Color.RED.scale(1 - i / maxLevels).add(Color.BLUE.scale(i / maxLevels)));
     }
-    debugScene = drawBox2({ box: node.box, level, level2colors, debugScene });
+    debugScene = drawBox({ box: node.box, color: level2colors[level], debugScene });
     if (!node.isLeaf && node.left) {
       this.debug({ canvas, camera, node: node.left, level: level + 1, level2colors, debugScene });
     }
@@ -2639,30 +2631,6 @@ class Leaf2 {
     return nodeOrLeaf.join(this);
   }
 }
-var UNIT_BOX_VERTEX2 = [
-  Vec3(),
-  Vec3(1, 0, 0),
-  Vec3(1, 1, 0),
-  Vec3(0, 1, 0),
-  Vec3(0, 0, 1),
-  Vec3(1, 0, 1),
-  Vec3(1, 1, 1),
-  Vec3(0, 1, 1)
-];
-var UNIT_BOX_FACES2 = [
-  [0, 1],
-  [1, 2],
-  [2, 3],
-  [3, 0],
-  [4, 5],
-  [5, 6],
-  [6, 7],
-  [7, 4],
-  [0, 4],
-  [1, 5],
-  [3, 7],
-  [2, 6]
-];
 
 // src/Scene/KScene.js
 var clusterLeafs = function(box, leafs, it = 10) {
@@ -2707,14 +2675,6 @@ var leafsInterceptWith = function(leafs, ray) {
     });
   }
   return closest;
-};
-var drawBox3 = function({ box, level, level2colors, debugScene }) {
-  if (box.isEmpty)
-    return;
-  const vertices = UNIT_BOX_VERTEX3.map((v) => v.mul(box.diagonal).add(box.min));
-  const lines = UNIT_BOX_FACES3.map(([i, j]) => Line.builder().name(`debug_box_${level}_${i}_${j}`).positions(vertices[i], vertices[j]).colors(level2colors[level], level2colors[level]).build());
-  debugScene.addList(lines);
-  return debugScene;
 };
 
 class KScene {
@@ -2794,7 +2754,7 @@ class KScene {
       for (let i = 0;i <= maxLevels; i++)
         level2colors.push(Color.RED.scale(1 - i / maxLevels).add(Color.BLUE.scale(i / maxLevels)));
     }
-    debugScene = drawBox3({ box: node.box, level, level2colors, debugScene });
+    debugScene = drawBox({ box: node.box, color: level2colors[level], debugScene });
     if (!node.isLeaf && node.left) {
       this.debug({ canvas, camera, node: node.left, level: level + 1, level2colors, debugScene });
     }
@@ -2950,30 +2910,6 @@ class Leaf3 {
     return this.element.interceptWith(ray);
   }
 }
-var UNIT_BOX_VERTEX3 = [
-  Vec3(),
-  Vec3(1, 0, 0),
-  Vec3(1, 1, 0),
-  Vec3(0, 1, 0),
-  Vec3(0, 0, 1),
-  Vec3(1, 0, 1),
-  Vec3(1, 1, 1),
-  Vec3(0, 1, 1)
-];
-var UNIT_BOX_FACES3 = [
-  [0, 1],
-  [1, 2],
-  [2, 3],
-  [3, 0],
-  [4, 5],
-  [5, 6],
-  [6, 7],
-  [7, 4],
-  [0, 4],
-  [1, 5],
-  [3, 7],
-  [2, 6]
-];
 
 // src/Scene/VoxelScene.js
 class VoxelScene {
@@ -2997,12 +2933,25 @@ class VoxelScene {
       const { name } = elem;
       this.id2ElemMap[name] = elem;
       this.sceneElements.push(elem);
-      const h = this.hash(elem.getBoundingBox().center);
-      if (!(h in this.gridMap)) {
-        this.gridMap[h] = [];
+      const binary = [0, 1];
+      const n = binary.length ** 3;
+      const powers = [binary.length ** 2, binary.length];
+      const pivot = elem.getBoundingBox().min;
+      const points = [];
+      for (let k = 0;k < n; k++) {
+        const i0 = Math.floor(k / powers[0]);
+        const i1 = Math.floor(k / powers[1]) % powers[1];
+        const i2 = k % powers[1];
+        points.push(pivot.add(Vec3(i0, i1, i2).mul(elem.getBoundingBox().diagonal)));
       }
-      let cell = this.gridMap[h];
-      cell.push(elem);
+      points.forEach((p) => {
+        const h = this.hash(p);
+        if (!(h in this.gridMap)) {
+          this.gridMap[h] = {};
+        }
+        let cell = this.gridMap[h];
+        cell[elem.name] = elem;
+      });
     }
     return this;
   }
@@ -3025,7 +2974,7 @@ class VoxelScene {
     let elements = [];
     for (let n = 0;n < maxIte; n++) {
       let p = ray.trace(t);
-      const newElements = this.gridMap[this.hash(p)];
+      const newElements = Object.values(this.gridMap[this.hash(p)] || {});
       if (newElements?.length) {
         elements = elements.concat(newElements);
       }
@@ -3061,6 +3010,19 @@ class VoxelScene {
   }
   debug(props) {
     const { camera, canvas } = props;
+    const debugScene = new NaiveScene;
+    Object.keys(this.gridMap).forEach((k) => {
+      const elemsMap = this.gridMap[k] || {};
+      Object.values(elemsMap).forEach((e) => {
+        const pivot = e.getBoundingBox().center.map((z) => Math.floor(z / this.gridSpace)).scale(this.gridSpace);
+        drawBox({
+          box: new Box(pivot, pivot.add(Vec3(1, 1, 1).scale(this.gridSpace))),
+          color: Color.RED,
+          debugScene
+        });
+      });
+    });
+    camera.reverseShot(debugScene, { clearScreen: false }).to(canvas);
     return canvas;
   }
   rebuild() {
@@ -3127,7 +3089,7 @@ class PathBuilder {
 // src/Scene/Mesh.js
 var MESH_COUNTER = 0;
 var RADIUS = 0.001;
-var UNIT_BOX_VERTEX4 = [
+var UNIT_BOX_VERTEX2 = [
   Vec3(),
   Vec3(1, 0, 0),
   Vec3(1, 1, 0),
@@ -3137,7 +3099,7 @@ var UNIT_BOX_VERTEX4 = [
   Vec3(1, 1, 1),
   Vec3(0, 1, 1)
 ];
-var UNIT_BOX_FACES4 = [
+var UNIT_BOX_FACES2 = [
   [0, 1, 2],
   [2, 3, 0],
   [4, 5, 6],
@@ -3300,8 +3262,8 @@ class Mesh {
     return new Mesh({ name, vertices, normals, textureCoords, faces });
   }
   static ofBox(box, name) {
-    const vertices = UNIT_BOX_VERTEX4.map((v) => v.mul(box.diagonal).add(box.min));
-    return new Mesh({ name, vertices, faces: UNIT_BOX_FACES4.map((indx3) => ({ vertices: indx3 })) });
+    const vertices = UNIT_BOX_VERTEX2.map((v) => v.mul(box.diagonal).add(box.min));
+    return new Mesh({ name, vertices, faces: UNIT_BOX_FACES2.map((indx3) => ({ vertices: indx3 })) });
   }
 }
 export {

@@ -1,7 +1,10 @@
 
+import Box from "../Box/Box.js";
 import { none, some } from "../Monads/Monads.js";
 import Vec, { Vec3 } from "../Vector/Vector.js";
-import Line from "./Line.js";
+import NaiveScene from "./NaiveScene.js";
+import Color from "../Color/Color.js";
+import { drawBox } from "../Utils/Utils3D.js";
 
 export default class VoxelScene {
     // after some tests, found that gridSpace ~ 4 * E[size of elements];
@@ -29,12 +32,25 @@ export default class VoxelScene {
             const { name } = elem;
             this.id2ElemMap[name] = elem;
             this.sceneElements.push(elem);
-            const h = this.hash(elem.getBoundingBox().center);
-            if (!(h in this.gridMap)) {
-                this.gridMap[h] = [];
+            const binary = [0, 1];
+            const n = binary.length ** 3;
+            const powers = [binary.length ** 2, binary.length];
+            const pivot = elem.getBoundingBox().min;
+            const points = []
+            for (let k = 0; k < n; k++) {
+                const i0 = Math.floor(k / powers[0])
+                const i1 = Math.floor(k / powers[1]) % powers[1];
+                const i2 = k % powers[1]
+                points.push(pivot.add(Vec3(i0, i1, i2).mul(elem.getBoundingBox().diagonal)));
             }
-            let cell = this.gridMap[h];
-            cell.push(elem);
+            points.forEach(p => {
+                const h = this.hash(p);
+                if (!(h in this.gridMap)) {
+                    this.gridMap[h] = {};
+                }
+                let cell = this.gridMap[h];
+                cell[elem.name] = elem;
+            })
         }
         return this;
     }
@@ -64,7 +80,7 @@ export default class VoxelScene {
         let elements = [];
         for (let n = 0; n < maxIte; n++) {
             let p = ray.trace(t);
-            const newElements = this.gridMap[this.hash(p)];
+            const newElements = Object.values(this.gridMap[this.hash(p)] || {});
             if (newElements?.length) {
                 elements = elements.concat(newElements);
             }
@@ -108,8 +124,29 @@ export default class VoxelScene {
 
     debug(props) {
         const { camera, canvas } = props;
-        
-        
+        const debugScene = new NaiveScene();
+        Object.keys(this.gridMap)
+            .forEach(k => {
+                const elemsMap = this.gridMap[k] || {};
+                Object.values(elemsMap).forEach(e => {
+                    const pivot = e
+                        .getBoundingBox()
+                        .center
+                        .map(z =>
+                            Math.floor(z / this.gridSpace)
+                        )
+                        .scale(this.gridSpace);
+                    drawBox({
+                        box: new Box(
+                            pivot,
+                            pivot.add(Vec3(1, 1, 1).scale(this.gridSpace))
+                        ),
+                        color: Color.RED,
+                        debugScene
+                    });
+                })
+            })
+        camera.reverseShot(debugScene, { clearScreen: false }).to(canvas);
         return canvas;
     }
 
