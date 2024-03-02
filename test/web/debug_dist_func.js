@@ -172,9 +172,9 @@ async (canvas, fps, logger) => {
                     .build()
             )
             debugScene.addList(sphere(p, scene.distanceToPoint(p), Color.ofRGB(1, 1, 0)));
-            debugScene.add(line(p, scene.getElemNear(p).position, Color.ofRGB(0, 1, 1)))
+            debugScene.add(line(p, scene.getElementNear(p).position, Color.ofRGB(0, 1, 1)))
             debugScene.addList(sphere(p, nscene.distanceToPoint(p), Color.GREEN));
-            debugScene.add(line(p, nscene.getElemNear(p).position, Color.RED))
+            debugScene.add(line(p, nscene.getElementNear(p).position, Color.RED))
             camera.reverseShot(debugScene, { clearScreen: false }).to(canvas);
         }
     }

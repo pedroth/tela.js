@@ -1,12 +1,11 @@
 
 import Box from "../Box/Box.js";
-import Vec, { Vec3 } from "../Vector/Vector.js";
+import Vec from "../Vector/Vector.js";
 import { argmin } from "../Utils/Utils.js";
 import { none, some } from "../Monads/Monads.js";
 import PQueue from "../PQueue/PQueue.js";
 import NaiveScene from "./NaiveScene.js";
 import Color from "../Color/Color.js";
-import Line from "./Line.js";
 import { drawBox } from "../Utils/Utils3D.js";
 
 export default class KScene {

@@ -73,7 +73,7 @@ export default class NaiveScene {
     return closest;
   }
 
-  getElemNear(p) {
+  getElementNear(p) {
     return this.sceneElements[argmin(this.sceneElements, x => x.distanceToPoint(p))];
   }
 
