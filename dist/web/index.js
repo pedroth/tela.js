@@ -2247,9 +2247,7 @@ class Node {
       const children = [this.left, this.right].filter((x) => x);
       const hits = [];
       for (let i = 0;i < children.length; i++) {
-        const maybeHit = children[i].interceptWith(ray, depth + 1);
-        if (maybeHit.isSome())
-          hits.push(maybeHit.orElse());
+        children[i].interceptWith(ray, depth + 1).forEach((hit) => hits.push(hit));
       }
       const minIndex = argmin(hits, ([point]) => point.sub(ray.init).length());
       if (minIndex === -1)
@@ -2499,9 +2497,7 @@ class Node2 {
       const children = [this.left, this.right].filter((x) => x);
       const hits = [];
       for (let i = 0;i < children.length; i++) {
-        const maybeHit = children[i].interceptWith(ray, depth + 1);
-        if (maybeHit.isSome())
-          hits.push(maybeHit.orElse());
+        children[i].interceptWith(ray, depth + 1).forEach((hit) => hits.push(hit));
       }
       const minIndex = argmin(hits, ([point]) => point.sub(ray.init).length());
       if (minIndex === -1)
@@ -2828,9 +2824,7 @@ class Node3 {
       const children = [this.left, this.right];
       const hits = [];
       for (let i = 0;i < children.length; i++) {
-        const maybeHit = children[i].interceptWith(ray, depth + 1);
-        if (maybeHit.isSome())
-          hits.push(maybeHit.orElse());
+        children[i].interceptWith(ray, depth + 1).forEach((hit) => hits.push(hit));
       }
       const minIndex = argmin(hits, ([point]) => point.sub(ray.init).length());
       if (minIndex === -1)
