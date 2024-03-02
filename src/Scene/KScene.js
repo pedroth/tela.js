@@ -290,7 +290,7 @@ function clusterLeafs(box, leafs, it = 10) {
         // predict
         for (let j = 0; j < leafs.length; j++) {
             const leafPosition = leafs[j].box.center;
-            const kIndex = argmin(clusters, c => c.sub(leafPosition).length());
+            const kIndex = argmin(clusters, c => c.sub(leafPosition).squareLength());
             clusterIndexes[kIndex].push(j);
         }
         for (let j = 0; j < clusters.length; j++) {
