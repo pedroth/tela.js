@@ -139,25 +139,12 @@ export default class Image {
         return new Image(width, height);
     }
 
-    static ofDOM(canvasDOM) {
-        const ctx = canvasDOM.getContext("2d", { willReadFrequently: true });
-        const w = canvasDOM.width;
-        const h = canvasDOM.height;
-        const imageData = ctx.getImageData(0, 0, w, h);
-        const data = imageData.data;
-        const image = Image.ofSize(w, h)
-        for (let i = 0; i < data.length; i += 4) {
-            const color = Color.ofRGB(data[i] / 255, data[i + 1] / 255, data[i + 2] / 255);
-            image._image[Math.floor(i / 4)] = color;
-        }
-    }
-
-    static ofCanvas(canvas) {
-        const w = canvas.width;
-        const h = canvas.height;
+    static ofImage(image) {
+        const w = image.width;
+        const h = image.height;
         return Image.ofSize(w, h)
             .map((x, y) => {
-                return canvas.get(x, y);
+                return image.get(x, y);
             })
     }
 }
