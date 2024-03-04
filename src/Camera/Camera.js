@@ -132,11 +132,11 @@ export default class Camera {
 
   sdfShot(scene) {
     const lambda = ray => {
-      const maxIte = 25;
-      const epsilon = 1e-3;
+      const maxIte = 100;
+      const epsilon = 1e-6;
       let p = ray.init;
       let t = scene.distanceToPoint(p);
-      let minT = 1000;
+      let minT = t;
       for (let i = 0; i < maxIte; i++) {
         p = ray.trace(t);
         const d = scene.distanceToPoint(p);
@@ -149,8 +149,8 @@ export default class Camera {
             (normal.z + 1) / 2
           )
         }
-        if (d > minT) {
-          break;
+        if (d > 2 * minT) {
+          return Color.ofRGB(0, 0, i / maxIte);
         }
         minT = d;
       }
