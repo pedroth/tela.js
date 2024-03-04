@@ -9,7 +9,7 @@ import { none, some } from "../Monads/Monads.js";
 
 export default class RandomScene {
     // after some tests, found that gridSpace ~ 4 * E[size of elements];
-    constructor(gridSpace = 0.1) {
+    constructor(gridSpace = 1) {
         this.id2ElemMap = {};
         this.sceneElements = [];
         this.gridMap = {};
@@ -90,7 +90,17 @@ export default class RandomScene {
             }
             t += this.gridSpace;
         }
-        return elements.length === 0 ? none() : some(elements[0].getBoundingBox().interceptWith(ray));
+        let p = Vec3();
+        let r = 0;
+        elements.forEach(point => {
+            p = p.add(point.position);
+            r = r + point.radius;
+        })
+        if(elements.length > 0) {
+            p = p.scale(1 / elements.length);
+            r = r / elements.length;
+        }
+        return elements.length <= 0 ? none() : some([p, ray.init.sub(p).normalize()]);
         // let pos = Vec3();
         // let normal = Vec3();
         // let count = 0;

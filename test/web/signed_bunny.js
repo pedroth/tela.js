@@ -1,5 +1,5 @@
 /* eslint-disable no-undef */
-async (canvas, fps, logger) => {
+async (canvas, logger) => {
     // resize incoming canvas:Canvas object.
     const width = 640 / 2;
     const height = 480 / 2;
@@ -117,7 +117,6 @@ async (canvas, fps, logger) => {
         .nextState(({ it, time, oldTime }) => {
             const dt = (new Date().getTime() - oldTime) * 1e-3;
             oldTime = new Date().getTime()
-            const t = time;
             camera.rayShot(rayScene).to(canvas);
             logger.print(`FPS: ${Math.floor(1 / dt)}`);
             return {

@@ -1,5 +1,5 @@
 // Port from https://www.shadertoy.com/view/XsXXDn
-(canvas, fps) => {
+(canvas, logger) => {
     // resize incoming canvas:Canvas object.
     const width = 640 / 2;
     const height = 480 / 2;
@@ -24,7 +24,7 @@
         }) => {
             const newT = new Date().getTime();
             const dt = (newT - oldT) * 1e-3;
-            fps(dt, it);
+            logger.print(`FPS: ${Math.floor(1 / dt)}`);
             canvas
                 .map((x, y) => {
                     let z = time;

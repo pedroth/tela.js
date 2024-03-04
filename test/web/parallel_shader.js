@@ -1,4 +1,4 @@
-(canvas, fps, logger) => {
+(canvas, logger) => {
     // resize incoming canvas:Canvas object.
     const width = 640;
     const height = 480;

@@ -1,4 +1,4 @@
-(canvas, fps) => {
+(canvas, logger) => {
     // resize incoming canvas:Canvas object.
     const width = 100;
     const height = 100;
@@ -39,7 +39,8 @@
         }) => {
             const newT = new Date().getTime();
             const dt = (newT - oldT) * 1e-3;
-            fps(dt, it)
+            logger.print(`FPS: ${Math.floor(1 / dt)}`);
+
 
             let maxWave = Number.MIN_VALUE;
             let minWave = Number.MAX_VALUE;

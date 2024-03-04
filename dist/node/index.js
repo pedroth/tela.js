@@ -1736,11 +1736,11 @@ class Camera {
         const h = canvas.height;
         const ans = canvas.map((x, y) => {
           const dirInLocal = [
-            (x - w / 2) / w,
-            (y - h / 2) / h,
+            x / w - 0.5,
+            y / h - 0.5,
             1
           ];
-          const dir = this.basis[0].scale(dirInLocal[0]).add(this.basis[1].scale(dirInLocal[1])).add(this.basis[2].scale(dirInLocal[2])).normalize();
+          const dir = Vec3(this.basis[0].x * dirInLocal[0] + this.basis[1].x * dirInLocal[1] + this.basis[2].x * dirInLocal[2], this.basis[0].y * dirInLocal[0] + this.basis[1].y * dirInLocal[1] + this.basis[2].y * dirInLocal[2], this.basis[0].z * dirInLocal[0] + this.basis[1].z * dirInLocal[1] + this.basis[2].z * dirInLocal[2]).normalize();
           return lambdaWithRays(Ray(this.eye, dir));
         });
         return ans;
@@ -1795,8 +1795,8 @@ class Camera {
   }
   sdfShot(scene) {
     const lambda = (ray) => {
-      const maxIte = 25;
-      const epsilon = 0.001;
+      const maxIte = 100;
+      const epsilon = 0.000001;
       let p = ray.init;
       let t = scene.distanceToPoint(p);
       let minT = t;
@@ -1808,8 +1808,8 @@ class Camera {
           const normal = scene.estimateNormal(p);
           return Color.ofRGB((normal.x + 1) / 2, (normal.y + 1) / 2, (normal.z + 1) / 2);
         }
-        if (d > minT) {
-          break;
+        if (d > 2 * minT) {
+          return Color.ofRGB(0, 0, i / maxIte);
         }
         minT = d;
       }
@@ -3023,7 +3023,7 @@ class VoxelScene {
 
 // src/Scene/RandomScene.js
 class RandomScene {
-  constructor(gridSpace = 0.1) {
+  constructor(gridSpace = 1) {
     this.id2ElemMap = {};
     this.sceneElements = [];
     this.gridMap = {};
@@ -3085,15 +3085,25 @@ class RandomScene {
     let t = 0;
     let elements = [];
     for (let n = 0;n < maxIte; n++) {
-      let p = ray.trace(t);
-      const newElements = Object.values(this.gridMap[this.hash(p)] || {});
+      let p2 = ray.trace(t);
+      const newElements = Object.values(this.gridMap[this.hash(p2)] || {});
       if (newElements?.length) {
         elements = elements.concat(newElements);
         break;
       }
       t += this.gridSpace;
     }
-    return elements.length === 0 ? none() : some(elements[0].getBoundingBox().interceptWith(ray));
+    let p = Vec3();
+    let r = 0;
+    elements.forEach((point) => {
+      p = p.add(point.position);
+      r = r + point.radius;
+    });
+    if (elements.length > 0) {
+      p = p.scale(1 / elements.length);
+      r = r / elements.length;
+    }
+    return elements.length <= 0 ? none() : some([p, ray.init.sub(p).normalize()]);
   }
   distanceToPoint(p) {
   }
@@ -3538,23 +3548,11 @@ class Image {
   static ofSize(width, height) {
     return new Image(width, height);
   }
-  static ofDOM(canvasDOM) {
-    const ctx = canvasDOM.getContext("2d", { willReadFrequently: true });
-    const w = canvasDOM.width;
-    const h = canvasDOM.height;
-    const imageData = ctx.getImageData(0, 0, w, h);
-    const data = imageData.data;
-    const image = Image.ofSize(w, h);
-    for (let i = 0;i < data.length; i += 4) {
-      const color = Color.ofRGB(data[i] / 255, data[i + 1] / 255, data[i + 2] / 255);
-      image._image[Math.floor(i / 4)] = color;
-    }
-  }
-  static ofCanvas(canvas) {
-    const w = canvas.width;
-    const h = canvas.height;
+  static ofImage(image) {
+    const w = image.width;
+    const h = image.height;
     return Image.ofSize(w, h).map((x, y) => {
-      return canvas.get(x, y);
+      return image.get(x, y);
     });
   }
 }
