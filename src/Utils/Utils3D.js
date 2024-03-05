@@ -1,5 +1,5 @@
-import Line from "../Scene/Line";
-import { Vec3 } from "../Vector/Vector";
+import Line from "../Scene/Line.js";
+import { Vec3 } from "../Vector/Vector.js";
 
 const UNIT_BOX_VERTEX = [
     Vec3(),

@@ -1,9 +1,9 @@
-import Color from "../Color/Color";
-import { MAX_8BIT } from "../Utils/Constants";
-import { clipLine, isInsideConvex, mod } from "../Utils/Math";
-import Box from "../Box/Box"
-import { Vec2 } from "../Vector/Vector";
-import { memoize } from "../Utils/Utils";
+import Color from "../Color/Color.js";
+import { MAX_8BIT } from "../Utils/Constants.js";
+import { clipLine, isInsideConvex, mod } from "../Utils/Math.js";
+import Box from "../Box/Box.js"
+import { Vec2 } from "../Vector/Vector.js";
+import { memoize } from "../Utils/Utils.js";
 
 export default class Canvas {
 

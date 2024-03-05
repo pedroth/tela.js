@@ -1,5 +1,5 @@
-import { none, some } from "../Monads/Monads";
-import Vec from "../Vector/Vector";
+import { none, some } from "../Monads/Monads.js";
+import Vec from "../Vector/Vector.js";
 
 
 export default class Box {

@@ -4,7 +4,7 @@ Graphic library from scratch, with reference implementation of computer graphics
 
 ## Purpose
 
-The propose of a graphic engine is to be able to generate images in a computational way. The engine should also be capable to create videos and interactive demos or games. In this engine I want to be able to render complex scenes with dynamic objects with realistic or cartoonish appearance.
+The purpose of this graphic engine is to be able to generate images in a computational way, with minimal dependencies, such that the readable graphical algorithms shine instead of opaque graphical APIs. The engine should also be capable to create videos and interactive demos or games. The engine should also be able to render complex scenes with dynamic objects with realistic or cartoonish appearance.
 
 # Table of Contents
 
@@ -23,7 +23,13 @@ ffmpeg -version
 
 ```
 
-Then just install using `npm 
+Then just install using `npm` or `bun`.
+
+# Dependencies
+
+- [`bun`][bun]/[`node`][node]
+- [`ffmpeg`][ffmpeg]
+- [`node-sdl`][sdl]
 
 
 # Playground
@@ -34,21 +40,25 @@ https://pedroth.github.io/tela.js/
 
 ## Visual
 - [/] Generate image (desktop /  browser)
-    - Voxels (?)
-    - [X] Different resolutions
-    - [/] Point clouds / splatting
-    - [/] Signed distance functions, implicit functions
-    - [ ] Draw geometrical objects (aka [Simplices][simplex])
-    - [ ] Path tracing: Shadows, Refraction, Global illumination, etc.
-    - [X] Draw with shaders like code
-    - [ ] Raster engine
+	- Voxels (?)
+	- [X] Different resolutions
+	- [/] Point clouds / splatting
+	- [/] Signed distance functions, implicit functions
+	- [ ] Draw geometrical objects (aka [Simplices][simplex])
+	- [ ] Path tracing: Shadows, Refraction, Global illumination, etc.
+	- [X] Draw with shaders like code
+	- [ ] Raster engine
 - [/] Read Geometry formats with textures
 - [X] Generate image/video (desktop /  browser)
-- [X] Interactive application (browser)
+- [X] Interactive application (desktop / browser)
 - [ ] Draw svgs(which includes text/formulas)
 
+# Research
 
 
 [simplex]: https://en.wikipedia.org/wiki/Simplex
+[ffmpeg]: https://ffmpeg.org/
+[bun]: https://bun.sh/
+[node]: https://nodejs.org/en
+[sdl]: https://github.com/kmamal/node-sdl
 
-# Research
