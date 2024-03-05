@@ -1736,11 +1736,11 @@ class Camera {
         const h = canvas.height;
         const ans = canvas.map((x, y) => {
           const dirInLocal = [
-            (x - w / 2) / w,
-            (y - h / 2) / h,
+            x / w - 0.5,
+            y / h - 0.5,
             1
           ];
-          const dir = this.basis[0].scale(dirInLocal[0]).add(this.basis[1].scale(dirInLocal[1])).add(this.basis[2].scale(dirInLocal[2])).normalize();
+          const dir = Vec3(this.basis[0].x * dirInLocal[0] + this.basis[1].x * dirInLocal[1] + this.basis[2].x * dirInLocal[2], this.basis[0].y * dirInLocal[0] + this.basis[1].y * dirInLocal[1] + this.basis[2].y * dirInLocal[2], this.basis[0].z * dirInLocal[0] + this.basis[1].z * dirInLocal[1] + this.basis[2].z * dirInLocal[2]).normalize();
           return lambdaWithRays(Ray(this.eye, dir));
         });
         return ans;
@@ -1799,7 +1799,7 @@ class Camera {
       const epsilon = 0.001;
       let p = ray.init;
       let t = scene.distanceToPoint(p);
-      let minT = t;
+      let minT = 1000;
       for (let i = 0;i < maxIte; i++) {
         p = ray.trace(t);
         const d = scene.distanceToPoint(p);
