@@ -797,6 +797,139 @@ class Box {
   static EMPTY = new Box;
 }
 
+// src/Utils/Utils.js
+var exports_Utils = {};
+__export(exports_Utils, {
+  shuffle: () => {
+    {
+      return shuffle;
+    }
+  },
+  or: () => {
+    {
+      return or;
+    }
+  },
+  memoize: () => {
+    {
+      return memoize;
+    }
+  },
+  measureTimeWithResult: () => {
+    {
+      return measureTimeWithResult;
+    }
+  },
+  measureTimeWithAsyncResult: () => {
+    {
+      return measureTimeWithAsyncResult;
+    }
+  },
+  measureTime: () => {
+    {
+      return measureTime;
+    }
+  },
+  groupBy: () => {
+    {
+      return groupBy;
+    }
+  },
+  compose: () => {
+    {
+      return compose;
+    }
+  },
+  arrayIsEqual: () => {
+    {
+      return arrayIsEqual;
+    }
+  },
+  argmin: () => {
+    {
+      return argmin;
+    }
+  }
+});
+function measureTime(lambda) {
+  const t = performance.now();
+  lambda();
+  return 0.001 * (performance.now() - t);
+}
+async function measureTimeWithAsyncResult(lambda) {
+  const t = performance.now();
+  const result = await lambda();
+  return { result, time: 0.001 * (performance.now() - t) };
+}
+function measureTimeWithResult(lambda) {
+  const t = performance.now();
+  const result = lambda();
+  return { result, time: 0.001 * (performance.now() - t) };
+}
+function compose(f, g) {
+  return (x) => f(g(x));
+}
+function or(...lambdas) {
+  for (let i = 0;i < lambdas.length; i++) {
+    try {
+      return lambdas[i]();
+    } catch (err) {
+      continue;
+    }
+  }
+}
+function groupBy(array, groupFunction) {
+  const ans = {};
+  array.forEach((x, i) => {
+    const key = groupFunction(x, i);
+    if (!ans[key])
+      ans[key] = [];
+    ans[key].push(x);
+  });
+  return ans;
+}
+function argmin(array, costFunction = (x) => x) {
+  let argminIndex = -1;
+  let cost = Number.MAX_VALUE;
+  for (let i = 0;i < array.length; i++) {
+    const newCost = costFunction(array[i], i);
+    if (newCost < cost) {
+      cost = newCost;
+      argminIndex = i;
+    }
+  }
+  return argminIndex;
+}
+function shuffle(elements) {
+  for (let i = elements.length - 1;i > 0; i--) {
+    const r = Math.floor(Math.random() * (i + 1));
+    const temp = elements[i];
+    elements[i] = elements[r];
+    elements[r] = temp;
+  }
+  return elements;
+}
+function arrayIsEqual(a, b) {
+  if (a.length !== b.length)
+    return false;
+  for (let i = 0;i < a.length; i++) {
+    if (a[i] !== b[i])
+      return false;
+  }
+  return true;
+}
+function memoize(func) {
+  const cache = {};
+  return (...args) => {
+    const key = JSON.stringify(args.map((x) => x.toString()));
+    if (key in cache)
+      return cache[key];
+    const ans = func(...args);
+    cache[key] = ans;
+    return ans;
+  };
+}
+
 // src/Canvas/Canvas.js
 var drawConvexPolygon = function(canvas, positions, shader) {
   const { width, height } = canvas;
@@ -909,7 +1042,6 @@ class Canvas {
           }
           allWorkersDone[_worker_id_] = true;
           if (allWorkersDone.every((x) => x)) {
-            console.log(">>>> finished", _worker_id_);
             return resolve(this.paint());
           }
         };
@@ -1068,12 +1200,14 @@ class Canvas {
     });
   }
 }
-var createWorker = (main, lambda, dependencies) => {
+var createWorker = memoize((main, lambda, dependencies, worker_id) => {
+  console.log(">>>>>");
   const workerFile = `
   ${dependencies.map((d) => d.toString()).join("\n")}
   ${Color.toString()}
+  const _ID_ = ${worker_id};
   const lambda = ${lambda.toString()};
-  const __main__ = ${main.toString()}; 
+  const __main__ = ${main.toString()};
   onmessage = e => {
       const input = e.data
       const output = __main__(input);
@@ -1081,7 +1215,7 @@ var createWorker = (main, lambda, dependencies) => {
   };
   `;
   return new Worker(URL.createObjectURL(new Blob([workerFile])));
-};
+});
 
 // src/DomBuilder/DomBuilder.js
 var isElement = function(o) {
@@ -1288,11 +1422,13 @@ class Point {
   distanceToPoint(p) {
     return this.position.sub(p).length() - this.radius;
   }
+  normalToPoint(p) {
+    return p.sub(this.position).normalize();
+  }
   interceptWith(ray) {
     return sphereInterception(this, ray).map((t) => {
       const pointOnSphere = ray.trace(t);
-      const normal = pointOnSphere.sub(this.position).normalize();
-      return [pointOnSphere, normal];
+      return [pointOnSphere, this];
     });
   }
   getBoundingBox() {
@@ -1459,6 +1595,16 @@ class Triangle {
     this.texture = texture;
     this.positions = positions;
     this.texCoords = texCoords;
+    this.tangents = [this.positions[1].sub(this.positions[0]), this.positions[2].sub(this.positions)];
+    const u = this.tangents[0];
+    const v = this.tangents[1];
+    this.faceNormal = Vec3(u.z * v.y - u.y * v.z, u.x * v.z - u.z * v.x, u.x * v.y - u.y * v.x).normalize();
+  }
+  distanceToPoint(p) {
+    return this.position.sub(p).length() - this.radius;
+  }
+  normalToPoint(p) {
+    return p.sub(this.position).normalize();
   }
   getBoundingBox() {
     if (this.boundingBox)
@@ -1749,8 +1895,9 @@ class Camera {
   }
   sceneShot(scene, params = {}) {
     const lambda = (ray) => {
-      return scene.interceptWith(ray).map(([, normal]) => {
-        return Color.ofRGB((normal.get(0) + 1) / 2, (normal.get(1) + 1) / 2, (normal.get(2) + 1) / 2);
+      return scene.interceptWith(ray).map(([point, element]) => {
+        const normal = element.normalToPoint(point);
+        return element.color;
       }).orElse(() => {
         return Color.BLACK;
       });
@@ -1795,8 +1942,8 @@ class Camera {
   }
   sdfShot(scene) {
     const lambda = (ray) => {
-      const maxIte = 25;
-      const epsilon = 0.001;
+      const maxIte = 100;
+      const epsilon = 0.000001;
       let p = ray.init;
       let t = scene.distanceToPoint(p);
       let minT = 1000;
@@ -1808,8 +1955,8 @@ class Camera {
           const normal = scene.estimateNormal(p);
           return Color.ofRGB((normal.x + 1) / 2, (normal.y + 1) / 2, (normal.z + 1) / 2);
         }
-        if (d > minT) {
-          break;
+        if (d > 2 * minT) {
+          return Color.ofRGB(0, 0, i / maxIte);
         }
         minT = d;
       }
@@ -1822,139 +1969,6 @@ class Camera {
     pointInCamCoord = Vec3(this.basis[0].dot(pointInCamCoord), this.basis[1].dot(pointInCamCoord), this.basis[2].dot(pointInCamCoord));
     return pointInCamCoord;
   }
-}
-
-// src/Utils/Utils.js
-var exports_Utils = {};
-__export(exports_Utils, {
-  shuffle: () => {
-    {
-      return shuffle;
-    }
-  },
-  or: () => {
-    {
-      return or;
-    }
-  },
-  memoize: () => {
-    {
-      return memoize;
-    }
-  },
-  measureTimeWithResult: () => {
-    {
-      return measureTimeWithResult;
-    }
-  },
-  measureTimeWithAsyncResult: () => {
-    {
-      return measureTimeWithAsyncResult;
-    }
-  },
-  measureTime: () => {
-    {
-      return measureTime;
-    }
-  },
-  groupBy: () => {
-    {
-      return groupBy;
-    }
-  },
-  compose: () => {
-    {
-      return compose;
-    }
-  },
-  arrayIsEqual: () => {
-    {
-      return arrayIsEqual;
-    }
-  },
-  argmin: () => {
-    {
-      return argmin;
-    }
-  }
-});
-function measureTime(lambda) {
-  const t = performance.now();
-  lambda();
-  return 0.001 * (performance.now() - t);
-}
-async function measureTimeWithAsyncResult(lambda) {
-  const t = performance.now();
-  const result = await lambda();
-  return { result, time: 0.001 * (performance.now() - t) };
-}
-function measureTimeWithResult(lambda) {
-  const t = performance.now();
-  const result = lambda();
-  return { result, time: 0.001 * (performance.now() - t) };
-}
-function compose(f, g) {
-  return (x) => f(g(x));
-}
-function or(...lambdas) {
-  for (let i = 0;i < lambdas.length; i++) {
-    try {
-      return lambdas[i]();
-    } catch (err) {
-      continue;
-    }
-  }
-}
-function groupBy(array, groupFunction) {
-  const ans = {};
-  array.forEach((x, i) => {
-    const key = groupFunction(x, i);
-    if (!ans[key])
-      ans[key] = [];
-    ans[key].push(x);
-  });
-  return ans;
-}
-function argmin(array, costFunction = (x) => x) {
-  let argminIndex = -1;
-  let cost = Number.MAX_VALUE;
-  for (let i = 0;i < array.length; i++) {
-    const newCost = costFunction(array[i], i);
-    if (newCost < cost) {
-      cost = newCost;
-      argminIndex = i;
-    }
-  }
-  return argminIndex;
-}
-function shuffle(elements) {
-  for (let i = elements.length - 1;i > 0; i--) {
-    const r = Math.floor(Math.random() * (i + 1));
-    const temp = elements[i];
-    elements[i] = elements[r];
-    elements[r] = temp;
-  }
-  return elements;
-}
-function arrayIsEqual(a, b) {
-  if (a.length !== b.length)
-    return false;
-  for (let i = 0;i < a.length; i++) {
-    if (a[i] !== b[i])
-      return false;
-  }
-  return true;
-}
-function memoize(func) {
-  const cache = {};
-  return (...args) => {
-    const key = JSON.stringify(args);
-    if (key in cache)
-      return cache[key];
-    const ans = func(...args);
-    cache[key] = ans;
-    return ans;
-  };
 }
 
 // src/Scene/NaiveScene.js
@@ -3023,7 +3037,7 @@ class VoxelScene {
 
 // src/Scene/RandomScene.js
 class RandomScene {
-  constructor(gridSpace = 0.1) {
+  constructor(gridSpace = 1) {
     this.id2ElemMap = {};
     this.sceneElements = [];
     this.gridMap = {};
@@ -3085,15 +3099,25 @@ class RandomScene {
     let t = 0;
     let elements = [];
     for (let n = 0;n < maxIte; n++) {
-      let p = ray.trace(t);
-      const newElements = Object.values(this.gridMap[this.hash(p)] || {});
+      let p2 = ray.trace(t);
+      const newElements = Object.values(this.gridMap[this.hash(p2)] || {});
       if (newElements?.length) {
         elements = elements.concat(newElements);
         break;
       }
       t += this.gridSpace;
     }
-    return elements.length === 0 ? none() : some(elements[0].getBoundingBox().interceptWith(ray));
+    let p = Vec3();
+    let r = 0;
+    elements.forEach((point) => {
+      p = p.add(point.position);
+      r = r + point.radius;
+    });
+    if (elements.length > 0) {
+      p = p.scale(1 / elements.length);
+      r = r / elements.length;
+    }
+    return elements.length <= 0 ? none() : some([p, ray.init.sub(p).normalize()]);
   }
   distanceToPoint(p) {
   }

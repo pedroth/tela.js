@@ -1,6 +1,6 @@
 
 /* eslint-disable no-undef */
-async (canvas, fps, logger) => {
+async (canvas, logger) => {
     // resize incoming canvas:Canvas object.
     const width = 640;
     const height = 480;

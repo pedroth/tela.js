@@ -1,4 +1,4 @@
-import { Image, IO, Utils, Mesh, Vec3, Camera, NaiveScene, BScene, KScene, VoxelScene } from "../../dist/node/index.js";
+import { Image, IO, Utils, Mesh, Vec3, Camera, NaiveScene, BScene, KScene } from "../../dist/node/index.js";
 import { readFileSync } from "fs"
 
 const { measureTimeWithResult } = Utils;
@@ -15,7 +15,7 @@ let mesh = Mesh.readObj(obj, "mesh");
 mesh = mesh
     .mapVertices(v => Vec3(-v.y, v.x, v.z))
     .mapVertices(v => Vec3(v.z, v.y, -v.x))
-const scenes = [new BScene(), new KScene(100), new VoxelScene(0.2), new NaiveScene()];
+const scenes = [new BScene(), new KScene(100), new KScene(50), new NaiveScene()];
 scenes.forEach(scene => {
     scene.addList(mesh.asPoints(0.05));
     const { result, time } = measureTimeWithResult(() => camera.sdfShot(scene).to(canvas));

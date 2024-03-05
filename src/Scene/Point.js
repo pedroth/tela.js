@@ -18,14 +18,18 @@ class Point {
         return this.position.sub(p).length() - this.radius;
     }
 
+    normalToPoint(p) {
+        return p.sub(this.position).normalize();
+    }
+
     interceptWith(ray) {
         return sphereInterception(this, ray)
             .map(t => {
                 const pointOnSphere = ray.trace(t);
-                const normal = pointOnSphere.sub(this.position).normalize();
-                return [pointOnSphere, normal];
+                return [pointOnSphere, this];
             })
     }
+
 
     getBoundingBox() {
         if (this.boundingBox) return this.boundingBox;

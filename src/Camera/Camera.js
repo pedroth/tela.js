@@ -78,12 +78,9 @@ export default class Camera {
   sceneShot(scene, params = {}) {
     const lambda = ray => {
       return scene.interceptWith(ray)
-        .map(([, normal]) => {
-          return Color.ofRGB(
-            (normal.get(0) + 1) / 2,
-            (normal.get(1) + 1) / 2,
-            (normal.get(2) + 1) / 2
-          )
+        .map(([point, element]) => {
+          const normal = element.normalToPoint(point);
+          return element.color;
         })
         .orElse(() => {
           return Color.BLACK;
@@ -132,11 +129,11 @@ export default class Camera {
 
   sdfShot(scene) {
     const lambda = ray => {
-      const maxIte = 25;
-      const epsilon = 1e-3;
+      const maxIte = 100;
+      const epsilon = 1e-6;
       let p = ray.init;
       let t = scene.distanceToPoint(p);
-      let minT = 1000;
+      let minT = t;
       for (let i = 0; i < maxIte; i++) {
         p = ray.trace(t);
         const d = scene.distanceToPoint(p);
@@ -149,8 +146,8 @@ export default class Camera {
             (normal.z + 1) / 2
           )
         }
-        if (d > minT) {
-          break;
+        if (d > 2 * minT) {
+          return Color.ofRGB(0, 0, i / maxIte);
         }
         minT = d;
       }

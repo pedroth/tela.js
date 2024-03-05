@@ -25,7 +25,7 @@ function toggleFullScreen(elem) {
     }
 }
 
-const MAGIC_CODE_LINE_NUMBER_OFFSET = toggleFullScreen.toString().split("\n").length + 25;
+const MAGIC_CODE_LINE_NUMBER_OFFSET = toggleFullScreen.toString().split("\n").length + 15;
 
 async function svg(url) {
     const data = await fetch(SOURCE + url);
@@ -540,9 +540,6 @@ function execCode(code) {
             script.type = "module";
             script.textContent = `
             import {Path, Ray, Canvas, DOM, Color, Animation, Scene, KScene, BScene, Camera, Vec2, Vec3, Vec, Box, Point, Mesh, NaiveScene, RandomScene, VoxelScene, Line, Triangle,clamp } from "/dist/web/index.js"
-            Animation.globalAnimationIds.forEach(id => {
-                window.cancelAnimationFrame(id)
-            });
             ${toggleFullScreen.toString()}
             const canvasDOM = document.getElementsByTagName("canvas")[0];
             const canvas = Canvas.ofDOM(canvasDOM);
@@ -556,15 +553,8 @@ function execCode(code) {
                 log: (message) => {
                     document.getElementById("logger").innerText +=  \`\${message}\\n\`;
                 }
-            }
-            const fps = (() => {
-                let meanAverage = 0;
-                return (dt, it) => {
-                    meanAverage = meanAverage + (dt - meanAverage) / it;
-                    logger.print("FPS: " + (1 / meanAverage));
-                }
-            })();
-            (${code})(canvas, fps, logger)
+            };
+            (${code})(canvas, logger)
             `;
             iframe.element.contentDocument.body.appendChild(script);
         })
