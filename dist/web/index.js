@@ -797,139 +797,6 @@ class Box {
   static EMPTY = new Box;
 }
 
-// src/Utils/Utils.js
-var exports_Utils = {};
-__export(exports_Utils, {
-  shuffle: () => {
-    {
-      return shuffle;
-    }
-  },
-  or: () => {
-    {
-      return or;
-    }
-  },
-  memoize: () => {
-    {
-      return memoize;
-    }
-  },
-  measureTimeWithResult: () => {
-    {
-      return measureTimeWithResult;
-    }
-  },
-  measureTimeWithAsyncResult: () => {
-    {
-      return measureTimeWithAsyncResult;
-    }
-  },
-  measureTime: () => {
-    {
-      return measureTime;
-    }
-  },
-  groupBy: () => {
-    {
-      return groupBy;
-    }
-  },
-  compose: () => {
-    {
-      return compose;
-    }
-  },
-  arrayIsEqual: () => {
-    {
-      return arrayIsEqual;
-    }
-  },
-  argmin: () => {
-    {
-      return argmin;
-    }
-  }
-});
-function measureTime(lambda) {
-  const t = performance.now();
-  lambda();
-  return 0.001 * (performance.now() - t);
-}
-async function measureTimeWithAsyncResult(lambda) {
-  const t = performance.now();
-  const result = await lambda();
-  return { result, time: 0.001 * (performance.now() - t) };
-}
-function measureTimeWithResult(lambda) {
-  const t = performance.now();
-  const result = lambda();
-  return { result, time: 0.001 * (performance.now() - t) };
-}
-function compose(f, g) {
-  return (x) => f(g(x));
-}
-function or(...lambdas) {
-  for (let i = 0;i < lambdas.length; i++) {
-    try {
-      return lambdas[i]();
-    } catch (err) {
-      continue;
-    }
-  }
-}
-function groupBy(array, groupFunction) {
-  const ans = {};
-  array.forEach((x, i) => {
-    const key = groupFunction(x, i);
-    if (!ans[key])
-      ans[key] = [];
-    ans[key].push(x);
-  });
-  return ans;
-}
-function argmin(array, costFunction = (x) => x) {
-  let argminIndex = -1;
-  let cost = Number.MAX_VALUE;
-  for (let i = 0;i < array.length; i++) {
-    const newCost = costFunction(array[i], i);
-    if (newCost < cost) {
-      cost = newCost;
-      argminIndex = i;
-    }
-  }
-  return argminIndex;
-}
-function shuffle(elements) {
-  for (let i = elements.length - 1;i > 0; i--) {
-    const r = Math.floor(Math.random() * (i + 1));
-    const temp = elements[i];
-    elements[i] = elements[r];
-    elements[r] = temp;
-  }
-  return elements;
-}
-function arrayIsEqual(a, b) {
-  if (a.length !== b.length)
-    return false;
-  for (let i = 0;i < a.length; i++) {
-    if (a[i] !== b[i])
-      return false;
-  }
-  return true;
-}
-function memoize(func) {
-  const cache = {};
-  return (...args) => {
-    const key = JSON.stringify(args.map((x) => x.toString()));
-    if (key in cache)
-      return cache[key];
-    const ans = func(...args);
-    cache[key] = ans;
-    return ans;
-  };
-}
-
 // src/Canvas/Canvas.js
 var drawConvexPolygon = function(canvas, positions, shader) {
   const { width, height } = canvas;
@@ -1946,7 +1813,7 @@ class Camera {
       const epsilon = 0.000001;
       let p = ray.init;
       let t = scene.distanceToPoint(p);
-      let minT = 1000;
+      let minT = t;
       for (let i = 0;i < maxIte; i++) {
         p = ray.trace(t);
         const d = scene.distanceToPoint(p);
@@ -1969,6 +1836,139 @@ class Camera {
     pointInCamCoord = Vec3(this.basis[0].dot(pointInCamCoord), this.basis[1].dot(pointInCamCoord), this.basis[2].dot(pointInCamCoord));
     return pointInCamCoord;
   }
+}
+
+// src/Utils/Utils.js
+var exports_Utils = {};
+__export(exports_Utils, {
+  shuffle: () => {
+    {
+      return shuffle;
+    }
+  },
+  or: () => {
+    {
+      return or;
+    }
+  },
+  memoize: () => {
+    {
+      return memoize2;
+    }
+  },
+  measureTimeWithResult: () => {
+    {
+      return measureTimeWithResult;
+    }
+  },
+  measureTimeWithAsyncResult: () => {
+    {
+      return measureTimeWithAsyncResult;
+    }
+  },
+  measureTime: () => {
+    {
+      return measureTime;
+    }
+  },
+  groupBy: () => {
+    {
+      return groupBy;
+    }
+  },
+  compose: () => {
+    {
+      return compose;
+    }
+  },
+  arrayIsEqual: () => {
+    {
+      return arrayIsEqual;
+    }
+  },
+  argmin: () => {
+    {
+      return argmin;
+    }
+  }
+});
+function measureTime(lambda) {
+  const t = performance.now();
+  lambda();
+  return 0.001 * (performance.now() - t);
+}
+async function measureTimeWithAsyncResult(lambda) {
+  const t = performance.now();
+  const result = await lambda();
+  return { result, time: 0.001 * (performance.now() - t) };
+}
+function measureTimeWithResult(lambda) {
+  const t = performance.now();
+  const result = lambda();
+  return { result, time: 0.001 * (performance.now() - t) };
+}
+function compose(f, g) {
+  return (x) => f(g(x));
+}
+function or(...lambdas) {
+  for (let i = 0;i < lambdas.length; i++) {
+    try {
+      return lambdas[i]();
+    } catch (err) {
+      continue;
+    }
+  }
+}
+function groupBy(array, groupFunction) {
+  const ans = {};
+  array.forEach((x, i) => {
+    const key = groupFunction(x, i);
+    if (!ans[key])
+      ans[key] = [];
+    ans[key].push(x);
+  });
+  return ans;
+}
+function argmin(array, costFunction = (x) => x) {
+  let argminIndex = -1;
+  let cost = Number.MAX_VALUE;
+  for (let i = 0;i < array.length; i++) {
+    const newCost = costFunction(array[i], i);
+    if (newCost < cost) {
+      cost = newCost;
+      argminIndex = i;
+    }
+  }
+  return argminIndex;
+}
+function shuffle(elements) {
+  for (let i = elements.length - 1;i > 0; i--) {
+    const r = Math.floor(Math.random() * (i + 1));
+    const temp = elements[i];
+    elements[i] = elements[r];
+    elements[r] = temp;
+  }
+  return elements;
+}
+function arrayIsEqual(a, b) {
+  if (a.length !== b.length)
+    return false;
+  for (let i = 0;i < a.length; i++) {
+    if (a[i] !== b[i])
+      return false;
+  }
+  return true;
+}
+function memoize2(func) {
+  const cache = {};
+  return (...args) => {
+    const key = JSON.stringify(args.map((x) => x.toString()));
+    if (key in cache)
+      return cache[key];
+    const ans = func(...args);
+    cache[key] = ans;
+    return ans;
+  };
 }
 
 // src/Scene/NaiveScene.js
