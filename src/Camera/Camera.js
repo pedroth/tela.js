@@ -78,12 +78,9 @@ export default class Camera {
   sceneShot(scene, params = {}) {
     const lambda = ray => {
       return scene.interceptWith(ray)
-        .map(([, normal]) => {
-          return Color.ofRGB(
-            (normal.get(0) + 1) / 2,
-            (normal.get(1) + 1) / 2,
-            (normal.get(2) + 1) / 2
-          )
+        .map(([point, element]) => {
+          const normal = element.normalToPoint(point);
+          return element.color;
         })
         .orElse(() => {
           return Color.BLACK;

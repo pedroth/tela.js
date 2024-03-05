@@ -3,6 +3,7 @@ import { MAX_8BIT } from "../Utils/Constants";
 import { clipLine, isInsideConvex, mod } from "../Utils/Math";
 import Box from "../Box/Box"
 import { Vec2 } from "../Vector/Vector";
+import { memoize } from "../Utils/Utils";
 
 export default class Canvas {
 
@@ -28,7 +29,7 @@ export default class Canvas {
   }
 
   /**
-    * color: Color 
+    * color: Color
     */
   fill(color) {
     return this.map(() => color);
@@ -81,7 +82,6 @@ export default class Canvas {
           }
           allWorkersDone[_worker_id_] = true;
           if (allWorkersDone.every(x => x)) {
-            console.log(">>>> finished", _worker_id_);
             return resolve(this.paint());
           }
         };
@@ -90,7 +90,7 @@ export default class Canvas {
   }
 
   /**
-   * lambda: (x: Number, y: Number, c: color) => Color 
+   * lambda: (x: Number, y: Number, c: color) => Color
    */
   map(lambda) {
     const n = this._image.length;
@@ -326,12 +326,14 @@ function handleMouse(canvas, lambda) {
 //========================================================================================
 
 
-const createWorker = (main, lambda, dependencies) => {
+const createWorker = memoize((main, lambda, dependencies, worker_id) => {
+  console.log(">>>>>");
   const workerFile = `
   ${dependencies.map(d => d.toString()).join("\n")}
   ${Color.toString()}
+  const _ID_ = ${worker_id};
   const lambda = ${lambda.toString()};
-  const __main__ = ${main.toString()}; 
+  const __main__ = ${main.toString()};
   onmessage = e => {
       const input = e.data
       const output = __main__(input);
@@ -339,4 +341,4 @@ const createWorker = (main, lambda, dependencies) => {
   };
   `;
   return new Worker(URL.createObjectURL(new Blob([workerFile])));
-};
+});

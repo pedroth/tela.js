@@ -10,6 +10,22 @@ export default class Triangle {
         this.texture = texture;
         this.positions = positions;
         this.texCoords = texCoords;
+        this.tangents = [this.positions[1].sub(this.positions[0]), this.positions[2].sub(this.positions)]
+        const u = this.tangents[0];
+        const v = this.tangents[1];
+        this.faceNormal = Vec3(
+            u.z * v.y - u.y * v.z,
+            u.x * v.z - u.z * v.x,
+            u.x * v.y - u.y * v.x
+        ).normalize();
+    }
+
+    distanceToPoint(p) {
+        return this.position.sub(p).length() - this.radius;
+    }
+
+    normalToPoint(p) {
+        return p.sub(this.position).normalize();
     }
 
     getBoundingBox() {
