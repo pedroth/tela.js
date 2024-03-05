@@ -1,5 +1,5 @@
-import Box from "../Box/Box";
-import Line from "./Line";
+import Box from "../Box/Box.js";
+import Line from "./Line.js";
 
 export default class Path {
     constructor({ name, positions, colors }) {

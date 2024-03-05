@@ -25,6 +25,7 @@ export default class Window {
 
     setTitle(title) {
         this._title = title;
+        this._window.setTitle(title);
         return this;
     }
 
@@ -37,7 +38,27 @@ export default class Window {
 
     paint() {
         const buffer = this.toArray();
-        this._window.render(this._width, this._height, this._width * 4, 'bgra32', buffer)
+        this._window.render(this._width, this._height, this._width * 4, 'rgba32', buffer)
+        return this;
+    }
+
+    onMouseDown(lambda) {
+        this._window.on("mouseButtonDown", handleMouse(this, lambda));
+        return this;
+    }
+
+    onMouseUp(lambda) {
+        this._window.on("mouseButtonUp", handleMouse(this, lambda));
+        return this;
+    }
+
+    onMouseMove(lambda) {
+        this._window.on("mouseMove", handleMouse(this, lambda));
+        return this;
+    }
+
+    onMouseWheel(lambda) {
+        this._window.on("mouseWheel", lambda);
         return this;
     }
 
@@ -109,7 +130,7 @@ export default class Window {
     toArray() {
         const w = this._width;
         const h = this._height;
-        const imageData = new Uint8Array(this._width * this._height * 4);
+        const imageData = Buffer.alloc(w * h * 4);
 
         for (let i = 0; i < h; i++) {
             for (let j = 0; j < w; j++) {
@@ -185,4 +206,11 @@ function drawConvexPolygon(canvas, positions, shader) {
         }
     }
     return canvas;
+}
+
+
+function handleMouse(canvas, lambda) {
+    return ({ x, y }) => {
+        return lambda(x, y);
+    }
 }

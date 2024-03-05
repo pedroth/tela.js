@@ -1,6 +1,6 @@
-import Box from "../Box/Box";
-import Color from "../Color/Color";
-import { Vec2, Vec3 } from "../Vector/Vector";
+import Box from "../Box/Box.js";
+import Color from "../Color/Color.js";
+import { Vec2, Vec3 } from "../Vector/Vector.js";
 
 export default class Line {
     constructor({name, positions, colors, texCoords, normals, texture}) {

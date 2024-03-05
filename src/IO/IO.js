@@ -1,7 +1,7 @@
 import { writeFileSync, unlinkSync, readFileSync } from "fs";
 import { execSync, exec } from "child_process";
-import Image from "../Image/Image";
-import Color from "../Color/Color";
+import Image from "../Image/Image.js";
+import Color from "../Color/Color.js";
 
 export function saveImageToFile(fileAddress, image) {
     const { fileName, extension } = getFileNameAndExtensionFromAddress(fileAddress);

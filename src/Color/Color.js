@@ -4,7 +4,7 @@
  * Here colors are represented as [0,1]^3 vector.
  */
 
-import { clamp } from "../Utils/Math";
+import { clamp } from "../Utils/Math.js";
 
 const MAX_8BIT = 255;
 export default class Color {
