@@ -3243,6 +3243,35 @@ class PathBuilder {
 }
 
 // src/Scene/Mesh.js
+var triangulate = function(polygon) {
+  if (polygon.length === 3) {
+    return [polygon];
+  }
+  if (polygon.length === 4) {
+    return [
+      [polygon[0], polygon[1], polygon[2]],
+      [polygon[2], polygon[3], polygon[0]]
+    ];
+  }
+};
+var parseFace = function(vertexInfo) {
+  const facesInfo = vertexInfo.flatMap((x) => x.split("/")).map((x) => Number.parseFloat(x));
+  const length = facesInfo.length;
+  const lengthDiv3 = Math.floor(length / 3);
+  const group = groupBy(facesInfo, (_, i) => i % lengthDiv3);
+  const face = { vertices: [], textures: [], normals: [] };
+  Object.keys(group).map((k) => {
+    k = Number.parseInt(k);
+    const indices = group[k].map((x) => x - 1);
+    if (k === 0)
+      face.vertices = indices;
+    if (k === 1)
+      face.textures = indices;
+    if (k === 2)
+      face.normals = indices;
+  });
+  return face;
+};
 var MESH_COUNTER = 0;
 var RADIUS = 0.001;
 var UNIT_BOX_VERTEX2 = [
@@ -3396,25 +3425,9 @@ class Mesh {
         continue;
       }
       if (type === "f") {
-        const len = spaces.length;
-        const facesInfo = spaces.slice(1).flatMap((x) => x.split("/")).map((x) => Number.parseFloat(x));
-        if (Math.random() < 0.5)
-          console.log(">>>", len);
-        const length = facesInfo.length;
-        const lengthDiv3 = Math.floor(length / 3);
-        const group = groupBy(facesInfo, (_, i2) => i2 % lengthDiv3);
-        const face = { vertices: [], textures: [], normals: [] };
-        Object.keys(group).map((k) => {
-          k = Number.parseInt(k);
-          const indices = group[k].map((x) => x - 1);
-          if (k === 0)
-            face.vertices = indices;
-          if (k === 1)
-            face.textures = indices;
-          if (k === 2)
-            face.normals = indices;
+        triangulate(spaces.slice(1)).forEach((triangleIdx) => {
+          faces.push(parseFace(triangleIdx));
         });
-        faces.push(face);
         continue;
       }
     }

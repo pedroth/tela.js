@@ -206,7 +206,7 @@ export default class Mesh {
         for (let i = 0; i < lines.length; i++) {
             const line = lines[i];
             const spaces = line.split(" ")
-            .filter(x => x !== "");
+                .filter(x => x !== "");
             const type = spaces[0];
             if (!type) continue;
             if (type === "v") {
@@ -232,25 +232,10 @@ export default class Mesh {
                 continue;
             }
             if (type === "f") {
-                const len = spaces.length;
-                const facesInfo = spaces
-                .slice(1)
-                .flatMap(x => x.split("/"))
-                .map(x => Number.parseFloat(x));
-                if(Math.random() < 0.5) console.log(">>>", len);
-                const length = facesInfo.length;
-                const lengthDiv3 = Math.floor(length / 3);
-                // vertex_index/texture_index/normal_index
-                const group = groupBy(facesInfo, (_, i) => i % lengthDiv3);
-                const face = { vertices: [], textures: [], normals: [] }
-                Object.keys(group).map(k => {
-                    k = Number.parseInt(k);
-                    const indices = group[k].map(x => x - 1);
-                    if (k === 0) face.vertices = indices;
-                    if (k === 1) face.textures = indices;
-                    if (k === 2) face.normals = indices;
-                });
-                faces.push(face);
+                triangulate(spaces.slice(1))
+                    .forEach(triangleIdx => {
+                        faces.push(parseFace(triangleIdx))
+                    })
                 continue;
             }
         }
@@ -262,4 +247,42 @@ export default class Mesh {
         const vertices = UNIT_BOX_VERTEX.map(v => v.mul(box.diagonal).add(box.min))
         return new Mesh({ name: name, vertices, faces: UNIT_BOX_FACES.map(indx => ({ vertices: indx })) });
     }
+}
+
+//========================================================================================
+/*                                                                                      *
+ *                                         UTILS                                        *
+ *                                                                                      */
+//========================================================================================
+
+function triangulate(polygon) {
+    if (polygon.length === 3) {
+        return [polygon];
+    }
+    if (polygon.length === 4) {
+        return [
+            [polygon[0], polygon[1], polygon[2]],
+            [polygon[2], polygon[3], polygon[0]]
+        ]
+    }
+}
+
+
+function parseFace(vertexInfo) {
+    const facesInfo = vertexInfo
+        .flatMap(x => x.split("/"))
+        .map(x => Number.parseFloat(x));
+    const length = facesInfo.length;
+    const lengthDiv3 = Math.floor(length / 3);
+    // vertex_index/texture_index/normal_index
+    const group = groupBy(facesInfo, (_, i) => i % lengthDiv3);
+    const face = { vertices: [], textures: [], normals: [] }
+    Object.keys(group).map(k => {
+        k = Number.parseInt(k);
+        const indices = group[k].map(x => x - 1);
+        if (k === 0) face.vertices = indices;
+        if (k === 1) face.textures = indices;
+        if (k === 2) face.normals = indices;
+    });
+    return face;
 }
