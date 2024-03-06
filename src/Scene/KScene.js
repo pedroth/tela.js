@@ -74,6 +74,14 @@ export default class KScene {
     }
 
     distanceToPoint(p) {
+        if (this.boundingBoxScene.leafs.length > 0) {
+            let distance = Number.MAX_VALUE;
+            const leafs = this.boundingBoxScene.leafs
+            for (let i = 0; i < leafs.length; i++) {
+                distance = Math.min(distance, leafs[i].element.distanceToPoint(p));
+            }
+            return distance;
+        }
         return this.getElementNear(p).distanceToPoint(p);
     }
 

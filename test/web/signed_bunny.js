@@ -5,52 +5,25 @@ async (canvas, logger) => {
     const height = 480 / 2;
     canvas.resize(width, height);
     // scene
-    const scene = new Scene();
+    const scene = new KScene(25);
     const camera = new Camera();
-    scene
-        .add(
-            Point
+    const n = 5;
+    const grid = [...Array(n * n)]
+        .map((_, k) => {
+            const i = Math.floor(k / n);
+            const j = k % n;
+            const x = j;
+            const y = i;
+            const initial = Vec3(0, x / n, y / n);
+            return Point
                 .builder()
-                .position(Vec3(0, -1, 0))
-                .name("test6-1")
-                .radius(0.1)
+                .name(`pxl_${k}`)
+                .radius(1e-2)
+                .position(initial.add(Vec.RANDOM(3)).map(x => 2 * x - 1))
+                .color(Color.GRAY)
                 .build()
-            ,
-            Point
-                .builder()
-                .position(Vec3(0, 1, 0))
-                .name("test6-2")
-                .radius(0.1)
-                .build()
-            ,
-            Point
-                .builder()
-                .position(Vec3(0, 0, -1))
-                .name("test6-3")
-                .radius(0.1)
-                .build()
-            ,
-            Point
-                .builder()
-                .position(Vec3(0, 0, 1))
-                .name("test6-4")
-                .radius(0.1)
-                .build()
-            ,
-            Point
-                .builder()
-                .position(Vec3(-1, 0, 0))
-                .name("test6-5")
-                .radius(0.1)
-                .build()
-            ,
-            Point
-                .builder()
-                .position(Vec3(1, 0, 0))
-                .name("test6-6")
-                .radius(0.1)
-                .build()
-        )
+        });
+    scene.addList(grid);
     // const obj = await fetch("/assets/spot.obj").then(x => x.text());
     // let mesh = Mesh.readObj(obj, "mesh");
     // mesh = mesh
