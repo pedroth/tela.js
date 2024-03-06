@@ -33,7 +33,8 @@ export default class Window {
      * color: Color 
      */
     fill(color) {
-        return this.map(() => color);
+        this._image.fill(color);
+        return this;
     }
 
     paint() {
@@ -76,7 +77,7 @@ export default class Window {
             const y = h - 1 - i;
             this._image[k] = lambda(x, y);
         }
-        return this;
+        return this.paint();
     }
 
     setPxl(x, y, color) {

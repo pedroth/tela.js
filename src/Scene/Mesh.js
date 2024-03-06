@@ -202,10 +202,11 @@ export default class Mesh {
         const normals = [];
         const textureCoords = [];
         const faces = [];
-        const lines = objFile.split("\n");
+        const lines = objFile.split(/\n|\r/);
         for (let i = 0; i < lines.length; i++) {
             const line = lines[i];
-            const spaces = line.split(" ");
+            const spaces = line.split(" ")
+            .filter(x => x !== "");
             const type = spaces[0];
             if (!type) continue;
             if (type === "v") {
@@ -231,14 +232,16 @@ export default class Mesh {
                 continue;
             }
             if (type === "f") {
+                const len = spaces.length;
                 const facesInfo = spaces
-                    .slice(1, 4)
-                    .flatMap(x => x.split("/"))
-                    .map(x => Number.parseFloat(x));
+                .slice(1)
+                .flatMap(x => x.split("/"))
+                .map(x => Number.parseFloat(x));
+                if(Math.random() < 0.5) console.log(">>>", len);
                 const length = facesInfo.length;
-                const lengthDiv3 = length / 3;
+                const lengthDiv3 = Math.floor(length / 3);
                 // vertex_index/texture_index/normal_index
-                const group = groupBy(facesInfo, (_, i) => i % (Math.floor(lengthDiv3)));
+                const group = groupBy(facesInfo, (_, i) => i % lengthDiv3);
                 const face = { vertices: [], textures: [], normals: [] }
                 Object.keys(group).map(k => {
                     k = Number.parseInt(k);

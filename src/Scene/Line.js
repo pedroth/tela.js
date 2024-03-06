@@ -1,15 +1,20 @@
 import Box from "../Box/Box.js";
 import Color from "../Color/Color.js";
+import { none } from "../Monads/Monads.js";
 import { Vec2, Vec3 } from "../Vector/Vector.js";
 
 export default class Line {
-    constructor({name, positions, colors, texCoords, normals, texture}) {
+    constructor({ name, positions, colors, texCoords, normals, texture }) {
         this.name = name;
         this.colors = colors;
         this.normals = normals;
         this.texture = texture;
         this.positions = positions;
         this.texCoords = texCoords;
+    }
+
+    interceptWith(ray) {
+        return none();
     }
 
     getBoundingBox() {

@@ -1,7 +1,7 @@
-import { Image, Stream, IO, Utils, Mesh, Vec3, Camera, NaiveScene, BScene, KScene, VoxelScene } from "../../dist/node/index.js";
+import { Image, IO, Utils, Mesh, Vec3, Camera, NaiveScene, BScene, KScene, VoxelScene, Color } from "../../dist/node/index.js";
 import { readFileSync } from "fs"
 
-const { measureTime, measureTimeWithResult } = Utils;
+const { measureTimeWithResult } = Utils;
 const { saveImageToFile } = IO;
 
 // constants
@@ -16,8 +16,10 @@ mesh = mesh
     .mapVertices(v => Vec3(-v.y, v.x, v.z))
     .mapVertices(v => Vec3(v.z, v.y, -v.x))
 const scenes = [new BScene(), new KScene(100), new VoxelScene(0.2), new NaiveScene()];
+// const triangles = mesh.asPoints(0.05);
+const triangles = mesh.asTriangles();
 scenes.forEach(scene => {
-    scene.addList(mesh.asPoints(0.05));
+    scene.addList(triangles);
     const { result, time } = measureTimeWithResult(() => camera.sceneShot(scene).to(canvas));
     console.log(`${scene.constructor.name}: ${time}s`);
     saveImageToFile(`${scene.constructor.name}.png`, result);

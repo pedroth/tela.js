@@ -305,6 +305,10 @@ class Vector3 {
   map(lambda) {
     return new Vector3(lambda(this.x, 0), lambda(this.y, 1), lambda(this.z, 2));
   }
+  cross(v) {
+    const u = this;
+    return Vec3(u.y * v.z - u.z * v.y, u.z * v.x - u.x * v.z, u.x * v.y - u.y * v.x);
+  }
   op(u, operation) {
     return new Vector3(operation(this.x, u.x), operation(this.y, u.y), operation(this.z, u.z));
   }
@@ -413,6 +417,10 @@ class Vector2 {
   }
   map(lambda) {
     return new Vector2(lambda(this.x, 0), lambda(this.y, 1));
+  }
+  cross(v) {
+    const u = this;
+    return u.x * v.y - u.y * v.x;
   }
   op(u, operation) {
     return new Vector2(operation(this.x, u.x), operation(this.y, u.y));
@@ -1201,7 +1209,6 @@ class Canvas {
   }
 }
 var createWorker = memoize((main, lambda, dependencies, worker_id) => {
-  console.log(">>>>>");
   const workerFile = `
   ${dependencies.map((d) => d.toString()).join("\n")}
   ${Color.toString()}
@@ -1518,6 +1525,9 @@ class Line {
     this.positions = positions;
     this.texCoords = texCoords;
   }
+  interceptWith(ray) {
+    return none();
+  }
   getBoundingBox() {
     if (this.boundingBox)
       return this.boundingBox;
@@ -1595,16 +1605,39 @@ class Triangle {
     this.texture = texture;
     this.positions = positions;
     this.texCoords = texCoords;
-    this.tangents = [this.positions[1].sub(this.positions[0]), this.positions[2].sub(this.positions)];
+    this.edges = [];
+    const n = this.positions.length;
+    for (let i = 0;i < n; i++) {
+      this.edges.push(this.positions[(i + 1) % n].sub(this.positions[i]));
+    }
+    this.tangents = [this.edges[0], this.edges.at(-1).scale(-1)];
     const u = this.tangents[0];
     const v = this.tangents[1];
-    this.faceNormal = Vec3(u.z * v.y - u.y * v.z, u.x * v.z - u.z * v.x, u.x * v.y - u.y * v.x).normalize();
+    this.faceNormal = u.cross(v).normalize();
   }
   distanceToPoint(p) {
-    return this.position.sub(p).length() - this.radius;
+    return Number.MAX_VALUE;
   }
   normalToPoint(p) {
-    return p.sub(this.position).normalize();
+    return this.faceNormal;
+  }
+  interceptWith(ray) {
+    const v = ray.dir;
+    const p = ray.init.sub(this.positions[0]);
+    const n = this.faceNormal;
+    const t = -n.dot(p) / n.dot(v);
+    if (t < 0)
+      return none();
+    const x = ray.trace(t);
+    for (let i = 0;i < this.positions.length; i++) {
+      const xi = this.positions[i];
+      const u = x.sub(xi);
+      const ni = this.edges[i].cross(u).normalize();
+      const dot = ni.dot(n);
+      if (dot < 0)
+        return none();
+    }
+    return some([x, this]);
   }
   getBoundingBox() {
     if (this.boundingBox)
@@ -1897,7 +1930,7 @@ class Camera {
     const lambda = (ray) => {
       return scene.interceptWith(ray).map(([point, element]) => {
         const normal = element.normalToPoint(point);
-        return element.color;
+        return Color.ofRGB((normal.get(0) + 1) / 2, (normal.get(1) + 1) / 2, (normal.get(2) + 1) / 2);
       }).orElse(() => {
         return Color.BLACK;
       });
@@ -3340,10 +3373,10 @@ class Mesh {
     const normals = [];
     const textureCoords = [];
     const faces = [];
-    const lines = objFile.split("\n");
+    const lines = objFile.split(/\n|\r/);
     for (let i = 0;i < lines.length; i++) {
       const line = lines[i];
-      const spaces = line.split(" ");
+      const spaces = line.split(" ").filter((x) => x !== "");
       const type = spaces[0];
       if (!type)
         continue;
@@ -3363,10 +3396,13 @@ class Mesh {
         continue;
       }
       if (type === "f") {
-        const facesInfo = spaces.slice(1, 4).flatMap((x) => x.split("/")).map((x) => Number.parseFloat(x));
+        const len = spaces.length;
+        const facesInfo = spaces.slice(1).flatMap((x) => x.split("/")).map((x) => Number.parseFloat(x));
+        if (Math.random() < 0.5)
+          console.log(">>>", len);
         const length = facesInfo.length;
-        const lengthDiv3 = length / 3;
-        const group = groupBy(facesInfo, (_, i2) => i2 % Math.floor(lengthDiv3));
+        const lengthDiv3 = Math.floor(length / 3);
+        const group = groupBy(facesInfo, (_, i2) => i2 % lengthDiv3);
         const face = { vertices: [], textures: [], normals: [] };
         Object.keys(group).map((k) => {
           k = Number.parseInt(k);

@@ -294,6 +294,15 @@ class Vector3 {
     return new Vector3(lambda(this.x, 0), lambda(this.y, 1), lambda(this.z, 2));
   }
 
+  cross(v) {
+    const u = this;
+    return Vec3(
+      u.y * v.z - u.z * v.y,
+      u.z * v.x - u.x * v.z,
+      u.x * v.y - u.y * v.x
+    )
+  }
+
   /**
    *
    * @param {*} y: Vec
@@ -433,6 +442,11 @@ class Vector2 {
 
   map(lambda) {
     return new Vector2(lambda(this.x, 0), lambda(this.y, 1));
+  }
+
+  cross(v) {
+    const u = this;
+    return u.x * v.y - u.y * v.x;
   }
 
   /**
