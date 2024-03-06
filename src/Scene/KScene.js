@@ -56,11 +56,10 @@ export default class KScene {
             const { leaf, node } = stack.pop();
             if (leaf) return leaf.getElemNear(p);
             if (node.leafs.length > 0) {
-                node
-                    .leafs
-                    .forEach(leaf =>
-                        stack.push({ leaf, distance: leaf.box.distanceToPoint(p) })
-                    );
+                for (let i = 0; i < node.leafs.length; i++) {
+                    const leaf = node.leafs[i];
+                    stack.push({ leaf, distance: leaf.box.distanceToPoint(p) })
+                }
             }
             const children = [node.left, node.right]
                 .filter(x => x)
