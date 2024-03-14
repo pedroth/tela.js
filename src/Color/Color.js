@@ -4,9 +4,9 @@
  * Here colors are represented as [0,1]^3 vector.
  */
 
+import { MAX_8BIT } from "../Utils/Constants.js";
 import { clamp } from "../Utils/Math.js";
 
-const MAX_8BIT = 255;
 export default class Color {
   constructor(rbg) {
     this.rgb = rbg;
