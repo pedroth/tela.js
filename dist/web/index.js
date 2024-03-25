@@ -75,6 +75,9 @@ class AnimationBuilder {
   }
 }
 
+// src/Utils/Constants.js
+var MAX_8BIT = 255;
+
 // src/Vector/Vector.js
 var _sanitize_input = function(arrayIn, arrayOut) {
   for (let i = 0;i < arrayIn.length; i++) {
@@ -585,8 +588,6 @@ var solveUpTriMatrix = function(v, a, f) {
 };
 
 // src/Color/Color.js
-var MAX_8BIT = 255;
-
 class Color {
   constructor(rbg) {
     this.rgb = rbg;
@@ -642,9 +643,6 @@ class Color {
   static GRAY = Color.ofRGB(0.5, 0.5, 0.5);
   static GREY = Color.ofRGB(0.5, 0.5, 0.5);
 }
-
-// src/Utils/Constants.js
-var MAX_8BIT2 = 255;
 
 // src/Monads/Monads.js
 var exports_Monads = {};
@@ -961,10 +959,10 @@ var drawConvexPolygon = function(canvas, positions, shader) {
         if (!color)
           continue;
         const index = 4 * (i * width + j);
-        canvas._image[index] = color.red * MAX_8BIT2;
-        canvas._image[index + 1] = color.green * MAX_8BIT2;
-        canvas._image[index + 2] = color.blue * MAX_8BIT2;
-        canvas._image[index + 3] = MAX_8BIT2;
+        canvas._image[index] = color.red * MAX_8BIT;
+        canvas._image[index + 1] = color.green * MAX_8BIT;
+        canvas._image[index + 2] = color.blue * MAX_8BIT;
+        canvas._image[index + 3] = MAX_8BIT;
       }
     }
   }
@@ -1045,7 +1043,7 @@ class Canvas {
           const { image, _start_, _end_, _worker_id_ } = event.data;
           let index = 0;
           for (let i = _start_;i < _end_; i++) {
-            this._image[i] = Math.floor(image[index] * MAX_8BIT2);
+            this._image[i] = Math.floor(image[index] * MAX_8BIT);
             index++;
           }
           allWorkersDone[_worker_id_] = true;
@@ -1068,10 +1066,10 @@ class Canvas {
       const color = lambda(x, y);
       if (!color)
         return;
-      this._image[k] = color.red * MAX_8BIT2;
-      this._image[k + 1] = color.green * MAX_8BIT2;
-      this._image[k + 2] = color.blue * MAX_8BIT2;
-      this._image[k + 3] = MAX_8BIT2;
+      this._image[k] = color.red * MAX_8BIT;
+      this._image[k + 1] = color.green * MAX_8BIT;
+      this._image[k + 2] = color.blue * MAX_8BIT;
+      this._image[k + 3] = MAX_8BIT;
     }
     return this.paint();
   }
@@ -1079,10 +1077,10 @@ class Canvas {
     const w = this._width;
     const [i, j] = this.canvas2grid(x, y);
     let index = 4 * (w * i + j);
-    this._image[index] = color.red * MAX_8BIT2;
-    this._image[index + 1] = color.green * MAX_8BIT2;
-    this._image[index + 2] = color.blue * MAX_8BIT2;
-    this._image[index + 3] = MAX_8BIT2;
+    this._image[index] = color.red * MAX_8BIT;
+    this._image[index + 1] = color.green * MAX_8BIT;
+    this._image[index + 2] = color.blue * MAX_8BIT;
+    this._image[index + 3] = MAX_8BIT;
     return this;
   }
   getPxl(x, y) {
@@ -1113,9 +1111,9 @@ class Canvas {
       const color = shader(x, y);
       if (!color)
         continue;
-      this._image[index] = color.red * MAX_8BIT2;
-      this._image[index + 1] = color.green * MAX_8BIT2;
-      this._image[index + 2] = color.blue * MAX_8BIT2;
+      this._image[index] = color.red * MAX_8BIT;
+      this._image[index + 1] = color.green * MAX_8BIT;
+      this._image[index + 2] = color.blue * MAX_8BIT;
       this._image[index + 3] = 255;
     }
     return this;
