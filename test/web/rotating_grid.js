@@ -11,11 +11,10 @@
     // record video
     const recorder = canvas.startVideoRecorder();
     setTimeout(async () => {
-        const blob = await recorder.stop();
-        const src = URL.createObjectURL(blob);
+        const [blob, url] = await recorder.stop();
         const a = document.createElement('a');
         a.download = 'Rotating Shader.webm';
-        a.href = src;
+        a.href = url;
         a.textContent = 'download the video';
         document.body.appendChild(a);
     }, T * 1000)

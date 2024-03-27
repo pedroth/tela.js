@@ -1,32 +1,5 @@
 //========================================================================================
 /*                                                                                      *
- *                                         UTILS                                        *
- *                                                                                      */
-//========================================================================================
-
-const ARRAY_TYPES = {
-  Float32Array: Float32Array,
-  Float64Array: Float64Array,
-};
-//stateful function
-function _sanitize_input(arrayIn, arrayOut) {
-  for (let i = 0; i < arrayIn.length; i++) {
-    const z = arrayIn[i];
-    const zIsNumber = z !== null && z !== undefined && typeof z === "number";
-    arrayOut[i] = zIsNumber ? z : 0;
-  }
-  return arrayOut;
-}
-
-function sameSizeOrError(a, b) {
-  if (a.n === b.n) {
-    return true;
-  }
-  throw new VectorException("Vector must have same size");
-}
-
-//========================================================================================
-/*                                                                                      *
  *                                        VECTOR                                        *
  *                                                                                      */
 //========================================================================================
@@ -50,9 +23,6 @@ export default class Vec {
   get dim() {
     return this._n;
   }
-
-  size = () => this._n;
-  shape = () => [this._n];
 
   clone() {
     return new Vec(COPY_VEC(this._vec));
@@ -130,7 +100,6 @@ export default class Vec {
    * @param {*} operation: (a,b) => op(a,b)
    */
   op(u, operation) {
-    sameSizeOrError(this, u);
     const ans = BUILD_VEC(this._n);
     for (let i = 0; i < this._n; i++) {
       ans[i] = operation(this._vec[i], u._vec[i]);
@@ -168,13 +137,13 @@ export default class Vec {
   static fromArray(array) {
     if (array.length === 2) return Vector2.fromArray(array);
     if (array.length === 3) return Vector3.fromArray(array);
-    return new Vec(_sanitize_input(array, BUILD_VEC(array.length)));
+    return new Vec(array);
   }
 
   static of(...values) {
     if (values.length === 2) return Vector2.of(...values);
     if (values.length === 3) return Vector3.of(...values);
-    return new Vec(_sanitize_input(values, BUILD_VEC(values.length)));
+    return new Vec(values);
   }
 
   static ZERO = (n) =>
@@ -207,8 +176,8 @@ export default class Vec {
   };
 }
 
-export const BUILD_VEC = (n) => new ARRAY_TYPES.Float64Array(n);
-export const COPY_VEC = (array) => ARRAY_TYPES.Float64Array.from(array);
+export const BUILD_VEC = (n) => new Float64Array(n);
+export const COPY_VEC = (array) => Float64Array.from(array);
 export class VectorException extends Error { }
 
 export const Vec3 = (x = 0, y = 0, z = 0) => new Vector3(x, y, z);

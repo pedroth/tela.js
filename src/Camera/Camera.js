@@ -1,4 +1,4 @@
-import { Vec2, Vec3 } from "../Vector/Vector.js"
+import Vec, { Vec2, Vec3 } from "../Vector/Vector.js"
 import Color from "../Color/Color.js"
 import Ray from "../Ray/Ray.js";
 import Point from "../Scene/Point.js";
@@ -7,15 +7,11 @@ import Triangle from "../Scene/Triangle.js";
 import { lerp } from "../Utils/Math.js";
 
 export default class Camera {
-  constructor(props = {
-    sphericalCoords: Vec3(2, 0, 0),
-    focalPoint: Vec3(0, 0, 0),
-    distanceToPlane: 1
-  }) {
+  constructor(props = {}) {
     const { sphericalCoords, focalPoint, distanceToPlane } = props;
-    this.sphericalCoords = sphericalCoords || Vec3(2, 0, 0);
-    this.focalPoint = focalPoint || Vec3(0, 0, 0);
-    this.distanceToPlane = distanceToPlane || 1;
+    this.sphericalCoords = sphericalCoords ?? Vec3(2, 0, 0);
+    this.focalPoint = focalPoint ?? Vec3(0, 0, 0);
+    this.distanceToPlane = distanceToPlane ?? 1;
     this.orbit();
   }
 
@@ -27,8 +23,8 @@ export default class Camera {
     })
   }
 
-  orbit() {
-    const [rho, theta, phi] = this.sphericalCoords.toArray();
+  orient() {
+    const [, theta, phi] = this.sphericalCoords.toArray();
     const cosT = Math.cos(theta);
     const sinT = Math.sin(theta);
     const cosP = Math.cos(phi);
@@ -42,16 +38,29 @@ export default class Camera {
     // x -axis
     this.basis[0] = Vec3(-sinT, cosT, 0);
 
+    return this;
+  }
+
+  orbit() {
+    this.orient();
+
+    const [rho, theta, phi] = this.sphericalCoords.toArray();
+    const cosT = Math.cos(theta);
+    const sinT = Math.sin(theta);
+    const cosP = Math.cos(phi);
+    const sinP = Math.sin(phi);
+
     const sphereCoordinates = Vec3(
       rho * cosP * cosT,
       rho * cosP * sinT,
       rho * sinP
     );
+
     this.eye = sphereCoordinates.add(this.focalPoint);
     return this;
   }
 
-  rayShot(lambdaWithRays) {
+  rayMap(lambdaWithRays, params) {
     return {
       to: canvas => {
         const w = canvas.width;
@@ -68,30 +77,31 @@ export default class Camera {
             this.basis[0].z * dirInLocal[0] + this.basis[1].z * dirInLocal[1] + this.basis[2].z * dirInLocal[2]
           )
             .normalize()
-          return lambdaWithRays(Ray(this.eye, dir));
+          return lambdaWithRays(Ray(this.eye, dir), params);
         });
         return ans;
       }
     }
   }
 
+
   sceneShot(scene, params = {}) {
+    let { samplesPerPxl, bounces, variance, gamma } = params;
+    bounces = bounces ?? 10;
+    variance = variance ?? 0.001;
+    samplesPerPxl = samplesPerPxl ?? 1;
+    gamma = gamma ?? 0.01;
     const lambda = ray => {
-      return scene.interceptWith(ray)
-        .map(([point, element]) => {
-          const normal = element.normalToPoint(point);
-          // return element.color;
-          return Color.ofRGB(
-            (normal.get(0) + 1) / 2,
-            (normal.get(1) + 1) / 2,
-            (normal.get(2) + 1) / 2
-          )
-        })
-        .orElse(() => {
-          return Color.BLACK;
-        })
+      let c = Color.BLACK;
+      for (let i = 0; i < samplesPerPxl; i++) {
+        const epsilon = Vec.RANDOM(3).scale(variance);
+        const epsilonOrto = epsilon.sub(ray.dir.scale(epsilon.dot(ray.dir)));
+        const r = Ray(ray.init, ray.dir.add(epsilonOrto).normalize());
+        c = c.add(trace(r, scene, { bounces }));
+      }
+      return c.scale(1 / samplesPerPxl).toGamma(gamma);
     }
-    return this.rayShot(lambda);
+    return this.rayMap(lambda, params);
   }
 
   reverseShot(scene, params = {}) {
@@ -100,29 +110,34 @@ export default class Camera {
       [Line.name]: rasterLine,
       [Triangle.name]: rasterTriangle,
     }
-    params.cullBackFaces = params?.cullBackFaces ?? true;
-    params.bilinearTexture = params?.bilinearTexture ?? false;
-    params.clipCameraPlane = params?.clipCameraPlane ?? true;
-    params.clearScreen = params?.clearScreen ?? true;
+    const {
+      cullBackFaces,
+      bilinearTexture,
+      clipCameraPlane,
+      clearScreen,
+    } = params;
+    params.cullBackFaces = cullBackFaces ?? true;
+    params.bilinearTexture = bilinearTexture ?? false;
+    params.clipCameraPlane = clipCameraPlane ?? true;
+    params.clearScreen = clearScreen ?? true;
     return {
       to: canvas => {
         params.clearScreen && canvas.fill(Color.BLACK);
         const w = canvas.width;
         const h = canvas.height;
-        const zBuffer = new Float64Array(w * h)
-          .fill(Number.MAX_VALUE);
+        const zBuffer = new Float64Array(w * h).fill(Number.MAX_VALUE);
         const elements = scene.getElements();
         for (let i = 0; i < elements.length; i++) {
           const elem = elements[i];
           if (elem.constructor.name in type2render) {
             type2render[elem.constructor.name]({
-              canvas,
-              camera: this,
-              elem,
               w,
               h,
+              elem,
+              canvas,
+              params,
               zBuffer,
-              params
+              camera: this,
             });
           }
         }
@@ -158,10 +173,8 @@ export default class Camera {
       }
       return Color.BLACK;
     }
-    return this.rayShot(lambda);
+    return this.rayMap(lambda);
   }
-
-
 
   toCameraCoord(x) {
     let pointInCamCoord = x.sub(this.eye);
@@ -174,12 +187,31 @@ export default class Camera {
   }
 }
 
-
 //========================================================================================
 /*                                                                                      *
  *                                         UTILS                                        *
  *                                                                                      */
 //========================================================================================
+
+function trace(ray, scene, options) {
+  const { bounces } = options;
+  if (bounces < 0) return Color.BLACK;
+  return scene.interceptWith(ray)
+    .map(interception => {
+      const [p, e] = interception;
+      const color = e.color ?? e.colors[0];
+      if (e.emissive) return color;
+      const mat = e.material;
+      let r = mat.scatter(ray, p, e);
+      let finalC = trace(
+        r,
+        scene,
+        { bounces: bounces - 1 }
+      );
+      return color.mul(finalC);
+    })
+    .orElse(() => Color.BLACK);
+}
 
 
 function rasterPoint({ canvas, camera, elem, w, h, zBuffer }) {

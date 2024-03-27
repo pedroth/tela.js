@@ -1,10 +1,12 @@
 import Box from "../Box/Box.js";
 import Color from "../Color/Color.js";
+import { Diffuse } from "../Material/Material.js";
 import { none, some } from "../Monads/Monads.js";
+import { randomPointInSphere } from "../Utils/Math.js";
 import Vec, { Vec2, Vec3 } from "../Vector/Vector.js";
 
 class Point {
-    constructor({ name, position, color, texCoord, normal, radius, texture }) {
+    constructor({ name, position, color, texCoord, normal, radius, texture, emissive, material }) {
         this.name = name;
         this.color = color;
         this.radius = radius;
@@ -12,6 +14,8 @@ class Point {
         this.texture = texture;
         this.position = position;
         this.texCoord = texCoord;
+        this.emissive = emissive;
+        this.material = material;
     }
 
     distanceToPoint(p) {
@@ -19,17 +23,19 @@ class Point {
     }
 
     normalToPoint(p) {
-        return p.sub(this.position).normalize();
+        const r = p.sub(this.position);
+        const length = r.length();
+        return length > this.radius ? r.normalize() : r.scale(-1).normalize();
     }
 
     interceptWith(ray) {
+        const epsilon = 1e-9;
         return sphereInterception(this, ray)
             .map(t => {
-                const pointOnSphere = ray.trace(t);
+                const pointOnSphere = ray.trace(t - epsilon);
                 return [pointOnSphere, this];
             })
     }
-
 
     getBoundingBox() {
         if (this.boundingBox) return this.boundingBox;
@@ -41,12 +47,18 @@ class Point {
         return this.boundingBox;
     }
 
+    sample() {
+        return randomPointInSphere().scale(this.radius).add(this.position);
+    }
+
+    isInside(p) {
+        return p.sub(this.position).length() < this.radius;
+    }
+
     static builder() {
         return new PointBuilder();
     }
 }
-
-
 
 class PointBuilder {
     constructor() {
@@ -57,6 +69,8 @@ class PointBuilder {
         this._color = Color.BLACK;
         this._position = Vec3();
         this._texCoord = Vec2();
+        this._emissive = true;
+        this._material = Diffuse();
     }
 
     name(name) {
@@ -99,6 +113,16 @@ class PointBuilder {
         return this;
     }
 
+    emissive(isEmissive) {
+        this._emissive = isEmissive;
+        return this;
+    }
+
+    material(material) {
+        this._material = material;
+        return this;
+    }
+
     build() {
         const attrs = {
             name: this._name,
@@ -107,6 +131,8 @@ class PointBuilder {
             radius: this._radius,
             position: this._position,
             texCoord: this._texCoord,
+            emissive: this._emissive,
+            material: this._material
         }
         if (Object.values(attrs).some((x) => x === undefined)) {
             throw new Error("Point is incomplete");
@@ -125,7 +151,8 @@ function sphereInterception(point, ray) {
     const sqrt = Math.sqrt(discriminant);
     const [t1, t2] = [(-b - sqrt) / 2, (-b + sqrt) / 2];
     const t = Math.min(t1, t2);
-    if (t1 * t2 < 0) return some(t);
+    const tM = Math.max(t1, t2);
+    if (t1 * t2 < 0) return some(tM);
     return t1 >= 0 && t2 >= 0 ? some(t) : none();
 }
 

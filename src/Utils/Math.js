@@ -1,4 +1,4 @@
-import { Vec2 } from "../Vector/Vector.js";
+import Vec, { Vec2 } from "../Vector/Vector.js";
 
 export function smin(a, b, k = 32) {
     const res = Math.exp(-k * a) + Math.exp(-k * b);
@@ -24,21 +24,21 @@ export function isInsideConvex(positions) {
     const v = [];
     const n = [];
     for (let i = 0; i < m; i++) {
-      const p1 = positions[(i + 1) % m];
-      const p0 = positions[i];
-      v[i] = p1.sub(p0);
-      n[i] = Vec2(-v[i].y, v[i].x);
+        const p1 = positions[(i + 1) % m];
+        const p0 = positions[i];
+        v[i] = p1.sub(p0);
+        n[i] = Vec2(-v[i].y, v[i].x);
     }
     const orientation = v[0].x * v[1].y - v[0].y * v[1].x >= 0 ? 1 : -1;
     return x => {
-      for (let i = 0; i < m; i++) {
-        const r = x.sub(positions[i]);
-        const myDot = r.dot(n[i]) * orientation;
-        if (myDot < 0) return false;
-      }
-      return true;
+        for (let i = 0; i < m; i++) {
+            const r = x.sub(positions[i]);
+            const myDot = r.dot(n[i]) * orientation;
+            if (myDot < 0) return false;
+        }
+        return true;
     }
-  }
+}
 
 export function clipLine(p0, p1, box) {
     const pointStack = [p0, p1];
@@ -64,6 +64,18 @@ export function clipLine(p0, p1, box) {
     }
     // both points are outside, need to intersect the boundary
     return lineBoxIntersection(...outStack, box);
+}
+
+
+export function randomPointInSphere() {
+    let randomInSphere;
+    while (true) {
+        const random = Vec.RANDOM(this.position.dim).map(x => 2 * x - 1);
+        if (random.squareLength() >= 1) continue;
+        randomInSphere = random.normalize();
+        break;
+    }
+    return randomInSphere;
 }
 
 //========================================================================================
@@ -113,7 +125,6 @@ function lineBoxIntersection(start, end, box) {
 
 /**
  * return solution to : [ v_0 , 0] x = f_0
- *
  *                      [ v_1,  a] y = f_1
  */
 function solveLowTriMatrix(v, a, f) {
@@ -128,7 +139,6 @@ function solveLowTriMatrix(v, a, f) {
 
 /**
  * return solution to : [ v_0 , a] x = f_0
- *
  *					    [ v_1,  0] y = f_1
  */
 function solveUpTriMatrix(v, a, f) {

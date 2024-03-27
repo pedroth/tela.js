@@ -1,19 +1,61 @@
 import Box from "../Box/Box.js";
 import Color from "../Color/Color.js";
-import { none } from "../Monads/Monads.js";
+import { Diffuse } from "../Material/Material.js";
+import { none, some } from "../Monads/Monads.js";
+import { clamp } from "../Utils/Math.js";
 import { Vec2, Vec3 } from "../Vector/Vector.js";
 
 export default class Line {
-    constructor({ name, positions, colors, texCoords, normals, texture }) {
+    constructor({ name, positions, colors, texCoords, normals, texture, radius, emissive, material }) {
         this.name = name;
+        this.radius = radius;
         this.colors = colors;
         this.normals = normals;
         this.texture = texture;
+        this.emissive = emissive;
+        this.material = material;
         this.positions = positions;
         this.texCoords = texCoords;
     }
 
+    distanceToPoint(p) {
+        const l = this.positions[1].sub(this.positions[0]);
+        const v = p.sub(this.position[0]);
+        const h = clamp()(l.dot(v) / l.dot(l))
+        return p.sub(this.position[0].add(l.scale(h))).length() - this.radius();
+    }
+
+    normalToPoint(p) {
+        const epsilon = 1e-3;
+        const d = this.distanceToPoint;
+        const f = d(p);
+        const sign = Math.sign(f);
+        const grad = Vec3(
+            d(p.add(Vec3(epsilon, 0, 0))) - f,
+            d(p.add(Vec3(0, epsilon, 0))) - f,
+            d(p.add(Vec3(0, 0, epsilon))) - f,
+        ).normalize();
+        return grad.scale(sign);
+    }
+
     interceptWith(ray) {
+        const maxIte = 100;
+        const epsilon = 1e-3;
+        let p = ray.init;
+        let t = this.distanceToPoint(p);
+        let minT = t;
+        for (let i = 0; i < maxIte; i++) {
+            p = ray.trace(t);
+            const d = this.distanceToPoint(p);
+            t += d;
+            if (d < epsilon) {
+                return some([p, this]);
+            }
+            if (d > minT) {
+                break;
+            }
+            minT = d;
+        }
         return none();
     }
 
@@ -21,6 +63,14 @@ export default class Line {
         if (this.boundingBox) return this.boundingBox;
         this.boundingBox = this.positions.reduce((box, x) => box.add(new Box(x, x)), Box.EMPTY);
         return this.boundingBox;
+    }
+
+    sample() {
+        return this.tangents[0].scale(Math.random()).add(this.tangents[1].scale(Math.random())).add(this.positions[0]);
+    }
+
+    isInside(p) {
+        return this.distanceToPoint(p) < 0;
     }
 
     static builder() {
@@ -33,10 +83,13 @@ class LineBuilder {
     constructor() {
         this._name;
         this._texture;
+        this._radius = 1;
         this._normals = indx.map(() => Vec3());
         this._colors = indx.map(() => Color.BLACK);
         this._positions = indx.map(() => Vec3());
         this._texCoords = indx.map(() => Vec2());
+        this._emissive = false;
+        this._material = Diffuse();
     }
 
     name(name) {
@@ -73,13 +126,31 @@ class LineBuilder {
         return this;
     }
 
+    radius(radius) {
+        this._radius = radius;
+        return this;
+    }
+
+    emissive(isEmissive) {
+        this._emissive = isEmissive;
+        return this;
+    }
+
+    material(material) {
+        this._material = material;
+        return this;
+    }
+
     build() {
         const attrs = {
             name: this._name,
+            radius: this._radius,
             colors: this._colors,
             normals: this._normals,
             positions: this._positions,
             texCoords: this._texCoords,
+            emissive: this._emissive,
+            material: this._material
         };
         if (Object.values(attrs).some((x) => x === undefined)) {
             throw new Error("Line is incomplete");

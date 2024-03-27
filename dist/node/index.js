@@ -76,28 +76,9 @@ class AnimationBuilder {
 }
 
 // src/Utils/Constants.js
-var MAX_8BIT = 255;
+var MAX_8BIT = 256;
 
 // src/Vector/Vector.js
-var _sanitize_input = function(arrayIn, arrayOut) {
-  for (let i = 0;i < arrayIn.length; i++) {
-    const z = arrayIn[i];
-    const zIsNumber = z !== null && z !== undefined && typeof z === "number";
-    arrayOut[i] = zIsNumber ? z : 0;
-  }
-  return arrayOut;
-};
-var sameSizeOrError = function(a, b) {
-  if (a.n === b.n) {
-    return true;
-  }
-  throw new VectorException("Vector must have same size");
-};
-var ARRAY_TYPES = {
-  Float32Array,
-  Float64Array
-};
-
 class Vec {
   constructor(array) {
     this._vec = array;
@@ -109,8 +90,6 @@ class Vec {
   get dim() {
     return this._n;
   }
-  size = () => this._n;
-  shape = () => [this._n];
   clone() {
     return new Vec(COPY_VEC(this._vec));
   }
@@ -165,7 +144,6 @@ class Vec {
     return new Vec(ans);
   }
   op(u, operation) {
-    sameSizeOrError(this, u);
     const ans = BUILD_VEC(this._n);
     for (let i = 0;i < this._n; i++) {
       ans[i] = operation(this._vec[i], u._vec[i]);
@@ -201,14 +179,14 @@ class Vec {
       return Vector2.fromArray(array);
     if (array.length === 3)
       return Vector3.fromArray(array);
-    return new Vec(_sanitize_input(array, BUILD_VEC(array.length)));
+    return new Vec(array);
   }
   static of(...values) {
     if (values.length === 2)
       return Vector2.of(...values);
     if (values.length === 3)
       return Vector3.of(...values);
-    return new Vec(_sanitize_input(values, BUILD_VEC(values.length)));
+    return new Vec(values);
   }
   static ZERO = (n) => n === 3 ? new Vector3 : n === 2 ? new Vector2 : new Vec(BUILD_VEC(n));
   static ONES = (n) => {
@@ -241,11 +219,8 @@ class Vec {
     return new Vec(v);
   };
 }
-var BUILD_VEC = (n) => new ARRAY_TYPES.Float64Array(n);
-var COPY_VEC = (array) => ARRAY_TYPES.Float64Array.from(array);
-
-class VectorException extends Error {
-}
+var BUILD_VEC = (n) => new Float64Array(n);
+var COPY_VEC = (array) => Float64Array.from(array);
 var Vec3 = (x = 0, y = 0, z = 0) => new Vector3(x, y, z);
 var Vec2 = (x = 0, y = 0) => new Vector2(x, y);
 
@@ -530,6 +505,17 @@ function clipLine(p0, p1, box) {
   }
   return lineBoxIntersection(...outStack, box);
 }
+function randomPointInSphere() {
+  let randomInSphere;
+  while (true) {
+    const random = Vec.RANDOM(this.position.dim).map((x) => 2 * x - 1);
+    if (random.squareLength() >= 1)
+      continue;
+    randomInSphere = random.normalize();
+    break;
+  }
+  return randomInSphere;
+}
 var lineBoxIntersection = function(start, end, box) {
   const width = box.diagonal.x;
   const height = box.diagonal.y;
@@ -590,7 +576,8 @@ var solveUpTriMatrix = function(v, a, f) {
 // src/Color/Color.js
 class Color {
   constructor(rbg) {
-    this.rgb = rbg;
+    const rgbClamp = clamp();
+    this.rgb = rbg.map((c) => rgbClamp(c));
   }
   toArray() {
     return this.rgb;
@@ -608,14 +595,22 @@ class Color {
     return Color.ofRGB(this.rgb[0] + color.red, this.rgb[1] + color.green, this.rgb[2] + color.blue);
   }
   scale(r) {
-    const clampColor = clamp(0, 1);
-    return new Color([clampColor(r * this.red), clampColor(r * this.green), clampColor(r * this.blue)]);
+    return Color.ofRGB(r * this.red, r * this.green, r * this.blue);
+  }
+  mul(color) {
+    return Color.ofRGB(this.rgb[0] * color.red, this.rgb[1] * color.green, this.rgb[2] * color.blue);
   }
   equals(color) {
     return this.rgb[0] === color.rgb[0] && this.rgb[1] === color.rgb[1] && this.rgb[2] === color.rgb[2];
   }
   toString() {
     return `red: ${this.red}, green: ${this.green}, blue: ${this.blue}`;
+  }
+  toGamma(alpha = 0.5) {
+    const r = this.rgb[0] > 0 ? this.rgb[0] ** alpha : this.rgb[0];
+    const g = this.rgb[1] > 0 ? this.rgb[1] ** alpha : this.rgb[1];
+    const b = this.rgb[2] > 0 ? this.rgb[2] ** alpha : this.rgb[2];
+    return Color.ofRGB(r, g, b);
   }
   static ofRGB(red = 0, green = 0, blue = 0) {
     const rgb = [];
@@ -998,8 +993,75 @@ class Canvas {
   get DOM() {
     return this._canvas;
   }
+  map(lambda) {
+    const n = this._image.length;
+    const w = this._width;
+    const h = this._height;
+    for (let k = 0;k < n; k += 4) {
+      const i = Math.floor(k / (4 * w));
+      const j = Math.floor(k / 4 % w);
+      const x = j;
+      const y = h - 1 - i;
+      const color = lambda(x, y);
+      if (!color)
+        return;
+      this._image[k] = color.red * MAX_8BIT;
+      this._image[k + 1] = color.green * MAX_8BIT;
+      this._image[k + 2] = color.blue * MAX_8BIT;
+      this._image[k + 3] = MAX_8BIT;
+    }
+    return this.paint();
+  }
   fill(color) {
     return this.map(() => color);
+  }
+  setPxl(x, y, color) {
+    const w = this._width;
+    const [i, j] = this.canvas2grid(x, y);
+    let index = 4 * (w * i + j);
+    this._image[index] = color.red * MAX_8BIT;
+    this._image[index + 1] = color.green * MAX_8BIT;
+    this._image[index + 2] = color.blue * MAX_8BIT;
+    this._image[index + 3] = MAX_8BIT;
+    return this;
+  }
+  getPxl(x, y) {
+    const w = this._width;
+    const h = this._height;
+    let [i, j] = this.canvas2grid(x, y);
+    i = mod(i, h);
+    j = mod(j, w);
+    let index = 4 * (w * i + j);
+    return Color.ofRGBRaw(this._image[index], this._image[index + 1], this._image[index + 2]);
+  }
+  drawLine(p1, p2, shader) {
+    const w = this._width;
+    const h = this._height;
+    const line = clipLine(p1, p2, new Box(Vec2(0, 0), Vec2(w, h)));
+    if (line.length <= 1)
+      return;
+    const [pi, pf] = line;
+    const v = pf.sub(pi);
+    const n = v.map(Math.abs).fold((e, x) => e + x);
+    for (let k = 0;k < n; k++) {
+      const s = k / n;
+      const lineP = pi.add(v.scale(s)).map(Math.floor);
+      const [x, y] = lineP.toArray();
+      const j = x;
+      const i = h - 1 - y;
+      const index = 4 * (i * w + j);
+      const color = shader(x, y);
+      if (!color)
+        continue;
+      this._image[index] = color.red * MAX_8BIT;
+      this._image[index + 1] = color.green * MAX_8BIT;
+      this._image[index + 2] = color.blue * MAX_8BIT;
+      this._image[index + 3] = 255;
+    }
+    return this;
+  }
+  drawTriangle(x1, x2, x3, shader) {
+    return drawConvexPolygon(this, [x1, x2, x3], shader);
   }
   mapParallel(lambda, dependencies = [], vars = {}) {
     return new Promise((resolve) => {
@@ -1054,73 +1116,6 @@ class Canvas {
       });
     });
   }
-  map(lambda) {
-    const n = this._image.length;
-    const w = this._width;
-    const h = this._height;
-    for (let k = 0;k < n; k += 4) {
-      const i = Math.floor(k / (4 * w));
-      const j = Math.floor(k / 4 % w);
-      const x = j;
-      const y = h - 1 - i;
-      const color = lambda(x, y);
-      if (!color)
-        return;
-      this._image[k] = color.red * MAX_8BIT;
-      this._image[k + 1] = color.green * MAX_8BIT;
-      this._image[k + 2] = color.blue * MAX_8BIT;
-      this._image[k + 3] = MAX_8BIT;
-    }
-    return this.paint();
-  }
-  setPxl(x, y, color) {
-    const w = this._width;
-    const [i, j] = this.canvas2grid(x, y);
-    let index = 4 * (w * i + j);
-    this._image[index] = color.red * MAX_8BIT;
-    this._image[index + 1] = color.green * MAX_8BIT;
-    this._image[index + 2] = color.blue * MAX_8BIT;
-    this._image[index + 3] = MAX_8BIT;
-    return this;
-  }
-  getPxl(x, y) {
-    const w = this._width;
-    const h = this._height;
-    let [i, j] = this.canvas2grid(x, y);
-    i = mod(i, h);
-    j = mod(j, w);
-    let index = 4 * (w * i + j);
-    return Color.ofRGBRaw(this._image[index], this._image[index + 1], this._image[index + 2]);
-  }
-  drawLine(p1, p2, shader) {
-    const w = this._width;
-    const h = this._height;
-    const line = clipLine(p1, p2, new Box(Vec2(0, 0), Vec2(w, h)));
-    if (line.length <= 1)
-      return;
-    const [pi, pf] = line;
-    const v = pf.sub(pi);
-    const n = v.map(Math.abs).fold((e, x) => e + x);
-    for (let k = 0;k < n; k++) {
-      const s = k / n;
-      const lineP = pi.add(v.scale(s)).map(Math.floor);
-      const [x, y] = lineP.toArray();
-      const j = x;
-      const i = h - 1 - y;
-      const index = 4 * (i * w + j);
-      const color = shader(x, y);
-      if (!color)
-        continue;
-      this._image[index] = color.red * MAX_8BIT;
-      this._image[index + 1] = color.green * MAX_8BIT;
-      this._image[index + 2] = color.blue * MAX_8BIT;
-      this._image[index + 3] = 255;
-    }
-    return this;
-  }
-  drawTriangle(x1, x2, x3, shader) {
-    return drawConvexPolygon(this, [x1, x2, x3], shader);
-  }
   paint() {
     this._ctx.putImageData(this._imageData, 0, 0);
     return this;
@@ -1163,7 +1158,7 @@ class Canvas {
     return {
       stop: () => new Promise((re) => {
         recorder.stop();
-        setTimeout(() => re(responseBlob));
+        setTimeout(() => re([responseBlob, URL.createObjectURL(responseBlob)]));
       })
     };
   }
@@ -1178,6 +1173,40 @@ class Canvas {
     const j = Math.floor(x);
     const i = Math.floor(h - 1 - y);
     return [i, j];
+  }
+  exposure(time = Number.MAX_VALUE) {
+    let it = 1;
+    const ans = {};
+    for (let key of Object.getOwnPropertyNames(Object.getPrototypeOf(this))) {
+      const descriptor = Object.getOwnPropertyDescriptor(Object.getPrototypeOf(this), key);
+      if (descriptor && typeof descriptor.value === "function") {
+        ans[key] = descriptor.value.bind(this);
+      }
+    }
+    ans.width = this.width;
+    ans.height = this.height;
+    ans.map = (lambda) => {
+      const n = this._image.length;
+      const w = this._width;
+      const h = this._height;
+      for (let k = 0;k < n; k += 4) {
+        const i = Math.floor(k / (4 * w));
+        const j = Math.floor(k / 4 % w);
+        const x = j;
+        const y = h - 1 - i;
+        const color = lambda(x, y);
+        if (!color)
+          continue;
+        this._image[k] = this._image[k] + (color.red * MAX_8BIT - this._image[k]) / it;
+        this._image[k + 1] = this._image[k + 1] + (color.green * MAX_8BIT - this._image[k + 1]) / it;
+        this._image[k + 2] = this._image[k + 2] + (color.blue * MAX_8BIT - this._image[k + 2]) / it;
+        this._image[k + 3] = MAX_8BIT;
+      }
+      if (it < time)
+        it++;
+      return this.paint();
+    };
+    return ans;
   }
   static ofSize(width, height) {
     const canvas = document.createElement("canvas");
@@ -1208,8 +1237,9 @@ class Canvas {
 }
 var createWorker = memoize((main, lambda, dependencies, worker_id) => {
   const workerFile = `
-  ${dependencies.map((d) => d.toString()).join("\n")}
+  ${clamp.toString()}
   ${Color.toString()}
+  ${dependencies.map((d) => d.toString()).join("\n")}
   const _ID_ = ${worker_id};
   const lambda = ${lambda.toString()};
   const __main__ = ${main.toString()};
@@ -1397,6 +1427,30 @@ function Ray(init, dir) {
   return ans;
 }
 
+// src/Material/Material.js
+function Diffuse() {
+  return {
+    scatter(inRay, point, element) {
+      let normal = element.normalToPoint(point);
+      const randomInSphere = randomPointInSphere2();
+      if (randomInSphere.dot(normal) >= 0)
+        return Ray(point, randomInSphere);
+      return Ray(point, randomInSphere.scale(-1));
+    }
+  };
+}
+var randomPointInSphere2 = function() {
+  let randomInSphere = undefined;
+  while (true) {
+    const random = Vec.RANDOM(3).map((x) => 2 * x - 1);
+    if (random.squareLength() >= 1)
+      continue;
+    randomInSphere = random.normalize();
+    break;
+  }
+  return randomInSphere;
+};
+
 // src/Scene/Point.js
 var sphereInterception = function(point, ray) {
   const { init, dir } = ray;
@@ -1409,13 +1463,14 @@ var sphereInterception = function(point, ray) {
   const sqrt = Math.sqrt(discriminant);
   const [t1, t2] = [(-b - sqrt) / 2, (-b + sqrt) / 2];
   const t = Math.min(t1, t2);
+  const tM = Math.max(t1, t2);
   if (t1 * t2 < 0)
-    return some(t);
+    return some(tM);
   return t1 >= 0 && t2 >= 0 ? some(t) : none();
 };
 
 class Point {
-  constructor({ name, position, color, texCoord, normal, radius, texture }) {
+  constructor({ name, position, color, texCoord, normal, radius, texture, emissive, material }) {
     this.name = name;
     this.color = color;
     this.radius = radius;
@@ -1423,16 +1478,21 @@ class Point {
     this.texture = texture;
     this.position = position;
     this.texCoord = texCoord;
+    this.emissive = emissive;
+    this.material = material;
   }
   distanceToPoint(p) {
     return this.position.sub(p).length() - this.radius;
   }
   normalToPoint(p) {
-    return p.sub(this.position).normalize();
+    const r = p.sub(this.position);
+    const length = r.length();
+    return length > this.radius ? r.normalize() : r.scale(-1).normalize();
   }
   interceptWith(ray) {
+    const epsilon = 0.000000001;
     return sphereInterception(this, ray).map((t) => {
-      const pointOnSphere = ray.trace(t);
+      const pointOnSphere = ray.trace(t - epsilon);
       return [pointOnSphere, this];
     });
   }
@@ -1442,6 +1502,12 @@ class Point {
     const n = this.position.dim;
     this.boundingBox = new Box(this.position.add(Vec.ONES(n).scale(-this.radius)), this.position.add(Vec.ONES(n).scale(this.radius)));
     return this.boundingBox;
+  }
+  sample() {
+    return randomPointInSphere().scale(this.radius).add(this.position);
+  }
+  isInside(p) {
+    return p.sub(this.position).length() < this.radius;
   }
   static builder() {
     return new PointBuilder;
@@ -1457,6 +1523,8 @@ class PointBuilder {
     this._color = Color.BLACK;
     this._position = Vec3();
     this._texCoord = Vec2();
+    this._emissive = true;
+    this._material = Diffuse();
   }
   name(name) {
     this._name = name;
@@ -1496,6 +1564,14 @@ class PointBuilder {
     this._texture = image;
     return this;
   }
+  emissive(isEmissive) {
+    this._emissive = isEmissive;
+    return this;
+  }
+  material(material) {
+    this._material = material;
+    return this;
+  }
   build() {
     const attrs = {
       name: this._name,
@@ -1503,7 +1579,9 @@ class PointBuilder {
       normal: this._normal,
       radius: this._radius,
       position: this._position,
-      texCoord: this._texCoord
+      texCoord: this._texCoord,
+      emissive: this._emissive,
+      material: this._material
     };
     if (Object.values(attrs).some((x) => x === undefined)) {
       throw new Error("Point is incomplete");
@@ -1515,15 +1593,49 @@ var Point_default = Point;
 
 // src/Scene/Line.js
 class Line {
-  constructor({ name, positions, colors, texCoords, normals, texture }) {
+  constructor({ name, positions, colors, texCoords, normals, texture, radius, emissive, material }) {
     this.name = name;
+    this.radius = radius;
     this.colors = colors;
     this.normals = normals;
     this.texture = texture;
+    this.emissive = emissive;
+    this.material = material;
     this.positions = positions;
     this.texCoords = texCoords;
   }
+  distanceToPoint(p) {
+    const l = this.positions[1].sub(this.positions[0]);
+    const v = p.sub(this.position[0]);
+    const h = clamp()(l.dot(v) / l.dot(l));
+    return p.sub(this.position[0].add(l.scale(h))).length() - this.radius();
+  }
+  normalToPoint(p) {
+    const epsilon = 0.001;
+    const d = this.distanceToPoint;
+    const f = d(p);
+    const sign = Math.sign(f);
+    const grad = Vec3(d(p.add(Vec3(epsilon, 0, 0))) - f, d(p.add(Vec3(0, epsilon, 0))) - f, d(p.add(Vec3(0, 0, epsilon))) - f).normalize();
+    return grad.scale(sign);
+  }
   interceptWith(ray) {
+    const maxIte = 100;
+    const epsilon = 0.001;
+    let p = ray.init;
+    let t = this.distanceToPoint(p);
+    let minT = t;
+    for (let i = 0;i < maxIte; i++) {
+      p = ray.trace(t);
+      const d = this.distanceToPoint(p);
+      t += d;
+      if (d < epsilon) {
+        return some([p, this]);
+      }
+      if (d > minT) {
+        break;
+      }
+      minT = d;
+    }
     return none();
   }
   getBoundingBox() {
@@ -1531,6 +1643,12 @@ class Line {
       return this.boundingBox;
     this.boundingBox = this.positions.reduce((box, x) => box.add(new Box(x, x)), Box.EMPTY);
     return this.boundingBox;
+  }
+  sample() {
+    return this.tangents[0].scale(Math.random()).add(this.tangents[1].scale(Math.random())).add(this.positions[0]);
+  }
+  isInside(p) {
+    return this.distanceToPoint(p) < 0;
   }
   static builder() {
     return new LineBuilder;
@@ -1542,10 +1660,13 @@ class LineBuilder {
   constructor() {
     this._name;
     this._texture;
+    this._radius = 1;
     this._normals = indx.map(() => Vec3());
     this._colors = indx.map(() => Color.BLACK);
     this._positions = indx.map(() => Vec3());
     this._texCoords = indx.map(() => Vec2());
+    this._emissive = false;
+    this._material = Diffuse();
   }
   name(name) {
     this._name = name;
@@ -1579,13 +1700,28 @@ class LineBuilder {
     this._texture = image;
     return this;
   }
+  radius(radius) {
+    this._radius = radius;
+    return this;
+  }
+  emissive(isEmissive) {
+    this._emissive = isEmissive;
+    return this;
+  }
+  material(material) {
+    this._material = material;
+    return this;
+  }
   build() {
     const attrs = {
       name: this._name,
+      radius: this._radius,
       colors: this._colors,
       normals: this._normals,
       positions: this._positions,
-      texCoords: this._texCoords
+      texCoords: this._texCoords,
+      emissive: this._emissive,
+      material: this._material
     };
     if (Object.values(attrs).some((x) => x === undefined)) {
       throw new Error("Line is incomplete");
@@ -1596,13 +1732,15 @@ class LineBuilder {
 
 // src/Scene/Triangle.js
 class Triangle {
-  constructor({ name, positions, colors, texCoords, normals, texture }) {
+  constructor({ name, positions, colors, texCoords, normals, texture, emissive, material }) {
     this.name = name;
     this.colors = colors;
     this.normals = normals;
     this.texture = texture;
     this.positions = positions;
     this.texCoords = texCoords;
+    this.emissive = emissive;
+    this.material = material;
     this.edges = [];
     const n = this.positions.length;
     for (let i = 0;i < n; i++) {
@@ -1617,22 +1755,25 @@ class Triangle {
     return Number.MAX_VALUE;
   }
   normalToPoint(p) {
-    return this.faceNormal;
+    const r = p.sub(this.positions[0]);
+    const dot = this.faceNormal.dot(r);
+    return dot >= 0 ? this.faceNormal : this.faceNormal.scale(-1);
   }
   interceptWith(ray) {
+    const epsilon = 0.000000001;
     const v = ray.dir;
     const p = ray.init.sub(this.positions[0]);
     const n = this.faceNormal;
     const t = -n.dot(p) / n.dot(v);
-    if (t < 0)
+    if (t <= epsilon)
       return none();
     const x = ray.trace(t);
     for (let i = 0;i < this.positions.length; i++) {
       const xi = this.positions[i];
       const u = x.sub(xi);
-      const ni = this.edges[i].cross(u).normalize();
-      const dot = ni.dot(n);
-      if (dot < 0)
+      const ni = n.cross(this.edges[i]).normalize();
+      const dot = ni.dot(u);
+      if (dot <= epsilon)
         return none();
     }
     return some([x, this]);
@@ -1642,6 +1783,12 @@ class Triangle {
       return this.boundingBox;
     this.boundingBox = this.positions.reduce((box, x) => box.add(new Box(x, x)), Box.EMPTY);
     return this.boundingBox;
+  }
+  sample() {
+    return this.tangents[0].scale(Math.random()).add(this.tangents[1].scale(Math.random())).add(this.positions[0]);
+  }
+  isInside(p) {
+    return this.faceNormal.dot(p.sub(this.positions[0])) >= 0;
   }
   static builder() {
     return new TriangleBuilder;
@@ -1657,6 +1804,8 @@ class TriangleBuilder {
     this._colors = indx2.map(() => Color.BLACK);
     this._positions = indx2.map(() => Vec3());
     this._texCoords = indx2.map(() => Vec2());
+    this._emissive = false;
+    this._material = Diffuse();
   }
   name(name) {
     this._name = name;
@@ -1690,13 +1839,23 @@ class TriangleBuilder {
     this._texture = image;
     return this;
   }
+  emissive(isEmissive) {
+    this._emissive = isEmissive;
+    return this;
+  }
+  material(material) {
+    this._material = material;
+    return this;
+  }
   build() {
     const attrs = {
       name: this._name,
       colors: this._colors,
       normals: this._normals,
       positions: this._positions,
-      texCoords: this._texCoords
+      texCoords: this._texCoords,
+      emissive: this._emissive,
+      material: this._material
     };
     if (Object.values(attrs).some((x) => x === undefined)) {
       throw new Error("Triangle is incomplete");
@@ -1706,6 +1865,21 @@ class TriangleBuilder {
 }
 
 // src/Camera/Camera.js
+var trace = function(ray, scene, options) {
+  const { bounces } = options;
+  if (bounces < 0)
+    return Color.BLACK;
+  return scene.interceptWith(ray).map((interception) => {
+    const [p, e] = interception;
+    const color = e.color ?? e.colors[0];
+    if (e.emissive)
+      return color;
+    const mat = e.material;
+    let r = mat.scatter(ray, p, e);
+    let finalC = trace(r, scene, { bounces: bounces - 1 });
+    return color.mul(finalC);
+  }).orElse(() => Color.BLACK);
+};
 var rasterPoint = function({ canvas, camera, elem, w, h, zBuffer }) {
   const point = elem;
   const { distanceToPlane } = camera;
@@ -1874,15 +2048,11 @@ var getTexColor = function(texUV, texture) {
 };
 
 class Camera {
-  constructor(props = {
-    sphericalCoords: Vec3(2, 0, 0),
-    focalPoint: Vec3(0, 0, 0),
-    distanceToPlane: 1
-  }) {
+  constructor(props = {}) {
     const { sphericalCoords, focalPoint, distanceToPlane } = props;
-    this.sphericalCoords = sphericalCoords || Vec3(2, 0, 0);
-    this.focalPoint = focalPoint || Vec3(0, 0, 0);
-    this.distanceToPlane = distanceToPlane || 1;
+    this.sphericalCoords = sphericalCoords ?? Vec3(2, 0, 0);
+    this.focalPoint = focalPoint ?? Vec3(0, 0, 0);
+    this.distanceToPlane = distanceToPlane ?? 1;
     this.orbit();
   }
   clone() {
@@ -1892,8 +2062,8 @@ class Camera {
       distanceToPlane: this.distanceToPlane
     });
   }
-  orbit() {
-    const [rho, theta, phi] = this.sphericalCoords.toArray();
+  orient() {
+    const [, theta, phi] = this.sphericalCoords.toArray();
     const cosT = Math.cos(theta);
     const sinT = Math.sin(theta);
     const cosP = Math.cos(phi);
@@ -1902,11 +2072,20 @@ class Camera {
     this.basis[2] = Vec3(-cosP * cosT, -cosP * sinT, -sinP);
     this.basis[1] = Vec3(-sinP * cosT, -sinP * sinT, cosP);
     this.basis[0] = Vec3(-sinT, cosT, 0);
+    return this;
+  }
+  orbit() {
+    this.orient();
+    const [rho, theta, phi] = this.sphericalCoords.toArray();
+    const cosT = Math.cos(theta);
+    const sinT = Math.sin(theta);
+    const cosP = Math.cos(phi);
+    const sinP = Math.sin(phi);
     const sphereCoordinates = Vec3(rho * cosP * cosT, rho * cosP * sinT, rho * sinP);
     this.eye = sphereCoordinates.add(this.focalPoint);
     return this;
   }
-  rayShot(lambdaWithRays) {
+  rayMap(lambdaWithRays, params) {
     return {
       to: (canvas) => {
         const w = canvas.width;
@@ -1918,22 +2097,29 @@ class Camera {
             1
           ];
           const dir = Vec3(this.basis[0].x * dirInLocal[0] + this.basis[1].x * dirInLocal[1] + this.basis[2].x * dirInLocal[2], this.basis[0].y * dirInLocal[0] + this.basis[1].y * dirInLocal[1] + this.basis[2].y * dirInLocal[2], this.basis[0].z * dirInLocal[0] + this.basis[1].z * dirInLocal[1] + this.basis[2].z * dirInLocal[2]).normalize();
-          return lambdaWithRays(Ray(this.eye, dir));
+          return lambdaWithRays(Ray(this.eye, dir), params);
         });
         return ans;
       }
     };
   }
   sceneShot(scene, params = {}) {
+    let { samplesPerPxl, bounces, variance, gamma } = params;
+    bounces = bounces ?? 10;
+    variance = variance ?? 0.001;
+    samplesPerPxl = samplesPerPxl ?? 1;
+    gamma = gamma ?? 0.01;
     const lambda = (ray) => {
-      return scene.interceptWith(ray).map(([point, element]) => {
-        const normal = element.normalToPoint(point);
-        return Color.ofRGB((normal.get(0) + 1) / 2, (normal.get(1) + 1) / 2, (normal.get(2) + 1) / 2);
-      }).orElse(() => {
-        return Color.BLACK;
-      });
+      let c = Color.BLACK;
+      for (let i = 0;i < samplesPerPxl; i++) {
+        const epsilon = Vec.RANDOM(3).scale(variance);
+        const epsilonOrto = epsilon.sub(ray.dir.scale(epsilon.dot(ray.dir)));
+        const r = Ray(ray.init, ray.dir.add(epsilonOrto).normalize());
+        c = c.add(trace(r, scene, { bounces }));
+      }
+      return c.scale(1 / samplesPerPxl).toGamma(gamma);
     };
-    return this.rayShot(lambda);
+    return this.rayMap(lambda, params);
   }
   reverseShot(scene, params = {}) {
     const type2render = {
@@ -1941,10 +2127,16 @@ class Camera {
       [Line.name]: rasterLine,
       [Triangle.name]: rasterTriangle
     };
-    params.cullBackFaces = params?.cullBackFaces ?? true;
-    params.bilinearTexture = params?.bilinearTexture ?? false;
-    params.clipCameraPlane = params?.clipCameraPlane ?? true;
-    params.clearScreen = params?.clearScreen ?? true;
+    const {
+      cullBackFaces,
+      bilinearTexture,
+      clipCameraPlane,
+      clearScreen
+    } = params;
+    params.cullBackFaces = cullBackFaces ?? true;
+    params.bilinearTexture = bilinearTexture ?? false;
+    params.clipCameraPlane = clipCameraPlane ?? true;
+    params.clearScreen = clearScreen ?? true;
     return {
       to: (canvas) => {
         params.clearScreen && canvas.fill(Color.BLACK);
@@ -1956,13 +2148,13 @@ class Camera {
           const elem = elements[i];
           if (elem.constructor.name in type2render) {
             type2render[elem.constructor.name]({
-              canvas,
-              camera: this,
-              elem,
               w,
               h,
+              elem,
+              canvas,
+              params,
               zBuffer,
-              params
+              camera: this
             });
           }
         }
@@ -1993,7 +2185,7 @@ class Camera {
       }
       return Color.BLACK;
     };
-    return this.rayShot(lambda);
+    return this.rayMap(lambda);
   }
   toCameraCoord(x) {
     let pointInCamCoord = x.sub(this.eye);
@@ -3927,6 +4119,7 @@ function saveParallelImageStreamToVideo(fileAddress, parallelStreamOfImages, { f
 }
 export {
   smin,
+  randomPointInSphere,
   mod,
   lerp,
   isInsideConvex,

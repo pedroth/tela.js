@@ -1,16 +1,19 @@
 import Box from "../Box/Box.js";
 import Color from "../Color/Color.js";
+import { Diffuse } from "../Material/Material.js";
 import { none, some } from "../Monads/Monads.js";
 import { Vec2, Vec3 } from "../Vector/Vector.js";
 
 export default class Triangle {
-    constructor({ name, positions, colors, texCoords, normals, texture }) {
+    constructor({ name, positions, colors, texCoords, normals, texture, emissive, material }) {
         this.name = name;
         this.colors = colors;
         this.normals = normals;
         this.texture = texture;
         this.positions = positions;
         this.texCoords = texCoords;
+        this.emissive = emissive;
+        this.material = material;
         this.edges = [];
         const n = this.positions.length;
         for (let i = 0; i < n; i++) {
@@ -23,26 +26,30 @@ export default class Triangle {
     }
 
     distanceToPoint(p) {
+        // TODO
         return Number.MAX_VALUE;
     }
 
     normalToPoint(p) {
-        return this.faceNormal;
+        const r = p.sub(this.positions[0]);
+        const dot = this.faceNormal.dot(r);
+        return dot >= 0 ? this.faceNormal : this.faceNormal.scale(-1);
     }
 
     interceptWith(ray) {
+        const epsilon = 1e-9
         const v = ray.dir;
         const p = ray.init.sub(this.positions[0]);
         const n = this.faceNormal;
         const t = - n.dot(p) / n.dot(v);
-        if (t < 0) return none();
+        if (t <= epsilon) return none();
         const x = ray.trace(t);
         for (let i = 0; i < this.positions.length; i++) {
             const xi = this.positions[i];
             const u = x.sub(xi);
-            const ni = this.edges[i].cross(u).normalize();
-            const dot = ni.dot(n);
-            if (dot < 0) return none();
+            const ni = n.cross(this.edges[i]).normalize();
+            const dot = ni.dot(u);
+            if (dot <= epsilon) return none();
         }
         return some([x, this]);
     }
@@ -51,6 +58,14 @@ export default class Triangle {
         if (this.boundingBox) return this.boundingBox;
         this.boundingBox = this.positions.reduce((box, x) => box.add(new Box(x, x)), Box.EMPTY);
         return this.boundingBox;
+    }
+
+    sample() {
+        return this.tangents[0].scale(Math.random()).add(this.tangents[1].scale(Math.random())).add(this.positions[0]);
+    }
+
+    isInside(p) {
+        return this.faceNormal.dot(p.sub(this.positions[0])) >= 0;
     }
 
     static builder() {
@@ -67,6 +82,8 @@ class TriangleBuilder {
         this._colors = indx.map(() => Color.BLACK);
         this._positions = indx.map(() => Vec3());
         this._texCoords = indx.map(() => Vec2());
+        this._emissive = false;
+        this._material = Diffuse();
     }
 
     name(name) {
@@ -103,6 +120,16 @@ class TriangleBuilder {
         return this;
     }
 
+    emissive(isEmissive) {
+        this._emissive = isEmissive;
+        return this;
+    }
+
+    material(material) {
+        this._material = material;
+        return this;
+    }
+
     build() {
         const attrs = {
             name: this._name,
@@ -110,6 +137,8 @@ class TriangleBuilder {
             normals: this._normals,
             positions: this._positions,
             texCoords: this._texCoords,
+            emissive: this._emissive,
+            material: this._material
         };
         if (Object.values(attrs).some((x) => x === undefined)) {
             throw new Error("Triangle is incomplete");
