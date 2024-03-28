@@ -5,7 +5,7 @@ async (canvas, logger) => {
     const height = 480 / 2;
     canvas.resize(width, height);
     // scene
-    const scene = new KScene(25);
+    const scene = new KScene(50);
     const camera = new Camera();
     const n = 5;
     const grid = [...Array(n * n)]
