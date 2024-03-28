@@ -75,9 +75,6 @@ class AnimationBuilder {
   }
 }
 
-// src/Utils/Constants.js
-var MAX_8BIT = 256;
-
 // src/Vector/Vector.js
 class Vec {
   constructor(array) {
@@ -446,6 +443,19 @@ class Vector2 {
   static ONES = new Vector2(1, 1);
 }
 
+// src/Utils/Constants.js
+var MAX_8BIT = 256;
+var UNIT_BOX_VERTEX2 = [
+  Vec3(),
+  Vec3(1, 0, 0),
+  Vec3(1, 1, 0),
+  Vec3(0, 1, 0),
+  Vec3(0, 0, 1),
+  Vec3(1, 0, 1),
+  Vec3(1, 1, 1),
+  Vec3(0, 1, 1)
+];
+
 // src/Utils/Math.js
 function smin(a, b, k = 32) {
   const res = Math.exp(-k * a) + Math.exp(-k * b);
@@ -505,10 +515,10 @@ function clipLine(p0, p1, box) {
   }
   return lineBoxIntersection(...outStack, box);
 }
-function randomPointInSphere() {
+function randomPointInSphere(dim) {
   let randomInSphere;
   while (true) {
-    const random = Vec.RANDOM(this.position.dim).map((x) => 2 * x - 1);
+    const random = Vec.RANDOM(dim).map((x) => 2 * x - 1);
     if (random.squareLength() >= 1)
       continue;
     randomInSphere = random.normalize();
@@ -1432,24 +1442,72 @@ function Diffuse() {
   return {
     scatter(inRay, point, element) {
       let normal = element.normalToPoint(point);
-      const randomInSphere = randomPointInSphere2();
+      const randomInSphere = randomPointInSphere(3);
       if (randomInSphere.dot(normal) >= 0)
         return Ray(point, randomInSphere);
       return Ray(point, randomInSphere.scale(-1));
     }
   };
 }
-var randomPointInSphere2 = function() {
-  let randomInSphere = undefined;
-  while (true) {
-    const random = Vec.RANDOM(3).map((x) => 2 * x - 1);
-    if (random.squareLength() >= 1)
-      continue;
-    randomInSphere = random.normalize();
-    break;
-  }
-  return randomInSphere;
-};
+function Metallic(fuzz = 0) {
+  return {
+    scatter(inRay, point, element) {
+      fuzz = Math.min(1, Math.max(0, fuzz));
+      let normal = element.normalToPoint(point);
+      const v = inRay.dir;
+      let reflected = v.sub(normal.scale(2 * v.dot(normal)));
+      reflected = reflected.add(randomPointInSphere(3).scale(fuzz)).normalize();
+      return Ray(point, reflected);
+    }
+  };
+}
+function Alpha(alpha = 1) {
+  return {
+    scatter(inRay, point, element) {
+      if (Math.random() <= alpha)
+        return Diffuse().scatter(inRay, point, element);
+      const v = point.sub(inRay.init);
+      let t = undefined;
+      if (inRay.dir.x !== 0)
+        t = v.x / inRay.dir.x;
+      if (inRay.dir.y !== 0)
+        t = v.y / inRay.dir.y;
+      if (inRay.dir.z !== 0)
+        t = v.z / inRay.dir.z;
+      return Ray(inRay.trace(t + 0.01), inRay.dir);
+    }
+  };
+}
+function DiElectric(indexOfRefraction = 1) {
+  return {
+    scatter(inRay, point, element) {
+      const p = point.sub(inRay.init);
+      let t = undefined;
+      if (inRay.dir.x !== 0)
+        t = p.x / inRay.dir.x;
+      if (inRay.dir.y !== 0)
+        t = p.y / inRay.dir.y;
+      if (inRay.dir.z !== 0)
+        t = p.z / inRay.dir.z;
+      const isInside = element.isInside(point);
+      const refractionRatio = isInside ? indexOfRefraction : 1 / indexOfRefraction;
+      const vIn = inRay.dir;
+      const n = element.normalToPoint(point).scale(-1);
+      const cosThetaIn = Math.min(1, vIn.dot(n));
+      const sinThetaIn = Math.sqrt(1 - cosThetaIn * cosThetaIn);
+      const sinThetaOut = refractionRatio * sinThetaIn;
+      if (sinThetaOut > 1) {
+        const vOut2 = vIn.sub(n.scale(-2 * cosThetaIn));
+        return Ray(inRay.trace(t + 0.01), vOut2);
+      }
+      const cosThetaOut = Math.sqrt(1 - sinThetaOut * sinThetaOut);
+      const vp = n.scale(cosThetaIn);
+      const vo = vIn.sub(vp).normalize();
+      const vOut = n.scale(cosThetaOut).add(vo.scale(sinThetaOut));
+      return Ray(inRay.trace(t + 0.01), vOut);
+    }
+  };
+}
 
 // src/Scene/Point.js
 var sphereInterception = function(point, ray) {
@@ -1504,7 +1562,7 @@ class Point {
     return this.boundingBox;
   }
   sample() {
-    return randomPointInSphere().scale(this.radius).add(this.position);
+    return randomPointInSphere(this.position.dim).scale(this.radius).add(this.position);
   }
   isInside(p) {
     return p.sub(this.position).length() < this.radius;
@@ -1523,7 +1581,7 @@ class PointBuilder {
     this._color = Color.BLACK;
     this._position = Vec3();
     this._texCoord = Vec2();
-    this._emissive = true;
+    this._emissive = false;
     this._material = Diffuse();
   }
   name(name) {
@@ -1603,21 +1661,21 @@ class Line {
     this.material = material;
     this.positions = positions;
     this.texCoords = texCoords;
+    this.edge = this.positions[1].sub(this.positions[0]);
   }
   distanceToPoint(p) {
-    const l = this.positions[1].sub(this.positions[0]);
-    const v = p.sub(this.position[0]);
+    const l = this.edge;
+    const v = p.sub(this.positions[0]);
     const h = clamp()(l.dot(v) / l.dot(l));
-    return p.sub(this.position[0].add(l.scale(h))).length() - this.radius();
+    return p.sub(this.positions[0].add(l.scale(h))).length() - this.radius;
   }
-  normalToPoint(p) {
+  normalToPoint = (p) => {
     const epsilon = 0.001;
-    const d = this.distanceToPoint;
-    const f = d(p);
+    const f = this.distanceToPoint(p);
     const sign = Math.sign(f);
-    const grad = Vec3(d(p.add(Vec3(epsilon, 0, 0))) - f, d(p.add(Vec3(0, epsilon, 0))) - f, d(p.add(Vec3(0, 0, epsilon))) - f).normalize();
+    const grad = Vec3(this.distanceToPoint(p.add(Vec3(epsilon, 0, 0))) - f, this.distanceToPoint(p.add(Vec3(0, epsilon, 0))) - f, this.distanceToPoint(p.add(Vec3(0, 0, epsilon))) - f).normalize();
     return grad.scale(sign);
-  }
+  };
   interceptWith(ray) {
     const maxIte = 100;
     const epsilon = 0.001;
@@ -1641,11 +1699,12 @@ class Line {
   getBoundingBox() {
     if (this.boundingBox)
       return this.boundingBox;
-    this.boundingBox = this.positions.reduce((box, x) => box.add(new Box(x, x)), Box.EMPTY);
+    const size = Vec3(this.radius, this.radius, this.radius);
+    this.boundingBox = this.positions.reduce((box, x) => box.add(new Box(x.sub(size), x.add(size))), Box.EMPTY);
     return this.boundingBox;
   }
   sample() {
-    return this.tangents[0].scale(Math.random()).add(this.tangents[1].scale(Math.random())).add(this.positions[0]);
+    return this.edge.scale(Math.random());
   }
   isInside(p) {
     return this.distanceToPoint(p) < 0;
@@ -2187,6 +2246,17 @@ class Camera {
     };
     return this.rayMap(lambda);
   }
+  normalShot(scene, params = {}) {
+    const lambda = (ray) => {
+      return scene.interceptWith(ray).map(([point, element]) => {
+        const normal = element.normalToPoint(point);
+        return Color.ofRGB((normal.get(0) + 1) / 2, (normal.get(1) + 1) / 2, (normal.get(2) + 1) / 2);
+      }).orElse(() => {
+        return Color.BLACK;
+      });
+    };
+    return this.rayMap(lambda);
+  }
   toCameraCoord(x) {
     let pointInCamCoord = x.sub(this.eye);
     pointInCamCoord = Vec3(this.basis[0].dot(pointInCamCoord), this.basis[1].dot(pointInCamCoord), this.basis[2].dot(pointInCamCoord));
@@ -2330,12 +2400,12 @@ class PQueue {
 function drawBox({ box, color, debugScene }) {
   if (box.isEmpty)
     return;
-  const vertices = UNIT_BOX_VERTEX.map((v) => v.mul(box.diagonal).add(box.min));
-  const lines = UNIT_BOX_FACES.map(([i, j]) => Line.builder().name(`debug_box_${i}_${j}`).positions(vertices[i], vertices[j]).colors(color, color).build());
+  const vertices = UNIT_BOX_VERTEX3.map((v) => v.mul(box.diagonal).add(box.min));
+  const lines = UNIT_BOX_FACES2.map(([i, j]) => Line.builder().name(`debug_box_${i}_${j}`).positions(vertices[i], vertices[j]).colors(color, color).build());
   debugScene.addList(lines);
   return debugScene;
 }
-var UNIT_BOX_VERTEX = [
+var UNIT_BOX_VERTEX3 = [
   Vec3(),
   Vec3(1, 0, 0),
   Vec3(1, 1, 0),
@@ -2345,7 +2415,7 @@ var UNIT_BOX_VERTEX = [
   Vec3(1, 1, 1),
   Vec3(0, 1, 1)
 ];
-var UNIT_BOX_FACES = [
+var UNIT_BOX_FACES2 = [
   [0, 1],
   [1, 2],
   [2, 3],
@@ -3635,30 +3705,6 @@ var parseFace = function(vertexInfo) {
 };
 var MESH_COUNTER = 0;
 var RADIUS = 0.001;
-var UNIT_BOX_VERTEX2 = [
-  Vec3(),
-  Vec3(1, 0, 0),
-  Vec3(1, 1, 0),
-  Vec3(0, 1, 0),
-  Vec3(0, 0, 1),
-  Vec3(1, 0, 1),
-  Vec3(1, 1, 1),
-  Vec3(0, 1, 1)
-];
-var UNIT_BOX_FACES2 = [
-  [0, 1, 2],
-  [2, 3, 0],
-  [4, 5, 6],
-  [6, 7, 4],
-  [0, 1, 4],
-  [4, 5, 1],
-  [2, 3, 6],
-  [6, 7, 3],
-  [0, 3, 7],
-  [7, 4, 0],
-  [1, 2, 6],
-  [6, 5, 1]
-];
 
 class Mesh {
   constructor({ name, vertices, normals, textureCoords, faces, colors, texture }) {
@@ -3706,6 +3752,22 @@ class Mesh {
       faces: this.faces,
       colors: newColors,
       texture: this.texture
+    });
+  }
+  mapMaterials(lambda) {
+    const newMaterials = [];
+    for (let i = 0;i < this.vertices.length; i++) {
+      newMaterials.push(lambda(this.vertices[i]));
+    }
+    return new Mesh({
+      name: this.name,
+      vertices: this.vertices,
+      normals: this.normals,
+      textureCoords: this.textureCoords,
+      faces: this.faces,
+      colors: this.colors,
+      texture: this.texture,
+      materials: newMaterials
     });
   }
   getBoundingBox() {
@@ -3795,8 +3857,8 @@ class Mesh {
     return new Mesh({ name, vertices, normals, textureCoords, faces });
   }
   static ofBox(box, name) {
-    const vertices = UNIT_BOX_VERTEX2.map((v) => v.mul(box.diagonal).add(box.min));
-    return new Mesh({ name, vertices, faces: UNIT_BOX_FACES2.map((indx3) => ({ vertices: indx3 })) });
+    const vertices = UNIT_BOX_VERTEX.map((v) => v.mul(box.diagonal).add(box.min));
+    return new Mesh({ name, vertices, faces: UNIT_BOX_FACES.map((indx3) => ({ vertices: indx3 })) });
   }
 }
 export {
@@ -3822,14 +3884,18 @@ export {
   Parallel,
   NaiveScene,
   exports_Monads as Monads,
+  Metallic,
   Mesh,
   Line,
   KScene,
+  Diffuse,
+  DiElectric,
   DomBuilder_default as DOM,
   Color,
   Canvas,
   Camera,
   Box,
   BScene,
-  Animation
+  Animation,
+  Alpha
 };

@@ -46,7 +46,6 @@ import { readFileSync } from "fs"
         camera.orbit();
     })
     window.onMouseWheel(({ dy }) => {
-        console.log(">>>>>", dy);
         camera.sphericalCoords = camera.sphericalCoords.add(Vec3(-dy, 0, 0));
         camera.orbit();
     })

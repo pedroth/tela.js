@@ -16,24 +16,24 @@ export default class Line {
         this.material = material;
         this.positions = positions;
         this.texCoords = texCoords;
+        this.edge = this.positions[1].sub(this.positions[0]);
     }
 
     distanceToPoint(p) {
-        const l = this.positions[1].sub(this.positions[0]);
-        const v = p.sub(this.position[0]);
+        const l = this.edge;
+        const v = p.sub(this.positions[0]);
         const h = clamp()(l.dot(v) / l.dot(l))
-        return p.sub(this.position[0].add(l.scale(h))).length() - this.radius();
+        return p.sub(this.positions[0].add(l.scale(h))).length() - this.radius;
     }
 
-    normalToPoint(p) {
+    normalToPoint = (p) => {
         const epsilon = 1e-3;
-        const d = this.distanceToPoint;
-        const f = d(p);
+        const f = this.distanceToPoint(p);
         const sign = Math.sign(f);
         const grad = Vec3(
-            d(p.add(Vec3(epsilon, 0, 0))) - f,
-            d(p.add(Vec3(0, epsilon, 0))) - f,
-            d(p.add(Vec3(0, 0, epsilon))) - f,
+            this.distanceToPoint(p.add(Vec3(epsilon, 0, 0))) - f,
+            this.distanceToPoint(p.add(Vec3(0, epsilon, 0))) - f,
+            this.distanceToPoint(p.add(Vec3(0, 0, epsilon))) - f,
         ).normalize();
         return grad.scale(sign);
     }
@@ -61,12 +61,16 @@ export default class Line {
 
     getBoundingBox() {
         if (this.boundingBox) return this.boundingBox;
-        this.boundingBox = this.positions.reduce((box, x) => box.add(new Box(x, x)), Box.EMPTY);
+        const size = Vec3(this.radius, this.radius, this.radius);
+        this.boundingBox = this.positions.reduce(
+            (box, x) => box.add(new Box(x.sub(size), x.add(size))),
+            Box.EMPTY
+        );
         return this.boundingBox;
     }
 
     sample() {
-        return this.tangents[0].scale(Math.random()).add(this.tangents[1].scale(Math.random())).add(this.positions[0]);
+        return this.edge.scale(Math.random());
     }
 
     isInside(p) {

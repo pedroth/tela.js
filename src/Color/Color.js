@@ -1,5 +1,5 @@
-import { MAX_8BIT } from "../Utils/Constants";
-import { clamp } from "../Utils/Math";
+import { MAX_8BIT } from "../Utils/Constants.js";
+import { clamp } from "../Utils/Math.js";
 
 /**
  * Class that abstracts colors.

@@ -46,6 +46,7 @@ export {
     RandomScene
 }
 
+export * from "./Utils/Math.js"
+export * from "./Material/Material.js";
 export * as Utils from "./Utils/Utils.js";
 export * as Monads from "./Monads/Monads.js";
-export * from "./Utils/Math.js"

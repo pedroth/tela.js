@@ -84,7 +84,6 @@ export default class Camera {
     }
   }
 
-
   sceneShot(scene, params = {}) {
     let { samplesPerPxl, bounces, variance, gamma } = params;
     bounces = bounces ?? 10;
@@ -172,6 +171,25 @@ export default class Camera {
         minT = d;
       }
       return Color.BLACK;
+    }
+    return this.rayMap(lambda);
+  }
+
+  normalShot(scene, params = {}) {
+    const lambda = ray => {
+      return scene.interceptWith(ray)
+        .map(([point, element]) => {
+          const normal = element.normalToPoint(point);
+          // return element.color;
+          return Color.ofRGB(
+            (normal.get(0) + 1) / 2,
+            (normal.get(1) + 1) / 2,
+            (normal.get(2) + 1) / 2
+          )
+        })
+        .orElse(() => {
+          return Color.BLACK;
+        })
     }
     return this.rayMap(lambda);
   }

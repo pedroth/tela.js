@@ -67,10 +67,10 @@ export function clipLine(p0, p1, box) {
 }
 
 
-export function randomPointInSphere() {
+export function randomPointInSphere(dim) {
     let randomInSphere;
     while (true) {
-        const random = Vec.RANDOM(this.position.dim).map(x => 2 * x - 1);
+        const random = Vec.RANDOM(dim).map(x => 2 * x - 1);
         if (random.squareLength() >= 1) continue;
         randomInSphere = random.normalize();
         break;

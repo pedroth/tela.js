@@ -10,7 +10,7 @@ export default class Window {
         this._width = width;
         this._height = height;
         this._title = title;
-        this._window = sdl.video.createWindow({ title });
+        this._window = sdl.video.createWindow({ title, resizable: true });
         this._image = new Array(this._width * this._height)
             .fill(() => Color.ofRGB());
     }

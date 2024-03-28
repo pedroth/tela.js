@@ -1,11 +1,11 @@
 import Ray from "../Ray/Ray.js"
-import Vec from "../Vector/Vector.js";
+import { randomPointInSphere } from "../Utils/Math.js";
 
 export function Diffuse() {
     return {
         scatter(inRay, point, element) {
             let normal = element.normalToPoint(point);
-            const randomInSphere = randomPointInSphere();
+            const randomInSphere = randomPointInSphere(3);
             if (randomInSphere.dot(normal) >= 0) return Ray(point, randomInSphere);
             return Ray(point, randomInSphere.scale(-1));
         }
@@ -19,7 +19,7 @@ export function Metallic(fuzz = 0) {
             let normal = element.normalToPoint(point);
             const v = inRay.dir;
             let reflected = v.sub(normal.scale(2 * v.dot(normal)));
-            reflected = reflected.add(randomPointInSphere().scale(fuzz)).normalize();
+            reflected = reflected.add(randomPointInSphere(3).scale(fuzz)).normalize();
             return Ray(point, reflected);
         }
     }
@@ -69,15 +69,4 @@ export function DiElectric(indexOfRefraction = 1.0) {
             return Ray(inRay.trace(t + 1e-2), vOut);
         }
     }
-}
-
-function randomPointInSphere() {
-    let randomInSphere = undefined;
-    while (true) {
-        const random = Vec.RANDOM(3).map(x => 2 * x - 1);
-        if (random.squareLength() >= 1) continue;
-        randomInSphere = random.normalize();
-        break;
-    }
-    return randomInSphere;
 }

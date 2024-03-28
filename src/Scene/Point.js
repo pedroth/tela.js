@@ -48,7 +48,7 @@ class Point {
     }
 
     sample() {
-        return randomPointInSphere().scale(this.radius).add(this.position);
+        return randomPointInSphere(this.position.dim).scale(this.radius).add(this.position);
     }
 
     isInside(p) {
@@ -69,7 +69,7 @@ class PointBuilder {
         this._color = Color.BLACK;
         this._position = Vec3();
         this._texCoord = Vec2();
-        this._emissive = true;
+        this._emissive = false;
         this._material = Diffuse();
     }
 
