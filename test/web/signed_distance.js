@@ -81,7 +81,7 @@ async (canvas, logger) => {
             oldTime = new Date().getTime()
             const t = time;
             light.pos = Vec3(Math.cos(t), Math.sin(t), 1).scale(2);
-            camera.rayShot(rayScene).to(canvas);
+            camera.rayMap(rayScene).to(canvas);
             logger.print(`FPS: ${Math.floor(1 / dt)}`);
             return {
                 it: it + 1,

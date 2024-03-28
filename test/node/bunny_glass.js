@@ -30,7 +30,6 @@ bunnyMesh = bunnyMesh
 scene.add(...bunnyMesh.asTriangles());
 
 scene.add(
-
     Triangle
         .builder()
         .name("bottom-1")

@@ -90,7 +90,7 @@ async (canvas, logger) => {
         .nextState(({ it, time, oldTime }) => {
             const dt = (new Date().getTime() - oldTime) * 1e-3;
             oldTime = new Date().getTime()
-            camera.rayShot(rayScene).to(canvas);
+            camera.rayMap(rayScene).to(canvas);
             logger.print(`FPS: ${Math.floor(1 / dt)}`);
             return {
                 it: it + 1,

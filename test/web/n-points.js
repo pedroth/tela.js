@@ -62,7 +62,7 @@ async (canvas, logger) => {
         .builder()
         .initialState({ it: 1, oldTime: new Date().getTime() })
         .nextState(({ it, oldTime }) => {
-            camera.sceneShot(scene).to(canvas);
+            camera.normalShot(scene).to(canvas);
             const dt = (new Date().getTime() - oldTime) * 1e-3;
             logger.print(Math.floor(1 / dt));
             return {
