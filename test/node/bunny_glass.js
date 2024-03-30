@@ -1,4 +1,4 @@
-import { Color, Image, Stream, IO, Utils, Mesh, Vec3, Scene, Camera, clamp, Triangle, Metallic, DiElectric } from "../../dist/node/index.js";
+import { Color, Image, Stream, IO, Utils, Mesh, Vec3, Camera, Triangle, DiElectric, KScene } from "../../dist/node/index.js";
 import { readFileSync } from "fs"
 
 const { measureTime, measureTimeWithResult } = Utils;
@@ -12,9 +12,9 @@ const dt = 1 / FPS;
 const maxT = 10;
 
 // scene
-const scene = new Scene();
+const scene = new KScene(100);
 const camera = new Camera({
-    sphericalCoords: Vec3(3, 0, 0),
+    sphericalCoords: Vec3(5, 0, 0),
     focalPoint: Vec3(1.5, 1.5, 1.5)
 });
 const stanfordBunnyObj = readFileSync("./assets/bunny_orig.obj", { encoding: "utf-8" });
@@ -22,6 +22,7 @@ let bunnyMesh = Mesh.readObj(stanfordBunnyObj, "bunny");
 const bunnyBox = bunnyMesh.getBoundingBox();
 bunnyMesh = bunnyMesh
     .mapVertices(v => v.sub(bunnyBox.min).div(bunnyBox.diagonal).scale(2).sub(Vec3(1, 1, 1)))
+    .mapVertices(v => v.scale(0.5))
     .mapVertices(v => Vec3(-v.y, v.x, v.z))
     .mapVertices(v => Vec3(v.z, v.y, -v.x))
     .mapVertices(v => v.add(Vec3(1.5, 1.5, 1.5)))
@@ -30,6 +31,30 @@ bunnyMesh = bunnyMesh
 scene.add(...bunnyMesh.asTriangles());
 
 scene.add(
+    // Triangle
+    //     .builder()
+    //     .name("left-1")
+    //     .colors(Color.RED, Color.RED, Color.RED)
+    //     .positions(Vec3(3, 0, 3), Vec3(3, 0, 0), Vec3())
+    //     .build(),
+    // Triangle
+    //     .builder()
+    //     .name("left-2")
+    //     .colors(Color.RED, Color.RED, Color.RED)
+    //     .positions(Vec3(), Vec3(0, 0, 3), Vec3(3, 0, 3))
+    //     .build(),
+    // Triangle
+    //     .builder()
+    //     .name("right-1")
+    //     .colors(Color.GREEN, Color.GREEN, Color.GREEN)
+    //     .positions(Vec3(0, 3, 0), Vec3(3, 3, 0), Vec3(3, 3, 3))
+    //     .build(),
+    // Triangle
+    //     .builder()
+    //     .name("right-2")
+    //     .colors(Color.GREEN, Color.GREEN, Color.GREEN)
+    //     .positions(Vec3(3, 3, 3), Vec3(0, 3, 3), Vec3(0, 3, 0))
+    //     .build(),
     Triangle
         .builder()
         .name("bottom-1")
@@ -54,6 +79,18 @@ scene.add(
         .colors(Color.WHITE, Color.WHITE, Color.WHITE)
         .positions(Vec3(0, 0, 3), Vec3(0, 3, 3), Vec3(3, 3, 3))
         .build(),
+    // Triangle
+    //     .builder()
+    //     .name("back-1")
+    //     .colors(Color.WHITE, Color.WHITE, Color.WHITE)
+    //     .positions(Vec3(), Vec3(0, 3, 0), Vec3(0, 3, 3))
+    //     .build(),
+    // Triangle
+    //     .builder()
+    //     .name("back-2")
+    //     .colors(Color.WHITE, Color.WHITE, Color.WHITE)
+    //     .positions(Vec3(0, 3, 3), Vec3(0, 0, 3), Vec3())
+    //     .build(),
     Triangle
         .builder()
         .name("light-1")
@@ -70,13 +107,15 @@ scene.add(
         .build(),
 )
 
+const shot = (image) => camera.sceneShot(scene, { samplesPerPxl: 500, bounces: 20, gamma: 0.5 }).to(image ?? Image.ofSize(width, height));
+
 const imageStream = new Stream(
-    { time: 0, image: camera.sceneShot(scene).to(Image.ofSize(width, height)) },
+    { time: 0, image: shot() },
     ({ time, image }) => {
         const theta = Math.PI / 4 * time;
         camera.sphericalCoords = Vec3(camera.sphericalCoords.get(0), theta, 0);
         camera.orbit();
-        const { result: newImage, time: t } = measureTimeWithResult(() => camera.sceneShot(scene, { samplesPerPxl: 25 }).to(image));
+        const { result: newImage, time: t } = measureTimeWithResult(() => shot(image));
         console.log(`Image took ${t}s`);
         return {
             time: time + dt,

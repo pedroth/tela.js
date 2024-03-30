@@ -1,5 +1,6 @@
 import Box from "../Box/Box.js";
 import Color from "../Color/Color.js";
+import { MAX_8BIT } from "../Utils/Constants.js";
 import { clipLine, isInsideConvex, mod } from "../Utils/Math.js";
 import { Vec2 } from "../Vector/Vector.js";
 import sdl from "@kmamal/sdl"
@@ -12,7 +13,7 @@ export default class Window {
         this._title = title;
         this._window = sdl.video.createWindow({ title, resizable: true });
         this._image = new Array(this._width * this._height)
-            .fill(() => Color.ofRGB());
+            .fill(Color.ofRGB());
     }
 
     get width() {
@@ -161,6 +162,40 @@ export default class Window {
         return [i, j];
     }
 
+    exposure(time = Number.MAX_VALUE) {
+        let it = 1;
+        const ans = {};
+        for (let key of Object.getOwnPropertyNames(Object.getPrototypeOf(this))) {
+            const descriptor = Object.getOwnPropertyDescriptor(Object.getPrototypeOf(this), key);
+            if (descriptor && typeof descriptor.value === 'function') {
+                ans[key] = descriptor.value.bind(this);
+            }
+        }
+        ans.width = this.width;
+        ans.height = this.height;
+        ans.map = (lambda) => {
+            const n = this._image.length;
+            const w = this._width;
+            const h = this._height;
+            for (let k = 0; k < n; k++) {
+                const i = Math.floor(k / w);
+                const j = k % w;
+                const x = j;
+                const y = h - 1 - i;
+                const color = lambda(x, y);
+                if (!color) continue;
+                this._image[k] = Color.ofRGB(
+                    this._image[k].red + (color.red - this._image[k].red) / it,
+                    this._image[k].green + (color.green - this._image[k].green) / it,
+                    this._image[k].blue + (color.blue - this._image[k].blue) / it,
+                ); 
+            }
+            if (it < time) it++
+            return this.paint();
+        }
+        return ans;
+    }
+
     static ofUrl(url) {
         // TODO
     }
@@ -178,8 +213,6 @@ export default class Window {
             })
     }
 }
-
-
 
 function drawConvexPolygon(canvas, positions, shader) {
     const { width, height } = canvas;

@@ -8,7 +8,8 @@ export default class Animation {
   }
 
   play(stream = this.animation) {
-    this.requestAnimeId = requestAnimationFrame(() => {
+    const timeout = typeof window === "undefined" ? setTimeout : requestAnimationFrame; 
+    this.requestAnimeId = timeout(() => {
       if (!this.while(stream.head)) return this.stop();
       this.play(stream.tail);
     });
@@ -17,7 +18,8 @@ export default class Animation {
   }
 
   stop() {
-    cancelAnimationFrame(this.requestAnimeId);
+    const cancel = typeof window === "undefined" ? clearTimeout : cancelAnimationFrame; 
+    cancel(this.requestAnimeId);
     return this;
   }
 

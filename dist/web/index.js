@@ -31,7 +31,8 @@ class Animation {
     this.requestAnimeId = null;
   }
   play(stream = this.animation) {
-    this.requestAnimeId = requestAnimationFrame(() => {
+    const timeout = typeof window === "undefined" ? setTimeout : requestAnimationFrame;
+    this.requestAnimeId = timeout(() => {
       if (!this.while(stream.head))
         return this.stop();
       this.play(stream.tail);
@@ -40,7 +41,8 @@ class Animation {
     return this;
   }
   stop() {
-    cancelAnimationFrame(this.requestAnimeId);
+    const cancel = typeof window === "undefined" ? clearTimeout : cancelAnimationFrame;
+    cancel(this.requestAnimeId);
     return this;
   }
   static globalAnimationIds = [];
@@ -1157,6 +1159,18 @@ class Canvas {
     this._imageData = this._ctx.getImageData(0, 0, this._width, this._height);
     this._image = this._imageData.data;
   }
+  grid2canvas(i, j) {
+    const h = this.height;
+    const x = j;
+    const y = h - 1 - i;
+    return [x, y];
+  }
+  canvas2grid(x, y) {
+    const h = this._height;
+    const j = Math.floor(x);
+    const i = Math.floor(h - 1 - y);
+    return [i, j];
+  }
   startVideoRecorder() {
     let responseBlob;
     const canvasSnapshots = [];
@@ -1171,18 +1185,6 @@ class Canvas {
         setTimeout(() => re([responseBlob, URL.createObjectURL(responseBlob)]));
       })
     };
-  }
-  grid2canvas(i, j) {
-    const h = this.height;
-    const x = j;
-    const y = h - 1 - i;
-    return [x, y];
-  }
-  canvas2grid(x, y) {
-    const h = this._height;
-    const j = Math.floor(x);
-    const i = Math.floor(h - 1 - y);
-    return [i, j];
   }
   exposure(time = Number.MAX_VALUE) {
     let it = 1;
@@ -3707,7 +3709,7 @@ var MESH_COUNTER = 0;
 var RADIUS = 0.001;
 
 class Mesh {
-  constructor({ name, vertices, normals, textureCoords, faces, colors, texture }) {
+  constructor({ name, vertices, normals, textureCoords, faces, colors, texture, materials }) {
     this.vertices = vertices || [];
     this.normals = normals || [];
     this.textureCoords = textureCoords || [];
@@ -3715,6 +3717,7 @@ class Mesh {
     this.colors = colors || [];
     this.texture = texture;
     this.name = name || `Mesh_${MESH_COUNTER++}`;
+    this.materials = materials;
   }
   setName(name) {
     this.name = name;
@@ -3756,8 +3759,8 @@ class Mesh {
   }
   mapMaterials(lambda) {
     const newMaterials = [];
-    for (let i = 0;i < this.vertices.length; i++) {
-      newMaterials.push(lambda(this.vertices[i]));
+    for (let i = 0;i < this.faces.length; i++) {
+      newMaterials.push(lambda(this.faces[i]));
     }
     return new Mesh({
       name: this.name,
@@ -3814,9 +3817,10 @@ class Mesh {
       let texCoordIndexes = this.faces[i].textures;
       const normalIndexes = this.faces[i].normals;
       const verticesIndexes = this.faces[i].vertices;
+      const material = this.materials ?? [i] ?? Diffuse();
       const edge_id = verticesIndexes.join("_");
       const edge_name = `${this.name}_${edge_id}`;
-      triangles.push(Triangle.builder().name(edge_name).texture(this.texture).colors(...verticesIndexes.map((j) => this.colors[j])).normals(...normalIndexes.map((j) => this.normals[j])).positions(...verticesIndexes.map((j) => this.vertices[j])).texCoords(...texCoordIndexes.map((j) => this.textureCoords[j])).build());
+      triangles.push(Triangle.builder().name(edge_name).texture(this.texture).colors(...verticesIndexes.map((j) => this.colors[j])).normals(...normalIndexes.map((j) => this.normals[j])).positions(...verticesIndexes.map((j) => this.vertices[j])).texCoords(...texCoordIndexes.map((j) => this.textureCoords[j])).material(material).build());
     }
     return Object.values(triangles);
   }

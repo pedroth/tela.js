@@ -4,6 +4,7 @@ import Box from "../Box/Box.js";
 import Line from "./Line.js";
 import Triangle from "./Triangle.js";
 import { groupBy } from "../Utils/Utils.js";
+import { Diffuse } from "../Material/Material.js";
 //========================================================================================
 /*                                                                                      *
  *                                       CONSTANTS                                      *
@@ -19,7 +20,7 @@ const RADIUS = 0.001;
 //========================================================================================
 
 export default class Mesh {
-    constructor({ name, vertices, normals, textureCoords, faces, colors, texture }) {
+    constructor({ name, vertices, normals, textureCoords, faces, colors, texture, materials }) {
         this.vertices = vertices || [];
         this.normals = normals || [];
         this.textureCoords = textureCoords || [];
@@ -27,6 +28,7 @@ export default class Mesh {
         this.colors = colors || [];
         this.texture = texture;
         this.name = name || `Mesh_${MESH_COUNTER++}`;
+        this.materials = materials;
     }
 
     setName(name) {
@@ -76,8 +78,8 @@ export default class Mesh {
 
     mapMaterials(lambda) {
         const newMaterials = [];
-        for (let i = 0; i < this.vertices.length; i++) {
-            newMaterials.push(lambda(this.vertices[i]));
+        for (let i = 0; i < this.faces.length; i++) {
+            newMaterials.push(lambda(this.faces[i]));
         }
         return new Mesh({
             name: this.name,
@@ -87,7 +89,7 @@ export default class Mesh {
             faces: this.faces,
             colors: this.colors,
             texture: this.texture,
-            materials: newMaterials 
+            materials: newMaterials
         })
     }
 
@@ -167,6 +169,7 @@ export default class Mesh {
             const verticesIndexes = this
                 .faces[i]
                 .vertices
+            const material = this.materials??[i] ?? Diffuse();
             const edge_id = verticesIndexes
                 .join("_");
             const edge_name = `${this.name}_${edge_id}`;
@@ -179,6 +182,7 @@ export default class Mesh {
                     .normals(...normalIndexes.map(j => this.normals[j]))
                     .positions(...verticesIndexes.map(j => this.vertices[j]))
                     .texCoords(...texCoordIndexes.map(j => this.textureCoords[j]))
+                    .material(material)
                     .build()
             )
 

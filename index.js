@@ -500,6 +500,10 @@ const examples = [
         path: "/test/web/cornell_box.js"
     },
     {
+        title: "Glass bunny",
+        path: "/test/web/glass.js"
+    },
+    {
         title: "voxel test",
         path: "/test/web/debug_voxel_test.js"
     },

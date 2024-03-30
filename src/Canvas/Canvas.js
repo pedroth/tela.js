@@ -198,22 +198,6 @@ export default class Canvas {
     this._image = this._imageData.data;
   }
 
-  startVideoRecorder() {
-    let responseBlob;
-    const canvasSnapshots = [];
-    const stream = this._canvas.captureStream();
-    const recorder = new MediaRecorder(stream);
-    recorder.addEventListener("dataavailable", e => canvasSnapshots.push(e.data));
-    recorder.start();
-    recorder.onstop = () => (responseBlob = new Blob(canvasSnapshots, { type: 'video/webm' }));
-    return {
-      stop: () => new Promise((re) => {
-        recorder.stop();
-        setTimeout(() => re([responseBlob, URL.createObjectURL(responseBlob)]));
-      })
-    };
-  }
-
   //========================================================================================
   /*                                                                                      *
    *                                      Canvas utils                                    *
@@ -233,6 +217,22 @@ export default class Canvas {
     const j = Math.floor(x);
     const i = Math.floor(h - 1 - y);
     return [i, j];
+  }
+
+  startVideoRecorder() {
+    let responseBlob;
+    const canvasSnapshots = [];
+    const stream = this._canvas.captureStream();
+    const recorder = new MediaRecorder(stream);
+    recorder.addEventListener("dataavailable", e => canvasSnapshots.push(e.data));
+    recorder.start();
+    recorder.onstop = () => (responseBlob = new Blob(canvasSnapshots, { type: 'video/webm' }));
+    return {
+      stop: () => new Promise((re) => {
+        recorder.stop();
+        setTimeout(() => re([responseBlob, URL.createObjectURL(responseBlob)]));
+      })
+    };
   }
 
   exposure(time = Number.MAX_VALUE) {
