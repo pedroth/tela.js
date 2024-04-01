@@ -3817,7 +3817,7 @@ class Mesh {
       let texCoordIndexes = this.faces[i].textures;
       const normalIndexes = this.faces[i].normals;
       const verticesIndexes = this.faces[i].vertices;
-      const material = this.materials ?? [i] ?? Diffuse();
+      const material = this.materials?.[i] ?? Diffuse();
       const edge_id = verticesIndexes.join("_");
       const edge_name = `${this.name}_${edge_id}`;
       triangles.push(Triangle.builder().name(edge_name).texture(this.texture).colors(...verticesIndexes.map((j) => this.colors[j])).normals(...normalIndexes.map((j) => this.normals[j])).positions(...verticesIndexes.map((j) => this.vertices[j])).texCoords(...texCoordIndexes.map((j) => this.textureCoords[j])).material(material).build());

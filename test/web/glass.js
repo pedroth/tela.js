@@ -54,7 +54,7 @@ async (canvas, logger) => {
         .mapVertices(v => v.scale(0.5))
         .mapVertices(v => Vec3(-v.y, v.x, v.z))
         .mapVertices(v => Vec3(v.z, v.y, -v.x))
-        .mapVertices(v => v.add(Vec3(1.5, 1.5, 1.5)))
+        .mapVertices(v => v.add(Vec3(1.0, 1.5, 1.0)))
         .mapColors(() => Color.WHITE)
         .mapMaterials(() => DiElectric(1.5))
     scene.add(...bunnyMesh.asTriangles());

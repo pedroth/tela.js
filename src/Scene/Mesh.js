@@ -169,7 +169,7 @@ export default class Mesh {
             const verticesIndexes = this
                 .faces[i]
                 .vertices
-            const material = this.materials??[i] ?? Diffuse();
+            const material = this.materials?.[i] ?? Diffuse();
             const edge_id = verticesIndexes
                 .join("_");
             const edge_name = `${this.name}_${edge_id}`;

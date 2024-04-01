@@ -15,7 +15,6 @@ const { measureTimeWithResult } = Utils;
         .mapVertices(v => Vec3(-v.y, v.x, v.z))
         .mapVertices(v => Vec3(v.z, v.y, -v.x))
 
-
     const maxIte = 20;
     const spacing = 10;
     const size = 0.5;

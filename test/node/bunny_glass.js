@@ -31,30 +31,6 @@ bunnyMesh = bunnyMesh
 scene.add(...bunnyMesh.asTriangles());
 
 scene.add(
-    // Triangle
-    //     .builder()
-    //     .name("left-1")
-    //     .colors(Color.RED, Color.RED, Color.RED)
-    //     .positions(Vec3(3, 0, 3), Vec3(3, 0, 0), Vec3())
-    //     .build(),
-    // Triangle
-    //     .builder()
-    //     .name("left-2")
-    //     .colors(Color.RED, Color.RED, Color.RED)
-    //     .positions(Vec3(), Vec3(0, 0, 3), Vec3(3, 0, 3))
-    //     .build(),
-    // Triangle
-    //     .builder()
-    //     .name("right-1")
-    //     .colors(Color.GREEN, Color.GREEN, Color.GREEN)
-    //     .positions(Vec3(0, 3, 0), Vec3(3, 3, 0), Vec3(3, 3, 3))
-    //     .build(),
-    // Triangle
-    //     .builder()
-    //     .name("right-2")
-    //     .colors(Color.GREEN, Color.GREEN, Color.GREEN)
-    //     .positions(Vec3(3, 3, 3), Vec3(0, 3, 3), Vec3(0, 3, 0))
-    //     .build(),
     Triangle
         .builder()
         .name("bottom-1")
@@ -79,18 +55,6 @@ scene.add(
         .colors(Color.WHITE, Color.WHITE, Color.WHITE)
         .positions(Vec3(0, 0, 3), Vec3(0, 3, 3), Vec3(3, 3, 3))
         .build(),
-    // Triangle
-    //     .builder()
-    //     .name("back-1")
-    //     .colors(Color.WHITE, Color.WHITE, Color.WHITE)
-    //     .positions(Vec3(), Vec3(0, 3, 0), Vec3(0, 3, 3))
-    //     .build(),
-    // Triangle
-    //     .builder()
-    //     .name("back-2")
-    //     .colors(Color.WHITE, Color.WHITE, Color.WHITE)
-    //     .positions(Vec3(0, 3, 3), Vec3(0, 0, 3), Vec3())
-    //     .build(),
     Triangle
         .builder()
         .name("light-1")
@@ -134,4 +98,3 @@ console.log(
         ).until(({ time }) => time < maxT);
     })
 )
-
