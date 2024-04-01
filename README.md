@@ -39,19 +39,39 @@ https://pedroth.github.io/tela.js/
 # Main features
 
 ## Visual
-- [/] Generate image (desktop /  browser)
-	- Voxels (?)
+- [X] Generate image (desktop /  browser)
 	- [X] Different resolutions
-	- [/] Point clouds / splatting
-	- [/] Signed distance functions, implicit functions
-	- [ ] Draw geometrical objects (aka [Simplices][simplex])
-	- [ ] Path tracing: Shadows, Refraction, Global illumination, etc.
+	- [X] Point clouds
+	- [/] Signed distance functions
+		- [X] spheres
+		- [X] boxes
+		- [ ] lines
+		- [ ] triangles
+	- [X] Geometry database
+		- [X] Naive
+		- [X] Binary bounding box hierarchy
+		- [X] K objects bounding box hierarchy
+		- [X] Voxel/Grids spatial hash storage
+	- [X] Path tracing: 
+		- [X] Draw spheres, triangles, lines
+		- [X] Shadows,
+		- [X] Refraction,
+		- [X] Metallic,
+		- [X] Global illumination
+		- [X] Alpha
+		- [X] Add Textures
 	- [X] Draw with shaders like code
-	- [ ] Raster engine
-- [/] Read Geometry formats with textures
+	- [X] Raster engine
+		- [X] draw triangles, lines and points
+		- [X] Z buffering
+		- [X] Textures & Vertex props interpolation
+		- [X] Cull back faces
+- [X] Read Geometry formats with textures
 - [X] Generate image/video (desktop /  browser)
-- [X] Interactive application (desktop / browser)
-- [ ] Draw svgs(which includes text/formulas)
+- [X] Interactive applications (desktop / browser)
+	- [X] Web
+	- [X] Desktop(using sdl)
+- [ ] Draw svgs
 
 # Research
 
@@ -88,7 +108,7 @@ https://pedroth.github.io/tela.js/
 	- Binary Bounding Box Scene
 	- K-Bounding Box Scene
 	- Voxel Bounding Box Scene
-	- Materials / Light (TODO: Emissive, Reflecting, Lambertian, Refraction)
+	- Materials / Light
 	- Textures (TODO)
 
 - Signed Distance Functions
@@ -105,7 +125,7 @@ https://pedroth.github.io/tela.js/
 	- Read `.obj` files
 	- Read `svg` for text and drawing rendering (TODO)
 	- Read `.stl`, `glTF`, `.ply` files (TODO)
-	- Meshes, Lines, Paths, Spheres/Points / Tringles, Boxes (~)
+	- Meshes, Lines, Paths, Spheres/Points / Triangles, Boxes (~)
 	- Transformation hierarchy (TODO)
 	- Skeletons animation (TODO)
 	- Graph from mesh (TODO)
@@ -117,7 +137,6 @@ https://pedroth.github.io/tela.js/
 
 
 
-[simplex]: https://en.wikipedia.org/wiki/Simplex
 [ffmpeg]: https://ffmpeg.org/
 [bun]: https://bun.sh/
 [node]: https://nodejs.org/en
