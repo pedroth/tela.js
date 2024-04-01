@@ -1,4 +1,4 @@
-import { Color, Image, Stream, IO, Utils, Mesh, Vec3, Scene, Camera, clamp } from "../../dist/node/index.js";
+import { Color, Image, Stream, IO, Utils, Mesh, Vec3, Scene, BScene, Camera, clamp } from "../../dist/node/index.js";
 import { readFileSync } from "fs"
 
 const { measureTime, measureTimeWithResult } = Utils;
@@ -24,13 +24,15 @@ bunnyMesh = bunnyMesh
     .mapColors(v => Color.ofRGB(...v.map(x => clamp()((x + 1) / 2)).toArray()));
 scene.add(...bunnyMesh.asPoints(0.05));
 
+const shoot = (img) => camera.normalShot(scene).to(img);
+
 const imageStream = new Stream(
-    { time: 0, image: camera.sceneShot(scene).to(Image.ofSize(width, height)) },
+    { time: 0, image: shoot(Image.ofSize(width, height)) },
     ({ time, image }) => {
         const theta = Math.PI / 4 * time;
         camera.sphericalCoords = Vec3(camera.sphericalCoords.get(0), theta, 0);
         camera.orbit();
-        const { result: newImage, time: t } = measureTimeWithResult(() => camera.sceneShot(scene).to(image));
+        const { result: newImage, time: t } = measureTimeWithResult(() => shoot(image));
         console.log(`Image took ${t}s`);
         return {
             time: time + dt,

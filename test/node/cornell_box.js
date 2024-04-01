@@ -49,18 +49,18 @@ import { readFileSync } from "fs"
         exposedCanvas = window.exposure();
     })
 
-    const stanfordBunnyObj = readFileSync("./assets/spot.obj", { encoding: "utf-8" });
-    let bunnyMesh = Mesh.readObj(stanfordBunnyObj, "bunny");
-    const bunnyBox = bunnyMesh.getBoundingBox();
-    bunnyMesh = bunnyMesh
-        // .mapVertices(v => v.sub(bunnyBox.min).div(bunnyBox.diagonal).scale(2).sub(Vec3(1, 1, 1)))
+    const meshObj = readFileSync("./assets/spot.obj", { encoding: "utf-8" });
+    let mesh = Mesh.readObj(meshObj, "mesh");
+    const box = mesh.getBoundingBox();
+    mesh = mesh
+        // .mapVertices(v => v.sub(box.min).div(box.diagonal).scale(2).sub(Vec3(1, 1, 1)))
         .mapVertices(v => v.scale(1))
         .mapVertices(v => Vec3(-v.y, v.x, v.z))
         .mapVertices(v => Vec3(v.z, v.y, -v.x))
         .mapVertices(v => v.add(Vec3(0.5, 1.5, 1.0)))
         .mapColors(() => Color.BLUE)
         .mapMaterials(() => DiElectric(1.33333))
-    scene.add(...bunnyMesh.asTriangles());
+    scene.add(...mesh.asTriangles());
 
     // cornell box
     scene.add(

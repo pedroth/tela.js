@@ -5,8 +5,8 @@ const { measureTime, measureTimeWithResult } = Utils;
 const { saveImageStreamToVideo } = IO;
 
 // constants
-const width = 1080;
-const height = 720;
+const width = 640;
+const height = 480;
 const FPS = 25;
 const dt = 1 / FPS;
 const maxT = 10;
