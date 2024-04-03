@@ -142,18 +142,33 @@ class Node {
     return this;
   }
 
-  interceptWith(ray, depth = 1) {
-    return this.box.interceptWith(ray).flatMap(() => {
-      const children = [this.left, this.right].filter(x => x);
-      const hits = [];
-      for (let i = 0; i < children.length; i++) {
-        children[i].interceptWith(ray, depth + 1)
-          .forEach(hit => hits.push(hit));
-      }
-      const minIndex = argmin(hits, ([point]) => point.sub(ray.init).length());
-      if (minIndex === -1) return none();
-      return some(hits[minIndex]);
-    })
+  interceptWith(ray) {
+    return this.box.interceptWith(ray)
+      .flatMap(() => {
+        // const leftHit = this.left.interceptWith(ray).orElse(() => [Number.MAX_VALUE]);
+        // const rightHit = this.right.interceptWith(ray).orElse(() => [Number.MAX_VALUE]);
+        // if(leftHit[0] === Number.MAX_VALUE && rightHit[0] === Number.MAX_VALUE) return none();
+        // if(leftHit[0] < rightHit[0]) return some(leftHit);
+        // return some(rightHit);
+
+
+        const leftT = this.left.box.interceptWith(ray).map(([t]) => t).orElse(() => Number.MAX_VALUE);
+        const rightT = this.right.box.interceptWith(ray).map(([t]) => t).orElse(() => Number.MAX_VALUE);
+        if (leftT === Number.MAX_VALUE && rightT === Number.MAX_VALUE) return none();
+        const first = leftT <= rightT ? this.left : this.right;
+        const second = leftT > rightT ? this.left : this.right;
+        const firstT = Math.min(leftT, rightT);
+        const secondT = Math.max(leftT, rightT);
+        return first.interceptWith(ray, )
+          .map(hit => {
+            if (hit[0] > secondT) {
+              const maybeHit = second.interceptWith(ray);
+              if (maybeHit.filter(x => x[0] < hit[0]).isSome()) return maybeHit;
+            }
+            return some(hit);
+          })
+          .orElse(() => second.interceptWith(ray, secondT))
+      })
   }
 
   distanceToPoint(p) {

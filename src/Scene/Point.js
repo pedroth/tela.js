@@ -33,7 +33,7 @@ class Point {
         return sphereInterception(this, ray)
             .map(t => {
                 const pointOnSphere = ray.trace(t - epsilon);
-                return [pointOnSphere, this];
+                return [t, pointOnSphere, this];
             })
     }
 

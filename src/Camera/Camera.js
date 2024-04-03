@@ -178,7 +178,7 @@ export default class Camera {
   normalShot(scene, params = {}) {
     const lambda = ray => {
       return scene.interceptWith(ray)
-        .map(([point, element]) => {
+        .map(([, point, element]) => {
           const normal = element.normalToPoint(point);
           // return element.color;
           return Color.ofRGB(
@@ -216,7 +216,7 @@ function trace(ray, scene, options) {
   if (bounces < 0) return Color.BLACK;
   return scene.interceptWith(ray)
     .map(interception => {
-      const [p, e] = interception;
+      const [, p, e] = interception;
       const color = e.color ?? e.colors[0];
       if (e.emissive) return color;
       const mat = e.material;

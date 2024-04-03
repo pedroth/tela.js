@@ -1,6 +1,7 @@
 export function some(x) {
     const object = {
         map: f => maybe(f(x)),
+        filter: f => f(x) ? object : none(),
         orElse: () => x,
         forEach: (f) => f(x),
         flatMap: f => f(x),
@@ -12,6 +13,7 @@ export function some(x) {
 export function none() {
     const object = {
         map: () => object,
+        filter: () => object,
         orElse: (f = () => { }) => f(),
         forEach: () => { },
         flatMap: () => object,

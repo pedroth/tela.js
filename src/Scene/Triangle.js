@@ -51,7 +51,7 @@ export default class Triangle {
             const dot = ni.dot(u);
             if (dot <= epsilon) return none();
         }
-        return some([x, this]);
+        return some([t, x, this]);
     }
 
     getBoundingBox() {

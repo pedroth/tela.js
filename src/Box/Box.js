@@ -44,7 +44,7 @@ export default class Box {
             const d = this.distanceToPoint(p);
             t += d;
             if (d < epsilon) {
-                return some(p);
+                return some([t, p]);
             }
             if (d > minT) {
                 break;

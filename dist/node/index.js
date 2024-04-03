@@ -673,6 +673,7 @@ __export(exports_Monads, {
 function some(x) {
   const object = {
     map: (f) => maybe(f(x)),
+    filter: (f) => f(x) ? object : none(),
     orElse: () => x,
     forEach: (f) => f(x),
     flatMap: (f) => f(x),
@@ -683,6 +684,7 @@ function some(x) {
 function none() {
   const object = {
     map: () => object,
+    filter: () => object,
     orElse: (f = () => {
     }) => f(),
     forEach: () => {
@@ -744,7 +746,7 @@ class Box {
       const d = this.distanceToPoint(p);
       t += d;
       if (d < epsilon) {
-        return some(p);
+        return some([t, p]);
       }
       if (d > minT) {
         break;
@@ -1553,7 +1555,7 @@ class Point {
     const epsilon = 0.000000001;
     return sphereInterception(this, ray).map((t) => {
       const pointOnSphere = ray.trace(t - epsilon);
-      return [pointOnSphere, this];
+      return [t, pointOnSphere, this];
     });
   }
   getBoundingBox() {
@@ -1837,7 +1839,7 @@ class Triangle {
       if (dot <= epsilon)
         return none();
     }
-    return some([x, this]);
+    return some([t, x, this]);
   }
   getBoundingBox() {
     if (this.boundingBox)
@@ -1931,7 +1933,7 @@ var trace = function(ray, scene, options) {
   if (bounces < 0)
     return Color.BLACK;
   return scene.interceptWith(ray).map((interception) => {
-    const [p, e] = interception;
+    const [, p, e] = interception;
     const color = e.color ?? e.colors[0];
     if (e.emissive)
       return color;
@@ -2250,7 +2252,7 @@ class Camera {
   }
   normalShot(scene, params = {}) {
     const lambda = (ray) => {
-      return scene.interceptWith(ray).map(([point, element]) => {
+      return scene.interceptWith(ray).map(([, point, element]) => {
         const normal = element.normalToPoint(point);
         return Color.ofRGB((normal.get(0) + 1) / 2, (normal.get(1) + 1) / 2, (normal.get(2) + 1) / 2);
       }).orElse(() => {
@@ -2551,17 +2553,24 @@ class Node {
     }
     return this;
   }
-  interceptWith(ray, depth = 1) {
+  interceptWith(ray) {
     return this.box.interceptWith(ray).flatMap(() => {
-      const children = [this.left, this.right].filter((x) => x);
-      const hits = [];
-      for (let i = 0;i < children.length; i++) {
-        children[i].interceptWith(ray, depth + 1).forEach((hit) => hits.push(hit));
-      }
-      const minIndex = argmin(hits, ([point]) => point.sub(ray.init).length());
-      if (minIndex === -1)
+      const leftT = this.left.box.interceptWith(ray).map(([t]) => t).orElse(() => Number.MAX_VALUE);
+      const rightT = this.right.box.interceptWith(ray).map(([t]) => t).orElse(() => Number.MAX_VALUE);
+      if (leftT === Number.MAX_VALUE && rightT === Number.MAX_VALUE)
         return none();
-      return some(hits[minIndex]);
+      const first = leftT <= rightT ? this.left : this.right;
+      const second = leftT > rightT ? this.left : this.right;
+      const firstT = Math.min(leftT, rightT);
+      const secondT = Math.max(leftT, rightT);
+      return first.interceptWith(ray).map((hit) => {
+        if (hit[0] > secondT) {
+          const maybeHit = second.interceptWith(ray);
+          if (maybeHit.filter((x) => x[0] < hit[0]).isSome())
+            return maybeHit;
+        }
+        return some(hit);
+      }).orElse(() => second.interceptWith(ray, secondT));
     });
   }
   distanceToPoint(p) {

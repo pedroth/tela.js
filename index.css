@@ -4,9 +4,7 @@
     --secondary-color: rgb(231, 76, 60);
     --tertiary-color: rgb(60, 231, 63);
     --background-color: rgb(24, 24, 24);
-    --background-color-light: rgb(255, 255, 255);
     --text-color: rgba(255, 255, 255, 0.9);
-    --text-color-light: rgba(24, 24, 24, 0.9);
     --fast-transition: 0.3s;
     --faster-transition: 0.1s;
 }
