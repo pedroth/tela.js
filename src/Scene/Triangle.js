@@ -33,7 +33,7 @@ export default class Triangle {
     normalToPoint(p) {
         const r = p.sub(this.positions[0]);
         const dot = this.faceNormal.dot(r);
-        return dot >= 0 ? this.faceNormal : this.faceNormal.scale(-1);
+        return dot < 1e-3 ? this.faceNormal : this.faceNormal.scale(-1);
     }
 
     interceptWith(ray) {
@@ -42,16 +42,16 @@ export default class Triangle {
         const p = ray.init.sub(this.positions[0]);
         const n = this.faceNormal;
         const t = - n.dot(p) / n.dot(v);
-        if (t <= epsilon) return none();
+        if (t <= epsilon) return;
         const x = ray.trace(t);
         for (let i = 0; i < this.positions.length; i++) {
             const xi = this.positions[i];
             const u = x.sub(xi);
-            const ni = n.cross(this.edges[i]).normalize();
+            const ni = n.cross(this.edges[i]);
             const dot = ni.dot(u);
-            if (dot <= epsilon) return none();
+            if (dot <= epsilon) return;
         }
-        return some([t, x, this]);
+        return [t - epsilon, x, this];
     }
 
     getBoundingBox() {

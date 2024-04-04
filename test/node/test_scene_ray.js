@@ -20,7 +20,7 @@ const scenes = [new BScene(), new KScene(100), new VoxelScene(0.2), new NaiveSce
 const triangles = mesh.asTriangles();
 scenes.forEach(scene => {
     scene.addList(triangles);
-    const { result, time } = measureTimeWithResult(() => camera.sceneShot(scene).to(canvas));
+    const { result, time } = measureTimeWithResult(() => camera.normalShot(scene).to(canvas));
     console.log(`${scene.constructor.name}: ${time}s`);
     saveImageToFile(`${scene.constructor.name}.png`, result);
 })

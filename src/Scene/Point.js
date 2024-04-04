@@ -30,11 +30,8 @@ class Point {
 
     interceptWith(ray) {
         const epsilon = 1e-9;
-        return sphereInterception(this, ray)
-            .map(t => {
-                const pointOnSphere = ray.trace(t - epsilon);
-                return [t, pointOnSphere, this];
-            })
+        const t = sphereInterception(this, ray);
+        return !t ? undefined : [t, ray.trace(t - epsilon), this];
     }
 
     getBoundingBox() {
@@ -147,13 +144,13 @@ function sphereInterception(point, ray) {
     const b = 2 * dir.dot(diff);
     const c = diff.squareLength() - point.radius * point.radius;
     const discriminant = b * b - 4 * c; // a = 1
-    if (discriminant < 0) return none();
+    if (discriminant < 0) return;
     const sqrt = Math.sqrt(discriminant);
     const [t1, t2] = [(-b - sqrt) / 2, (-b + sqrt) / 2];
     const t = Math.min(t1, t2);
     const tM = Math.max(t1, t2);
-    if (t1 * t2 < 0) return some(tM);
-    return t1 >= 0 && t2 >= 0 ? some(t) : none();
+    if (t1 * t2 < 0) return tM;
+    return t1 >= 0 && t2 >= 0 ? t : undefined;
 }
 
 export default Point;

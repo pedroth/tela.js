@@ -49,14 +49,14 @@ export default class Line {
             const d = this.distanceToPoint(p);
             t += d;
             if (d < epsilon) {
-                return some([p, this]);
+                return [t, p, this];
             }
             if (d > minT) {
                 break;
             }
             minT = d;
         }
-        return none();
+        return;
     }
 
     getBoundingBox() {

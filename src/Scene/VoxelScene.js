@@ -88,23 +88,16 @@ export default class VoxelScene {
         }
         if (elements?.length) {
             let closestDistance = Number.MAX_VALUE;
-            let closest = none();
+            let closest;
             for (let i = 0; i < elements.length; i++) {
-                elements[i].interceptWith(ray)
-                    .map(([pos, normal]) => {
-                        const distance = ray
-                            .init
-                            .sub(pos)
-                            .length();
-                        if (distance < closestDistance) {
-                            closest = some([pos, normal]);
-                            closestDistance = distance;
-                        }
-                    })
+                const hit = elements[i].interceptWith(ray)
+                if (hit && hit[0] < closestDistance) {
+                    closest = hit;
+                    closestDistance = hit[0];
+                }
             }
             return closest;
         }
-        return none();
     }
 
     distanceToPoint(p) {

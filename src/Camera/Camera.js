@@ -177,19 +177,17 @@ export default class Camera {
 
   normalShot(scene, params = {}) {
     const lambda = ray => {
-      return scene.interceptWith(ray)
-        .map(([, point, element]) => {
-          const normal = element.normalToPoint(point);
-          // return element.color;
-          return Color.ofRGB(
-            (normal.get(0) + 1) / 2,
-            (normal.get(1) + 1) / 2,
-            (normal.get(2) + 1) / 2
-          )
-        })
-        .orElse(() => {
-          return Color.BLACK;
-        })
+      const hit = scene.interceptWith(ray)
+      if (hit) {
+        const [, point, element] = hit;
+        const normal = element.normalToPoint(point);
+        return Color.ofRGB(
+          (normal.get(0) + 1) / 2,
+          (normal.get(1) + 1) / 2,
+          (normal.get(2) + 1) / 2
+        )
+      }
+      return Color.BLACK;
     }
     return this.rayMap(lambda);
   }
@@ -214,21 +212,19 @@ export default class Camera {
 function trace(ray, scene, options) {
   const { bounces } = options;
   if (bounces < 0) return Color.BLACK;
-  return scene.interceptWith(ray)
-    .map(interception => {
-      const [, p, e] = interception;
-      const color = e.color ?? e.colors[0];
-      if (e.emissive) return color;
-      const mat = e.material;
-      let r = mat.scatter(ray, p, e);
-      let finalC = trace(
-        r,
-        scene,
-        { bounces: bounces - 1 }
-      );
-      return color.mul(finalC);
-    })
-    .orElse(() => Color.BLACK);
+  const hit = scene.interceptWith(ray);
+  if (!hit) return Color.BLACK;
+  const [, p, e] = hit;
+  const color = e.color ?? e.colors[0];
+  if (e.emissive) return color;
+  const mat = e.material;
+  let r = mat.scatter(ray, p, e);
+  let finalC = trace(
+    r,
+    scene,
+    { bounces: bounces - 1 }
+  );
+  return color.mul(finalC);
 }
 
 

@@ -1,4 +1,3 @@
-import { none, some } from "../Monads/Monads.js";
 import Vec from "../Vector/Vector.js";
 
 
@@ -35,7 +34,7 @@ export default class Box {
 
     interceptWith(ray) {
         const maxIte = 100;
-        const epsilon = 1e-3;
+        const epsilon = 1e-1;
         let p = ray.init;
         let t = this.distanceToPoint(p);
         let minT = t;
@@ -44,14 +43,14 @@ export default class Box {
             const d = this.distanceToPoint(p);
             t += d;
             if (d < epsilon) {
-                return some([t, p]);
+                return [t, p];
             }
             if (d > minT) {
                 break;
             }
             minT = d;
         }
-        return none();
+        return;
     }
 
     scale(r) {

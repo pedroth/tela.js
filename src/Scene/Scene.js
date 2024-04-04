@@ -143,32 +143,21 @@ class Node {
   }
 
   interceptWith(ray) {
-    return this.box.interceptWith(ray)
-      .flatMap(() => {
-        // const leftHit = this.left.interceptWith(ray).orElse(() => [Number.MAX_VALUE]);
-        // const rightHit = this.right.interceptWith(ray).orElse(() => [Number.MAX_VALUE]);
-        // if(leftHit[0] === Number.MAX_VALUE && rightHit[0] === Number.MAX_VALUE) return none();
-        // if(leftHit[0] < rightHit[0]) return some(leftHit);
-        // return some(rightHit);
-
-
-        const leftT = this.left.box.interceptWith(ray).map(([t]) => t).orElse(() => Number.MAX_VALUE);
-        const rightT = this.right.box.interceptWith(ray).map(([t]) => t).orElse(() => Number.MAX_VALUE);
-        if (leftT === Number.MAX_VALUE && rightT === Number.MAX_VALUE) return none();
-        const first = leftT <= rightT ? this.left : this.right;
-        const second = leftT > rightT ? this.left : this.right;
-        const firstT = Math.min(leftT, rightT);
-        const secondT = Math.max(leftT, rightT);
-        return first.interceptWith(ray, )
-          .map(hit => {
-            if (hit[0] > secondT) {
-              const maybeHit = second.interceptWith(ray);
-              if (maybeHit.filter(x => x[0] < hit[0]).isSome()) return maybeHit;
-            }
-            return some(hit);
-          })
-          .orElse(() => second.interceptWith(ray, secondT))
-      })
+    const boxHit = this.box.interceptWith(ray);
+    if (!boxHit) return;
+    // const leftHit = this.left.interceptWith(ray);
+    // const rightHit = this.right.interceptWith(ray);
+    // return leftHit && leftHit[0] < (rightHit?.[0] ?? Number.MAX_VALUE) ? leftHit : rightHit;
+    const leftT = this.left.box.interceptWith(ray)?.[0] ?? Number.MAX_VALUE;
+    const rightT = this.right.box.interceptWith(ray)?.[0] ?? Number.MAX_VALUE;
+    if (leftT === Number.MAX_VALUE && rightT === Number.MAX_VALUE) return;
+    const first = leftT <= rightT ? this.left : this.right;
+    const second = leftT > rightT ? this.left : this.right;
+    const secondT = Math.max(leftT, rightT);
+    const firstHit = first.interceptWith(ray);
+    if (firstHit && firstHit[0] < secondT) return firstHit;
+    const secondHit = second.interceptWith(ray);
+    return secondHit && secondHit[0] < (firstHit?.[0] ?? Number.MAX_VALUE) ? secondHit : firstHit;
   }
 
   distanceToPoint(p) {

@@ -2,7 +2,6 @@
 import Box from "../Box/Box.js";
 import Vec from "../Vector/Vector.js";
 import { argmin } from "../Utils/Utils.js";
-import { none, some } from "../Monads/Monads.js";
 import Color from "../Color/Color.js";
 import NaiveScene from "./NaiveScene.js";
 import PQueue from "../PQueue/PQueue.js";
@@ -142,18 +141,19 @@ class Node {
     return this;
   }
 
-  interceptWith(ray, depth = 1) {
-    return this.box.interceptWith(ray).flatMap(() => {
-      const children = [this.left, this.right].filter(x => x);
-      const hits = [];
-      for (let i = 0; i < children.length; i++) {
-        children[i].interceptWith(ray, depth + 1)
-          .forEach(hit => hits.push(hit));
-      }
-      const minIndex = argmin(hits, ([t]) => t);
-      if (minIndex === -1) return none();
-      return some(hits[minIndex]);
-    })
+  interceptWith(ray) {
+    const boxHit = this.box.interceptWith(ray);
+    if (!boxHit) return;
+    const leftT = this.left.box.interceptWith(ray)?.[0] ?? Number.MAX_VALUE;
+    const rightT = this.right.box.interceptWith(ray)?.[0] ?? Number.MAX_VALUE;
+    if (leftT === Number.MAX_VALUE && rightT === Number.MAX_VALUE) return;
+    const first = leftT <= rightT ? this.left : this.right;
+    const second = leftT > rightT ? this.left : this.right;
+    const secondT = Math.max(leftT, rightT);
+    const firstHit = first.interceptWith(ray);
+    if (firstHit && firstHit[0] < secondT) return firstHit;
+    const secondHit = second.interceptWith(ray);
+    return secondHit && secondHit[0] < (firstHit?.[0] ?? Number.MAX_VALUE) ? secondHit : firstHit;
   }
 
   distanceToPoint(p) {

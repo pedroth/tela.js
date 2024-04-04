@@ -23,12 +23,12 @@ const { measureTimeWithResult } = Utils;
     for (let i = 0; i < maxIte; i++) {
         const scene = new KScene((i + 1) * spacing);
         scene.addList(mesh.asPoints(size));
-        const { time } = measureTimeWithResult(() => camera.sceneShot(scene).to(Image.ofSize(width, height)));
+        const { time } = measureTimeWithResult(() => camera.normalShot(scene).to(Image.ofSize(width, height)));
         if (time < minTime) {
             minTime = time;
             minIndex = i;
             console.log(`${i} >>> ${minTime}`);
         }
     }
-    console.log(`Size of points: ${size} >>> ${minIndex * spacing}`);
+    console.log(`Size of points: ${size}, Number of vertices: ${mesh.vertices.length}>>> ${minIndex * spacing} >>> ${}`);
 })();

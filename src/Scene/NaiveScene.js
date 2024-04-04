@@ -1,7 +1,5 @@
 
-import { none, some } from "../Monads/Monads.js";
 import Vec from "../Vector/Vector.js";
-import { smin } from "../Utils/Math.js";
 import { argmin } from "../Utils/Utils.js";
 
 export default class NaiveScene {
@@ -56,19 +54,13 @@ export default class NaiveScene {
   interceptWith(ray) {
     const points = this.sceneElements;
     let closestDistance = Number.MAX_VALUE;
-    let closest = none();
+    let closest;
     for (let i = 0; i < points.length; i++) {
-      points[i].interceptWith(ray)
-        .map(([pos, normal]) => {
-          const distance = ray
-            .init
-            .sub(pos)
-            .length();
-          if (distance < closestDistance) {
-            closest = some([pos, normal]);
-            closestDistance = distance;
-          }
-        })
+      const hit = points[i].interceptWith(ray);
+      if (hit && hit[0] < closestDistance) {
+        closest = hit;
+        closestDistance = hit[0];
+      }
     }
     return closest;
   }
@@ -79,5 +71,9 @@ export default class NaiveScene {
 
   debug(params) {
     return params.canvas;
+  }
+
+  rebuild() {
+    return this;
   }
 }

@@ -11,6 +11,10 @@ export default class PQueue {
         return this.data.length;
     }
 
+    peek() {
+        return this.data[0];
+    }
+
     push(element) {
         this.data.push(element);
         if (this.data.length <= 1) return this;

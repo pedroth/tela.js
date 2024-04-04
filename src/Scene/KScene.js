@@ -2,7 +2,6 @@
 import Box from "../Box/Box.js";
 import Vec from "../Vector/Vector.js";
 import { argmin } from "../Utils/Utils.js";
-import { none, some } from "../Monads/Monads.js";
 import PQueue from "../PQueue/PQueue.js";
 import NaiveScene from "./NaiveScene.js";
 import Color from "../Color/Color.js";
@@ -122,21 +121,32 @@ export default class KScene {
     }
 
     rebuild() {
-        let groupsStack = clusterLeafs(this.boundingBoxScene.box, this.sceneElements.map(x => new Leaf(x)))
+        let groupsQueue = PQueue.ofArray(
+            [...clusterLeafs(this.boundingBoxScene.box, this.sceneElements.map(x => new Leaf(x)))],
+            (a, b) => b.length - a.length
+        )
         while (
-            groupsStack
+            groupsQueue
+                .data
                 .map(x => x.length > this.k)
                 .some(x => x)
         ) {
-            const groupOfLeafs = groupsStack.pop();
-            if (groupOfLeafs.length > this.k) {
+            if (groupsQueue.peek().length > this.k) {
+                const groupOfLeafs = groupsQueue.pop();
                 const box = groupOfLeafs.reduce((e, x) => e.add(x.box), new Box());
                 const [left, right] = clusterLeafs(box, groupOfLeafs);
-                groupsStack.push(left);
-                groupsStack.push(right)
+                groupsQueue.push(left);
+                groupsQueue.push(right)
             }
         }
-        let nodeOrLeafStack = groupsStack.map(group => group.reduce((e, x) => e.add(x.element), new Node(this.k)));
+        let nodeOrLeafStack = groupsQueue
+            .data
+            .map(group =>
+                group.reduce((e, x) =>
+                    e.add(x.element),
+                    new Node(this.k)
+                )
+            );
         while (nodeOrLeafStack.length > 1) {
             const nodeOrLeaf = nodeOrLeafStack[0];
             nodeOrLeafStack = nodeOrLeafStack.slice(1);
@@ -186,21 +196,22 @@ class Node {
         return this;
     }
 
-    interceptWith(ray, depth = 1) {
+    interceptWith(ray) {
+        const boxHit = this.box.interceptWith(ray);
+        if (!boxHit) return;
         if (this.leafs.length > 0) {
             return leafsInterceptWith(this.leafs, ray);
         }
-        return this.box.interceptWith(ray).flatMap(() => {
-            const children = [this.left, this.right];
-            const hits = [];
-            for (let i = 0; i < children.length; i++) {
-                children[i].interceptWith(ray, depth + 1)
-                    .forEach(hit => hits.push(hit));
-            }
-            const minIndex = argmin(hits, ([point]) => point.sub(ray.init).length());
-            if (minIndex === -1) return none();
-            return some(hits[minIndex]);
-        })
+        const leftT = this.left.box.interceptWith(ray)?.[0] ?? Number.MAX_VALUE;
+        const rightT = this.right.box.interceptWith(ray)?.[0] ?? Number.MAX_VALUE;
+        if (leftT === Number.MAX_VALUE && rightT === Number.MAX_VALUE) return;
+        const first = leftT <= rightT ? this.left : this.right;
+        const second = leftT > rightT ? this.left : this.right;
+        const secondT = Math.max(leftT, rightT);
+        const firstHit = first.interceptWith(ray);
+        if (firstHit && firstHit[0] < secondT) return firstHit;
+        const secondHit = second.interceptWith(ray);
+        return secondHit && secondHit[0] < (firstHit?.[0] ?? Number.MAX_VALUE) ? secondHit : firstHit;
     }
 
     distanceToPoint(p) {
@@ -322,19 +333,13 @@ function clusterLeafs(box, leafs, it = 10) {
 
 function leafsInterceptWith(leafs, ray) {
     let closestDistance = Number.MAX_VALUE;
-    let closest = none();
+    let closest;
     for (let i = 0; i < leafs.length; i++) {
-        leafs[i].interceptWith(ray)
-            .map(([pos, normal]) => {
-                const distance = ray
-                    .init
-                    .sub(pos)
-                    .length();
-                if (distance < closestDistance) {
-                    closest = some([pos, normal]);
-                    closestDistance = distance;
-                }
-            })
+        const hit = leafs[i].interceptWith(ray);
+        if (hit && hit[0] < closestDistance) {
+            closest = hit;
+            closestDistance = hit[0];
+        }
     }
     return closest;
 }

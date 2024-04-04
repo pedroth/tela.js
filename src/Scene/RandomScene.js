@@ -177,9 +177,9 @@ class Node {
                 children[i].interceptWith(ray, depth + 1)
                     .forEach(hit => hits.push(hit));
             }
-            const minIndex = argmin(hits, ([point]) => point.sub(ray.init).length());
-            if (minIndex === -1) return none();
-            return some(hits[minIndex]);
+            const minIndex = argmin(hits, ([t]) => t);
+            if (minIndex === -1) return;
+            return hits[minIndex];
         })
     }
 
