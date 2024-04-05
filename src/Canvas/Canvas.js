@@ -107,62 +107,64 @@ export default class Canvas {
     return drawConvexPolygon(this, [x1, x2, x3], shader);
   }
 
-  mapParallel(lambda, dependencies = [], vars = {}) {
-    return new Promise((resolve) => {
-      const w = this._width;
-      const h = this._height;
-      const N = navigator.hardwareConcurrency;
-      const fun = ({ _start_row, _end_row, _width_, _height_, _worker_id_, _vars_ }) => {
-        const image = new Uint8Array(4 * _width_ * (_end_row - _start_row + 1));
-        const startIndex = 4 * _width_ * _start_row;
-        const endIndex = 4 * _width_ * _end_row;
-        let index = 0;
-        for (let k = startIndex; k < endIndex; k += 4) {
-          const i = Math.floor(k / (4 * _width_));
-          const j = Math.floor((k / 4) % _width_);
-          const x = j;
-          const y = _height_ - 1 - i;
-          const color = lambda(x, y, { ..._vars_ });
-          if (!color) return;
-          image[index] = Math.floor(color.red * MAX_8BIT);
-          image[index + 1] = Math.floor(color.green * MAX_8BIT);
-          image[index + 2] = Math.floor(color.blue * MAX_8BIT);
-          image[index + 3] = 255;
-          index += 4;
-        }
-        return { image, _start_row, _end_row, _worker_id_ };
+  mapParallel = memoize((lambda, dependencies = []) => {
+    const N = navigator.hardwareConcurrency;
+    const w = this._width;
+    const h = this._height;
+    const fun = ({ _start_row, _end_row, _width_, _height_, _worker_id_, _vars_ }) => {
+      const image = new Uint8Array(4 * _width_ * (_end_row - _start_row));
+      const startIndex = 4 * _width_ * _start_row;
+      const endIndex = 4 * _width_ * _end_row;
+      let index = 0;
+      for (let k = startIndex; k < endIndex; k += 4) {
+        const i = Math.floor(k / (4 * _width_));
+        const j = Math.floor((k / 4) % _width_);
+        const x = j;
+        const y = _height_ - 1 - i;
+        const color = lambda(x, y, { ..._vars_ });
+        if (!color) return;
+        image[index] = Math.floor(color.red * MAX_8BIT);
+        image[index + 1] = Math.floor(color.green * MAX_8BIT);
+        image[index + 2] = Math.floor(color.blue * MAX_8BIT);
+        image[index + 3] = MAX_8BIT;
+        index += 4;
       }
-      const worker = createWorker(fun, lambda, dependencies);
-      const workers = [...Array(N)]
-        .map(() => worker);
-      const allWorkersDone = [...Array(N)].fill(false);
-      workers.forEach((worker, k) => {
-        const ratio = Math.floor(h / N);
-        worker.postMessage({
-          _start_row: k * ratio,
-          _end_row: (k + 1) * ratio,
-          _width_: w,
-          _height_: h,
-          _worker_id_: k,
-          _vars_: vars
-        });
-        worker.onmessage = (event) => {
-          const { image, _start_row, _end_row, _worker_id_ } = event.data;
-          let index = 0;
-          const startIndex = 4 * w * _start_row;
-          const endIndex = 4 * w * _end_row;
-          for (let i = startIndex; i < endIndex; i++) {
-            this._image[i] = image[index];
-            index++;
-          }
-          allWorkersDone[_worker_id_] = true;
-          if (allWorkersDone.every(x => x)) {
-            return resolve(this.paint());
-          }
-        };
-      })
-    });
-  }
+      return { image, _start_row, _end_row, _worker_id_ };
+    }
+    const workers = [...Array(N)].map(() => createWorker(fun, lambda, dependencies));
+    return {
+      run: (vars = {}) => {
+        return new Promise((resolve) => {
+          const allWorkersDone = [...Array(N)].fill(false);
+          workers.forEach((worker, k) => {
+            worker.onmessage = (event) => {
+              const { image, _start_row, _end_row, _worker_id_ } = event.data;
+              let index = 0;
+              const startIndex = 4 * w * _start_row;
+              const endIndex = 4 * w * _end_row;
+              for (let i = startIndex; i < endIndex; i++) {
+                this._image[i] = image[index];
+                index++;
+              }
+              allWorkersDone[_worker_id_] = true;
+              if (allWorkersDone.every(x => x)) {
+                return resolve(this.paint());
+              }
+            };
+            const ratio = Math.floor(h / N);
+            worker.postMessage({
+              _start_row: k * ratio,
+              _end_row: Math.min(h - 1, (k + 1) * ratio),
+              _width_: w,
+              _height_: h,
+              _worker_id_: k,
+              _vars_: vars
+            });
+          })
+        })
+      }
+    }
+  });
 
   paint() {
     this._ctx.putImageData(this._imageData, 0, 0);
@@ -360,7 +362,7 @@ function handleMouse(canvas, lambda) {
   }
 }
 
-const createWorker = memoize((main, lambda, dependencies) => {
+const createWorker = (main, lambda, dependencies) => {
   const workerFile = `
   const MAX_8BIT=${MAX_8BIT};
   ${clamp.toString()}
@@ -375,4 +377,4 @@ const createWorker = memoize((main, lambda, dependencies) => {
   };
   `;
   return new Worker(URL.createObjectURL(new Blob([workerFile])));
-});
+};

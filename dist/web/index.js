@@ -618,12 +618,6 @@ class Color {
   toString() {
     return `red: ${this.red}, green: ${this.green}, blue: ${this.blue}`;
   }
-  to32() {
-    const r = Math.round(this.red * MAX_8BIT);
-    const g = Math.round(this.green * MAX_8BIT);
-    const b = Math.round(this.blue * MAX_8BIT);
-    return 255 << 24 | b << 16 | g << 8 | r;
-  }
   toGamma(alpha = 0.5) {
     const r = this.rgb[0] > 0 ? this.rgb[0] ** alpha : this.rgb[0];
     const g = this.rgb[1] > 0 ? this.rgb[1] ** alpha : this.rgb[1];
@@ -892,7 +886,7 @@ function arrayIsEqual(a, b) {
 function memoize(func) {
   const cache = {};
   return (...args) => {
-    const key = JSON.stringify(args.map((x) => x.toString()));
+    const key = JSON.stringify(args.map((x) => typeof x === "object" ? JSON.stringify(x) : x.toString()));
     if (key in cache)
       return cache[key];
     const ans = func(...args);
@@ -1033,62 +1027,65 @@ class Canvas {
   drawTriangle(x1, x2, x3, shader) {
     return drawConvexPolygon(this, [x1, x2, x3], shader);
   }
-  mapParallel(lambda, dependencies = [], vars = {}) {
-    return new Promise((resolve) => {
-      const w = this._width;
-      const h = this._height;
-      const N = navigator.hardwareConcurrency;
-      const fun = ({ _start_row, _end_row, _width_, _height_, _worker_id_, _vars_ }) => {
-        const image = new Uint8Array(4 * _width_ * (_end_row - _start_row + 1));
-        const startIndex = 4 * _width_ * _start_row;
-        const endIndex = 4 * _width_ * _end_row;
-        let index = 0;
-        for (let k = startIndex;k < endIndex; k += 4) {
-          const i = Math.floor(k / (4 * _width_));
-          const j = Math.floor(k / 4 % _width_);
-          const x = j;
-          const y = _height_ - 1 - i;
-          const color = lambda(x, y, { ..._vars_ });
-          if (!color)
-            return;
-          image[index] = Math.floor(color.red * MAX_8BIT);
-          image[index + 1] = Math.floor(color.green * MAX_8BIT);
-          image[index + 2] = Math.floor(color.blue * MAX_8BIT);
-          image[index + 3] = 255;
-          index += 4;
-        }
-        return { image, _start_row, _end_row, _worker_id_ };
-      };
-      const worker = createWorker(fun, lambda, dependencies);
-      const workers = [...Array(N)].map(() => worker);
-      const allWorkersDone = [...Array(N)].fill(false);
-      workers.forEach((worker2, k) => {
-        const ratio = Math.floor(h / N);
-        worker2.postMessage({
-          _start_row: k * ratio,
-          _end_row: (k + 1) * ratio,
-          _width_: w,
-          _height_: h,
-          _worker_id_: k,
-          _vars_: vars
+  mapParallel = memoize((lambda, dependencies = []) => {
+    const N = navigator.hardwareConcurrency;
+    const w = this._width;
+    const h = this._height;
+    const fun = ({ _start_row, _end_row, _width_, _height_, _worker_id_, _vars_ }) => {
+      const image = new Uint8Array(4 * _width_ * (_end_row - _start_row));
+      const startIndex = 4 * _width_ * _start_row;
+      const endIndex = 4 * _width_ * _end_row;
+      let index = 0;
+      for (let k = startIndex;k < endIndex; k += 4) {
+        const i = Math.floor(k / (4 * _width_));
+        const j = Math.floor(k / 4 % _width_);
+        const x = j;
+        const y = _height_ - 1 - i;
+        const color = lambda(x, y, { ..._vars_ });
+        if (!color)
+          return;
+        image[index] = Math.floor(color.red * MAX_8BIT);
+        image[index + 1] = Math.floor(color.green * MAX_8BIT);
+        image[index + 2] = Math.floor(color.blue * MAX_8BIT);
+        image[index + 3] = MAX_8BIT;
+        index += 4;
+      }
+      return { image, _start_row, _end_row, _worker_id_ };
+    };
+    const workers = [...Array(N)].map(() => createWorker(fun, lambda, dependencies));
+    return {
+      run: (vars = {}) => {
+        return new Promise((resolve) => {
+          const allWorkersDone = [...Array(N)].fill(false);
+          workers.forEach((worker, k) => {
+            worker.onmessage = (event) => {
+              const { image, _start_row, _end_row, _worker_id_ } = event.data;
+              let index = 0;
+              const startIndex = 4 * w * _start_row;
+              const endIndex = 4 * w * _end_row;
+              for (let i = startIndex;i < endIndex; i++) {
+                this._image[i] = image[index];
+                index++;
+              }
+              allWorkersDone[_worker_id_] = true;
+              if (allWorkersDone.every((x) => x)) {
+                return resolve(this.paint());
+              }
+            };
+            const ratio = Math.floor(h / N);
+            worker.postMessage({
+              _start_row: k * ratio,
+              _end_row: Math.min(h - 1, (k + 1) * ratio),
+              _width_: w,
+              _height_: h,
+              _worker_id_: k,
+              _vars_: vars
+            });
+          });
         });
-        worker2.onmessage = (event) => {
-          const { image, _start_row, _end_row, _worker_id_ } = event.data;
-          let index = 0;
-          const startIndex = 4 * w * _start_row;
-          const endIndex = 4 * w * _end_row;
-          for (let i = startIndex;i < endIndex; i++) {
-            this._image[i] = image[index];
-            index++;
-          }
-          allWorkersDone[_worker_id_] = true;
-          if (allWorkersDone.every((x) => x)) {
-            return resolve(this.paint());
-          }
-        };
-      });
-    });
-  }
+      }
+    };
+  });
   paint() {
     this._ctx.putImageData(this._imageData, 0, 0);
     return this;
@@ -1208,7 +1205,7 @@ class Canvas {
     });
   }
 }
-var createWorker = memoize((main, lambda, dependencies) => {
+var createWorker = (main, lambda, dependencies) => {
   const workerFile = `
   const MAX_8BIT=${MAX_8BIT};
   ${clamp.toString()}
@@ -1223,7 +1220,7 @@ var createWorker = memoize((main, lambda, dependencies) => {
   };
   `;
   return new Worker(URL.createObjectURL(new Blob([workerFile])));
-});
+};
 
 // src/DomBuilder/DomBuilder.js
 var isElement = function(o) {

@@ -78,7 +78,7 @@ export function memoize(func) {
     // not working...
     const cache = {}
     return (...args) => {
-        const key = JSON.stringify(args.map(x => x.toString()));
+        const key = JSON.stringify(args.map(x => typeof x === "object" ? JSON.stringify(x) : x.toString()));
         if (key in cache) return cache[key];
         const ans = func(...args);
         cache[key] = ans;
