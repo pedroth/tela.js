@@ -12,7 +12,7 @@ const dt = 1 / FPS;
 const maxT = 10;
 
 // scene
-const scene = new KScene(100);
+const scene = new KScene(10);
 const camera = new Camera({
     sphericalCoords: Vec3(5, 0, 0),
     focalPoint: Vec3(1.5, 1.5, 1.5)
@@ -71,7 +71,7 @@ scene.add(
         .build(),
 )
 
-const shot = (image) => camera.sceneShot(scene, { samplesPerPxl: 500, bounces: 20, gamma: 0.5 }).to(image ?? Image.ofSize(width, height));
+const shot = (image) => camera.sceneShot(scene, { samplesPerPxl: 50, bounces: 20, gamma: 0.5 }).to(image ?? Image.ofSize(width, height));
 
 const imageStream = new Stream(
     { time: 0, image: shot() },

@@ -105,7 +105,8 @@ export function saveImageStreamToVideo(fileAddress, streamWithImages, { imageGet
     }
 }
 
-export function saveParallelImageStreamToVideo(fileAddress, parallelStreamOfImages, { fps }) {
+export function saveParallelImageStreamToVideo(fileAddress, parallelStreamOfImages, options) {
+    const { fps, isNode = true } = options;
     const { fileName, extension } = getFileNameAndExtensionFromAddress(fileAddress);
     const partition = parallelStreamOfImages.getPartition();
     const inputParamsPartitions = Object.values(partition);
@@ -117,7 +118,7 @@ export function saveParallelImageStreamToVideo(fileAddress, parallelStreamOfImag
             import fs from "fs";
 
             
-            ${createPPMFromImage.toString().replaceAll("function(image)", "function __createPPMFromImage__(image)")}
+            ${createPPMFromImage.toString().replaceAll("function createPPMFromImage(image)", "function __createPPMFromImage__(image)")}
             
             ${parallelStreamOfImages.dependencies.map(dependency => dependency.toString()).join("\n")}
             
@@ -134,7 +135,7 @@ export function saveParallelImageStreamToVideo(fileAddress, parallelStreamOfImag
             });
         `);
         return new Promise(resolve => {
-            exec(`bun ${spawnFile}`, () => resolve());
+            exec(`${isNode ? "node" : "bun"} ${spawnFile}`, () => resolve());
         });
     })
     return Promise.all(promises)
