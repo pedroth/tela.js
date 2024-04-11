@@ -1,11 +1,11 @@
 /* eslint-disable no-undef */
 async (canvas, logger) => {
     // resize incoming canvas:Canvas object.
-    const width = 640 / 2;
-    const height = 480 / 2;
+    const width = 640;
+    const height = 480;
     canvas.resize(width, height);
     // scene
-    const scene = new KScene()
+    const scene = new NaiveScene()
     const camera = new Camera();
     // mouse handling
     let mousedown = false;

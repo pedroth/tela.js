@@ -69,7 +69,7 @@ export default class Camera {
           const dirInLocal = [
             (x / w - 0.5),
             (y / h - 0.5),
-            1
+            this.distanceToPlane
           ]
           const dir = Vec3(
             this.basis[0].x * dirInLocal[0] + this.basis[1].x * dirInLocal[1] + this.basis[2].x * dirInLocal[2],

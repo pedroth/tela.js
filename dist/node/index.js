@@ -2162,7 +2162,7 @@ class Camera {
           const dirInLocal = [
             x / w - 0.5,
             y / h - 0.5,
-            1
+            this.distanceToPlane
           ];
           const dir = Vec3(this.basis[0].x * dirInLocal[0] + this.basis[1].x * dirInLocal[1] + this.basis[2].x * dirInLocal[2], this.basis[0].y * dirInLocal[0] + this.basis[1].y * dirInLocal[1] + this.basis[2].y * dirInLocal[2], this.basis[0].z * dirInLocal[0] + this.basis[1].z * dirInLocal[1] + this.basis[2].z * dirInLocal[2]).normalize();
           return lambdaWithRays(Ray(this.eye, dir), params);
@@ -3397,18 +3397,54 @@ var random = function(n) {
 };
 var leafsInterceptWith2 = function(leafs, ray) {
   let closestDistance = Number.MAX_VALUE;
-  let closest = none();
+  let closest;
   for (let i = 0;i < leafs.length; i++) {
-    leafs[i].interceptWith(ray).map(([pos, normal]) => {
-      const distance = ray.init.sub(pos).length();
-      if (distance < closestDistance) {
-        closest = some([pos, normal]);
-        closestDistance = distance;
-      }
-    });
+    const hit = leafs[i].interceptWith(ray);
+    if (hit && hit[0] < closestDistance) {
+      closest = hit;
+      closestDistance = hit[0];
+    }
   }
   return closest;
 };
+var rayCache = (gridSize = 0.01, dirGrid = 0.01) => {
+  const cache = {};
+  cache.table = {};
+  function hash(p) {
+    const integerCoord = p.map((z) => Math.floor(z / gridSize));
+    const h = integerCoord.x * 92837111 ^ integerCoord.y * 689287499 ^ integerCoord.z * 283923481;
+    return Math.abs(h);
+  }
+  function dirHash(d) {
+    const sphericalCoords = Vec2(Math.atan2(d.y, d.x), Math.asin(d.z));
+    const integerCoord = sphericalCoords.map((z) => Math.floor(z / dirGrid));
+    const h = integerCoord.x * 92837111 ^ integerCoord.y * 689287499;
+    return Math.abs(h);
+  }
+  cache.put = (ray, value) => {
+    const { init, dir } = ray;
+    let h = hash(init);
+    if (!(h in cache.table)) {
+      cache.table[h] = {};
+    }
+    const dirCache = cache.table[h];
+    h = dirHash(dir);
+    dirCache[h] = value;
+    return cache;
+  };
+  cache.get = (ray) => {
+    const { init, dir } = ray;
+    let h = hash(init);
+    const dirCache = cache.table[h];
+    if (dirCache) {
+      h = dirHash(dir);
+      return dirCache[h];
+    }
+    return;
+  };
+  return cache;
+};
+var RAY_CACHE = rayCache();
 
 class RandomScene {
   constructor(k = 10) {
@@ -3445,6 +3481,10 @@ class RandomScene {
     return this.boundingBoxScene.getElemNear(p);
   }
   interceptWith(ray, level) {
+    const nodeCache = RAY_CACHE.get(ray);
+    if (nodeCache) {
+      return leafsInterceptWith2(nodeCache.leafs, ray);
+    }
     return this.boundingBoxScene.interceptWith(ray, level);
   }
   distanceToPoint(p) {
@@ -3493,17 +3533,17 @@ class RandomScene {
     return canvas;
   }
   rebuild() {
-    let groupsStack = clusterLeafs2(this.boundingBoxScene.box, this.sceneElements.map((x) => new Leaf4(x)));
-    while (groupsStack.map((x) => x.length > this.k).some((x) => x)) {
-      const groupOfLeafs = groupsStack.pop();
-      if (groupOfLeafs.length > this.k) {
+    let groupsQueue = PQueue.ofArray([...clusterLeafs2(this.boundingBoxScene.box, this.sceneElements.map((x) => new Leaf4(x)))], (a, b) => b.length - a.length);
+    while (groupsQueue.data.map((x) => x.length > this.k).some((x) => x)) {
+      if (groupsQueue.peek().length > this.k) {
+        const groupOfLeafs = groupsQueue.pop();
         const box = groupOfLeafs.reduce((e, x) => e.add(x.box), new Box);
         const [left, right] = clusterLeafs2(box, groupOfLeafs);
-        groupsStack.push(left);
-        groupsStack.push(right);
+        groupsQueue.push(left);
+        groupsQueue.push(right);
       }
     }
-    let nodeOrLeafStack = groupsStack.map((group) => group.reduce((e, x) => e.add(x.element), new Node4(this.k)));
+    let nodeOrLeafStack = groupsQueue.data.map((group) => group.reduce((e, x) => e.add(x.element), new Node4(this.k)));
     while (nodeOrLeafStack.length > 1) {
       const nodeOrLeaf = nodeOrLeafStack[0];
       nodeOrLeafStack = nodeOrLeafStack.slice(1);
@@ -3550,21 +3590,25 @@ class Node4 {
     }
     return this;
   }
-  interceptWith(ray, depth = 1) {
+  interceptWith(ray) {
+    const boxHit = this.box.interceptWith(ray);
+    if (!boxHit)
+      return;
     if (this.leafs.length > 0) {
+      RAY_CACHE.put(ray, this);
       return leafsInterceptWith2(this.leafs, ray);
     }
-    return this.box.interceptWith(ray).flatMap(() => {
-      const children = [this.left, this.right];
-      const hits = [];
-      for (let i = 0;i < children.length; i++) {
-        children[i].interceptWith(ray, depth + 1).forEach((hit) => hits.push(hit));
-      }
-      const minIndex = argmin(hits, ([t]) => t);
-      if (minIndex === -1)
-        return;
-      return hits[minIndex];
-    });
+    const children = [this.left, this.right];
+    const hits = [];
+    for (let i = 0;i < children.length; i++) {
+      const hit = children[i].interceptWith(ray);
+      if (hit)
+        hits.push(hit);
+    }
+    const minIndex = argmin(hits, ([t]) => t);
+    if (minIndex === -1)
+      return;
+    return hits[minIndex];
   }
   distanceToPoint(p) {
     return this.getElemNear(p).distanceToPoint(p);
@@ -3594,8 +3638,13 @@ class Node4 {
     return elements;
   }
   getRandomLeaf() {
-    const index = Math.floor(Math.random() * this.children.length);
-    return this.children[index].isLeaf ? this.children[index] : this.children[index].getRandomLeaf();
+    if (this.leafs.length > 0) {
+      const index2 = Math.floor(Math.random() * this.leafs.length);
+      return this.leafs[index2];
+    }
+    const children = [this.left, this.right];
+    const index = Math.floor(Math.random() * children.length);
+    return children[index].getRandomLeaf();
   }
   join(nodeOrLeaf) {
     if (nodeOrLeaf.isLeaf)

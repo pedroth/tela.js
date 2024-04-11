@@ -1,6 +1,5 @@
 
 import Box from "../Box/Box.js";
-import { none, some } from "../Monads/Monads.js";
 import Vec, { Vec3 } from "../Vector/Vector.js";
 import NaiveScene from "./NaiveScene.js";
 import Color from "../Color/Color.js";
