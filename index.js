@@ -456,11 +456,11 @@ const examples = [
         path: "/test/web/parallel_shader.js"
     },
     {
-        title: "Wave simulation",
-        path: "/test/web/wave_equation.js"
+        title: "Turing patterns",
+        path: "/test/web/turing_pattern.js"
     },
     {
-        title: "Wave Interaction",
+        title: "Wave equation",
         path: "/test/web/interactive_wave.js"
     },
     {

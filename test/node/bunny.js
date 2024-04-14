@@ -22,7 +22,7 @@ bunnyMesh = bunnyMesh
     .mapVertices(v => Vec3(-v.y, v.x, v.z))
     .mapVertices(v => Vec3(v.z, v.y, -v.x))
     .mapColors(v => Color.ofRGB(...v.map(x => clamp()((x + 1) / 2)).toArray()));
-scene.add(...bunnyMesh.asTriangles(0.05));
+scene.add(...bunnyMesh.asPoints(0.05));
 scene.rebuild();
 
 const shoot = (img) => camera.normalShot(scene).to(img);

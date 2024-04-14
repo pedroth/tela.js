@@ -45,7 +45,7 @@ https://pedroth.github.io/tela.js/
 	- [/] Signed distance functions
 		- [X] spheres
 		- [X] boxes
-		- [ ] lines
+		- [X] lines
 		- [ ] triangles
 	- [X] Geometry database
 		- [X] Naive
