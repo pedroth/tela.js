@@ -52,11 +52,11 @@ export default class NaiveScene {
   }
 
   interceptWith(ray) {
-    const points = this.sceneElements;
+    const elements = this.sceneElements;
     let closestDistance = Number.MAX_VALUE;
     let closest;
-    for (let i = 0; i < points.length; i++) {
-      const hit = points[i].interceptWith(ray);
+    for (let i = 0; i < elements.length; i++) {
+      const hit = elements[i].interceptWith(ray);
       if (hit && hit[0] < closestDistance) {
         closest = hit;
         closestDistance = hit[0];

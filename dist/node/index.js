@@ -3269,14 +3269,14 @@ class VoxelScene {
     return this.addList(elements);
   }
   addList(elements) {
+    const binary = [0, 1];
+    const n = binary.length ** 3;
+    const powers = [binary.length ** 2, binary.length];
     for (let i = 0;i < elements.length; i++) {
       const elem = elements[i];
       const { name } = elem;
       this.id2ElemMap[name] = elem;
       this.sceneElements.push(elem);
-      const binary = [0, 1];
-      const n = binary.length ** 3;
-      const powers = [binary.length ** 2, binary.length];
       const pivot = elem.getBoundingBox().min;
       const points = [];
       for (let k = 0;k < n; k++) {
