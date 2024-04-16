@@ -1,6 +1,7 @@
 import Box from "../Box/Box.js";
 import Color from "../Color/Color.js";
 import { readImageFrom } from "../IO/IO.js";
+import { MAX_8BIT } from "../Utils/Constants.js";
 import { clipLine, isInsideConvex, mod } from "../Utils/Math.js";
 import { Vec2 } from "../Vector/Vector.js";
 
@@ -130,6 +131,39 @@ export default class Image {
         const i = Math.floor(h - 1 - y);
         return [i, j];
     }
+
+    exposure(time = Number.MAX_VALUE) {
+        let it = 1;
+        const ans = {};
+        for (let key of Object.getOwnPropertyNames(Object.getPrototypeOf(this))) {
+          const descriptor = Object.getOwnPropertyDescriptor(Object.getPrototypeOf(this), key);
+          if (descriptor && typeof descriptor.value === 'function') {
+            ans[key] = descriptor.value.bind(this);
+          }
+        }
+        ans.width = this.width;
+        ans.height = this.height;
+        ans.map = (lambda) => {
+          const n = this._image.length;
+          const w = this._width;
+          const h = this._height;
+          for (let k = 0; k < n; k += 4) {
+            const i = Math.floor(k / (4 * w));
+            const j = Math.floor((k / 4) % w);
+            const x = j;
+            const y = h - 1 - i;
+            const color = lambda(x, y);
+            if (!color) continue;
+            this._image[k] = this._image[k] + (color.red * MAX_8BIT - this._image[k]) / it;
+            this._image[k + 1] = this._image[k + 1] + (color.green * MAX_8BIT - this._image[k + 1]) / it;
+            this._image[k + 2] = this._image[k + 2] + (color.blue * MAX_8BIT - this._image[k + 2]) / it;
+            this._image[k + 3] = MAX_8BIT;
+          }
+          if (it < time) it++
+          return this.paint();
+        }
+        return ans;
+      }
 
     static ofUrl(url) {
         return readImageFrom(url);

@@ -1,15 +1,15 @@
-import { Camera, Mesh, Vec3, Vec2, Color, DiElectric, Triangle, BScene } from "../../dist/node/index.js";
+import { Camera, Mesh, Vec3, Vec2, Color, DiElectric, Triangle, KScene } from "../../dist/node/index.js";
 import Window from "../../src/Window/Window.js";
 import { readFileSync } from "fs"
 
 (async () => {
     // resize incoming canvas:Canvas object.
-    const width = 640 / 2;
-    const height = 480 / 2;
+    const width = 640;
+    const height = 480;
     const window = Window.ofSize(width, height);
     let exposedCanvas = window.exposure();
     // scene
-    const scene = new BScene();
+    const scene = new KScene(20);
     const camera = new Camera({
         sphericalCoords: Vec3(5, 0, 0),
         focalPoint: Vec3(1.5, 1.5, 1.5)
@@ -49,17 +49,17 @@ import { readFileSync } from "fs"
         exposedCanvas = window.exposure();
     })
 
-    const meshObj = readFileSync("./assets/spot.obj", { encoding: "utf-8" });
+    const meshObj = readFileSync("./assets/bunny_orig.obj", { encoding: "utf-8" });
     let mesh = Mesh.readObj(meshObj, "mesh");
     const box = mesh.getBoundingBox();
     mesh = mesh
-        // .mapVertices(v => v.sub(box.min).div(box.diagonal).scale(2).sub(Vec3(1, 1, 1)))
+        .mapVertices(v => v.sub(box.min).div(box.diagonal).scale(2).sub(Vec3(1, 1, 1)))
         .mapVertices(v => v.scale(1))
         .mapVertices(v => Vec3(-v.y, v.x, v.z))
         .mapVertices(v => Vec3(v.z, v.y, -v.x))
         .mapVertices(v => v.add(Vec3(0.5, 1.5, 1.0)))
         .mapColors(() => Color.BLUE)
-        .mapMaterials(() => DiElectric(1.33333))
+        // .mapMaterials(() => DiElectric(1.33333))
     scene.add(...mesh.asTriangles());
 
     // cornell box
@@ -103,14 +103,12 @@ import { readFileSync } from "fs"
         Triangle
             .builder()
             .name("top-1")
-            .emissive(true)
             .colors(Color.WHITE, Color.WHITE, Color.WHITE)
             .positions(Vec3(3, 3, 3), Vec3(3, 0, 3), Vec3(0, 0, 3))
             .build(),
         Triangle
             .builder()
             .name("top-2")
-            .emissive(true)
             .colors(Color.WHITE, Color.WHITE, Color.WHITE)
             .positions(Vec3(0, 0, 3), Vec3(0, 3, 3), Vec3(3, 3, 3))
             .build(),
@@ -126,20 +124,20 @@ import { readFileSync } from "fs"
             .colors(Color.WHITE, Color.WHITE, Color.WHITE)
             .positions(Vec3(0, 3, 3), Vec3(0, 0, 3), Vec3())
             .build(),
-        // Triangle
-        //     .builder()
-        //     .name("light-1")
-        //     .colors(Color.WHITE, Color.WHITE, Color.WHITE)
-        //     .positions(Vec3(1, 1, 2.9), Vec3(2, 1, 2.9), Vec3(2, 2, 2.9))
-        //     .emissive(true)
-        //     .build(),
-        // Triangle
-        //     .builder()
-        //     .name("light-2")
-        //     .colors(Color.WHITE, Color.WHITE, Color.WHITE)
-        //     .positions(Vec3(2, 2, 2.9), Vec3(1, 2, 2.9), Vec3(1, 1, 2.9))
-        //     .emissive(true)
-        //     .build(),
+        Triangle
+            .builder()
+            .name("light-1")
+            .colors(Color.WHITE, Color.WHITE, Color.WHITE)
+            .positions(Vec3(1, 1, 2.9), Vec3(2, 1, 2.9), Vec3(2, 2, 2.9))
+            .emissive(true)
+            .build(),
+        Triangle
+            .builder()
+            .name("light-2")
+            .colors(Color.WHITE, Color.WHITE, Color.WHITE)
+            .positions(Vec3(2, 2, 2.9), Vec3(1, 2, 2.9), Vec3(1, 1, 2.9))
+            .emissive(true)
+            .build(),
     )
 
     // play
