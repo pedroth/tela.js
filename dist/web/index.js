@@ -694,24 +694,15 @@ class Box {
   }
   intersection = this.sub;
   interceptWith(ray) {
-    const maxIte = 100;
-    const epsilon = 0.1;
-    let p = ray.init;
-    let t = this.distanceToPoint(p);
-    let minT = t;
-    for (let i = 0;i < maxIte; i++) {
-      p = ray.trace(t);
-      const d = this.distanceToPoint(p);
-      t += d;
-      if (d < epsilon) {
-        return [t, p];
-      }
-      if (d > minT) {
-        break;
-      }
-      minT = d;
+    let tmin = -Number.MAX_VALUE;
+    let tmax = Number.MAX_VALUE;
+    for (let i = 0;i < this.min?.dim; ++i) {
+      let t1 = (this.min.get(i) - ray.init.get(i)) * ray.dirInv.get(i);
+      let t2 = (this.max.get(i) - ray.init.get(i)) * ray.dirInv.get(i);
+      tmin = Math.max(tmin, Math.min(t1, t2));
+      tmax = Math.min(tmax, Math.max(t1, t2));
     }
-    return;
+    return tmax > Math.max(tmin, 0) ? [tmin, ray.trace(tmin), this] : undefined;
   }
   scale(r) {
     return new Box(this.min.sub(this.center).scale(r), this.max.sub(this.center).scale(r)).move(this.center);
@@ -1402,6 +1393,7 @@ function Ray(init, dir) {
   ans.init = init;
   ans.dir = dir;
   ans.trace = (t) => init.add(dir.scale(t));
+  ans.dirInv = dir.map((x) => 1 / x);
   return ans;
 }
 
@@ -2326,11 +2318,11 @@ class NaiveScene {
     return Vec.fromArray(grad).scale(Math.sign(d)).normalize();
   }
   interceptWith(ray) {
-    const points = this.sceneElements;
+    const elements = this.sceneElements;
     let closestDistance = Number.MAX_VALUE;
     let closest;
-    for (let i = 0;i < points.length; i++) {
-      const hit = points[i].interceptWith(ray);
+    for (let i = 0;i < elements.length; i++) {
+      const hit = elements[i].interceptWith(ray);
       if (hit && hit[0] < closestDistance) {
         closest = hit;
         closestDistance = hit[0];
