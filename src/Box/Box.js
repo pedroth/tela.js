@@ -33,9 +33,9 @@ export default class Box {
     intersection = this.sub;
 
     interceptWith(ray) {
+        const epsilon = 1e-3;
         let tmin = -Number.MAX_VALUE;
         let tmax = Number.MAX_VALUE;
-
         for (let i = 0; i < this.min?.dim; ++i) {
             let t1 = (this.min.get(i) - ray.init.get(i)) * ray.dirInv.get(i);
             let t2 = (this.max.get(i) - ray.init.get(i)) * ray.dirInv.get(i);
@@ -43,7 +43,7 @@ export default class Box {
             tmin = Math.max(tmin, Math.min(t1, t2));
             tmax = Math.min(tmax, Math.max(t1, t2));
         }
-        return tmax > Math.max(tmin, 0.0) ? [tmin, ray.trace(tmin), this] : undefined;
+        return tmax > Math.max(tmin, 0) ? [tmin - epsilon, ray.trace(tmin - epsilon), this] : undefined;
     }
 
     scale(r) {
