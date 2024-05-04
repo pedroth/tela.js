@@ -694,15 +694,21 @@ class Box {
   }
   intersection = this.sub;
   interceptWith(ray) {
+    const epsilon = 0.001;
     let tmin = -Number.MAX_VALUE;
     let tmax = Number.MAX_VALUE;
-    for (let i = 0;i < this.min?.dim; ++i) {
-      let t1 = (this.min.get(i) - ray.init.get(i)) * ray.dirInv.get(i);
-      let t2 = (this.max.get(i) - ray.init.get(i)) * ray.dirInv.get(i);
+    const min = this.min.toArray();
+    const max = this.max.toArray();
+    const rInit = ray.init.toArray();
+    const dirInv = ray.dirInv.toArray();
+    const dim = this.min?.dim;
+    for (let i = 0;i < dim; ++i) {
+      let t1 = (min[i] - rInit[i]) * dirInv[i];
+      let t2 = (max[i] - rInit[i]) * dirInv[i];
       tmin = Math.max(tmin, Math.min(t1, t2));
       tmax = Math.min(tmax, Math.max(t1, t2));
     }
-    return tmax > Math.max(tmin, 0) ? [tmin, ray.trace(tmin), this] : undefined;
+    return tmax > Math.max(tmin, 0) ? [tmin - epsilon, ray.trace(tmin - epsilon), this] : undefined;
   }
   scale(r) {
     return new Box(this.min.sub(this.center).scale(r), this.max.sub(this.center).scale(r)).move(this.center);
@@ -2564,11 +2570,8 @@ class Node {
     return this;
   }
   interceptWith(ray) {
-    const boxHit = this.box.interceptWith(ray);
-    if (!boxHit)
-      return;
-    const leftT = this.left.box.interceptWith(ray)?.[0] ?? Number.MAX_VALUE;
-    const rightT = this.right.box.interceptWith(ray)?.[0] ?? Number.MAX_VALUE;
+    const leftT = this.left?.box?.interceptWith(ray)?.[0] ?? Number.MAX_VALUE;
+    const rightT = this.right?.box?.interceptWith(ray)?.[0] ?? Number.MAX_VALUE;
     if (leftT === Number.MAX_VALUE && rightT === Number.MAX_VALUE)
       return;
     const first = leftT <= rightT ? this.left : this.right;
@@ -3155,14 +3158,11 @@ class Node3 {
     return this;
   }
   interceptWith(ray) {
-    const boxHit = this.box.interceptWith(ray);
-    if (!boxHit)
-      return;
     if (this.leafs.length > 0) {
       return leafsInterceptWith(this.leafs, ray);
     }
-    const leftT = this.left.box.interceptWith(ray)?.[0] ?? Number.MAX_VALUE;
-    const rightT = this.right.box.interceptWith(ray)?.[0] ?? Number.MAX_VALUE;
+    const leftT = this.left?.box?.interceptWith(ray)?.[0] ?? Number.MAX_VALUE;
+    const rightT = this.right?.box?.interceptWith(ray)?.[0] ?? Number.MAX_VALUE;
     if (leftT === Number.MAX_VALUE && rightT === Number.MAX_VALUE)
       return;
     const first = leftT <= rightT ? this.left : this.right;

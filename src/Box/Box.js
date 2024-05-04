@@ -36,9 +36,14 @@ export default class Box {
         const epsilon = 1e-3;
         let tmin = -Number.MAX_VALUE;
         let tmax = Number.MAX_VALUE;
-        for (let i = 0; i < this.min?.dim; ++i) {
-            let t1 = (this.min.get(i) - ray.init.get(i)) * ray.dirInv.get(i);
-            let t2 = (this.max.get(i) - ray.init.get(i)) * ray.dirInv.get(i);
+        const min = this.min.toArray();
+        const max = this.max.toArray();
+        const rInit = ray.init.toArray();
+        const dirInv = ray.dirInv.toArray();
+        const dim = this.min?.dim;
+        for (let i = 0; i < dim; ++i) {
+            let t1 = (min[i] - rInit[i]) * dirInv[i];
+            let t2 = (max[i] - rInit[i]) * dirInv[i];
 
             tmin = Math.max(tmin, Math.min(t1, t2));
             tmax = Math.min(tmax, Math.max(t1, t2));
