@@ -36,7 +36,9 @@ export default class PQueue {
     pop() {
         if (!this.data.length) return;
         const v = this.data[0];
-        if (this.data.length <= 1) return v;
+        if (this.data.length <= 1) {
+            return this.data.pop();
+        }
         this.data[0] = this.data[this.data.length-1];
         this.data = this.data.slice(0, -1);
         this.data = heapifyBuilder(this.data, this.comparator)(0);
