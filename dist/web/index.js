@@ -435,6 +435,7 @@ class Vector2 {
 
 // src/Utils/Constants.js
 var MAX_8BIT = 255;
+var RAD2DEG = 180 / Math.PI;
 var UNIT_BOX_VERTEX2 = [
   Vec3(),
   Vec3(1, 0, 0),
@@ -574,21 +575,34 @@ var solveUpTriMatrix = function(v, a, f) {
 };
 
 // src/Color/Color.js
+var rgbClamp = clamp();
+
 class Color {
-  constructor(rbg) {
-    const rgbClamp = clamp();
-    this.rgb = rbg.map((c) => rgbClamp(c));
+  constructor(rgb) {
+    this.rgb = rgb;
+    this.isDirty = rgb[0] <= 0 || rgb[0] > 1 || rgb[1] <= 0 || rgb[1] > 1 || rgb[2] <= 0 || rgb[2] > 1;
+  }
+  clamp() {
+    if (this.isDirty) {
+      this.rgb = this.rgb.map((c) => rgbClamp(c));
+      this.isDirty = false;
+    }
+    return this;
   }
   toArray() {
+    this.clamp();
     return this.rgb;
   }
   get red() {
+    this.clamp();
     return this.rgb[0];
   }
   get green() {
+    this.clamp();
     return this.rgb[1];
   }
   get blue() {
+    this.clamp();
     return this.rgb[2];
   }
   add(color) {
@@ -598,6 +612,8 @@ class Color {
     return Color.ofRGB(r * this.red, r * this.green, r * this.blue);
   }
   mul(color) {
+    this.clamp();
+    color.clamp();
     return Color.ofRGB(this.rgb[0] * color.red, this.rgb[1] * color.green, this.rgb[2] * color.blue);
   }
   equals(color) {
@@ -607,9 +623,10 @@ class Color {
     return `red: ${this.red}, green: ${this.green}, blue: ${this.blue}`;
   }
   toGamma(alpha = 0.5) {
-    const r = this.rgb[0] > 0 ? this.rgb[0] ** alpha : this.rgb[0];
-    const g = this.rgb[1] > 0 ? this.rgb[1] ** alpha : this.rgb[1];
-    const b = this.rgb[2] > 0 ? this.rgb[2] ** alpha : this.rgb[2];
+    this.clamp();
+    const r = this.rgb[0] ** alpha;
+    const g = this.rgb[1] ** alpha;
+    const b = this.rgb[2] ** alpha;
     return Color.ofRGB(r, g, b);
   }
   static ofRGB(red = 0, green = 0, blue = 0) {
@@ -625,6 +642,11 @@ class Color {
     rgb[1] = green / MAX_8BIT;
     rgb[2] = blue / MAX_8BIT;
     return new Color(rgb);
+  }
+  static ofHSV(hue, s, v) {
+    const h = hue * RAD2DEG;
+    let f = (n, k = (n + h / 60) % 6) => v - v * s * Math.max(Math.min(k, 4 - k, 1), 0);
+    return new Color([f(5), f(3), f(1)]);
   }
   static random() {
     const r = () => Math.random();
@@ -1194,6 +1216,7 @@ var createWorker = (main, lambda, dependencies) => {
   const workerFile = `
   const MAX_8BIT=${MAX_8BIT};
   ${clamp.toString()}
+  const rgbClamp = clamp();
   ${Color.toString()}
   ${dependencies.map((d) => d.toString()).join("\n")}
   const lambda = ${lambda.toString()};
@@ -2999,6 +3022,14 @@ var leafsInterceptWith = function(leafs, ray) {
   }
   return closest;
 };
+var distanceFromLeafs = function(leafs, p) {
+  const elements = leafs.map((x) => x.element);
+  let distance = Number.MAX_VALUE;
+  for (let i = 0;i < elements.length; i++) {
+    distance = Math.min(distance, elements[i].distanceToPoint(p));
+  }
+  return distance;
+};
 
 class KScene {
   constructor(k = 10) {
@@ -3064,6 +3095,9 @@ class KScene {
       return distance;
     }
     return this.getElementNear(p).distanceToPoint(p);
+  }
+  distanceOnRay(ray) {
+    return this.boundingBoxScene.distanceOnRay(ray);
   }
   estimateNormal(p) {
     const epsilon = 0.000000001;
@@ -3176,6 +3210,24 @@ class Node3 {
   }
   distanceToPoint(p) {
     return this.getElemNear(p).distanceToPoint(p);
+  }
+  distanceOnRay(ray) {
+    if (this.leafs.length > 0) {
+      return distanceFromLeafs(this.leafs, ray.init);
+    }
+    const leftT = this.left?.box?.interceptWith(ray)?.[0] ?? Number.MAX_VALUE;
+    const rightT = this.right?.box?.interceptWith(ray)?.[0] ?? Number.MAX_VALUE;
+    if (leftT === Number.MAX_VALUE && rightT === Number.MAX_VALUE)
+      return Number.MAX_VALUE;
+    const first = leftT <= rightT ? this.left : this.right;
+    const second = leftT > rightT ? this.left : this.right;
+    const firstT = Math.min(leftT, rightT);
+    const secondT = Math.max(leftT, rightT);
+    const firstHit = first.distanceOnRay(ray, firstT);
+    if (firstHit < secondT)
+      return firstHit;
+    const secondHit = second.distanceOnRay(ray, secondT);
+    return secondHit <= firstHit ? secondHit : firstHit;
   }
   getElemNear(p) {
     if (this.leafs.length > 0) {
@@ -3327,6 +3379,30 @@ class VoxelScene {
     }
   }
   distanceToPoint(p) {
+    return Number.MAX_VALUE;
+  }
+  distanceOnRay(ray) {
+    const maxDist = 10;
+    const maxIte = maxDist / this.gridSpace;
+    let t = 0;
+    let elements = [];
+    for (let n = 0;n < maxIte; n++) {
+      let p = ray.trace(t);
+      const newElements = Object.values(this.gridMap[this.hash(p)] || {});
+      if (newElements?.length) {
+        elements = elements.concat(newElements);
+        break;
+      }
+      t += this.gridSpace;
+    }
+    if (elements?.length) {
+      let distance = Number.MAX_VALUE;
+      for (let i = 0;i < elements.length; i++) {
+        distance = Math.min(distance, elements[i].distanceToPoint(ray.init));
+      }
+      return distance;
+    }
+    return Number.MAX_VALUE;
   }
   estimateNormal(p) {
     const epsilon = 0.000000001;

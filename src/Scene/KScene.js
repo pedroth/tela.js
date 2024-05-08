@@ -83,6 +83,10 @@ export default class KScene {
         return this.getElementNear(p).distanceToPoint(p);
     }
 
+    distanceOnRay(ray) {
+        return this.boundingBoxScene.distanceOnRay(ray);
+    }
+
     estimateNormal(p) {
         const epsilon = 1e-9;
         const n = p.dim;
@@ -216,6 +220,23 @@ class Node {
         return this.getElemNear(p).distanceToPoint(p);
     }
 
+    distanceOnRay(ray) {
+        if (this.leafs.length > 0) {
+            return distanceFromLeafs(this.leafs, ray.init);
+        }
+        const leftT = this.left?.box?.interceptWith(ray)?.[0] ?? Number.MAX_VALUE;
+        const rightT = this.right?.box?.interceptWith(ray)?.[0] ?? Number.MAX_VALUE;
+        if (leftT === Number.MAX_VALUE && rightT === Number.MAX_VALUE) return Number.MAX_VALUE;
+        const first = leftT <= rightT ? this.left : this.right;
+        const second = leftT > rightT ? this.left : this.right;
+        const firstT = Math.min(leftT, rightT);
+        const secondT = Math.max(leftT, rightT);
+        const firstHit = first.distanceOnRay(ray, firstT);
+        if (firstHit < secondT) return firstHit;
+        const secondHit = second.distanceOnRay(ray, secondT);
+        return secondHit <= firstHit ? secondHit : firstHit;
+    }
+
     getElemNear(p) {
         if (this.leafs.length > 0) {
             const minIndex = argmin(this.leafs, x => x.distanceToPoint(p));
@@ -340,4 +361,13 @@ function leafsInterceptWith(leafs, ray) {
         }
     }
     return closest;
+}
+
+function distanceFromLeafs(leafs, p) {
+    const elements = leafs.map(x => x.element);
+    let distance = Number.MAX_VALUE;
+    for (let i = 0; i < elements.length; i++) {
+        distance = Math.min(distance, elements[i].distanceToPoint(p));
+    }
+    return distance;
 }

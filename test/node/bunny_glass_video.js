@@ -1,12 +1,15 @@
-import { Color, Image, IO, Utils, Mesh, Vec3, Camera, Triangle, DiElectric, KScene, } from "../../dist/node/index.js";
+import { Color, Image, Stream, IO, Utils, Mesh, Vec3, Camera, Triangle, DiElectric, KScene, VoxelScene, BScene } from "../../dist/node/index.js";
 import { readFileSync } from "fs"
 
-const { measureTime,  } = Utils;
-const { saveImageToFile } = IO;
+const { measureTime, measureTimeWithResult } = Utils;
+const { saveImageStreamToVideo, saveImageToFile } = IO;
 
 // constants
 const width = 640;
 const height = 480;
+const FPS = 25;
+const dt = 1 / FPS;
+const maxT = 10;
 
 // scene
 const scene = new KScene();
@@ -19,12 +22,12 @@ let bunnyMesh = Mesh.readObj(stanfordBunnyObj, "bunny");
 const bunnyBox = bunnyMesh.getBoundingBox();
 bunnyMesh = bunnyMesh
     .mapVertices(v => v.sub(bunnyBox.min).div(bunnyBox.diagonal).scale(2).sub(Vec3(1, 1, 1)))
-    .mapVertices(v => v.scale(1.25))
+    .mapVertices(v => v.scale(0.5))
     .mapVertices(v => Vec3(-v.y, v.x, v.z))
     .mapVertices(v => Vec3(v.z, v.y, -v.x))
-    .mapVertices(v => v.add(Vec3(1.5, 1.5, 0.5)))
+    .mapVertices(v => v.add(Vec3(1.5, 1.5, 1.5)))
     .mapColors(() => Color.WHITE)
-    .mapMaterials(() => DiElectric(1.3333))
+    .mapMaterials(() => DiElectric(2.0))
 scene.add(...bunnyMesh.asTriangles());
 
 scene.add(
@@ -104,13 +107,30 @@ scene.add(
         .build(),
 )
 
-const shot = (image) => camera.sceneShot(scene, { samplesPerPxl: 1000, bounces: 20, gamma: 0.5 }).to(image ?? Image.ofSize(width, height));
+const shot = (image) => camera.sceneShot(scene, { samplesPerPxl: 1, bounces: 20, gamma: 0.01 }).to(image ?? Image.ofSize(width, height));
 
-const time = measureTime(
-    () => saveImageToFile(
-        "./bunny_glass.jpeg",
-        shot(Image.ofSize(width, height))
-    )
-);
+const imageStream = new Stream(
+    { time: 0, image: shot() },
+    ({ time, image }) => {
+        const theta = Math.PI / 4 * time;
+        camera.sphericalCoords = Vec3(camera.sphericalCoords.get(0), theta, 0);
+        camera.orbit();
+        const { result: newImage, time: t } = measureTimeWithResult(() => shot(image));
+        console.log(`Image took ${t}s`);
+        return {
+            time: time + dt,
+            image: newImage
+        };
+    }
+)
 
-console.log(`Image done in ${time}s`);
+console.log(
+    "Video created in: ",
+    measureTime(() => {
+        saveImageStreamToVideo(
+            "./bunny_glass_stream.mp4",
+            imageStream,
+            { fps: FPS }
+        ).until(({ time }) => time < maxT);
+    })
+)

@@ -366,6 +366,7 @@ const createWorker = (main, lambda, dependencies) => {
   const workerFile = `
   const MAX_8BIT=${MAX_8BIT};
   ${clamp.toString()}
+  const rgbClamp = clamp();
   ${Color.toString()}
   ${dependencies.map(d => d.toString()).join("\n")}
   const lambda = ${lambda.toString()};

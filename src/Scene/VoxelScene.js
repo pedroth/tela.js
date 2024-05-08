@@ -101,6 +101,31 @@ export default class VoxelScene {
 
     distanceToPoint(p) {
         // TODO
+        return Number.MAX_VALUE;
+    }
+
+    distanceOnRay(ray) {
+        const maxDist = 10;
+        const maxIte = maxDist / this.gridSpace;
+        let t = 0;
+        let elements = [];
+        for (let n = 0; n < maxIte; n++) {
+            let p = ray.trace(t);
+            const newElements = Object.values(this.gridMap[this.hash(p)] || {});
+            if (newElements?.length) {
+                elements = elements.concat(newElements);
+                break;
+            }
+            t += this.gridSpace;
+        }
+        if (elements?.length) {
+            let distance = Number.MAX_VALUE;
+            for (let i = 0; i < elements.length; i++) {
+                distance = Math.min(distance, elements[i].distanceToPoint(ray.init));
+            }
+            return distance;
+        }
+        return Number.MAX_VALUE;
     }
 
     estimateNormal(p) {

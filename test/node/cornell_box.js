@@ -1,4 +1,4 @@
-import { Camera, Mesh, Vec3, Vec2, Color, DiElectric, Triangle, KScene } from "../../dist/node/index.js";
+import { Camera, Mesh, Vec3, Vec2, Color, DiElectric, Triangle, KScene, BScene } from "../../dist/node/index.js";
 import Window from "../../src/Window/Window.js";
 import { readFileSync } from "fs"
 
@@ -9,7 +9,7 @@ import { readFileSync } from "fs"
     const window = Window.ofSize(width, height);
     let exposedCanvas = window.exposure();
     // scene
-    const scene = new KScene(20);
+    const scene = new KScene();
     const camera = new Camera({
         sphericalCoords: Vec3(5, 0, 0),
         focalPoint: Vec3(1.5, 1.5, 1.5)
@@ -59,7 +59,7 @@ import { readFileSync } from "fs"
         .mapVertices(v => Vec3(v.z, v.y, -v.x))
         .mapVertices(v => v.add(Vec3(0.5, 1.5, 1.0)))
         .mapColors(() => Color.BLUE)
-        // .mapMaterials(() => DiElectric(1.33333))
+        .mapMaterials(() => DiElectric(1.33333))
     scene.add(...mesh.asTriangles());
 
     // cornell box
@@ -139,12 +139,13 @@ import { readFileSync } from "fs"
             .emissive(true)
             .build(),
     )
+    scene.rebuild();
 
     // play
     const play = async ({ time, oldT }) => {
         const newT = new Date().getTime();
         const dt = (new Date().getTime() - oldT) * 1e-3;
-        camera.sceneShot(scene, { bounces: 20, samplesPerPxl: 1 }).to(exposedCanvas);
+        camera.sceneShot(scene, { bounces: 10, samplesPerPxl: 3 }).to(exposedCanvas);
         window.setTitle(`FPS: ${Math.floor(1 / dt)}`);
 
         setTimeout(() => play({
