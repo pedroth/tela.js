@@ -15,12 +15,12 @@ let mesh = Mesh.readObj(obj, "mesh");
 mesh = mesh
     .mapVertices(v => Vec3(-v.y, v.x, v.z))
     .mapVertices(v => Vec3(v.z, v.y, -v.x))
-const scenes = [new BScene(), new KScene(100), new VoxelScene(0.2), new NaiveScene()];
+const scenes = [new BScene(), new KScene(), new KScene(100), new VoxelScene(0.2), new NaiveScene()];
 // const triangles = mesh.asPoints(0.05);
 const triangles = mesh.asTriangles();
 scenes.forEach(scene => {
     scene.addList(triangles);
     const { result, time } = measureTimeWithResult(() => camera.normalShot(scene).to(canvas));
     console.log(`${scene.constructor.name}: ${time}s`);
-    saveImageToFile(`${scene.constructor.name}.png`, result);
+    saveImageToFile(`${scene.constructor.name}_${Math.floor(100 *Math.random())}.png`, result);
 })

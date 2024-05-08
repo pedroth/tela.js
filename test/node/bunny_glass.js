@@ -1,4 +1,4 @@
-import { Color, Image, Stream, IO, Utils, Mesh, Vec3, Camera, Triangle, DiElectric, KScene, VoxelScene } from "../../dist/node/index.js";
+import { Color, Image, Stream, IO, Utils, Mesh, Vec3, Camera, Triangle, DiElectric, KScene, VoxelScene, BScene } from "../../dist/node/index.js";
 import { readFileSync } from "fs"
 
 const { measureTime, measureTimeWithResult } = Utils;
@@ -12,7 +12,7 @@ const dt = 1 / FPS;
 const maxT = 10;
 
 // scene
-const scene = new VoxelScene(10);
+const scene = new BScene();
 const camera = new Camera({
     sphericalCoords: Vec3(5, 0, 0),
     focalPoint: Vec3(1.5, 1.5, 1.5)
@@ -107,7 +107,7 @@ scene.add(
         .build(),
 )
 
-const shot = (image) => camera.sceneShot(scene, { samplesPerPxl: 100, bounces: 20, gamma: 0.05 }).to(image ?? Image.ofSize(width, height));
+const shot = (image) => camera.sceneShot(scene, { samplesPerPxl: 1, bounces: 20, gamma: 0.05 }).to(image ?? Image.ofSize(width, height));
 measureTime(
     () => saveImageToFile(
         "./bunny_glass.jpeg",

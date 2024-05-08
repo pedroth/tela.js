@@ -697,14 +697,14 @@ class Box {
     const epsilon = 0.001;
     let tmin = -Number.MAX_VALUE;
     let tmax = Number.MAX_VALUE;
-    const min = this.min.toArray();
-    const max = this.max.toArray();
+    const minArray = this.min.toArray();
+    const maxArray = this.max.toArray();
     const rInit = ray.init.toArray();
     const dirInv = ray.dirInv.toArray();
     const dim = this.min?.dim;
     for (let i = 0;i < dim; ++i) {
-      let t1 = (min[i] - rInit[i]) * dirInv[i];
-      let t2 = (max[i] - rInit[i]) * dirInv[i];
+      let t1 = (minArray[i] - rInit[i]) * dirInv[i];
+      let t2 = (maxArray[i] - rInit[i]) * dirInv[i];
       tmin = Math.max(tmin, Math.min(t1, t2));
       tmax = Math.min(tmax, Math.max(t1, t2));
     }
@@ -2400,8 +2400,9 @@ class PQueue {
     if (!this.data.length)
       return;
     const v = this.data[0];
-    if (this.data.length <= 1)
-      return v;
+    if (this.data.length <= 1) {
+      return this.data.pop();
+    }
     this.data[0] = this.data[this.data.length - 1];
     this.data = this.data.slice(0, -1);
     this.data = heapifyBuilder(this.data, this.comparator)(0);
@@ -2821,11 +2822,8 @@ class Node2 {
     return this;
   }
   interceptWith(ray) {
-    const boxHit = this.box.interceptWith(ray);
-    if (!boxHit)
-      return;
-    const leftT = this.left.box.interceptWith(ray)?.[0] ?? Number.MAX_VALUE;
-    const rightT = this.right.box.interceptWith(ray)?.[0] ?? Number.MAX_VALUE;
+    const leftT = this.left?.box?.interceptWith(ray)?.[0] ?? Number.MAX_VALUE;
+    const rightT = this.right?.box?.interceptWith(ray)?.[0] ?? Number.MAX_VALUE;
     if (leftT === Number.MAX_VALUE && rightT === Number.MAX_VALUE)
       return;
     const first = leftT <= rightT ? this.left : this.right;
