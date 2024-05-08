@@ -504,8 +504,8 @@ const examples = [
         path: "/test/web/glass.js"
     },
     {
-        title: "voxel test",
-        path: "/test/web/debug_voxel_test.js"
+        title: "spot spheres test",
+        path: "/test/web/debug_normal_shot_test.js"
     },
     {
         title: "image to rgb space",

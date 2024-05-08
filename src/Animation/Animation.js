@@ -1,17 +1,18 @@
-import Stream from "../Stream/Stream.js";
 
 export default class Animation {
   constructor(state, next, doWhile) {
-    this.animation = new Stream(state, next);
+    this.state = state;
+    this.next = next;
     this.while = doWhile;
     this.requestAnimeId = null;
   }
 
-  play(stream = this.animation) {
+  play() {
     const timeout = typeof window === "undefined" ? setTimeout : requestAnimationFrame; 
     this.requestAnimeId = timeout(() => {
-      if (!this.while(stream.head)) return this.stop();
-      this.play(stream.tail);
+      if (!this.while(this.state)) return this.stop();
+      this.state = this.next(this.state);
+      this.play();
     });
     Animation.globalAnimationIds.push(this.requestAnimeId);
     return this;

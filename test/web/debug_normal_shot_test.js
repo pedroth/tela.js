@@ -5,7 +5,7 @@ async (canvas) => {
     const height = 480;
     canvas.resize(width, height);
     // scene
-    const scene = new VoxelScene()
+    const scene = new BScene()
     const camera = new Camera({ sphericalCoords: Vec3(5, 0, 0) });
     // mouse handling
     let mousedown = false;
@@ -48,21 +48,17 @@ async (canvas) => {
             Color.ofRGB(...v.map(x => Math.max(0, Math.min(1, 0.5 * (x + 1)))).toArray())
         )
     scene.addList(mesh.asPoints(0.05));
+    scene.rebuild();
 
     // boilerplate for fps
-    Animation
-        .builder()
-        .initialState({ it: 1, oldTime: new Date().getTime() })
-        .nextState(({ it, oldTime }) => {
-            camera.normalShot(scene).to(canvas);
-            const dt = (new Date().getTime() - oldTime) * 1e-3;
-            logger.print(Math.floor(1 / dt));
-            return {
-                it: it + 1,
-                oldTime: new Date().getTime()
-            };
-        })
-        .while(() => true)
-        .build()
-        .play();
+    const play = (options = {}) => {
+        const { oldT = new Date().getTime(), time = 0 } = options;
+        const newT = new Date().getTime();
+        const dt = (newT - oldT) * 1e-3;
+        camera.normalShot(scene).to(canvas);
+        // testDistance();
+        logger.print(`FPS: ${(Math.floor(1 / dt))}`);
+        requestAnimationFrame(() => play({ oldT: newT, time: time + dt }))
+    }
+    play();
 }

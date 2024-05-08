@@ -57,7 +57,7 @@
             const newT = new Date().getTime();
             let dt = (newT - oldT) * 1e-3;
             logger.print(`FPS: ${Math.floor(1 / dt)}`);
-            dt = 0.9;
+            dt = 0.8;
 
             let maxU = Number.MIN_VALUE;
             let minU = Number.MAX_VALUE;

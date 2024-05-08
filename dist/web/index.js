@@ -9,41 +9,21 @@ var __export = (target, all) => {
     });
 };
 
-// src/Stream/Stream.js
-class Stream {
-  constructor(initialState, updateStateFunction, pred = () => true) {
-    this._head = initialState;
-    this._tail = updateStateFunction;
-    this._pred = pred;
-  }
-  get head() {
-    return this._head;
-  }
-  get tail() {
-    let state = this.head;
-    while (!this._pred(this._tail(state))) {
-      state = this._tail(state);
-    }
-    return new Stream(this._tail(state), this._tail, this._pred);
-  }
-  filter(predicate = () => true) {
-    return new Stream(this._head, this._tail, (x) => this._pred(x) && predicate(x));
-  }
-}
-
 // src/Animation/Animation.js
 class Animation {
   constructor(state, next, doWhile) {
-    this.animation = new Stream(state, next);
+    this.state = state;
+    this.next = next;
     this.while = doWhile;
     this.requestAnimeId = null;
   }
-  play(stream = this.animation) {
+  play() {
     const timeout = typeof window === "undefined" ? setTimeout : requestAnimationFrame;
     this.requestAnimeId = timeout(() => {
-      if (!this.while(stream.head))
+      if (!this.while(this.state))
         return this.stop();
-      this.play(stream.tail);
+      this.state = this.next(this.state);
+      this.play();
     });
     Animation.globalAnimationIds.push(this.requestAnimeId);
     return this;
@@ -1318,6 +1298,28 @@ class DomBuilder {
   }
 }
 var DomBuilder_default = DomBuilder;
+
+// src/Stream/Stream.js
+class Stream {
+  constructor(initialState, updateStateFunction, pred = () => true) {
+    this._head = initialState;
+    this._tail = updateStateFunction;
+    this._pred = pred;
+  }
+  get head() {
+    return this._head;
+  }
+  get tail() {
+    let state = this.head;
+    while (!this._pred(this._tail(state))) {
+      state = this._tail(state);
+    }
+    return new Stream(this._tail(state), this._tail, this._pred);
+  }
+  filter(predicate = () => true) {
+    return new Stream(this._head, this._tail, (x) => this._pred(x) && predicate(x));
+  }
+}
 
 // src/Parallel/Parallel.js
 class Parallel {
