@@ -107,13 +107,15 @@ scene.add(
         .build(),
 )
 
-const shot = (image) => camera.sceneShot(scene, { samplesPerPxl: 1, bounces: 20, gamma: 0.05 }).to(image ?? Image.ofSize(width, height));
-measureTime(
+const shot = (image) => camera.sceneShot(scene, { samplesPerPxl: 10, bounces: 20, gamma: 0.05 }).to(image ?? Image.ofSize(width, height));
+const time =  measureTime(
     () => saveImageToFile(
         "./bunny_glass.jpeg",
         [...Array(100)].reduce((e) => shot(e), Image.ofSize(width, height).exposure())
     )
 );
+
+console.log(`Image done in ${time}s`);
 
 // const imageStream = new Stream(
 //     { time: 0, image: shot() },
