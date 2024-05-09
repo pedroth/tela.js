@@ -1,6 +1,6 @@
 
 import Box from "../Box/Box.js";
-import Vec from "../Vector/Vector.js";
+import Vec, { Vec3 } from "../Vector/Vector.js";
 import { argmin } from "../Utils/Utils.js";
 import PQueue from "../PQueue/PQueue.js";
 import NaiveScene from "./NaiveScene.js";
@@ -88,14 +88,16 @@ export default class KScene {
     }
 
     estimateNormal(p) {
-        const epsilon = 1e-9;
-        const n = p.dim;
-        const grad = [];
-        const d = this.distanceToPoint(p);
-        for (let i = 0; i < n; i++) {
-            grad.push(this.distanceToPoint(p.add(Vec.e(n)(i).scale(epsilon))) - d);
+        let normal = Vec3();
+        let weight = 0;
+        const elements = this.boundingBoxScene.getLeafsNear(p);
+        for (let i = 0; i < elements.length; i++) {
+            const n = elements[i].normalToPoint(p);
+            const d = elements[i].distanceToPoint(p);
+            normal = normal.add(n.scale(d));
+            weight += d;
         }
-        return Vec.fromArray(grad).scale(Math.sign(d)).normalize();
+        return normal.length() > 0 ? normal.scale(1 / weight).normalize() : normal;
     }
 
     debug(props) {
@@ -245,6 +247,15 @@ class Node {
         const children = [this.left, this.right];
         const index = argmin(children, n => n.box.center.sub(p).length());
         return children[index].getElemNear(p);
+    }
+
+    getLeafsNear(p) {
+        if (this.leafs.length > 0) {
+            return this.leafs.map(x => x.element);
+        }
+        const children = [this.left, this.right];
+        const index = argmin(children, n => n.box.center.sub(p).length());
+        return children[index].getLeafsNear(p);
     }
 
     getElemIn(box) {

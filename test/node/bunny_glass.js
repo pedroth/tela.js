@@ -19,10 +19,10 @@ let bunnyMesh = Mesh.readObj(stanfordBunnyObj, "bunny");
 const bunnyBox = bunnyMesh.getBoundingBox();
 bunnyMesh = bunnyMesh
     .mapVertices(v => v.sub(bunnyBox.min).div(bunnyBox.diagonal).scale(2).sub(Vec3(1, 1, 1)))
-    .mapVertices(v => v.scale(1.25))
+    .mapVertices(v => v.scale(1))
     .mapVertices(v => Vec3(-v.y, v.x, v.z))
     .mapVertices(v => Vec3(v.z, v.y, -v.x))
-    .mapVertices(v => v.add(Vec3(1.5, 1.5, 0.5)))
+    .mapVertices(v => v.add(Vec3(1.5, 1.5, 1.5)))
     .mapColors(() => Color.WHITE)
     .mapMaterials(() => DiElectric(1.3333))
 scene.add(...bunnyMesh.asTriangles());
@@ -104,7 +104,7 @@ scene.add(
         .build(),
 )
 
-const shot = (image) => camera.sceneShot(scene, { samplesPerPxl: 1000, bounces: 20, gamma: 0.5 }).to(image ?? Image.ofSize(width, height));
+const shot = (image) => camera.sceneShot(scene, { samplesPerPxl: 25, bounces: 20, gamma: 0.01 }).to(image ?? Image.ofSize(width, height));
 
 const time = measureTime(
     () => saveImageToFile(

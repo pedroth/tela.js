@@ -101,7 +101,7 @@ async (canvas, logger) => {
     // nscene.addList(mesh.asPoints(0.05));
 
     // scene.rebuild();
-    const n = 2;
+    const n = 3;
     const grid = [...Array(n * n)]
         .map((_, k) => {
             const i = Math.floor(k / n);

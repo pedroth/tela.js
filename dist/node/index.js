@@ -942,7 +942,7 @@ var handleMouse = function(canvas, lambda) {
     const mx = (event.clientX - rect.left) / rect.width, my = (event.clientY - rect.top) / rect.height;
     const x = Math.floor(mx * w);
     const y = Math.floor(h - 1 - my * h);
-    return lambda(x, y);
+    return lambda(x, y, event);
   };
 };
 
@@ -2187,6 +2187,7 @@ class Camera {
   rayMap(lambdaWithRays, params) {
     return {
       to: (canvas) => {
+        let it = 0;
         const w = canvas.width;
         const h = canvas.height;
         const ans = canvas.map((x, y) => {
@@ -2196,7 +2197,11 @@ class Camera {
             this.distanceToPlane
           ];
           const dir = Vec3(this.basis[0].x * dirInLocal[0] + this.basis[1].x * dirInLocal[1] + this.basis[2].x * dirInLocal[2], this.basis[0].y * dirInLocal[0] + this.basis[1].y * dirInLocal[1] + this.basis[2].y * dirInLocal[2], this.basis[0].z * dirInLocal[0] + this.basis[1].z * dirInLocal[1] + this.basis[2].z * dirInLocal[2]).normalize();
-          return lambdaWithRays(Ray(this.eye, dir), params);
+          const c = lambdaWithRays(Ray(this.eye, dir), params);
+          if (Math.random() < 0.001)
+            console.log(`${Math.floor(100 * (it / (w * h)))}%`);
+          it++;
+          return c;
         });
         return ans;
       }
@@ -3100,14 +3105,16 @@ class KScene {
     return this.boundingBoxScene.distanceOnRay(ray);
   }
   estimateNormal(p) {
-    const epsilon = 0.000000001;
-    const n = p.dim;
-    const grad = [];
-    const d = this.distanceToPoint(p);
-    for (let i = 0;i < n; i++) {
-      grad.push(this.distanceToPoint(p.add(Vec.e(n)(i).scale(epsilon))) - d);
+    let normal = Vec3();
+    let weight = 0;
+    const elements = this.boundingBoxScene.getLeafsNear(p);
+    for (let i = 0;i < elements.length; i++) {
+      const n = elements[i].normalToPoint(p);
+      const d = elements[i].distanceToPoint(p);
+      normal = normal.add(n.scale(d));
+      weight += d;
     }
-    return Vec.fromArray(grad).scale(Math.sign(d)).normalize();
+    return normal.length() > 0 ? normal.scale(1 / weight).normalize() : normal;
   }
   debug(props) {
     const { camera, canvas } = props;
@@ -3237,6 +3244,14 @@ class Node3 {
     const children = [this.left, this.right];
     const index = argmin(children, (n) => n.box.center.sub(p).length());
     return children[index].getElemNear(p);
+  }
+  getLeafsNear(p) {
+    if (this.leafs.length > 0) {
+      return this.leafs.map((x) => x.element);
+    }
+    const children = [this.left, this.right];
+    const index = argmin(children, (n) => n.box.center.sub(p).length());
+    return children[index].getLeafsNear(p);
   }
   getElemIn(box) {
     let elements = [];

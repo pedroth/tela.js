@@ -63,6 +63,7 @@ export default class Camera {
   rayMap(lambdaWithRays, params) {
     return {
       to: canvas => {
+        let it = 0;
         const w = canvas.width;
         const h = canvas.height;
         const ans = canvas.map((x, y) => {
@@ -77,7 +78,10 @@ export default class Camera {
             this.basis[0].z * dirInLocal[0] + this.basis[1].z * dirInLocal[1] + this.basis[2].z * dirInLocal[2]
           )
             .normalize()
-          return lambdaWithRays(Ray(this.eye, dir), params);
+          const c =  lambdaWithRays(Ray(this.eye, dir), params);
+          console.log(`${Math.floor(100 * (it/ (w * h)))}%`);
+          it++;
+          return c;
         });
         return ans;
       }

@@ -358,7 +358,7 @@ function handleMouse(canvas, lambda) {
     const mx = (event.clientX - rect.left) / rect.width, my = (event.clientY - rect.top) / rect.height;
     const x = Math.floor(mx * w);
     const y = Math.floor(h - 1 - my * h);
-    return lambda(x, y);
+    return lambda(x, y, event);
   }
 }
 
