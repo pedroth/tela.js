@@ -3405,14 +3405,13 @@ class VoxelScene {
     return Number.MAX_VALUE;
   }
   estimateNormal(p) {
-    const epsilon = 0.000000001;
-    const n = p.dim;
-    const grad = [];
-    const d = this.distanceToPoint(p);
-    for (let i = 0;i < n; i++) {
-      grad.push(this.distanceToPoint(p.add(Vec.e(n)(i).scale(epsilon))) - d);
+    let normal = Vec3();
+    const elements = Object.values(this.gridMap[this.hash(p)] || {});
+    for (let i = 0;i < elements.length; i++) {
+      const elem = elements[i];
+      normal = normal.add(elem.normalToPoint(p));
     }
-    return Vec.fromArray(grad).scale(Math.sign(d)).normalize();
+    return normal.length() > 0 ? normal.normalize() : normal;
   }
   debug(props) {
     const { camera, canvas } = props;

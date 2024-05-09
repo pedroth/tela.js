@@ -5,31 +5,32 @@ async (canvas, logger) => {
     const height = 480 / 2;
     canvas.resize(width, height);
     // scene
-    const scene = new KScene(50);
+    const scene = new KScene();
     const camera = new Camera();
-    const n = 5;
-    const grid = [...Array(n * n)]
-        .map((_, k) => {
-            const i = Math.floor(k / n);
-            const j = k % n;
-            const x = j;
-            const y = i;
-            const initial = Vec3(0, x / n, y / n);
-            return Point
-                .builder()
-                .name(`pxl_${k}`)
-                .radius(1e-2)
-                .position(initial.add(Vec.RANDOM(3)).map(x => 2 * x - 1))
-                .color(Color.GRAY)
-                .build()
-        });
-    scene.addList(grid);
-    // const obj = await fetch("/assets/spot.obj").then(x => x.text());
-    // let mesh = Mesh.readObj(obj, "mesh");
-    // mesh = mesh
-    //     .mapVertices(v => Vec3(-v.y, v.x, v.z))
-    //     .mapVertices(v => Vec3(v.z, v.y, -v.x))
-    // scene.addList(mesh.asPoints(0.05));
+    // const n = 5;
+    // const grid = [...Array(n * n)]
+    //     .map((_, k) => {
+    //         const i = Math.floor(k / n);
+    //         const j = k % n;
+    //         const x = j;
+    //         const y = i;
+    //         const initial = Vec3(0, x / n, y / n);
+    //         return Point
+    //             .builder()
+    //             .name(`pxl_${k}`)
+    //             .radius(1e-2)
+    //             .position(initial.add(Vec.RANDOM(3)).map(x => 2 * x - 1))
+    //             .color(Color.GRAY)
+    //             .build()
+    //     });
+    // scene.addList(grid);
+    const obj = await fetch("/assets/spot.obj").then(x => x.text());
+    let mesh = Mesh.readObj(obj, "mesh");
+    mesh = mesh
+        .mapVertices(v => Vec3(-v.y, v.x, v.z))
+        .mapVertices(v => Vec3(v.z, v.y, -v.x))
+    scene.addList(mesh.asPoints(0.05));
+    scene.rebuild();
 
     const rayScene = (ray) => {
         const maxIte = 100;
@@ -37,10 +38,10 @@ async (canvas, logger) => {
         const epsilon = 1e-3;
         const { init } = ray;
         let p = init;
-        let t = scene.distanceToPoint(p);
+        let t = scene.distanceOnRay(ray);
         for (let i = 0; i < maxIte; i++) {
             p = ray.trace(t);
-            const d = scene.distanceToPoint(p);
+            const d = scene.distanceOnRay(Ray(p, ray.dir));
             t += d;
             if (d < epsilon) {
                 const normal = scene.estimateNormal(p).map(x => (x + 1) / 2);
