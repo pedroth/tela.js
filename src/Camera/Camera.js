@@ -91,9 +91,10 @@ export default class Camera {
   sceneShot(scene, params = {}) {
     let { samplesPerPxl, bounces, variance, gamma } = params;
     bounces = bounces ?? 10;
+    variance = variance ?? 0.001;
     samplesPerPxl = samplesPerPxl ?? 1;
     gamma = gamma ?? 0.5;
-    const invSamples = 1 / samplesPerPxl;
+    const invSamples = bounces / samplesPerPxl;
     const lambda = ray => {
       let c = Color.BLACK;
       for (let i = 0; i < samplesPerPxl; i++) {

@@ -24,7 +24,7 @@ bunnyMesh = bunnyMesh
     .mapVertices(v => Vec3(v.z, v.y, -v.x))
     .mapVertices(v => v.add(Vec3(1.5, 1.5, 1.5)))
     .mapColors(() => Color.WHITE)
-    .mapMaterials(() => DiElectric(1.3333))
+    .mapMaterials(() => Metallic(1.3333))
 scene.add(...bunnyMesh.asTriangles());
 
 scene.add(
@@ -128,7 +128,7 @@ scene.add(
     //     .build(),
 )
 
-const shot = (image) => camera.sceneShot(scene, { samplesPerPxl: 10, bounces: 10, gamma: 0.1 }).to(image ?? Image.ofSize(width, height));
+const shot = (image) => camera.sceneShot(scene, { samplesPerPxl: 100, bounces: 10 }).to(image ?? Image.ofSize(width, height));
 
 const time = measureTime(
     () => saveImageToFile(

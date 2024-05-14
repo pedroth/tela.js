@@ -434,7 +434,7 @@ class Vector2 {
 }
 
 // src/Utils/Constants.js
-var MAX_8BIT = 256;
+var MAX_8BIT = 255;
 var RAD2DEG = 180 / Math.PI;
 var UNIT_BOX_VERTEX2 = [
   Vec3(),
@@ -446,76 +446,6 @@ var UNIT_BOX_VERTEX2 = [
   Vec3(1, 1, 1),
   Vec3(0, 1, 1)
 ];
-
-// src/Color/Color.js
-class Color {
-  constructor(rgb) {
-    this.rgb = rgb;
-  }
-  toArray() {
-    return this.rgb;
-  }
-  get red() {
-    return this.rgb[0];
-  }
-  get green() {
-    return this.rgb[1];
-  }
-  get blue() {
-    return this.rgb[2];
-  }
-  add(color) {
-    return Color.ofRGB(this.rgb[0] + color.red, this.rgb[1] + color.green, this.rgb[2] + color.blue);
-  }
-  scale(r) {
-    return Color.ofRGB(r * this.red, r * this.green, r * this.blue);
-  }
-  mul(color) {
-    return Color.ofRGB(this.rgb[0] * color.red, this.rgb[1] * color.green, this.rgb[2] * color.blue);
-  }
-  equals(color) {
-    return this.rgb[0] === color.rgb[0] && this.rgb[1] === color.rgb[1] && this.rgb[2] === color.rgb[2];
-  }
-  toString() {
-    return `red: ${this.red}, green: ${this.green}, blue: ${this.blue}`;
-  }
-  toGamma(alpha = 0.5) {
-    const r = this.rgb[0] ** alpha;
-    const g = this.rgb[1] ** alpha;
-    const b = this.rgb[2] ** alpha;
-    return Color.ofRGB(r, g, b);
-  }
-  static ofRGB(red = 0, green = 0, blue = 0) {
-    const rgb = [];
-    rgb[0] = red;
-    rgb[1] = green;
-    rgb[2] = blue;
-    return new Color(rgb);
-  }
-  static ofRGBRaw(red = 0, green = 0, blue = 0) {
-    const rgb = [];
-    rgb[0] = red / MAX_8BIT;
-    rgb[1] = green / MAX_8BIT;
-    rgb[2] = blue / MAX_8BIT;
-    return new Color(rgb);
-  }
-  static ofHSV(hue, s, v) {
-    const h = hue * RAD2DEG;
-    let f = (n, k = (n + h / 60) % 6) => v - v * s * Math.max(Math.min(k, 4 - k, 1), 0);
-    return new Color([f(5), f(3), f(1)]);
-  }
-  static random() {
-    const r = () => Math.random();
-    return Color.ofRGB(r(), r(), r());
-  }
-  static RED = Color.ofRGB(1, 0, 0);
-  static GREEN = Color.ofRGB(0, 1, 0);
-  static BLUE = Color.ofRGB(0, 0, 1);
-  static BLACK = Color.ofRGB(0, 0, 0);
-  static WHITE = Color.ofRGB(1, 1, 1);
-  static GRAY = Color.ofRGB(0.5, 0.5, 0.5);
-  static GREY = Color.ofRGB(0.5, 0.5, 0.5);
-}
 
 // src/Utils/Math.js
 function smin(a, b, k = 32) {
@@ -643,6 +573,78 @@ var solveUpTriMatrix = function(v, a, f) {
   const f2 = f.y;
   return Vec2(f2 / v2, (f1 * v2 - v1 * f2) / av2);
 };
+
+// src/Color/Color.js
+var rgbClamp = clamp();
+
+class Color {
+  constructor(rgb) {
+    this.rgb = rgb;
+  }
+  toArray() {
+    return [this.red, this.green, this.blue];
+  }
+  get red() {
+    return rgbClamp(this.rgb[0]);
+  }
+  get green() {
+    return rgbClamp(this.rgb[1]);
+  }
+  get blue() {
+    return rgbClamp(this.rgb[2]);
+  }
+  add(color) {
+    return Color.ofRGB(this.rgb[0] + color.red, this.rgb[1] + color.green, this.rgb[2] + color.blue);
+  }
+  scale(r) {
+    return Color.ofRGB(r * this.red, r * this.green, r * this.blue);
+  }
+  mul(color) {
+    return Color.ofRGB(this.rgb[0] * color.red, this.rgb[1] * color.green, this.rgb[2] * color.blue);
+  }
+  equals(color) {
+    return this.rgb[0] === color.rgb[0] && this.rgb[1] === color.rgb[1] && this.rgb[2] === color.rgb[2];
+  }
+  toString() {
+    return `red: ${this.red}, green: ${this.green}, blue: ${this.blue}`;
+  }
+  toGamma(alpha = 0.5) {
+    const r = this.red ** alpha;
+    const g = this.green ** alpha;
+    const b = this.blue ** alpha;
+    return Color.ofRGB(r, g, b);
+  }
+  static ofRGB(red = 0, green = 0, blue = 0) {
+    const rgb = [];
+    rgb[0] = red;
+    rgb[1] = green;
+    rgb[2] = blue;
+    return new Color(rgb);
+  }
+  static ofRGBRaw(red = 0, green = 0, blue = 0) {
+    const rgb = [];
+    rgb[0] = red / MAX_8BIT;
+    rgb[1] = green / MAX_8BIT;
+    rgb[2] = blue / MAX_8BIT;
+    return new Color(rgb);
+  }
+  static ofHSV(hue, s, v) {
+    const h = hue * RAD2DEG;
+    let f = (n, k = (n + h / 60) % 6) => v - v * s * Math.max(Math.min(k, 4 - k, 1), 0);
+    return new Color([f(5), f(3), f(1)]);
+  }
+  static random() {
+    const r = () => Math.random();
+    return Color.ofRGB(r(), r(), r());
+  }
+  static RED = Color.ofRGB(1, 0, 0);
+  static GREEN = Color.ofRGB(0, 1, 0);
+  static BLUE = Color.ofRGB(0, 0, 1);
+  static BLACK = Color.ofRGB(0, 0, 0);
+  static WHITE = Color.ofRGB(1, 1, 1);
+  static GRAY = Color.ofRGB(0.5, 0.5, 0.5);
+  static GREY = Color.ofRGB(0.5, 0.5, 0.5);
+}
 
 // src/Box/Box.js
 var maxComp = function(u) {
@@ -1034,9 +1036,9 @@ class Canvas {
         const color = lambda(x, y, { ..._vars_ });
         if (!color)
           return;
-        image[index] = Math.floor(clamp()(color.red) * MAX_8BIT);
-        image[index + 1] = Math.floor(clamp()(color.green) * MAX_8BIT);
-        image[index + 2] = Math.floor(clamp()(color.blue) * MAX_8BIT);
+        image[index] = color.red * MAX_8BIT;
+        image[index + 1] = color.green * MAX_8BIT;
+        image[index + 2] = color.blue * MAX_8BIT;
         image[index + 3] = MAX_8BIT;
         index += 4;
       }
@@ -2198,9 +2200,10 @@ class Camera {
   sceneShot(scene, params = {}) {
     let { samplesPerPxl, bounces, variance, gamma } = params;
     bounces = bounces ?? 10;
+    variance = variance ?? 0.001;
     samplesPerPxl = samplesPerPxl ?? 1;
     gamma = gamma ?? 0.5;
-    const invSamples = 1 / samplesPerPxl;
+    const invSamples = bounces / samplesPerPxl;
     const lambda = (ray) => {
       let c = Color.BLACK;
       for (let i = 0;i < samplesPerPxl; i++) {

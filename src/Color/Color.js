@@ -1,4 +1,6 @@
 import { MAX_8BIT, RAD2DEG } from "../Utils/Constants.js";
+import { clamp } from "../Utils/Math.js";
+const rgbClamp = clamp()
 
 /**
  * Class that abstracts colors.
@@ -11,19 +13,19 @@ export default class Color {
   }
 
   toArray() {
-    return this.rgb;
+    return [this.red, this.green, this.blue];
   }
 
   get red() {
-    return this.rgb[0];
+    return rgbClamp(this.rgb[0]);
   }
 
   get green() {
-    return this.rgb[1];
+    return rgbClamp(this.rgb[1]);
   }
 
   get blue() {
-    return this.rgb[2];
+    return rgbClamp(this.rgb[2]);
   }
 
   add(color) {
@@ -60,9 +62,9 @@ export default class Color {
   }
 
   toGamma(alpha = 0.5) {
-    const r = this.rgb[0] ** alpha;
-    const g = this.rgb[1] ** alpha;
-    const b = this.rgb[2] ** alpha;
+    const r = this.red ** alpha;
+    const g = this.green ** alpha;
+    const b = this.blue ** alpha;
     return Color.ofRGB(r, g, b);
   }
 

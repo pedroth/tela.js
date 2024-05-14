@@ -109,10 +109,10 @@ export default class Image {
                 let index = w * i + j;
                 const color = this._image[index];
                 index <<= 2; // multiply by 4
-                imageData[index] = color.red * 255;
-                imageData[index + 1] = color.green * 255;
-                imageData[index + 2] = color.blue * 255;
-                imageData[index + 3] = 255;
+                imageData[index] = color.red * MAX_8BIT;
+                imageData[index + 1] = color.green * MAX_8BIT;
+                imageData[index + 2] = color.blue * MAX_8BIT;
+                imageData[index + 3] = MAX_8BIT;
             }
         }
         return imageData;

@@ -123,9 +123,9 @@ export default class Canvas {
         const y = _height_ - 1 - i;
         const color = lambda(x, y, { ..._vars_ });
         if (!color) return;
-        image[index] = Math.floor(clamp()(color.red) * MAX_8BIT);
-        image[index + 1] = Math.floor(clamp()(color.green) * MAX_8BIT);
-        image[index + 2] = Math.floor(clamp()(color.blue) * MAX_8BIT);
+        image[index] = color.red * MAX_8BIT;
+        image[index + 1] = color.green * MAX_8BIT;
+        image[index + 2] = color.blue * MAX_8BIT;
         image[index + 3] = MAX_8BIT;
         index += 4;
       }
