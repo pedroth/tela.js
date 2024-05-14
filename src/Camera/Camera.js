@@ -78,8 +78,8 @@ export default class Camera {
             this.basis[0].z * dirInLocal[0] + this.basis[1].z * dirInLocal[1] + this.basis[2].z * dirInLocal[2]
           )
             .normalize()
-          const c =  lambdaWithRays(Ray(this.eye, dir), params);
-          console.log(`${Math.floor(100 * (it/ (w * h)))}%`);
+          const c = lambdaWithRays(Ray(this.eye, dir), params);
+          // console.log(`${Math.floor(100 * (it / (w * h)))}%`);
           it++;
           return c;
         });
@@ -91,9 +91,9 @@ export default class Camera {
   sceneShot(scene, params = {}) {
     let { samplesPerPxl, bounces, variance, gamma } = params;
     bounces = bounces ?? 10;
-    variance = variance ?? 0.001;
     samplesPerPxl = samplesPerPxl ?? 1;
-    gamma = gamma ?? 0.01;
+    gamma = gamma ?? 0.5;
+    const invSamples = 1 / samplesPerPxl;
     const lambda = ray => {
       let c = Color.BLACK;
       for (let i = 0; i < samplesPerPxl; i++) {
@@ -102,7 +102,7 @@ export default class Camera {
         const r = Ray(ray.init, ray.dir.add(epsilonOrto).normalize());
         c = c.add(trace(r, scene, { bounces }));
       }
-      return c.scale(1 / samplesPerPxl).toGamma(gamma);
+      return c.scale(invSamples).toGamma(gamma);
     }
     return this.rayMap(lambda, params);
   }

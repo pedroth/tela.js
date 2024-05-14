@@ -1,7 +1,7 @@
-import { Color, Image, IO, Utils, Mesh, Vec3, Camera, Triangle, DiElectric, KScene, } from "../../dist/node/index.js";
+import { Color, Image, IO, Utils, Mesh, Vec3, Camera, Triangle, DiElectric, KScene, Point, Metallic, } from "../../dist/node/index.js";
 import { readFileSync } from "fs"
 
-const { measureTime,  } = Utils;
+const { measureTime, } = Utils;
 const { saveImageToFile } = IO;
 
 // constants
@@ -102,15 +102,62 @@ scene.add(
         .positions(Vec3(2, 2, 2.9), Vec3(1, 2, 2.9), Vec3(1, 1, 2.9))
         .emissive(true)
         .build(),
+    // Point
+    //     .builder()
+    //     .radius(0.25)
+    //     .name("sphere")
+    //     .color(Color.ofRGB(1, 0, 1))
+    //     .material(Metallic(0.25))
+    //     .position(Vec3(1.5, 0.5, 1.5))
+    //     .build(),
+    // Point
+    //     .builder()
+    //     .radius(0.25)
+    //     .name("metal-sphere")
+    //     .color(Color.WHITE)
+    //     .material(Metallic())
+    //     .position(Vec3(1.5, 2.5, 1.5))
+    //     .build(),
+    // Point
+    //     .builder()
+    //     .radius(0.5)
+    //     .name("glass-sphere")
+    //     .color(Color.ofRGB(1, 1, 1))
+    //     .material(DiElectric(1.5))
+    //     .position(Vec3(1.0, 1.5, 1.0))
+    //     .build(),
 )
 
-const shot = (image) => camera.sceneShot(scene, { samplesPerPxl: 25, bounces: 20, gamma: 0.01 }).to(image ?? Image.ofSize(width, height));
+const shot = (image) => camera.sceneShot(scene, { samplesPerPxl: 10, bounces: 10, gamma: 0.1 }).to(image ?? Image.ofSize(width, height));
 
 const time = measureTime(
     () => saveImageToFile(
-        "./bunny_glass.jpeg",
+        `./bunny_glass.png`,
         shot(Image.ofSize(width, height))
     )
 );
-
 console.log(`Image done in ${time}s`);
+
+
+// let w = width;
+// let h = height;
+// const sizes = [[w, h]];
+// let i = 1;
+// while ((h >> i) % 2 === 0 && (w >> i) % 2 === 0) {
+//     w = w >> i;
+//     h = h >> i;
+//     sizes.push([w, h]);
+//     i++;
+// }
+
+// const sortedSizes = sizes.sort((a, b) => a[0] - b[0]);
+// sortedSizes.forEach(([wi, hi]) => {
+//     console.log(">>>", sizes);
+//     const time = measureTime(
+//         () => saveImageToFile(
+//             `./bunny_glass_100_05_${wi}_${hi}.ppm`,
+//             shot(Image.ofSize(wi, hi))
+//         )
+//     );
+//     console.log(`Image done in ${time}s`);
+// })
