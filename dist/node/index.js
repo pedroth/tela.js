@@ -585,13 +585,13 @@ class Color {
     return [this.red, this.green, this.blue];
   }
   get red() {
-    return rgbClamp(this.rgb[0]);
+    return this.rgb[0];
   }
   get green() {
-    return rgbClamp(this.rgb[1]);
+    return this.rgb[1];
   }
   get blue() {
-    return rgbClamp(this.rgb[2]);
+    return this.rgb[2];
   }
   add(color) {
     return Color.ofRGB(this.rgb[0] + color.red, this.rgb[1] + color.green, this.rgb[2] + color.blue);
@@ -1028,6 +1028,7 @@ class Canvas {
       const startIndex = 4 * _width_ * _start_row;
       const endIndex = 4 * _width_ * _end_row;
       let index = 0;
+      const clamp2 = (x) => Math.min(1, Math.max(0, x));
       for (let k = startIndex;k < endIndex; k += 4) {
         const i = Math.floor(k / (4 * _width_));
         const j = Math.floor(k / 4 % _width_);
@@ -1036,9 +1037,9 @@ class Canvas {
         const color = lambda(x, y, { ..._vars_ });
         if (!color)
           return;
-        image[index] = color.red * MAX_8BIT;
-        image[index + 1] = color.green * MAX_8BIT;
-        image[index + 2] = color.blue * MAX_8BIT;
+        image[index] = clamp2(color.red) * MAX_8BIT;
+        image[index + 1] = clamp2(color.green) * MAX_8BIT;
+        image[index + 2] = clamp2(color.blue) * MAX_8BIT;
         image[index + 3] = MAX_8BIT;
         index += 4;
       }
@@ -1200,8 +1201,6 @@ class Canvas {
 var createWorker = (main, lambda, dependencies) => {
   const workerFile = `
   const MAX_8BIT=${MAX_8BIT};
-  ${clamp.toString()}
-  const rgbClamp = clamp();
   ${Color.toString()}
   ${dependencies.map((d) => d.toString()).join("\n")}
   const lambda = ${lambda.toString()};
@@ -1964,12 +1963,10 @@ var trace = function(ray, scene, options) {
     return Color.BLACK;
   const [, p, e] = hit;
   const color = e.color ?? e.colors[0];
-  if (e.emissive)
-    return color;
   const mat = e.material;
   let r = mat.scatter(ray, p, e);
   let finalC = trace(r, scene, { bounces: bounces - 1 });
-  return color.mul(finalC);
+  return e.emissive ? color.add(color.mul(finalC)) : color.mul(finalC);
 };
 var rasterPoint = function({ canvas, camera, elem, w, h, zBuffer }) {
   const point = elem;
@@ -4288,10 +4285,10 @@ function createPPMFromImage(image) {
   const width = image.width;
   const height = image.height;
   const pixelData = image.toArray();
-  const MAX_8_BIT = 255;
-  let file = `P3\n${width} ${height}\n${MAX_8_BIT}\n`;
+  const clamp2 = clamp2(0, MAX_8BIT);
+  let file = `P3\n${width} ${height}\n${MAX_8BIT}\n`;
   for (let i = 0;i < pixelData.length; i += 4) {
-    file += `${pixelData[i]} ${pixelData[i + 1]} ${pixelData[i + 2]}\n`;
+    file += `${clamp2(pixelData[i])} ${clamp2(pixelData[i + 1])} ${clamp2(pixelData[i + 2])}\n`;
   }
   return file;
 }

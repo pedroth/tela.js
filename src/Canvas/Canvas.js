@@ -1,6 +1,6 @@
 import Color from "../Color/Color.js";
 import { MAX_8BIT } from "../Utils/Constants.js";
-import { clipLine, isInsideConvex, mod, clamp } from "../Utils/Math.js";
+import { clipLine, isInsideConvex, mod } from "../Utils/Math.js";
 import Box from "../Box/Box.js"
 import { Vec2 } from "../Vector/Vector.js";
 import { memoize } from "../Utils/Utils.js";
@@ -116,6 +116,7 @@ export default class Canvas {
       const startIndex = 4 * _width_ * _start_row;
       const endIndex = 4 * _width_ * _end_row;
       let index = 0;
+      const clamp = x => Math.min(1, Math.max(0, x));
       for (let k = startIndex; k < endIndex; k += 4) {
         const i = Math.floor(k / (4 * _width_));
         const j = Math.floor((k / 4) % _width_);
@@ -123,9 +124,9 @@ export default class Canvas {
         const y = _height_ - 1 - i;
         const color = lambda(x, y, { ..._vars_ });
         if (!color) return;
-        image[index] = color.red * MAX_8BIT;
-        image[index + 1] = color.green * MAX_8BIT;
-        image[index + 2] = color.blue * MAX_8BIT;
+        image[index] = clamp(color.red) * MAX_8BIT;
+        image[index + 1] = clamp(color.green) * MAX_8BIT;
+        image[index + 2] = clamp(color.blue) * MAX_8BIT;
         image[index + 3] = MAX_8BIT;
         index += 4;
       }
@@ -387,8 +388,6 @@ function handleMouse(canvas, lambda) {
 const createWorker = (main, lambda, dependencies) => {
   const workerFile = `
   const MAX_8BIT=${MAX_8BIT};
-  ${clamp.toString()}
-  const rgbClamp = clamp();
   ${Color.toString()}
   ${dependencies.map(d => d.toString()).join("\n")}
   const lambda = ${lambda.toString()};

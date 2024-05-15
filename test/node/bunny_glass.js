@@ -128,7 +128,7 @@ scene.add(
     //     .build(),
 )
 
-const shot = (image) => camera.sceneShot(scene, { samplesPerPxl: 50, bounces: 10 }).to(image ?? Image.ofSize(width, height));
+const shot = (image) => camera.sceneShot(scene, { samplesPerPxl: 100, bounces: 20 }).to(image ?? Image.ofSize(width, height));
 
 const time = measureTime(
     () => saveImageToFile(

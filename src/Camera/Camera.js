@@ -221,7 +221,6 @@ function trace(ray, scene, options) {
   if (!hit) return Color.BLACK;
   const [, p, e] = hit;
   const color = e.color ?? e.colors[0];
-  if (e.emissive) return color;
   const mat = e.material;
   let r = mat.scatter(ray, p, e);
   let finalC = trace(
@@ -229,7 +228,7 @@ function trace(ray, scene, options) {
     scene,
     { bounces: bounces - 1 }
   );
-  return color.mul(finalC);
+  return e.emissive ? color.add(color.mul(finalC)) : color.mul(finalC);
 }
 
 

@@ -2,6 +2,8 @@ import { writeFileSync, unlinkSync, readFileSync } from "fs";
 import { execSync, exec } from "child_process";
 import Image from "../Image/Image.js";
 import Color from "../Color/Color.js";
+import { MAX_8BIT } from "../Utils/Constants.js";
+import { clamp } from "../Utils/Math.js";
 
 export function saveImageToFile(fileAddress, image) {
     const { fileName, extension } = getFileNameAndExtensionFromAddress(fileAddress);
@@ -72,10 +74,10 @@ export function createPPMFromImage(image) {
     const width = image.width;
     const height = image.height;
     const pixelData = image.toArray();
-    const MAX_8_BIT = 255;
-    let file = `P3\n${width} ${height}\n${MAX_8_BIT}\n`;
+    const rgbClamp = clamp(0, MAX_8BIT);
+    let file = `P3\n${width} ${height}\n${MAX_8BIT}\n`;
     for (let i = 0; i < pixelData.length; i += 4) {
-        file += `${pixelData[i]} ${pixelData[i + 1]} ${pixelData[i + 2]}\n`;
+        file += `${rgbClamp(pixelData[i])} ${rgbClamp(pixelData[i + 1])} ${rgbClamp(pixelData[i + 2])}\n`;
     }
     return file;
 }

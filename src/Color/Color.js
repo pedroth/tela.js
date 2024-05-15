@@ -17,15 +17,15 @@ export default class Color {
   }
 
   get red() {
-    return rgbClamp(this.rgb[0]);
+    return this.rgb[0];
   }
 
   get green() {
-    return rgbClamp(this.rgb[1]);
+    return this.rgb[1];
   }
 
   get blue() {
-    return rgbClamp(this.rgb[2]);
+    return this.rgb[2];
   }
 
   add(color) {
