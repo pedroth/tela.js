@@ -128,7 +128,7 @@ scene.add(
     //     .build(),
 )
 
-const shot = (image) => camera.sceneShot(scene, { samplesPerPxl: 100, bounces: 10 }).to(image ?? Image.ofSize(width, height));
+const shot = (image) => camera.sceneShot(scene, { samplesPerPxl: 50, bounces: 10 }).to(image ?? Image.ofSize(width, height));
 
 const time = measureTime(
     () => saveImageToFile(
@@ -155,7 +155,7 @@ console.log(`Image done in ${time}s`);
 //     console.log(">>>", sizes);
 //     const time = measureTime(
 //         () => saveImageToFile(
-//             `./bunny_glass_100_05_${wi}_${hi}.ppm`,
+//             `./bunny_glass_${wi}_${hi}.ppm`,
 //             shot(Image.ofSize(wi, hi))
 //         )
 //     );

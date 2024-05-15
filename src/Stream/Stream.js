@@ -2,11 +2,11 @@ const ID = x => x;
 const TRUE = () => true;
 
 export default class Stream {
-    constructor(initialState, updateStateFunction, options) {
+    constructor(initialState, updateStateFunction, options = {}) {
         this._head = initialState;
         this._tail = updateStateFunction;
-        this._pred = options.predicate ?? TRUE;
-        this._map = options.map ?? ID;
+        this._pred = options?.predicate ?? TRUE;
+        this._map = options?.map ?? ID;
     }
 
     get head() { return this._map(this._head); }

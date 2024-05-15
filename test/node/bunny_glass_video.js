@@ -1,4 +1,4 @@
-import { Color, Image, Stream, IO, Utils, Mesh, Vec3, Camera, Triangle, DiElectric, KScene, VoxelScene, BScene } from "../../dist/node/index.js";
+import { Color, Image, Stream, IO, Utils, Mesh, Vec3, Camera, Triangle, DiElectric, KScene, VoxelScene, BScene, Metallic } from "../../dist/node/index.js";
 import { readFileSync } from "fs"
 
 const { measureTime, measureTimeWithResult } = Utils;
@@ -27,34 +27,11 @@ bunnyMesh = bunnyMesh
     .mapVertices(v => Vec3(v.z, v.y, -v.x))
     .mapVertices(v => v.add(Vec3(1.5, 1.5, 1.5)))
     .mapColors(() => Color.WHITE)
-    .mapMaterials(() => DiElectric(2.0))
+    .mapMaterials(() => Metallic(1.3))
 scene.add(...bunnyMesh.asTriangles());
 
 scene.add(
-    Triangle
-        .builder()
-        .name("left-1")
-        .colors(Color.RED, Color.RED, Color.RED)
-        .positions(Vec3(3, 0, 3), Vec3(3, 0, 0), Vec3())
-        .build(),
-    Triangle
-        .builder()
-        .name("left-2")
-        .colors(Color.RED, Color.RED, Color.RED)
-        .positions(Vec3(), Vec3(0, 0, 3), Vec3(3, 0, 3))
-        .build(),
-    Triangle
-        .builder()
-        .name("right-1")
-        .colors(Color.GREEN, Color.GREEN, Color.GREEN)
-        .positions(Vec3(0, 3, 0), Vec3(3, 3, 0), Vec3(3, 3, 3))
-        .build(),
-    Triangle
-        .builder()
-        .name("right-2")
-        .colors(Color.GREEN, Color.GREEN, Color.GREEN)
-        .positions(Vec3(3, 3, 3), Vec3(0, 3, 3), Vec3(0, 3, 0))
-        .build(),
+
     Triangle
         .builder()
         .name("bottom-1")
@@ -79,18 +56,7 @@ scene.add(
         .colors(Color.WHITE, Color.WHITE, Color.WHITE)
         .positions(Vec3(0, 0, 3), Vec3(0, 3, 3), Vec3(3, 3, 3))
         .build(),
-    Triangle
-        .builder()
-        .name("back-1")
-        .colors(Color.WHITE, Color.WHITE, Color.WHITE)
-        .positions(Vec3(), Vec3(0, 3, 0), Vec3(0, 3, 3))
-        .build(),
-    Triangle
-        .builder()
-        .name("back-2")
-        .colors(Color.WHITE, Color.WHITE, Color.WHITE)
-        .positions(Vec3(0, 3, 3), Vec3(0, 0, 3), Vec3())
-        .build(),
+
     Triangle
         .builder()
         .name("light-1")
@@ -107,7 +73,7 @@ scene.add(
         .build(),
 )
 
-const shot = (image) => camera.sceneShot(scene, { samplesPerPxl: 1, bounces: 20, gamma: 0.01 }).to(image ?? Image.ofSize(width, height));
+const shot = (image) => camera.sceneShot(scene, { samplesPerPxl: 20, bounces: 10 }).to(image ?? Image.ofSize(width, height));
 
 const imageStream = new Stream(
     { time: 0, image: shot() },
