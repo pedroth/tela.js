@@ -1,7 +1,5 @@
 (canvas, logger) => {
     // resize incoming canvas:Canvas object.
-    console.log(">>>")
-
     const width = 100;
     const height = 100;
     canvas.resize(width, height);

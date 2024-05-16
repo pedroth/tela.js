@@ -7,24 +7,7 @@ async (canvas, logger) => {
     // scene
     const scene = new KScene();
     const camera = new Camera();
-    // const n = 5;
-    // const grid = [...Array(n * n)]
-    //     .map((_, k) => {
-    //         const i = Math.floor(k / n);
-    //         const j = k % n;
-    //         const x = j;
-    //         const y = i;
-    //         const initial = Vec3(0, x / n, y / n);
-    //         return Point
-    //             .builder()
-    //             .name(`pxl_${k}`)
-    //             .radius(1e-2)
-    //             .position(initial.add(Vec.RANDOM(3)).map(x => 2 * x - 1))
-    //             .color(Color.GRAY)
-    //             .build()
-    //     });
-    // scene.addList(grid);
-    const obj = await fetch("/assets/spot.obj").then(x => x.text());
+    const obj = await fetch("/assets/bunny.obj").then(x => x.text());
     let mesh = Mesh.readObj(obj, "mesh");
     mesh = mesh
         .mapVertices(v => Vec3(-v.y, v.x, v.z))
