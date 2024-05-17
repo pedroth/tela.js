@@ -1,4 +1,4 @@
-import Box from "../Box/Box.js";
+import Box from "../Geometry/Box.js";
 import Color from "../Color/Color.js";
 import { MAX_8BIT } from "../Utils/Constants.js";
 import { clipLine, isInsideConvex, mod } from "../Utils/Math.js";

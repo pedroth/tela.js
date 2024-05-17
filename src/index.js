@@ -1,9 +1,8 @@
-import Animation from "./Animation/Animation.js"
+import Animation from "./Utils/Animation.js"
 import Canvas from "./Canvas/Canvas.js"
 import Color from "./Color/Color.js"
-import DOM from "./DomBuilder/DomBuilder.js"
-import Stream from "./Stream/Stream.js"
-import Parallel from "./Parallel/Parallel.js"
+import DOM from "./Utils/DomBuilder.js"
+import Stream from "./Utils/Stream.js"
 import Camera from "./Camera/Camera.js"
 import Scene from "./Scene/Scene.js"
 import BScene from "./Scene/BScene.js"
@@ -12,12 +11,12 @@ import NaiveScene from "./Scene/NaiveScene.js"
 import VoxelScene from "./Scene/VoxelScene.js"
 import RandomScene from "./Scene/RandomScene.js"
 import Vec, { Vec2, Vec3 } from "./Vector/Vector.js"
-import Box from "./Box/Box.js"
-import Point from "./Scene/Point.js"
-import Line from "./Scene/Line.js"
-import Path from "./Scene/Path.js"
-import Triangle from "./Scene/Triangle.js"
-import Mesh from "./Scene/Mesh.js"
+import Box from "./Geometry/Box.js"
+import Point from "./Geometry/Point.js"
+import Line from "./Geometry/Line.js"
+import Path from "./Geometry/Path.js"
+import Triangle from "./Geometry/Triangle.js"
+import Mesh from "./Geometry/Mesh.js"
 import Ray from "./Ray/Ray.js"
 
 export {
@@ -38,7 +37,6 @@ export {
     BScene,
     KScene,
     Stream,
-    Parallel,
     Triangle,
     Animation,
     NaiveScene,
@@ -49,4 +47,5 @@ export {
 export * from "./Utils/Math.js"
 export * from "./Material/Material.js";
 export * as Utils from "./Utils/Utils.js";
-export * as Monads from "./Monads/Monads.js";
+export * as Monads from "./Utils/Monads.js";
+export * from "./Utils/Constants.js"

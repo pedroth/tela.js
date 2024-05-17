@@ -1,4 +1,4 @@
-import Box from "../Box/Box.js";
+import Box from "../Geometry/Box.js";
 import Line from "./Line.js";
 
 export default class Path {

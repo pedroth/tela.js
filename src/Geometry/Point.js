@@ -1,7 +1,6 @@
-import Box from "../Box/Box.js";
+import Box from "../Geometry/Box.js";
 import Color from "../Color/Color.js";
 import { Diffuse } from "../Material/Material.js";
-import { none, some } from "../Monads/Monads.js";
 import { randomPointInSphere } from "../Utils/Math.js";
 import Vec, { Vec2, Vec3 } from "../Vector/Vector.js";
 

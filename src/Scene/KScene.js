@@ -1,8 +1,8 @@
 
-import Box from "../Box/Box.js";
+import Box from "../Geometry/Box.js";
 import Vec, { Vec3 } from "../Vector/Vector.js";
 import { argmin } from "../Utils/Utils.js";
-import PQueue from "../PQueue/PQueue.js";
+import PQueue from "../Utils/PQueue.js";
 import NaiveScene from "./NaiveScene.js";
 import Color from "../Color/Color.js";
 import { drawBox } from "../Utils/Utils3D.js";

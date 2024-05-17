@@ -1,6 +1,6 @@
 import { Vec3, Vec2 } from "../Vector/Vector.js";
 import Point from "./Point.js"
-import Box from "../Box/Box.js";
+import Box from "../Geometry/Box.js";
 import Line from "./Line.js";
 import Triangle from "./Triangle.js";
 import { groupBy } from "../Utils/Utils.js";

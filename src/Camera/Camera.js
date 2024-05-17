@@ -1,9 +1,9 @@
 import Vec, { Vec2, Vec3 } from "../Vector/Vector.js"
 import Color from "../Color/Color.js"
 import Ray from "../Ray/Ray.js";
-import Point from "../Scene/Point.js";
-import Line from "../Scene/Line.js";
-import Triangle from "../Scene/Triangle.js";
+import Point from "../Geometry/Point.js";
+import Line from "../Geometry/Line.js";
+import Triangle from "../Geometry/Triangle.js";
 import { lerp } from "../Utils/Math.js";
 
 export default class Camera {

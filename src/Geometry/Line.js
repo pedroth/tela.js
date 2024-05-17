@@ -1,7 +1,7 @@
-import Box from "../Box/Box.js";
+import Box from "./Box.js";
 import Color from "../Color/Color.js";
 import { Diffuse } from "../Material/Material.js";
-import { none, some } from "../Monads/Monads.js";
+import { none, some } from "../Utils/Monads.js";
 import { clamp } from "../Utils/Math.js";
 import { Vec2, Vec3 } from "../Vector/Vector.js";
 

@@ -9,7 +9,7 @@ var __export = (target, all) => {
     });
 };
 
-// src/Animation/Animation.js
+// src/Utils/Animation.js
 class Animation {
   constructor(state, next, doWhile) {
     this.state = state;
@@ -446,6 +446,20 @@ var UNIT_BOX_VERTEX2 = [
   Vec3(1, 1, 1),
   Vec3(0, 1, 1)
 ];
+var UNIT_BOX_FACES2 = [
+  [0, 1, 2],
+  [2, 3, 0],
+  [4, 5, 6],
+  [6, 7, 4],
+  [0, 1, 4],
+  [4, 5, 1],
+  [2, 3, 6],
+  [6, 7, 3],
+  [0, 3, 7],
+  [7, 4, 0],
+  [1, 2, 6],
+  [6, 5, 1]
+];
 
 // src/Utils/Math.js
 function smin(a, b, k = 32) {
@@ -646,7 +660,7 @@ class Color {
   static GREY = Color.ofRGB(0.5, 0.5, 0.5);
 }
 
-// src/Box/Box.js
+// src/Geometry/Box.js
 var maxComp = function(u) {
   return u.fold((e, x) => Math.max(e, x), -Number.MAX_VALUE);
 };
@@ -1214,7 +1228,7 @@ var createWorker = (main, lambda, dependencies) => {
   return new Worker(URL.createObjectURL(new Blob([workerFile])));
 };
 
-// src/DomBuilder/DomBuilder.js
+// src/Utils/DomBuilder.js
 var isElement = function(o) {
   return typeof HTMLElement === "object" ? o instanceof HTMLElement : o && typeof o === "object" && o !== null && o.nodeType === 1 && typeof o.nodeName === "string";
 };
@@ -1306,7 +1320,7 @@ class DomBuilder {
 }
 var DomBuilder_default = DomBuilder;
 
-// src/Stream/Stream.js
+// src/Utils/Stream.js
 var ID = (x) => x;
 var TRUE = () => true;
 
@@ -1332,80 +1346,6 @@ class Stream {
   }
   filter(predicate = () => true) {
     return new Stream(this._head, this._tail, { predicate: (x) => this._pred(x) && predicate(x), map: this._map });
-  }
-}
-
-// src/Parallel/Parallel.js
-class Parallel {
-  constructor(numberOfStreams, inputStreamGenerator, partitionFunction, stateGenerator, dependencies, lazyInitialState) {
-    this.numberOfStreams = numberOfStreams;
-    this.inputStreamGenerator = inputStreamGenerator;
-    this.partitionFunction = partitionFunction;
-    this.stateGenerator = stateGenerator;
-    this.dependencies = dependencies;
-    this.lazyInitialState = lazyInitialState;
-  }
-  getPartition() {
-    return new Array(this.numberOfStreams).fill().map((_, i) => {
-      return { ...this.inputStreamGenerator(i), __ite__: i };
-    }).reduce((e, x, i) => {
-      const value = this.partitionFunction(x, i);
-      if (!(value in e)) {
-        e[value] = [];
-      }
-      e[value].push(x);
-      return e;
-    }, {});
-  }
-  static builder() {
-    return new ParallelBuilder;
-  }
-}
-
-class ParallelBuilder {
-  constructor() {
-    this._numberOfStreams;
-    this._inputStreamGenerator;
-    this._partitionFunction;
-    this._stateGenerator;
-    this._dependencies;
-    this._lazyInitialState = () => {
-    };
-  }
-  numberOfStreams(numberOfStreams) {
-    this._numberOfStreams = numberOfStreams;
-    return this;
-  }
-  inputStreamGenerator(inputStreamGenerator) {
-    this._inputStreamGenerator = inputStreamGenerator;
-    return this;
-  }
-  partitionFunction(partitionFunction) {
-    this._partitionFunction = partitionFunction;
-    return this;
-  }
-  stateGenerator(stateGenerator, dependencies = []) {
-    this._stateGenerator = stateGenerator;
-    this._dependencies = dependencies;
-    return this;
-  }
-  lazyInitialState(lazyInitialState) {
-    this._lazyInitialState = lazyInitialState;
-    return this;
-  }
-  build() {
-    const attrs = [
-      this._numberOfStreams,
-      this._inputStreamGenerator,
-      this._partitionFunction,
-      this._stateGenerator,
-      this._dependencies,
-      this._lazyInitialState
-    ];
-    if (attrs.some((x) => x === undefined)) {
-      throw new Error("Parallel is incomplete");
-    }
-    return new Parallel(...attrs);
   }
 }
 
@@ -1491,57 +1431,7 @@ function DiElectric(indexOfRefraction = 1) {
   };
 }
 
-// src/Monads/Monads.js
-var exports_Monads = {};
-__export(exports_Monads, {
-  some: () => {
-    {
-      return some;
-    }
-  },
-  none: () => {
-    {
-      return none;
-    }
-  },
-  maybe: () => {
-    {
-      return maybe;
-    }
-  }
-});
-function some(x) {
-  const object = {
-    map: (f) => maybe(f(x)),
-    filter: (f) => f(x) ? object : none(),
-    orElse: () => x,
-    forEach: (f) => f(x),
-    flatMap: (f) => f(x),
-    isSome: () => true
-  };
-  return object;
-}
-function none() {
-  const object = {
-    map: () => object,
-    filter: () => object,
-    orElse: (f = () => {
-    }) => f(),
-    forEach: () => {
-    },
-    flatMap: () => object,
-    isSome: () => false
-  };
-  return object;
-}
-function maybe(x) {
-  if (x) {
-    return some(x);
-  }
-  return none(x);
-}
-
-// src/Scene/Point.js
+// src/Geometry/Point.js
 var sphereInterception = function(point, ray) {
   const { init, dir } = ray;
   const diff = init.sub(point.position);
@@ -1679,7 +1569,57 @@ class PointBuilder {
 }
 var Point_default = Point;
 
-// src/Scene/Line.js
+// src/Utils/Monads.js
+var exports_Monads = {};
+__export(exports_Monads, {
+  some: () => {
+    {
+      return some;
+    }
+  },
+  none: () => {
+    {
+      return none;
+    }
+  },
+  maybe: () => {
+    {
+      return maybe;
+    }
+  }
+});
+function some(x) {
+  const object = {
+    map: (f) => maybe(f(x)),
+    filter: (f) => f(x) ? object : none(),
+    orElse: () => x,
+    forEach: (f) => f(x),
+    flatMap: (f) => f(x),
+    isSome: () => true
+  };
+  return object;
+}
+function none() {
+  const object = {
+    map: () => object,
+    filter: () => object,
+    orElse: (f = () => {
+    }) => f(),
+    forEach: () => {
+    },
+    flatMap: () => object,
+    isSome: () => false
+  };
+  return object;
+}
+function maybe(x) {
+  if (x) {
+    return some(x);
+  }
+  return none(x);
+}
+
+// src/Geometry/Line.js
 class Line {
   constructor({ name, positions, colors, texCoords, normals, texture, radius, emissive, material }) {
     this.name = name;
@@ -1819,7 +1759,7 @@ class LineBuilder {
   }
 }
 
-// src/Scene/Triangle.js
+// src/Geometry/Triangle.js
 class Triangle {
   constructor({ name, positions, colors, texCoords, normals, texture, emissive, material }) {
     this.name = name;
@@ -2365,7 +2305,7 @@ class NaiveScene {
   }
 }
 
-// src/PQueue/PQueue.js
+// src/Utils/PQueue.js
 var heapifyBuilder = function(data, comparator) {
   return (rootIndex) => {
     const leftIndex = 2 * rootIndex + 1;
@@ -2440,7 +2380,7 @@ function drawBox({ box, color, debugScene }) {
   if (box.isEmpty)
     return;
   const vertices = UNIT_BOX_VERTEX3.map((v) => v.mul(box.diagonal).add(box.min));
-  const lines = UNIT_BOX_FACES2.map(([i, j]) => Line.builder().name(`debug_box_${i}_${j}`).positions(vertices[i], vertices[j]).colors(color, color).build());
+  const lines = UNIT_BOX_FACES3.map(([i, j]) => Line.builder().name(`debug_box_${i}_${j}`).positions(vertices[i], vertices[j]).colors(color, color).build());
   debugScene.addList(lines);
   return debugScene;
 }
@@ -2454,7 +2394,7 @@ var UNIT_BOX_VERTEX3 = [
   Vec3(1, 1, 1),
   Vec3(0, 1, 1)
 ];
-var UNIT_BOX_FACES2 = [
+var UNIT_BOX_FACES3 = [
   [0, 1],
   [1, 2],
   [2, 3],
@@ -3765,7 +3705,7 @@ class Leaf4 {
 }
 var RCACHE = random(100);
 
-// src/Scene/Path.js
+// src/Geometry/Path.js
 class Path {
   constructor({ name, positions, colors }) {
     this.name = name;
@@ -3821,7 +3761,7 @@ class PathBuilder {
   }
 }
 
-// src/Scene/Mesh.js
+// src/Geometry/Mesh.js
 var triangulate = function(polygon) {
   if (polygon.length === 3) {
     return [polygon];
@@ -4329,7 +4269,7 @@ function saveParallelImageStreamToVideo(fileAddress, parallelStreamOfImages, opt
   const promises = inputParamsPartitions.map((inputParams, i) => {
     const spawnFile = "IO_parallel" + i + ".js";
     writeFileSync(spawnFile, `
-            import {DOM, Color, Animation, Scene, Camera, Vec2, Vec3, Vec, Box, Point, Mesh, Image,NaiveScene} from "./dist/node/index.js"
+            import {DOM, Color, Animation, Scene, Camera, Vec2, Vec3, Vec, Box, Point, Mesh, Image,NaiveScene, clamp, MAX_8BIT} from "./dist/node/index.js"
             import fs from "fs";
 
             
@@ -4364,6 +4304,80 @@ function saveParallelImageStreamToVideo(fileAddress, parallelStreamOfImages, opt
     }
   });
 }
+
+// src/IO/Parallel.js
+class Parallel {
+  constructor(numberOfStreams, inputStreamGenerator, partitionFunction, stateGenerator, dependencies, lazyInitialState) {
+    this.numberOfStreams = numberOfStreams;
+    this.inputStreamGenerator = inputStreamGenerator;
+    this.partitionFunction = partitionFunction;
+    this.stateGenerator = stateGenerator;
+    this.dependencies = dependencies;
+    this.lazyInitialState = lazyInitialState;
+  }
+  getPartition() {
+    return new Array(this.numberOfStreams).fill().map((_, i) => {
+      return { ...this.inputStreamGenerator(i), __ite__: i };
+    }).reduce((e, x, i) => {
+      const value = this.partitionFunction(x, i);
+      if (!(value in e)) {
+        e[value] = [];
+      }
+      e[value].push(x);
+      return e;
+    }, {});
+  }
+  static builder() {
+    return new ParallelBuilder;
+  }
+}
+
+class ParallelBuilder {
+  constructor() {
+    this._numberOfStreams;
+    this._inputStreamGenerator;
+    this._partitionFunction;
+    this._stateGenerator;
+    this._dependencies;
+    this._lazyInitialState = () => {
+    };
+  }
+  numberOfStreams(numberOfStreams) {
+    this._numberOfStreams = numberOfStreams;
+    return this;
+  }
+  inputStreamGenerator(inputStreamGenerator) {
+    this._inputStreamGenerator = inputStreamGenerator;
+    return this;
+  }
+  partitionFunction(partitionFunction) {
+    this._partitionFunction = partitionFunction;
+    return this;
+  }
+  stateGenerator(stateGenerator, dependencies = []) {
+    this._stateGenerator = stateGenerator;
+    this._dependencies = dependencies;
+    return this;
+  }
+  lazyInitialState(lazyInitialState) {
+    this._lazyInitialState = lazyInitialState;
+    return this;
+  }
+  build() {
+    const attrs = [
+      this._numberOfStreams,
+      this._inputStreamGenerator,
+      this._partitionFunction,
+      this._stateGenerator,
+      this._dependencies,
+      this._lazyInitialState
+    ];
+    if (attrs.some((x) => x === undefined)) {
+      throw new Error("Parallel is incomplete");
+    }
+    return new Parallel(...attrs);
+  }
+}
 export {
   smin,
   randomPointInSphere,
@@ -4377,11 +4391,14 @@ export {
   Vec2,
   Vec,
   exports_Utils as Utils,
+  UNIT_BOX_VERTEX2 as UNIT_BOX_VERTEX,
+  UNIT_BOX_FACES2 as UNIT_BOX_FACES,
   Triangle,
   Stream,
   Scene,
   Ray,
   RandomScene,
+  RAD2DEG,
   Point_default as Point,
   Path,
   Parallel,
@@ -4389,6 +4406,7 @@ export {
   exports_Monads as Monads,
   Metallic,
   Mesh,
+  MAX_8BIT,
   Line,
   KScene,
   Image,

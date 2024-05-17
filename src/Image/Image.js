@@ -1,4 +1,4 @@
-import Box from "../Box/Box.js";
+import Box from "../Geometry/Box.js";
 import Color from "../Color/Color.js";
 import { readImageFrom } from "../IO/IO.js";
 import { MAX_8BIT } from "../Utils/Constants.js";

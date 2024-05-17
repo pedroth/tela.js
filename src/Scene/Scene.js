@@ -1,11 +1,11 @@
 
-import Box from "../Box/Box.js";
+import Box from "../Geometry/Box.js";
 import Vec from "../Vector/Vector.js";
 import { argmin } from "../Utils/Utils.js";
-import { none, some } from "../Monads/Monads.js";
+import { none, some } from "../Utils/Monads.js";
 import Color from "../Color/Color.js";
 import NaiveScene from "./NaiveScene.js";
-import PQueue from "../PQueue/PQueue.js";
+import PQueue from "../Utils/PQueue.js";
 import { drawBox } from "../Utils/Utils3D.js";
 
 export default class Scene {
