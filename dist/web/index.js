@@ -1569,56 +1569,6 @@ class PointBuilder {
 }
 var Point_default = Point;
 
-// src/Utils/Monads.js
-var exports_Monads = {};
-__export(exports_Monads, {
-  some: () => {
-    {
-      return some;
-    }
-  },
-  none: () => {
-    {
-      return none;
-    }
-  },
-  maybe: () => {
-    {
-      return maybe;
-    }
-  }
-});
-function some(x) {
-  const object = {
-    map: (f) => maybe(f(x)),
-    filter: (f) => f(x) ? object : none(),
-    orElse: () => x,
-    forEach: (f) => f(x),
-    flatMap: (f) => f(x),
-    isSome: () => true
-  };
-  return object;
-}
-function none() {
-  const object = {
-    map: () => object,
-    filter: () => object,
-    orElse: (f = () => {
-    }) => f(),
-    forEach: () => {
-    },
-    flatMap: () => object,
-    isSome: () => false
-  };
-  return object;
-}
-function maybe(x) {
-  if (x) {
-    return some(x);
-  }
-  return none(x);
-}
-
 // src/Geometry/Line.js
 class Line {
   constructor({ name, positions, colors, texCoords, normals, texture, radius, emissive, material }) {
@@ -2236,6 +2186,56 @@ class Camera {
     pointInCamCoord = Vec3(this.basis[0].dot(pointInCamCoord), this.basis[1].dot(pointInCamCoord), this.basis[2].dot(pointInCamCoord));
     return pointInCamCoord;
   }
+}
+
+// src/Utils/Monads.js
+var exports_Monads = {};
+__export(exports_Monads, {
+  some: () => {
+    {
+      return some;
+    }
+  },
+  none: () => {
+    {
+      return none;
+    }
+  },
+  maybe: () => {
+    {
+      return maybe;
+    }
+  }
+});
+function some(x) {
+  const object = {
+    map: (f) => maybe(f(x)),
+    filter: (f) => f(x) ? object : none(),
+    orElse: () => x,
+    forEach: (f) => f(x),
+    flatMap: (f) => f(x),
+    isSome: () => true
+  };
+  return object;
+}
+function none() {
+  const object = {
+    map: () => object,
+    filter: () => object,
+    orElse: (f = () => {
+    }) => f(),
+    forEach: () => {
+    },
+    flatMap: () => object,
+    isSome: () => false
+  };
+  return object;
+}
+function maybe(x) {
+  if (x) {
+    return some(x);
+  }
+  return none(x);
 }
 
 // src/Scene/NaiveScene.js
