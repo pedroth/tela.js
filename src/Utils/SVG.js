@@ -17,7 +17,20 @@ export default function parse(text) {
  *                                       TOKENIZER                                      *
  *                                                                                      */
 //========================================================================================
-
+const TOKEN_SYMBOLS = [
+    "<!--",
+    "-->",
+    "\n",
+    "\t",
+    " ",
+    "</",
+    "/>",
+    "<",
+    ">",
+    "=",
+    '"',
+    "'"
+];
 
 function tokens(charStream) {
     let s = charStream;
@@ -25,40 +38,29 @@ function tokens(charStream) {
     while (!s.isEmpty()) {
         const maybeToken = parseToken(s);
         if (!maybeToken) break;
-        const { symbol: token, nextStream } = maybeToken;
+        const { token, nextStream } = maybeToken;
         tokensList.push(token);
         s = nextStream;
     }
     return stream(tokensList);
 }
 
-function parseToken(charStream) {
-    const TOKEN_SYMBOLS = [
-        "<!--",
-        "-->",
-        "\n",
-        "\t",
-        " ",
-        "</",
-        "/>",
-        "<",
-        ">",
-        "=",
-        '"',
-        "'"
-    ];
-    const TOKENS_PARSER = TOKEN_SYMBOLS.map(s => () => symbolParser(s)(charStream))
-    const defaultToken = (charStream) => {
-        let s = charStream;
-        let stringStack = [];
-        while (!s.isEmpty()) {
-            const char = s.head();
-            if (TOKEN_SYMBOLS.includes(char)) break;
-            stringStack.push(char);
-            s = s.tail();
-        }
-        return stringStack.length ? { symbol: stringStack.join(""), nextStream: s } : undefined;
+const defaultToken = (charStream) => {
+    let s = charStream;
+    let stringStack = [];
+    while (!s.isEmpty()) {
+        const char = s.head();
+        if (TOKEN_SYMBOLS.includes(char)) break;
+        stringStack.push(char);
+        s = s.tail();
     }
+    if (stringStack.length)
+        return { token: { type: "text", value: stringStack.join("") }, nextStream: s };
+    throw new Error("Fail to parse default token");
+}
+
+function parseToken(charStream) {
+    const TOKENS_PARSER = TOKEN_SYMBOLS.map(s => () => symbolParser(s)(charStream))
     return or(...TOKENS_PARSER, () => defaultToken(charStream));
 }
 
@@ -67,11 +69,11 @@ function symbolParser(symbol) {
         let s = charStream;
         let i = 0;
         while (!s.isEmpty() && i < symbol.length) {
-            if (symbol[i] !== s.head()) return;
+            if (symbol[i] !== s.head()) throw new Error("Fail to parse symbol");
             s = s.tail();
             i++;
         }
-        return { symbol, nextStream: s }
+        return { token: { type: symbol, text: symbol }, nextStream: s }
     }
 }
 
@@ -86,9 +88,7 @@ function parseSVG(stream) {
     return or(
         () => {
             const { left: StartTag, right: nextStream1 } = parseStartTag(stream);
-            // small hack to parse script and style tags
             const { left: InnerSVG, right: nextStream2 } = parseInnerSVG(nextStream1);
-
             const { left: EndTag, right: nextStream3 } = parseEndTag(nextStream2);
             return pair({ type: "svg", StartTag, InnerSVG, EndTag }, nextStream3);
         },
@@ -104,16 +104,21 @@ function parseSVG(stream) {
 }
 
 function parseInnerSVG(stream) {
-    const { left: AnyBut, right: nextStream } = parseAnyBut(token => token === "</")(stream);
-    const text = AnyBut.textArray.join("");
-    return pair({
-        type: "innerSVG",
-        innerSVG: [{
-            type: "innerSVG",
-            text: text
-        }]
-    },
-        nextStream
+    return or(
+        () => {
+            const { left: SVG, right: nextStream } = parseSVG(stream);
+            const { left: InnerSVG, right: nextStream1 } = parseInnerSVG(nextStream);
+            return pair({
+                type: "innerSvg",
+                innerSvgs: [SVG, ...InnerSVG.innerSvgs]
+            }, nextStream1)
+        },
+        () => {
+            return pair({
+                type: "innerSvg",
+                innerSvgs: []
+            }, stream)
+        }
     );
 }
 
@@ -126,51 +131,132 @@ function parseAnyBut(tokenPredicate) {
             nextStream = nextStream.tail();
         }
         return pair(
-            { type: "anyBut", textArray },
+            { type: "anyBut", text: textArray.join("") },
             nextStream
         );
     };
 }
 
 function parseEndTag(stream) {
-
+    const filteredStream = eatSpacesTabsAndNewLines(stream);
+    const token = filteredStream.head();
+    if ("</" === token.type) {
+        const nextStream1 = eatSpaces(filteredStream.tail());
+        const { left: tagName, right: nextStream2 } = parseAlphaNumName(nextStream1)
+        const nextStream3 = eatSpaces(nextStream2);
+        if (">" === nextStream3.head().type) {
+            return pair({ type: "endTag", tag: tagName.text }, nextStream3.tail());
+        }
+    }
+    throw new Error("Fail to parse End Tag")
 }
 
 function parseEmptyTag(stream) {
-
-}
-
-function parseCommentTag(stream) {
-
-}
-
-function parseStartTag(stream) {
     const token = stream.head();
-    if ("<" === token) {
+    if ("<" === token.type) {
         const nextStream1 = eatSpaces(stream.tail());
         const { left: tagName, right: nextStream2 } = parseAlphaNumName(nextStream1)
         const nextStream3 = eatSpacesTabsAndNewLines(nextStream2);
         const { left: Attrs, right: nextStream4 } = parseAttrs(nextStream3);
         const nextStream5 = eatSpacesTabsAndNewLines(nextStream4);
-        if (">" === nextStream5.head()) {
+        if ("/>" === nextStream5.head().type) {
+            return pair({ type: "emptyTag", tag: tagName.text, Attrs }, nextStream5.tail());
+        }
+    }
+    throw new Error("Fail to parse EmptyTag")
+}
+
+function parseCommentTag(stream) {
+    if ("<!--" === stream.head().type) {
+        const nextStream = stream.tail();
+        const { left: AnyBut, right: nextStream1 } = parseAnyBut(token => '-->' === token.type)(nextStream);
+        if (AnyBut.text !== "") return pair({ type: "commentTag" }, nextStream1.tail());
+    }
+    throw new Error("Fail to parse CommentTag")
+}
+
+function parseStartTag(stream) {
+    const token = stream.head();
+    if ("<" === token.type) {
+        const nextStream1 = eatSpaces(stream.tail());
+        const { left: tagName, right: nextStream2 } = parseAlphaNumName(nextStream1)
+        const nextStream3 = eatSpacesTabsAndNewLines(nextStream2);
+        const { left: Attrs, right: nextStream4 } = parseAttrs(nextStream3);
+        const nextStream5 = eatSpacesTabsAndNewLines(nextStream4);
+        if (">" === nextStream5.head().type) {
             return pair({ type: "startTag", tag: tagName.text, Attrs }, nextStream5.tail());
         }
     }
-    throw new Error(`Error occurred while parsing StartTag,`);
+    throw new Error("Fail to parse StartTag")
 }
 
 function parseAlphaNumName(stream) {
+    const token = stream.head();
+    if ("text" === token.type) return pair({ type: "alphaNumName", text: token.text }, stream.tail());
+    throw new Error("Fail to parse AlphaNumName")
+}
 
+function parseAttr(stream) {
+    return or(
+        () => {
+            const { left: AlphaNumName, right: nextStream1 } = parseAlphaNumName(stream);
+            if (
+                "=" === nextStream1.head().type &&
+                ("\"" === nextStream1.tail().head().type || "'" === nextStream1.tail().head().type)
+            ) {
+                const tokenType = nextStream1.tail().head().type;
+                const { left: AnyBut, right: nextStream1 } =
+                    parseAnyBut(token => tokenType === token.type)(
+                        nextStream1
+                            .tail() // take =
+                            .tail() // take " | '
+                    );
+                return pair({
+                    type: "attr",
+                    attributeName: AlphaNumName.text,
+                    attributeValue: AnyBut.text
+                },
+                    nextStream1.tail() // take "
+                )
+            }
+        },
+        () => {
+            const { left: AlphaNumName, right: nextStream1 } = parseAlphaNumName(stream);
+            return pair({
+                type: "attr",
+                attributeName: AlphaNumName.text,
+                attributeValue: '"true"'
+            },
+                nextStream1
+            )
+        }
+    )
 }
 
 function parseAttrs(stream) {
-
+    return or(
+        () => {
+            const { left: Attr, right: nextStream } = parseAttr(stream);
+            const nextStreamNoSpaces = eatSpacesTabsAndNewLines(nextStream);
+            const { left: Attrs, right: nextStream1 } = parseAttrs(nextStreamNoSpaces);
+            return pair({
+                type: "attrs",
+                attributes: [Attr, ...Attrs.attributes]
+            }, nextStream1);
+        },
+        () => {
+            return pair({
+                type: "attrs",
+                attributes: [],
+            }, stream);
+        }
+    )
 }
 
 function eatSpaces(stream) {
     let s = stream;
     while (!s.isEmpty()) {
-        if (s.head() !== " ") break;
+        if (s.head().type !== " ") break;
         s = s.tail();
     }
     return s;
@@ -178,7 +264,7 @@ function eatSpaces(stream) {
 function eatSpacesTabsAndNewLines(stream) {
     let s = stream;
     while (!s.isEmpty()) {
-        const symbol = s.head();
+        const symbol = s.head().type;
         if (symbol === " " || symbol === "\t" || symbol === "\n") break;
         s = s.tail();
     }
@@ -197,11 +283,15 @@ function pair(a, b) {
 }
 
 function or(...rules) {
+    let accError = null;
     for (let i = 0; i < rules.length; i++) {
-        const value = rules[i]();
-        if (value) return value;
+        try {
+            return rules[i]();
+        } catch (error) {
+            accError = error;
+        }
     }
-    return
+    throw accError;
 }
 
 function stream(stringOrArray) {
@@ -226,6 +316,6 @@ function stream(stringOrArray) {
 }
 
 (() => {
-    tokens(stream(`<div id="test" > Hello world </div>`)).log();
+    console.log(parse(`<div id="test" > Hello world </div>`));
 })()
 
