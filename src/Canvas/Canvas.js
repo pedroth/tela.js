@@ -75,7 +75,7 @@ export default class Canvas {
     i = mod(i, h);
     j = mod(j, w);
     let index = 4 * (w * i + j);
-    return Color.ofRGBRaw(this._image[index], this._image[index + 1], this._image[index + 2]);
+    return Color.ofRGBRaw(this._image[index], this._image[index + 1], this._image[index + 2], this._image[index + 3]);
   }
 
   drawLine(p1, p2, shader) {

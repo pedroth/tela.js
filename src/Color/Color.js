@@ -1,6 +1,4 @@
 import { MAX_8BIT, RAD2DEG } from "../Utils/Constants.js";
-import { clamp } from "../Utils/Math.js";
-const rgbClamp = clamp()
 
 /**
  * Class that abstracts colors.
@@ -8,12 +6,13 @@ const rgbClamp = clamp()
  * Here colors are represented as [0,1]^3 vector.
  */
 export default class Color {
-  constructor(rgb) {
+  constructor(rgb, alpha = 1.0) {
     this.rgb = rgb;
+    this.alpha = alpha;
   }
 
   toArray() {
-    return [this.red, this.green, this.blue];
+    return [this.red, this.green, this.blue, this.alpha];
   }
 
   get red() {
@@ -29,18 +28,19 @@ export default class Color {
   }
 
   add(color) {
-    return Color.ofRGB(this.rgb[0] + color.red, this.rgb[1] + color.green, this.rgb[2] + color.blue);
+    return Color.ofRGB(this.rgb[0] + color.red, this.rgb[1] + color.green, this.rgb[2] + color.blue, this.alpha + color.alpha);
   }
 
   scale(r) {
-    return Color.ofRGB(r * this.red, r * this.green, r * this.blue);
+    return Color.ofRGB(r * this.red, r * this.green, r * this.blue, r * this.alpha);
   }
 
   mul(color) {
     return Color.ofRGB(
       this.rgb[0] * color.red,
       this.rgb[1] * color.green,
-      this.rgb[2] * color.blue
+      this.rgb[2] * color.blue,
+      this.alpha * color.alpha
     )
   }
 
@@ -53,7 +53,8 @@ export default class Color {
     return (
       this.rgb[0] === color.rgb[0] &&
       this.rgb[1] === color.rgb[1] &&
-      this.rgb[2] === color.rgb[2]
+      this.rgb[2] === color.rgb[2] &&
+      this.alpha === color.alpha
     );
   }
 
@@ -68,20 +69,20 @@ export default class Color {
     return Color.ofRGB(r, g, b);
   }
 
-  static ofRGB(red = 0, green = 0, blue = 0) {
+  static ofRGB(red = 0, green = 0, blue = 0, alpha = 1) {
     const rgb = [];
     rgb[0] = red;
     rgb[1] = green;
     rgb[2] = blue;
-    return new Color(rgb);
+    return new Color(rgb, alpha);
   }
 
-  static ofRGBRaw(red = 0, green = 0, blue = 0) {
+  static ofRGBRaw(red = 0, green = 0, blue = 0, alpha = MAX_8BIT) {
     const rgb = [];
     rgb[0] = red / MAX_8BIT;
     rgb[1] = green / MAX_8BIT;
     rgb[2] = blue / MAX_8BIT;
-    return new Color(rgb);
+    return new Color(rgb, alpha / MAX_8BIT);
   }
 
   static ofHSV(hue, s, v) {
@@ -102,4 +103,7 @@ export default class Color {
   static WHITE = Color.ofRGB(1, 1, 1);
   static GRAY = Color.ofRGB(0.5, 0.5, 0.5);
   static GREY = Color.ofRGB(0.5, 0.5, 0.5);
+  static PURPLE = Color.ofRGB(1, 0, 1);
+  static YELLOW = Color.ofRGB(1, 1, 0);
+  static CYAN = Color.ofRGB(0, 1, 1);
 }

@@ -119,14 +119,16 @@ export default class Camera {
       bilinearTexture,
       clipCameraPlane,
       clearScreen,
+      backgroundColor
     } = params;
     params.cullBackFaces = cullBackFaces ?? true;
     params.bilinearTexture = bilinearTexture ?? false;
     params.clipCameraPlane = clipCameraPlane ?? true;
     params.clearScreen = clearScreen ?? true;
+    params.backgroundColor = backgroundColor ?? Color.BLACK;
     return {
       to: canvas => {
-        params.clearScreen && canvas.fill(Color.BLACK);
+        params.clearScreen && canvas.fill(params.backgroundColor);
         const w = canvas.width;
         const h = canvas.height;
         const zBuffer = new Float64Array(w * h).fill(Number.MAX_VALUE);
@@ -395,7 +397,6 @@ function rasterTriangle({ canvas, camera, elem, w, h, zBuffer, params }) {
       .add(colors[1].scale(alpha))
       .add(colors[2].scale(beta));
     if (
-      texture &&
       texCoords &&
       texCoords.length > 0 &&
       !texCoords.some(x => x === undefined)
@@ -403,14 +404,16 @@ function rasterTriangle({ canvas, camera, elem, w, h, zBuffer, params }) {
       const texUV = texCoords[0].scale(gamma)
         .add(texCoords[1].scale(alpha))
         .add(texCoords[2].scale(beta));
-      const texColor = params.bilinearTexture ? getBiLinearTexColor(texUV, texture) : getTexColor(texUV, texture);
-      c = c.add(texColor).scale(1 / 2);
+      const texColor = texture ?
+        params.bilinearTexture ? getBiLinearTexColor(texUV, texture) : getTexColor(texUV, texture) :
+        getDefaultTexColor(texUV);
+      c = texColor;
     }
     const [i, j] = canvas.canvas2grid(x, y);
     const zBufferIndex = Math.floor(w * i + j);
     if (z < zBuffer[zBufferIndex]) {
       zBuffer[zBufferIndex] = z;
-      return c;
+      return Math.random() < c.alpha ? c : undefined;
     }
   }
   canvas.drawTriangle(intPoints[0], intPoints[1], intPoints[2], shader);
@@ -430,7 +433,7 @@ function getDefaultTexColor(texUV) {
     Color.BLACK :
     texUV.x > 0.5 && texUV.y > 0.5 ?
       Color.BLACK :
-      Color.WHITE;
+      Color.PURPLE;
 }
 
 function getBiLinearTexColor(texUV, texture) {

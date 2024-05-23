@@ -461,6 +461,80 @@ var UNIT_BOX_FACES2 = [
   [6, 5, 1]
 ];
 
+// src/Color/Color.js
+class Color {
+  constructor(rgb, alpha = 1) {
+    this.rgb = rgb;
+    this.alpha = alpha;
+  }
+  toArray() {
+    return [this.red, this.green, this.blue, this.alpha];
+  }
+  get red() {
+    return this.rgb[0];
+  }
+  get green() {
+    return this.rgb[1];
+  }
+  get blue() {
+    return this.rgb[2];
+  }
+  add(color) {
+    return Color.ofRGB(this.rgb[0] + color.red, this.rgb[1] + color.green, this.rgb[2] + color.blue, this.alpha + color.alpha);
+  }
+  scale(r) {
+    return Color.ofRGB(r * this.red, r * this.green, r * this.blue, r * this.alpha);
+  }
+  mul(color) {
+    return Color.ofRGB(this.rgb[0] * color.red, this.rgb[1] * color.green, this.rgb[2] * color.blue, this.alpha * color.alpha);
+  }
+  equals(color) {
+    return this.rgb[0] === color.rgb[0] && this.rgb[1] === color.rgb[1] && this.rgb[2] === color.rgb[2] && this.alpha === color.alpha;
+  }
+  toString() {
+    return `red: ${this.red}, green: ${this.green}, blue: ${this.blue}`;
+  }
+  toGamma(alpha = 0.5) {
+    const r = this.red ** alpha;
+    const g = this.green ** alpha;
+    const b = this.blue ** alpha;
+    return Color.ofRGB(r, g, b);
+  }
+  static ofRGB(red = 0, green = 0, blue = 0, alpha = 1) {
+    const rgb = [];
+    rgb[0] = red;
+    rgb[1] = green;
+    rgb[2] = blue;
+    return new Color(rgb, alpha);
+  }
+  static ofRGBRaw(red = 0, green = 0, blue = 0, alpha = MAX_8BIT) {
+    const rgb = [];
+    rgb[0] = red / MAX_8BIT;
+    rgb[1] = green / MAX_8BIT;
+    rgb[2] = blue / MAX_8BIT;
+    return new Color(rgb, alpha / MAX_8BIT);
+  }
+  static ofHSV(hue, s, v) {
+    const h = hue * RAD2DEG;
+    let f = (n, k = (n + h / 60) % 6) => v - v * s * Math.max(Math.min(k, 4 - k, 1), 0);
+    return new Color([f(5), f(3), f(1)]);
+  }
+  static random() {
+    const r = () => Math.random();
+    return Color.ofRGB(r(), r(), r());
+  }
+  static RED = Color.ofRGB(1, 0, 0);
+  static GREEN = Color.ofRGB(0, 1, 0);
+  static BLUE = Color.ofRGB(0, 0, 1);
+  static BLACK = Color.ofRGB(0, 0, 0);
+  static WHITE = Color.ofRGB(1, 1, 1);
+  static GRAY = Color.ofRGB(0.5, 0.5, 0.5);
+  static GREY = Color.ofRGB(0.5, 0.5, 0.5);
+  static PURPLE = Color.ofRGB(1, 0, 1);
+  static YELLOW = Color.ofRGB(1, 1, 0);
+  static CYAN = Color.ofRGB(0, 1, 1);
+}
+
 // src/Utils/Math.js
 function smin(a, b, k = 32) {
   const res = Math.exp(-k * a) + Math.exp(-k * b);
@@ -588,78 +662,6 @@ var solveUpTriMatrix = function(v, a, f) {
   return Vec2(f2 / v2, (f1 * v2 - v1 * f2) / av2);
 };
 
-// src/Color/Color.js
-var rgbClamp = clamp();
-
-class Color {
-  constructor(rgb) {
-    this.rgb = rgb;
-  }
-  toArray() {
-    return [this.red, this.green, this.blue];
-  }
-  get red() {
-    return this.rgb[0];
-  }
-  get green() {
-    return this.rgb[1];
-  }
-  get blue() {
-    return this.rgb[2];
-  }
-  add(color) {
-    return Color.ofRGB(this.rgb[0] + color.red, this.rgb[1] + color.green, this.rgb[2] + color.blue);
-  }
-  scale(r) {
-    return Color.ofRGB(r * this.red, r * this.green, r * this.blue);
-  }
-  mul(color) {
-    return Color.ofRGB(this.rgb[0] * color.red, this.rgb[1] * color.green, this.rgb[2] * color.blue);
-  }
-  equals(color) {
-    return this.rgb[0] === color.rgb[0] && this.rgb[1] === color.rgb[1] && this.rgb[2] === color.rgb[2];
-  }
-  toString() {
-    return `red: ${this.red}, green: ${this.green}, blue: ${this.blue}`;
-  }
-  toGamma(alpha = 0.5) {
-    const r = this.red ** alpha;
-    const g = this.green ** alpha;
-    const b = this.blue ** alpha;
-    return Color.ofRGB(r, g, b);
-  }
-  static ofRGB(red = 0, green = 0, blue = 0) {
-    const rgb = [];
-    rgb[0] = red;
-    rgb[1] = green;
-    rgb[2] = blue;
-    return new Color(rgb);
-  }
-  static ofRGBRaw(red = 0, green = 0, blue = 0) {
-    const rgb = [];
-    rgb[0] = red / MAX_8BIT;
-    rgb[1] = green / MAX_8BIT;
-    rgb[2] = blue / MAX_8BIT;
-    return new Color(rgb);
-  }
-  static ofHSV(hue, s, v) {
-    const h = hue * RAD2DEG;
-    let f = (n, k = (n + h / 60) % 6) => v - v * s * Math.max(Math.min(k, 4 - k, 1), 0);
-    return new Color([f(5), f(3), f(1)]);
-  }
-  static random() {
-    const r = () => Math.random();
-    return Color.ofRGB(r(), r(), r());
-  }
-  static RED = Color.ofRGB(1, 0, 0);
-  static GREEN = Color.ofRGB(0, 1, 0);
-  static BLUE = Color.ofRGB(0, 0, 1);
-  static BLACK = Color.ofRGB(0, 0, 0);
-  static WHITE = Color.ofRGB(1, 1, 1);
-  static GRAY = Color.ofRGB(0.5, 0.5, 0.5);
-  static GREY = Color.ofRGB(0.5, 0.5, 0.5);
-}
-
 // src/Geometry/Box.js
 var maxComp = function(u) {
   return u.fold((e, x) => Math.max(e, x), -Number.MAX_VALUE);
@@ -771,16 +773,6 @@ class Box {
 // src/Utils/Utils.js
 var exports_Utils = {};
 __export(exports_Utils, {
-  shuffle: () => {
-    {
-      return shuffle;
-    }
-  },
-  or: () => {
-    {
-      return or;
-    }
-  },
   memoize: () => {
     {
       return memoize;
@@ -806,14 +798,9 @@ __export(exports_Utils, {
       return groupBy;
     }
   },
-  compose: () => {
+  fRandom: () => {
     {
-      return compose;
-    }
-  },
-  arrayIsEqual: () => {
-    {
-      return arrayIsEqual;
+      return fRandom;
     }
   },
   argmin: () => {
@@ -837,18 +824,6 @@ function measureTimeWithResult(lambda) {
   const result = lambda();
   return { result, time: 0.001 * (performance.now() - t) };
 }
-function compose(f, g) {
-  return (x) => f(g(x));
-}
-function or(...lambdas) {
-  for (let i = 0;i < lambdas.length; i++) {
-    try {
-      return lambdas[i]();
-    } catch (err) {
-      continue;
-    }
-  }
-}
 function groupBy(array, groupFunction) {
   const ans = {};
   array.forEach((x, i) => {
@@ -871,24 +846,6 @@ function argmin(array, costFunction = (x) => x) {
   }
   return argminIndex;
 }
-function shuffle(elements) {
-  for (let i = elements.length - 1;i > 0; i--) {
-    const r = Math.floor(Math.random() * (i + 1));
-    const temp = elements[i];
-    elements[i] = elements[r];
-    elements[r] = temp;
-  }
-  return elements;
-}
-function arrayIsEqual(a, b) {
-  if (a.length !== b.length)
-    return false;
-  for (let i = 0;i < a.length; i++) {
-    if (a[i] !== b[i])
-      return false;
-  }
-  return true;
-}
 function memoize(func) {
   const cache = {};
   return (...args) => {
@@ -900,6 +857,13 @@ function memoize(func) {
     return ans;
   };
 }
+function fRandom() {
+  if (i > 1e6)
+    i = 0;
+  return RANDOM[i++ % RANDOM.length];
+}
+var RANDOM = Array(1000).fill().map(Math.random);
+var i = 0;
 
 // src/Canvas/Canvas.js
 var drawConvexPolygon = function(canvas, positions, shader) {
@@ -919,11 +883,11 @@ var drawConvexPolygon = function(canvas, positions, shader) {
     for (let y = yMin;y < yMax; y++) {
       if (isInsideFunc(Vec2(x, y))) {
         const j = x;
-        const i = height - 1 - y;
+        const i2 = height - 1 - y;
         const color = shader(x, y);
         if (!color)
           continue;
-        const index = 4 * (i * width + j);
+        const index = 4 * (i2 * width + j);
         canvas._image[index] = color.red * MAX_8BIT;
         canvas._image[index + 1] = color.green * MAX_8BIT;
         canvas._image[index + 2] = color.blue * MAX_8BIT;
@@ -968,10 +932,10 @@ class Canvas {
     const w = this._width;
     const h = this._height;
     for (let k = 0;k < n; k += 4) {
-      const i = Math.floor(k / (4 * w));
+      const i2 = Math.floor(k / (4 * w));
       const j = Math.floor(k / 4 % w);
       const x = j;
-      const y = h - 1 - i;
+      const y = h - 1 - i2;
       const color = lambda(x, y);
       if (!color)
         return;
@@ -987,8 +951,8 @@ class Canvas {
   }
   setPxl(x, y, color) {
     const w = this._width;
-    const [i, j] = this.canvas2grid(x, y);
-    let index = 4 * (w * i + j);
+    const [i2, j] = this.canvas2grid(x, y);
+    let index = 4 * (w * i2 + j);
     this._image[index] = color.red * MAX_8BIT;
     this._image[index + 1] = color.green * MAX_8BIT;
     this._image[index + 2] = color.blue * MAX_8BIT;
@@ -998,11 +962,11 @@ class Canvas {
   getPxl(x, y) {
     const w = this._width;
     const h = this._height;
-    let [i, j] = this.canvas2grid(x, y);
-    i = mod(i, h);
+    let [i2, j] = this.canvas2grid(x, y);
+    i2 = mod(i2, h);
     j = mod(j, w);
-    let index = 4 * (w * i + j);
-    return Color.ofRGBRaw(this._image[index], this._image[index + 1], this._image[index + 2]);
+    let index = 4 * (w * i2 + j);
+    return Color.ofRGBRaw(this._image[index], this._image[index + 1], this._image[index + 2], this._image[index + 3]);
   }
   drawLine(p1, p2, shader) {
     const w = this._width;
@@ -1018,8 +982,8 @@ class Canvas {
       const lineP = pi.add(v.scale(s)).map(Math.floor);
       const [x, y] = lineP.toArray();
       const j = x;
-      const i = h - 1 - y;
-      const index = 4 * (i * w + j);
+      const i2 = h - 1 - y;
+      const index = 4 * (i2 * w + j);
       const color = shader(x, y);
       if (!color)
         continue;
@@ -1044,10 +1008,10 @@ class Canvas {
       let index = 0;
       const clamp2 = (x) => Math.min(1, Math.max(0, x));
       for (let k = startIndex;k < endIndex; k += 4) {
-        const i = Math.floor(k / (4 * _width_));
+        const i2 = Math.floor(k / (4 * _width_));
         const j = Math.floor(k / 4 % _width_);
         const x = j;
-        const y = _height_ - 1 - i;
+        const y = _height_ - 1 - i2;
         const color = lambda(x, y, { ..._vars_ });
         if (!color)
           return;
@@ -1070,8 +1034,8 @@ class Canvas {
               let index = 0;
               const startIndex = 4 * w * _start_row;
               const endIndex = 4 * w * _end_row;
-              for (let i = startIndex;i < endIndex; i++) {
-                this._image[i] = image[index];
+              for (let i2 = startIndex;i2 < endIndex; i2++) {
+                this._image[i2] = image[index];
                 index++;
               }
               allWorkersDone[_worker_id_] = true;
@@ -1124,17 +1088,17 @@ class Canvas {
     this._imageData = this._ctx.getImageData(0, 0, this._width, this._height);
     this._image = this._imageData.data;
   }
-  grid2canvas(i, j) {
+  grid2canvas(i2, j) {
     const h = this.height;
     const x = j;
-    const y = h - 1 - i;
+    const y = h - 1 - i2;
     return [x, y];
   }
   canvas2grid(x, y) {
     const h = this._height;
     const j = Math.floor(x);
-    const i = Math.floor(h - 1 - y);
-    return [i, j];
+    const i2 = Math.floor(h - 1 - y);
+    return [i2, j];
   }
   startVideoRecorder() {
     let responseBlob;
@@ -1167,10 +1131,10 @@ class Canvas {
       const w = this._width;
       const h = this._height;
       for (let k = 0;k < n; k += 4) {
-        const i = Math.floor(k / (4 * w));
+        const i2 = Math.floor(k / (4 * w));
         const j = Math.floor(k / 4 % w);
         const x = j;
-        const y = h - 1 - i;
+        const y = h - 1 - i2;
         const color = lambda(x, y);
         if (!color)
           continue;
@@ -1602,7 +1566,7 @@ class Line {
     let p = ray.init;
     let t = this.distanceToPoint(p);
     let minT = t;
-    for (let i = 0;i < maxIte; i++) {
+    for (let i2 = 0;i2 < maxIte; i2++) {
       p = ray.trace(t);
       const d = this.distanceToPoint(p);
       t += d;
@@ -1722,8 +1686,8 @@ class Triangle {
     this.material = material;
     this.edges = [];
     const n = this.positions.length;
-    for (let i = 0;i < n; i++) {
-      this.edges.push(this.positions[(i + 1) % n].sub(this.positions[i]));
+    for (let i2 = 0;i2 < n; i2++) {
+      this.edges.push(this.positions[(i2 + 1) % n].sub(this.positions[i2]));
     }
     this.tangents = [this.edges[0], this.edges.at(-1).scale(-1)];
     const u = this.tangents[0];
@@ -1747,10 +1711,10 @@ class Triangle {
     if (t <= epsilon)
       return;
     const x = ray.trace(t);
-    for (let i = 0;i < this.positions.length; i++) {
-      const xi = this.positions[i];
+    for (let i2 = 0;i2 < this.positions.length; i2++) {
+      const xi = this.positions[i2];
       const u = x.sub(xi);
-      const ni = n.cross(this.edges[i]);
+      const ni = n.cross(this.edges[i2]);
       const dot = ni.dot(u);
       if (dot <= epsilon)
         return;
@@ -1883,8 +1847,8 @@ var rasterPoint = function({ canvas, camera, elem, w, h, zBuffer }) {
     for (let l = -intRadius;l < intRadius; l++) {
       const xl = Math.max(0, Math.min(w - 1, x + k));
       const yl = Math.floor(y + l);
-      const [i, j] = canvas.canvas2grid(xl, yl);
-      const zBufferIndex = Math.floor(w * i + j);
+      const [i2, j] = canvas.canvas2grid(xl, yl);
+      const zBufferIndex = Math.floor(w * i2 + j);
       if (z < zBuffer[zBufferIndex]) {
         zBuffer[zBufferIndex] = z;
         canvas.setPxl(xl, yl, finalColor);
@@ -1899,12 +1863,12 @@ var rasterLine = function({ canvas, camera, elem, w, h, zBuffer, params }) {
   const pointsInCamCoord = positions.map((p) => camera.toCameraCoord(p));
   let inFrustum = [];
   let outFrustum = [];
-  pointsInCamCoord.forEach((p, i) => {
+  pointsInCamCoord.forEach((p, i2) => {
     const zCoord = p.z;
     if (zCoord < distanceToPlane) {
-      outFrustum.push(i);
+      outFrustum.push(i2);
     } else {
-      inFrustum.push(i);
+      inFrustum.push(i2);
     }
   });
   if (params.clipCameraPlane && outFrustum.length === 2)
@@ -1930,8 +1894,8 @@ var rasterLine = function({ canvas, camera, elem, w, h, zBuffer, params }) {
     const t = v.dot(p) / vSquared;
     const z = pointsInCamCoord[0].z * (1 - t) + pointsInCamCoord[1].z * t;
     const c = colors[0].scale(1 - t).add(colors[1].scale(t));
-    const [i, j] = canvas.canvas2grid(x, y);
-    const zBufferIndex = Math.floor(w * i + j);
+    const [i2, j] = canvas.canvas2grid(x, y);
+    const zBufferIndex = Math.floor(w * i2 + j);
     if (z < zBuffer[zBufferIndex]) {
       zBuffer[zBufferIndex] = z;
       return c;
@@ -1954,12 +1918,12 @@ var rasterTriangle = function({ canvas, camera, elem, w, h, zBuffer, params }) {
   }
   let inFrustum = [];
   let outFrustum = [];
-  pointsInCamCoord.forEach((p, i) => {
+  pointsInCamCoord.forEach((p, i2) => {
     const zCoord = p.z;
     if (zCoord < distanceToPlane) {
-      outFrustum.push(i);
+      outFrustum.push(i2);
     } else {
-      inFrustum.push(i);
+      inFrustum.push(i2);
     }
   });
   if (params.clipCameraPlane && outFrustum.length >= 1)
@@ -1984,16 +1948,16 @@ var rasterTriangle = function({ canvas, camera, elem, w, h, zBuffer, params }) {
     const gamma = 1 - alpha - beta;
     const z = pointsInCamCoord[0].z * gamma + pointsInCamCoord[1].z * alpha + pointsInCamCoord[2].z * beta;
     let c = colors[0].scale(gamma).add(colors[1].scale(alpha)).add(colors[2].scale(beta));
-    if (texture && texCoords && texCoords.length > 0 && !texCoords.some((x2) => x2 === undefined)) {
+    if (texCoords && texCoords.length > 0 && !texCoords.some((x2) => x2 === undefined)) {
       const texUV = texCoords[0].scale(gamma).add(texCoords[1].scale(alpha)).add(texCoords[2].scale(beta));
-      const texColor = params.bilinearTexture ? getBiLinearTexColor(texUV, texture) : getTexColor(texUV, texture);
-      c = c.add(texColor).scale(1 / 2);
+      const texColor = texture ? params.bilinearTexture ? getBiLinearTexColor(texUV, texture) : getTexColor(texUV, texture) : getDefaultTexColor(texUV);
+      c = texColor;
     }
-    const [i, j] = canvas.canvas2grid(x, y);
-    const zBufferIndex = Math.floor(w * i + j);
+    const [i2, j] = canvas.canvas2grid(x, y);
+    const zBufferIndex = Math.floor(w * i2 + j);
     if (z < zBuffer[zBufferIndex]) {
       zBuffer[zBufferIndex] = z;
-      return c;
+      return Math.random() < c.alpha ? c : undefined;
     }
   };
   canvas.drawTriangle(intPoints[0], intPoints[1], intPoints[2], shader);
@@ -2004,6 +1968,10 @@ var lineCameraPlaneIntersection = function(vertexOut, vertexIn, camera) {
   const alpha = (distanceToPlane - vertexOut.z) / v.z;
   const p = vertexOut.add(v.scale(alpha));
   return p;
+};
+var getDefaultTexColor = function(texUV) {
+  texUV = texUV.scale(16).map((x) => x % 1);
+  return texUV.x < 0.5 && texUV.y < 0.5 ? Color.BLACK : texUV.x > 0.5 && texUV.y > 0.5 ? Color.BLACK : Color.PURPLE;
 };
 var getBiLinearTexColor = function(texUV, texture) {
   const size = Vec2(texture.width, texture.height);
@@ -2093,7 +2061,7 @@ class Camera {
     const invSamples = bounces / samplesPerPxl;
     const lambda = (ray) => {
       let c = Color.BLACK;
-      for (let i = 0;i < samplesPerPxl; i++) {
+      for (let i2 = 0;i2 < samplesPerPxl; i2++) {
         const epsilon = Vec.RANDOM(3).scale(variance);
         const epsilonOrto = epsilon.sub(ray.dir.scale(epsilon.dot(ray.dir)));
         const r = Ray(ray.init, ray.dir.add(epsilonOrto).normalize());
@@ -2113,21 +2081,23 @@ class Camera {
       cullBackFaces,
       bilinearTexture,
       clipCameraPlane,
-      clearScreen
+      clearScreen,
+      backgroundColor
     } = params;
     params.cullBackFaces = cullBackFaces ?? true;
     params.bilinearTexture = bilinearTexture ?? false;
     params.clipCameraPlane = clipCameraPlane ?? true;
     params.clearScreen = clearScreen ?? true;
+    params.backgroundColor = backgroundColor ?? Color.BLACK;
     return {
       to: (canvas) => {
-        params.clearScreen && canvas.fill(Color.BLACK);
+        params.clearScreen && canvas.fill(params.backgroundColor);
         const w = canvas.width;
         const h = canvas.height;
         const zBuffer = new Float64Array(w * h).fill(Number.MAX_VALUE);
         const elements = scene.getElements();
-        for (let i = 0;i < elements.length; i++) {
-          const elem = elements[i];
+        for (let i2 = 0;i2 < elements.length; i2++) {
+          const elem = elements[i2];
           if (elem.constructor.name in type2render) {
             type2render[elem.constructor.name]({
               w,
@@ -2152,7 +2122,7 @@ class Camera {
       let p = ray.init;
       let t = scene.distanceToPoint(p);
       let minT = t;
-      for (let i = 0;i < maxIte; i++) {
+      for (let i2 = 0;i2 < maxIte; i2++) {
         p = ray.trace(t);
         const d = scene.distanceToPoint(p);
         t += d;
@@ -2161,7 +2131,7 @@ class Camera {
           return Color.ofRGB((normal.x + 1) / 2, (normal.y + 1) / 2, (normal.z + 1) / 2);
         }
         if (d > 2 * minT) {
-          return Color.ofRGB(0, 0, i / maxIte);
+          return Color.ofRGB(0, 0, i2 / maxIte);
         }
         minT = d;
       }
@@ -2248,8 +2218,8 @@ class NaiveScene {
     return this.addList(elements);
   }
   addList(elements) {
-    for (let i = 0;i < elements.length; i++) {
-      const elem = elements[i];
+    for (let i2 = 0;i2 < elements.length; i2++) {
+      const elem = elements[i2];
       const { name } = elem;
       this.id2ElemMap[name] = elem;
       this.sceneElements.push(elem);
@@ -2266,8 +2236,8 @@ class NaiveScene {
   distanceToPoint(p) {
     const elements = this.sceneElements;
     let distance = Number.MAX_VALUE;
-    for (let i = 0;i < elements.length; i++) {
-      distance = Math.min(distance, elements[i].distanceToPoint(p));
+    for (let i2 = 0;i2 < elements.length; i2++) {
+      distance = Math.min(distance, elements[i2].distanceToPoint(p));
     }
     return distance;
   }
@@ -2276,8 +2246,8 @@ class NaiveScene {
     const n = p.dim;
     const grad = [];
     const d = this.distanceToPoint(p);
-    for (let i = 0;i < n; i++) {
-      grad.push(this.distanceToPoint(p.add(Vec.e(n)(i).scale(epsilon))) - d);
+    for (let i2 = 0;i2 < n; i2++) {
+      grad.push(this.distanceToPoint(p.add(Vec.e(n)(i2).scale(epsilon))) - d);
     }
     return Vec.fromArray(grad).scale(Math.sign(d)).normalize();
   }
@@ -2285,8 +2255,8 @@ class NaiveScene {
     const elements = this.sceneElements;
     let closestDistance = Number.MAX_VALUE;
     let closest;
-    for (let i = 0;i < elements.length; i++) {
-      const hit = elements[i].interceptWith(ray);
+    for (let i2 = 0;i2 < elements.length; i2++) {
+      const hit = elements[i2].interceptWith(ray);
       if (hit && hit[0] < closestDistance) {
         closest = hit;
         closestDistance = hit[0];
@@ -2342,15 +2312,15 @@ class PQueue {
     this.data.push(element);
     if (this.data.length <= 1)
       return this;
-    let i = this.data.length - 1;
-    while (i > 0) {
-      const parentIndex = i % 2 !== 0 ? Math.floor(i / 2) : i / 2 - 1;
-      if (this.comparator(this.data[parentIndex], this.data[i]) <= 0)
+    let i2 = this.data.length - 1;
+    while (i2 > 0) {
+      const parentIndex = i2 % 2 !== 0 ? Math.floor(i2 / 2) : i2 / 2 - 1;
+      if (this.comparator(this.data[parentIndex], this.data[i2]) <= 0)
         break;
       const temp = this.data[parentIndex];
-      this.data[parentIndex] = this.data[i];
-      this.data[i] = temp;
-      i = parentIndex;
+      this.data[parentIndex] = this.data[i2];
+      this.data[i2] = temp;
+      i2 = parentIndex;
     }
     return this;
   }
@@ -2368,8 +2338,8 @@ class PQueue {
   }
   static ofArray(array, comparator) {
     const queue = new PQueue(comparator);
-    for (let i = 0;i < array.length; i++) {
-      queue.push(array[i]);
+    for (let i2 = 0;i2 < array.length; i2++) {
+      queue.push(array[i2]);
     }
     return queue;
   }
@@ -2380,7 +2350,7 @@ function drawBox({ box, color, debugScene }) {
   if (box.isEmpty)
     return;
   const vertices = UNIT_BOX_VERTEX3.map((v) => v.mul(box.diagonal).add(box.min));
-  const lines = UNIT_BOX_FACES3.map(([i, j]) => Line.builder().name(`debug_box_${i}_${j}`).positions(vertices[i], vertices[j]).colors(color, color).build());
+  const lines = UNIT_BOX_FACES3.map(([i2, j]) => Line.builder().name(`debug_box_${i2}_${j}`).positions(vertices[i2], vertices[j]).colors(color, color).build());
   debugScene.addList(lines);
   return debugScene;
 }
@@ -2420,8 +2390,8 @@ class Scene {
     return this.addList(elements);
   }
   addList(elements) {
-    for (let i = 0;i < elements.length; i++) {
-      const elem = elements[i];
+    for (let i2 = 0;i2 < elements.length; i2++) {
+      const elem = elements[i2];
       const { name } = elem;
       this.id2ElemMap[name] = elem;
       this.sceneElements.push(elem);
@@ -2465,8 +2435,8 @@ class Scene {
     const n = p.dim;
     const grad = [];
     const d = this.distanceToPoint(p);
-    for (let i = 0;i < n; i++) {
-      grad.push(this.distanceToPoint(p.add(Vec.e(n)(i).scale(epsilon))) - d);
+    for (let i2 = 0;i2 < n; i2++) {
+      grad.push(this.distanceToPoint(p.add(Vec.e(n)(i2).scale(epsilon))) - d);
     }
     return Vec.fromArray(grad).scale(Math.sign(d)).normalize();
   }
@@ -2480,8 +2450,8 @@ class Scene {
     if (level === 0) {
       let maxLevels = Math.round(Math.log2(node.numberOfLeafs));
       maxLevels = maxLevels === 0 ? 1 : maxLevels;
-      for (let i = 0;i <= maxLevels; i++)
-        level2colors.push(Color.RED.scale(1 - i / maxLevels).add(Color.BLUE.scale(i / maxLevels)));
+      for (let i2 = 0;i2 <= maxLevels; i2++)
+        level2colors.push(Color.RED.scale(1 - i2 / maxLevels).add(Color.BLUE.scale(i2 / maxLevels)));
     }
     debugScene = drawBox({ box: node.box, color: level2colors[level], debugScene });
     if (!node.isLeaf && node.left) {
@@ -2554,9 +2524,9 @@ class Node {
   }
   getElemIn(box) {
     const children = [this.left, this.right].filter((x) => x);
-    for (let i = 0;i < children.length; i++) {
-      if (!children[i].box.sub(box).isEmpty) {
-        return children[i].getElemIn(box);
+    for (let i2 = 0;i2 < children.length; i2++) {
+      if (!children[i2].box.sub(box).isEmpty) {
+        return children[i2].getElemIn(box);
       }
     }
   }
@@ -2671,8 +2641,8 @@ class BScene {
     return this.addList(elements);
   }
   addList(elements) {
-    for (let i = 0;i < elements.length; i++) {
-      const elem = elements[i];
+    for (let i2 = 0;i2 < elements.length; i2++) {
+      const elem = elements[i2];
       const { name } = elem;
       this.id2ElemMap[name] = elem;
       this.sceneElements.push(elem);
@@ -2716,8 +2686,8 @@ class BScene {
     const n = p.dim;
     const grad = [];
     const d = this.distanceToPoint(p);
-    for (let i = 0;i < n; i++) {
-      grad.push(this.distanceToPoint(p.add(Vec.e(n)(i).scale(epsilon))) - d);
+    for (let i2 = 0;i2 < n; i2++) {
+      grad.push(this.distanceToPoint(p.add(Vec.e(n)(i2).scale(epsilon))) - d);
     }
     return Vec.fromArray(grad).scale(Math.sign(d)).normalize();
   }
@@ -2731,8 +2701,8 @@ class BScene {
     if (level === 0) {
       let maxLevels = Math.round(Math.log2(node.numberOfLeafs));
       maxLevels = maxLevels === 0 ? 1 : maxLevels;
-      for (let i = 0;i <= maxLevels; i++)
-        level2colors.push(Color.RED.scale(1 - i / maxLevels).add(Color.BLUE.scale(i / maxLevels)));
+      for (let i2 = 0;i2 <= maxLevels; i2++)
+        level2colors.push(Color.RED.scale(1 - i2 / maxLevels).add(Color.BLUE.scale(i2 / maxLevels)));
     }
     debugScene = drawBox({ box: node.box, color: level2colors[level], debugScene });
     if (!node.isLeaf && node.left) {
@@ -2806,9 +2776,9 @@ class Node2 {
   getElemIn(box) {
     let elements = [];
     const children = [this.left, this.right].filter((x) => x);
-    for (let i = 0;i < children.length; i++) {
-      if (!children[i].box.sub(box).isEmpty) {
-        elements = elements.concat(children[i].getElemIn(box));
+    for (let i2 = 0;i2 < children.length; i2++) {
+      if (!children[i2].box.sub(box).isEmpty) {
+        elements = elements.concat(children[i2].getElemIn(box));
       }
     }
     return elements;
@@ -2917,9 +2887,9 @@ class Leaf2 {
 var clusterLeafs = function(box, leafs, it = 10) {
   const clusters = [box.sample(), box.sample()];
   const clusterIndexes = [];
-  for (let i = 0;i < it; i++) {
-    for (let i2 = 0;i2 < clusters.length; i2++) {
-      clusterIndexes[i2] = [];
+  for (let i2 = 0;i2 < it; i2++) {
+    for (let i3 = 0;i3 < clusters.length; i3++) {
+      clusterIndexes[i3] = [];
     }
     for (let j = 0;j < leafs.length; j++) {
       const leafPosition = leafs[j].box.center;
@@ -2946,8 +2916,8 @@ var clusterLeafs = function(box, leafs, it = 10) {
 var leafsInterceptWith = function(leafs, ray) {
   let closestDistance = Number.MAX_VALUE;
   let closest;
-  for (let i = 0;i < leafs.length; i++) {
-    const hit = leafs[i].interceptWith(ray);
+  for (let i2 = 0;i2 < leafs.length; i2++) {
+    const hit = leafs[i2].interceptWith(ray);
     if (hit && hit[0] < closestDistance) {
       closest = hit;
       closestDistance = hit[0];
@@ -2958,8 +2928,8 @@ var leafsInterceptWith = function(leafs, ray) {
 var distanceFromLeafs = function(leafs, p) {
   const elements = leafs.map((x) => x.element);
   let distance = Number.MAX_VALUE;
-  for (let i = 0;i < elements.length; i++) {
-    distance = Math.min(distance, elements[i].distanceToPoint(p));
+  for (let i2 = 0;i2 < elements.length; i2++) {
+    distance = Math.min(distance, elements[i2].distanceToPoint(p));
   }
   return distance;
 };
@@ -2975,8 +2945,8 @@ class KScene {
     return this.addList(elements);
   }
   addList(elements) {
-    for (let i = 0;i < elements.length; i++) {
-      const elem = elements[i];
+    for (let i2 = 0;i2 < elements.length; i2++) {
+      const elem = elements[i2];
       const { name } = elem;
       this.id2ElemMap[name] = elem;
       this.sceneElements.push(elem);
@@ -3006,8 +2976,8 @@ class KScene {
       if (leaf)
         return leaf.getElemNear(p);
       if (node.leafs.length > 0) {
-        for (let i = 0;i < node.leafs.length; i++) {
-          const leaf2 = node.leafs[i];
+        for (let i2 = 0;i2 < node.leafs.length; i2++) {
+          const leaf2 = node.leafs[i2];
           stack.push({ leaf: leaf2, distance: leaf2.box.distanceToPoint(p) });
         }
       }
@@ -3022,8 +2992,8 @@ class KScene {
     if (this.boundingBoxScene.leafs.length > 0) {
       let distance = Number.MAX_VALUE;
       const leafs = this.boundingBoxScene.leafs;
-      for (let i = 0;i < leafs.length; i++) {
-        distance = Math.min(distance, leafs[i].element.distanceToPoint(p));
+      for (let i2 = 0;i2 < leafs.length; i2++) {
+        distance = Math.min(distance, leafs[i2].element.distanceToPoint(p));
       }
       return distance;
     }
@@ -3036,9 +3006,9 @@ class KScene {
     let normal = Vec3();
     let weight = 0;
     const elements = this.boundingBoxScene.getLeafsNear(p);
-    for (let i = 0;i < elements.length; i++) {
-      const n = elements[i].normalToPoint(p);
-      const d = elements[i].distanceToPoint(p);
+    for (let i2 = 0;i2 < elements.length; i2++) {
+      const n = elements[i2].normalToPoint(p);
+      const d = elements[i2].distanceToPoint(p);
       normal = normal.add(n.scale(d));
       weight += d;
     }
@@ -3054,8 +3024,8 @@ class KScene {
     if (level === 0) {
       let maxLevels = Math.round(Math.log2(node.numberOfLeafs / this.k)) + 1;
       maxLevels = maxLevels === 0 ? 1 : maxLevels;
-      for (let i = 0;i <= maxLevels; i++)
-        level2colors.push(Color.RED.scale(1 - i / maxLevels).add(Color.BLUE.scale(i / maxLevels)));
+      for (let i2 = 0;i2 <= maxLevels; i2++)
+        level2colors.push(Color.RED.scale(1 - i2 / maxLevels).add(Color.BLUE.scale(i2 / maxLevels)));
     }
     debugScene = drawBox({ box: node.box, color: level2colors[level], debugScene });
     if (!node.isLeaf && node.left) {
@@ -3121,8 +3091,8 @@ class Node3 {
     return this;
   }
   addList(elements) {
-    for (let i = 0;i < elements.length; i++) {
-      this.add(elements[i]);
+    for (let i2 = 0;i2 < elements.length; i2++) {
+      this.add(elements[i2]);
     }
     return this;
   }
@@ -3188,9 +3158,9 @@ class Node3 {
       return elements;
     }
     const children = [this.left, this.right];
-    for (let i = 0;i < children.length; i++) {
-      if (!children[i].box.sub(box).isEmpty) {
-        elements = elements.concat(children[i].getElemIn(box));
+    for (let i2 = 0;i2 < children.length; i2++) {
+      if (!children[i2].box.sub(box).isEmpty) {
+        elements = elements.concat(children[i2].getElemIn(box));
       }
     }
     return elements;
@@ -3259,8 +3229,8 @@ class VoxelScene {
     const binary = [0, 1];
     const n = binary.length ** 3;
     const powers = [binary.length ** 2, binary.length];
-    for (let i = 0;i < elements.length; i++) {
-      const elem = elements[i];
+    for (let i2 = 0;i2 < elements.length; i2++) {
+      const elem = elements[i2];
       const { name } = elem;
       this.id2ElemMap[name] = elem;
       this.sceneElements.push(elem);
@@ -3269,8 +3239,8 @@ class VoxelScene {
       for (let k = 0;k < n; k++) {
         const i0 = Math.floor(k / powers[0]);
         const i1 = Math.floor(k / powers[1]) % powers[1];
-        const i2 = k % powers[1];
-        points.push(pivot.add(Vec3(i0, i1, i2).mul(elem.getBoundingBox().diagonal)));
+        const i22 = k % powers[1];
+        points.push(pivot.add(Vec3(i0, i1, i22).mul(elem.getBoundingBox().diagonal)));
       }
       points.forEach((p) => {
         const h = this.hash(p);
@@ -3311,8 +3281,8 @@ class VoxelScene {
     if (elements?.length) {
       let closestDistance = Number.MAX_VALUE;
       let closest;
-      for (let i = 0;i < elements.length; i++) {
-        const hit = elements[i].interceptWith(ray);
+      for (let i2 = 0;i2 < elements.length; i2++) {
+        const hit = elements[i2].interceptWith(ray);
         if (hit && hit[0] < closestDistance) {
           closest = hit;
           closestDistance = hit[0];
@@ -3340,8 +3310,8 @@ class VoxelScene {
     }
     if (elements?.length) {
       let distance = Number.MAX_VALUE;
-      for (let i = 0;i < elements.length; i++) {
-        distance = Math.min(distance, elements[i].distanceToPoint(ray.init));
+      for (let i2 = 0;i2 < elements.length; i2++) {
+        distance = Math.min(distance, elements[i2].distanceToPoint(ray.init));
       }
       return distance;
     }
@@ -3350,8 +3320,8 @@ class VoxelScene {
   estimateNormal(p) {
     let normal = Vec3();
     const elements = Object.values(this.gridMap[this.hash(p)] || {});
-    for (let i = 0;i < elements.length; i++) {
-      const elem = elements[i];
+    for (let i2 = 0;i2 < elements.length; i2++) {
+      const elem = elements[i2];
       normal = normal.add(elem.normalToPoint(p));
     }
     return normal.length() > 0 ? normal.normalize() : normal;
@@ -3382,9 +3352,9 @@ class VoxelScene {
 var clusterLeafs2 = function(box, leafs, it = 10) {
   const clusters = [box.sample(), box.sample()];
   const clusterIndexes = [];
-  for (let i = 0;i < it; i++) {
-    for (let i2 = 0;i2 < clusters.length; i2++) {
-      clusterIndexes[i2] = [];
+  for (let i2 = 0;i2 < it; i2++) {
+    for (let i3 = 0;i3 < clusters.length; i3++) {
+      clusterIndexes[i3] = [];
     }
     for (let j = 0;j < leafs.length; j++) {
       const leafPosition = leafs[j].box.center;
@@ -3416,8 +3386,8 @@ var random = function(n) {
 var leafsInterceptWith2 = function(leafs, ray) {
   let closestDistance = Number.MAX_VALUE;
   let closest;
-  for (let i = 0;i < leafs.length; i++) {
-    const hit = leafs[i].interceptWith(ray);
+  for (let i2 = 0;i2 < leafs.length; i2++) {
+    const hit = leafs[i2].interceptWith(ray);
     if (hit && hit[0] < closestDistance) {
       closest = hit;
       closestDistance = hit[0];
@@ -3475,8 +3445,8 @@ class RandomScene {
     return this.addList(elements);
   }
   addList(elements) {
-    for (let i = 0;i < elements.length; i++) {
-      const elem = elements[i];
+    for (let i2 = 0;i2 < elements.length; i2++) {
+      const elem = elements[i2];
       const { name } = elem;
       this.id2ElemMap[name] = elem;
       this.sceneElements.push(elem);
@@ -3509,8 +3479,8 @@ class RandomScene {
     if (this.boundingBoxScene.leafs.length > 0) {
       let distance = Number.MAX_VALUE;
       const leafs = this.boundingBoxScene.leafs;
-      for (let i = 0;i < leafs.length; i++) {
-        distance = Math.min(distance, leafs[i].element.distanceToPoint(p));
+      for (let i2 = 0;i2 < leafs.length; i2++) {
+        distance = Math.min(distance, leafs[i2].element.distanceToPoint(p));
       }
       return distance;
     }
@@ -3521,8 +3491,8 @@ class RandomScene {
     const n = p.dim;
     const grad = [];
     const d = this.distanceToPoint(p);
-    for (let i = 0;i < n; i++) {
-      grad.push(this.distanceToPoint(p.add(Vec.e(n)(i).scale(epsilon))) - d);
+    for (let i2 = 0;i2 < n; i2++) {
+      grad.push(this.distanceToPoint(p.add(Vec.e(n)(i2).scale(epsilon))) - d);
     }
     return Vec.fromArray(grad).scale(Math.sign(d)).normalize();
   }
@@ -3536,8 +3506,8 @@ class RandomScene {
     if (level === 0) {
       let maxLevels = Math.round(Math.log2(node.numberOfLeafs / this.k)) + 1;
       maxLevels = maxLevels === 0 ? 1 : maxLevels;
-      for (let i = 0;i <= maxLevels; i++)
-        level2colors.push(Color.RED.scale(1 - i / maxLevels).add(Color.BLUE.scale(i / maxLevels)));
+      for (let i2 = 0;i2 <= maxLevels; i2++)
+        level2colors.push(Color.RED.scale(1 - i2 / maxLevels).add(Color.BLUE.scale(i2 / maxLevels)));
     }
     debugScene = drawBox({ box: node.box, color: level2colors[level], debugScene });
     if (!node.isLeaf && node.left) {
@@ -3603,8 +3573,8 @@ class Node4 {
     return this;
   }
   addList(elements) {
-    for (let i = 0;i < elements.length; i++) {
-      this.add(elements[i]);
+    for (let i2 = 0;i2 < elements.length; i2++) {
+      this.add(elements[i2]);
     }
     return this;
   }
@@ -3618,8 +3588,8 @@ class Node4 {
     }
     const children = [this.left, this.right];
     const hits = [];
-    for (let i = 0;i < children.length; i++) {
-      const hit = children[i].interceptWith(ray);
+    for (let i2 = 0;i2 < children.length; i2++) {
+      const hit = children[i2].interceptWith(ray);
       if (hit)
         hits.push(hit);
     }
@@ -3648,9 +3618,9 @@ class Node4 {
       return elements;
     }
     const children = [this.left, this.right];
-    for (let i = 0;i < children.length; i++) {
-      if (!children[i].box.sub(box).isEmpty) {
-        elements = elements.concat(children[i].getElemIn(box));
+    for (let i2 = 0;i2 < children.length; i2++) {
+      if (!children[i2].box.sub(box).isEmpty) {
+        elements = elements.concat(children[i2].getElemIn(box));
       }
     }
     return elements;
@@ -3720,8 +3690,8 @@ class Path {
   }
   asLines() {
     const lines = [];
-    for (let i = 0;i < this.positions.length - 1; i++) {
-      lines.push(Line.builder().name(`${this.name}_${i}_${i + 1}`).positions(this.positions[i], this.positions[i + 1]).colors(this.colors[i], this.colors[i + 1]).build());
+    for (let i2 = 0;i2 < this.positions.length - 1; i2++) {
+      lines.push(Line.builder().name(`${this.name}_${i2}_${i2 + 1}`).positions(this.positions[i2], this.positions[i2 + 1]).colors(this.colors[i2], this.colors[i2 + 1]).build());
     }
     return lines;
   }
@@ -3777,7 +3747,7 @@ var parseFace = function(vertexInfo) {
   const facesInfo = vertexInfo.flatMap((x) => x.split("/")).map((x) => Number.parseFloat(x));
   const length = facesInfo.length;
   const lengthDiv3 = Math.floor(length / 3);
-  const group = groupBy(facesInfo, (_, i) => i % lengthDiv3);
+  const group = groupBy(facesInfo, (_, i2) => i2 % lengthDiv3);
   const face = { vertices: [], textures: [], normals: [] };
   Object.keys(group).map((k) => {
     k = Number.parseInt(k);
@@ -3815,8 +3785,8 @@ class Mesh {
   }
   mapVertices(lambda) {
     const newVertices = [];
-    for (let i = 0;i < this.vertices.length; i++) {
-      newVertices.push(lambda(this.vertices[i]));
+    for (let i2 = 0;i2 < this.vertices.length; i2++) {
+      newVertices.push(lambda(this.vertices[i2]));
     }
     return new Mesh({
       name: this.name,
@@ -3830,8 +3800,8 @@ class Mesh {
   }
   mapColors(lambda) {
     const newColors = [];
-    for (let i = 0;i < this.vertices.length; i++) {
-      newColors.push(lambda(this.vertices[i]));
+    for (let i2 = 0;i2 < this.vertices.length; i2++) {
+      newColors.push(lambda(this.vertices[i2]));
     }
     return new Mesh({
       name: this.name,
@@ -3845,8 +3815,8 @@ class Mesh {
   }
   mapMaterials(lambda) {
     const newMaterials = [];
-    for (let i = 0;i < this.faces.length; i++) {
-      newMaterials.push(lambda(this.faces[i]));
+    for (let i2 = 0;i2 < this.faces.length; i2++) {
+      newMaterials.push(lambda(this.faces[i2]));
     }
     return new Mesh({
       name: this.name,
@@ -3863,17 +3833,17 @@ class Mesh {
     if (this.boundingBox)
       return this.boundingBox;
     this.boundingBox = new Box;
-    for (let i = 0;i < this.vertices.length; i++) {
-      this.boundingBox = this.boundingBox.add(new Box(this.vertices[i].add(Vec3(1, 1, 1).scale(RADIUS)), this.vertices[i].add(Vec3(1, 1, 1).scale(RADIUS))));
+    for (let i2 = 0;i2 < this.vertices.length; i2++) {
+      this.boundingBox = this.boundingBox.add(new Box(this.vertices[i2].add(Vec3(1, 1, 1).scale(RADIUS)), this.vertices[i2].add(Vec3(1, 1, 1).scale(RADIUS))));
     }
     return this.boundingBox;
   }
   asPoints(radius = RADIUS) {
     const points = {};
-    for (let i = 0;i < this.faces.length; i++) {
-      const texCoordIndexes = this.faces[i].textures;
-      const normalIndexes = this.faces[i].normals;
-      const verticesIndexes = this.faces[i].vertices;
+    for (let i2 = 0;i2 < this.faces.length; i2++) {
+      const texCoordIndexes = this.faces[i2].textures;
+      const normalIndexes = this.faces[i2].normals;
+      const verticesIndexes = this.faces[i2].vertices;
       for (let j = 0;j < 3; j++) {
         const pointName = `${this.name}_${verticesIndexes[j]}`;
         if (!(pointName in points)) {
@@ -3885,8 +3855,8 @@ class Mesh {
   }
   asLines() {
     const lines = {};
-    for (let i = 0;i < this.faces.length; i++) {
-      const indices = this.faces[i].vertices;
+    for (let i2 = 0;i2 < this.faces.length; i2++) {
+      const indices = this.faces[i2].vertices;
       for (let j = 0;j < indices.length; j++) {
         const vi = indices[j];
         const vj = indices[(j + 1) % indices.length];
@@ -3899,11 +3869,11 @@ class Mesh {
   }
   asTriangles() {
     const triangles = [];
-    for (let i = 0;i < this.faces.length; i++) {
-      let texCoordIndexes = this.faces[i].textures;
-      const normalIndexes = this.faces[i].normals;
-      const verticesIndexes = this.faces[i].vertices;
-      const material = this.materials?.[i] ?? Diffuse();
+    for (let i2 = 0;i2 < this.faces.length; i2++) {
+      let texCoordIndexes = this.faces[i2].textures;
+      const normalIndexes = this.faces[i2].normals;
+      const verticesIndexes = this.faces[i2].vertices;
+      const material = this.materials?.[i2] ?? Diffuse();
       const edge_id = verticesIndexes.join("_");
       const edge_name = `${this.name}_${edge_id}`;
       triangles.push(Triangle.builder().name(edge_name).texture(this.texture).colors(...verticesIndexes.map((j) => this.colors[j])).normals(...normalIndexes.map((j) => this.normals[j])).positions(...verticesIndexes.map((j) => this.vertices[j])).texCoords(...texCoordIndexes.map((j) => this.textureCoords[j])).material(material).build());
@@ -3916,8 +3886,8 @@ class Mesh {
     const textureCoords = [];
     const faces = [];
     const lines = objFile.split(/\n|\r/);
-    for (let i = 0;i < lines.length; i++) {
-      const line = lines[i];
+    for (let i2 = 0;i2 < lines.length; i2++) {
+      const line = lines[i2];
       const spaces = line.split(" ").filter((x) => x !== "");
       const type = spaces[0];
       if (!type)
@@ -3951,9 +3921,324 @@ class Mesh {
     return new Mesh({ name, vertices, faces: UNIT_BOX_FACES.map((indx3) => ({ vertices: indx3 })) });
   }
 }
+
+// src/Utils/SVG.js
+var tokens = function(charStream) {
+  let s = charStream;
+  const tokensList = [];
+  while (!s.isEmpty()) {
+    const maybeToken = parseToken(s);
+    if (!maybeToken)
+      break;
+    const { token, nextStream } = maybeToken;
+    tokensList.push(token);
+    s = nextStream;
+  }
+  return stream(tokensList);
+};
+var streamIncludes = function(charStream, string) {
+  let s = charStream;
+  let i2 = 0;
+  while (!s.isEmpty() && i2 < string.length) {
+    if (string[i2++] !== s.head())
+      return false;
+    s = s.tail();
+  }
+  return true;
+};
+var parseToken = function(charStream) {
+  const TOKENS_PARSER = TOKEN_SYMBOLS.map((s) => () => symbolParser(s)(charStream));
+  return or(...TOKENS_PARSER, () => defaultToken(charStream));
+};
+var symbolParser = function(symbol) {
+  return (charStream) => {
+    let s = charStream;
+    let i2 = 0;
+    while (!s.isEmpty() && i2 < symbol.length) {
+      if (symbol[i2] !== s.head())
+        throw new Error("Fail to parse symbol");
+      s = s.tail();
+      i2++;
+    }
+    return { token: { type: symbol, text: symbol }, nextStream: s };
+  };
+};
+var parseSVG = function(stream) {
+  return or(() => {
+    const { left: StartTag, right: nextStream1 } = parseStartTag(stream);
+    const { left: InnerSVG, right: nextStream2 } = parseInnerSVG(nextStream1);
+    const { left: EndTag, right: nextStream3 } = parseEndTag(eatSpacesTabsAndNewLines(nextStream2));
+    return pair({ type: "svg", StartTag, InnerSVG, EndTag }, nextStream3);
+  }, () => {
+    const { left: EmptyTag, right: nextStream } = parseEmptyTag(stream);
+    return pair({ type: "svg", EmptyTag }, nextStream);
+  }, () => {
+    const { left: CommentTag, right: nextStream } = parseCommentTag(stream);
+    return pair({ type: "svg", CommentTag }, nextStream);
+  });
+};
+var parseValue = function(stream) {
+  const { left: AnyBut, right: nextStream } = parseAnyBut((t) => t.type === "<" || t.type === "</")(eatSpacesTabsAndNewLines(stream));
+  return pair({ type: "value", text: AnyBut.text }, nextStream);
+};
+var parseSVGTypes = function(stream) {
+  return or(() => {
+    const cleanStream = eatSpacesTabsAndNewLines(stream);
+    const { left: SVG, right: nextStream } = parseSVG(cleanStream);
+    return pair({ type: "svgTypes", SVG }, nextStream);
+  }, () => {
+    const { left: Value, right: nextStream } = parseValue(stream);
+    if (Value.text === "")
+      throw Error("Fail to parse SVGType");
+    return pair({ type: "svgTypes", Value }, nextStream);
+  });
+};
+var parseInnerSVG = function(stream) {
+  return or(() => {
+    const { left: SVGTypes, right: nextStream } = parseSVGTypes(stream);
+    const { left: InnerSVG, right: nextStream1 } = parseInnerSVG(nextStream);
+    return pair({
+      type: "innerSvg",
+      innerSvgs: [SVGTypes, ...InnerSVG.innerSvgs]
+    }, nextStream1);
+  }, () => {
+    return pair({
+      type: "innerSvg",
+      innerSvgs: []
+    }, stream);
+  });
+};
+var parseAnyBut = function(tokenPredicate) {
+  return (stream) => {
+    let nextStream = stream;
+    const textArray = [];
+    while (!nextStream.isEmpty() && !tokenPredicate(nextStream.head())) {
+      textArray.push(nextStream.head().text);
+      nextStream = nextStream.tail();
+    }
+    return pair({ type: "anyBut", text: textArray.join("") }, nextStream);
+  };
+};
+var parseEndTag = function(stream) {
+  const filteredStream = eatSpacesTabsAndNewLines(stream);
+  const token = filteredStream.head();
+  if (token.type === "</") {
+    const nextStream1 = eatSpaces(filteredStream.tail());
+    const { left: tagName, right: nextStream2 } = parseAlphaNumName(nextStream1);
+    const nextStream3 = eatSpaces(nextStream2);
+    if (nextStream3.head().type === ">") {
+      return pair({ type: "endTag", tag: tagName.text }, nextStream3.tail());
+    }
+  }
+  throw new Error("Fail to parse End Tag");
+};
+var parseEmptyTag = function(stream) {
+  const token = stream.head();
+  if (token.type === "<") {
+    const nextStream1 = eatSpaces(stream.tail());
+    const { left: tagName, right: nextStream2 } = parseAlphaNumName(nextStream1);
+    const nextStream3 = eatSpacesTabsAndNewLines(nextStream2);
+    const { left: Attrs, right: nextStream4 } = parseAttrs(nextStream3);
+    const nextStream5 = eatSpacesTabsAndNewLines(nextStream4);
+    if (nextStream5.head().type === "/>") {
+      return pair({ type: "emptyTag", tag: tagName.text, Attrs }, nextStream5.tail());
+    }
+  }
+  throw new Error("Fail to parse EmptyTag");
+};
+var parseCommentTag = function(stream) {
+  if (stream.head().type === "<!--") {
+    const nextStream = stream.tail();
+    const { left: AnyBut, right: nextStream1 } = parseAnyBut((token) => token.type === "-->")(nextStream);
+    if (AnyBut.text !== "")
+      return pair({ type: "commentTag" }, nextStream1.tail());
+  }
+  throw new Error("Fail to parse CommentTag");
+};
+var parseStartTag = function(stream) {
+  const token = stream.head();
+  if (token.type === "<") {
+    const nextStream1 = eatSpaces(stream.tail());
+    const { left: tagName, right: nextStream2 } = parseAlphaNumName(nextStream1);
+    const nextStream3 = eatSpacesTabsAndNewLines(nextStream2);
+    const { left: Attrs, right: nextStream4 } = parseAttrs(nextStream3);
+    const nextStream5 = eatSpacesTabsAndNewLines(nextStream4);
+    if (nextStream5.head().type === ">") {
+      return pair({ type: "startTag", tag: tagName.text, Attrs }, nextStream5.tail());
+    }
+  }
+  throw new Error("Fail to parse StartTag");
+};
+var parseAlphaNumName = function(stream) {
+  const token = stream.head();
+  if (token.type === "text")
+    return pair({ type: "alphaNumName", text: token.text }, stream.tail());
+  throw new Error("Fail to parse AlphaNumName");
+};
+var parseAttr = function(stream) {
+  return or(() => {
+    const { left: AlphaNumName, right: nextStream1 } = parseAlphaNumName(stream);
+    if (nextStream1.head().type === "=" && (nextStream1.tail().head().type === "\"" || nextStream1.tail().head().type === "'")) {
+      const tokenType = nextStream1.tail().head().type;
+      const { left: AnyBut, right: nextStream2 } = parseAnyBut((token) => tokenType === token.type)(nextStream1.tail().tail());
+      return pair({
+        type: "attr",
+        attributeName: AlphaNumName.text,
+        attributeValue: AnyBut.text
+      }, nextStream2.tail());
+    }
+  }, () => {
+    const { left: AlphaNumName, right: nextStream1 } = parseAlphaNumName(stream);
+    return pair({
+      type: "attr",
+      attributeName: AlphaNumName.text,
+      attributeValue: '"true"'
+    }, nextStream1);
+  });
+};
+var parseAttrs = function(stream) {
+  return or(() => {
+    const { left: Attr, right: nextStream } = parseAttr(stream);
+    const nextStreamNoSpaces = eatSpacesTabsAndNewLines(nextStream);
+    const { left: Attrs, right: nextStream1 } = parseAttrs(nextStreamNoSpaces);
+    return pair({
+      type: "attrs",
+      attributes: [Attr, ...Attrs.attributes]
+    }, nextStream1);
+  }, () => {
+    return pair({
+      type: "attrs",
+      attributes: []
+    }, stream);
+  });
+};
+var eatSpaces = function(stream) {
+  let s = stream;
+  while (!s.isEmpty()) {
+    if (s.head().type !== " ")
+      break;
+    s = s.tail();
+  }
+  return s;
+};
+var eatSpacesTabsAndNewLines = function(stream) {
+  let s = stream;
+  while (!s.isEmpty()) {
+    const symbol = s.head().type;
+    if (symbol !== " " && symbol !== "\t" && symbol !== "\n")
+      break;
+    s = s.tail();
+  }
+  return s;
+};
+var pair = function(a, b) {
+  return { left: a, right: b };
+};
+var or = function(...rules) {
+  let accError = null;
+  for (let i2 = 0;i2 < rules.length; i2++) {
+    try {
+      return rules[i2]();
+    } catch (error) {
+      accError = error;
+    }
+  }
+  throw accError;
+};
+var stream = function(stringOrArray) {
+  const array = [...stringOrArray];
+  return {
+    head: () => array[0],
+    tail: () => stream(array.slice(1)),
+    take: (n) => stream(array.slice(n)),
+    isEmpty: () => array.length === 0,
+    toString: () => array.map((s) => typeof s === "string" ? s : JSON.stringify(s)).join(""),
+    filter: (predicate) => stream(array.filter(predicate)),
+    log: () => {
+      let s = stream(array);
+      while (!s.isEmpty()) {
+        console.log(s.head());
+        s = s.tail();
+      }
+    }
+  };
+};
+function parse(text) {
+  const { left: SVG } = parseSVG(eatSpacesTabsAndNewLines(tokens(stream(text))));
+  return SVG;
+}
+var TOKEN_SYMBOLS = [
+  "<!--",
+  "-->",
+  "\n",
+  "\t",
+  " ",
+  "</",
+  "/>",
+  "<",
+  ">",
+  "=",
+  '"',
+  "'"
+];
+var defaultToken = (charStream) => {
+  let s = charStream;
+  let stringStack = [];
+  while (!s.isEmpty()) {
+    const char = s.head();
+    if (TOKEN_SYMBOLS.some((symbol) => streamIncludes(s, symbol)))
+      break;
+    stringStack.push(char);
+    s = s.tail();
+  }
+  if (stringStack.length)
+    return { token: { type: "text", text: stringStack.join("") }, nextStream: s };
+  throw new Error("Fail to parse default token");
+};
+(() => {
+  console.log(parse(`
+<svg xmlns="http://www.w3.org/2000/svg" width="640px" height="480px" viewBox="0 -880.4 3807.6 962.4" xmlns:xlink="http://www.w3.org/1999/xlink" aria-hidden="true" style="">
+  <defs>
+    <path id="MJX-12-TEX-I-1D452" d="M39 168Q39 225 58 272T107 350T174 402T244 433T307 442H310Q355 442 388 420T421 355Q421 265 310 237Q261 224 176 223Q139 223 138 221Q138 219 132 186T125 128Q125 81 146 54T209 26T302 45T394 111Q403 121 406 121Q410 121 419 112T429 98T420 82T390 55T344 24T281 -1T205 -11Q126 -11 83 42T39 168ZM373 353Q367 405 305 405Q272 405 244 391T199 357T170 316T154 280T149 261Q149 260 169 260Q282 260 327 284T373 353Z"/>
+    <path id="MJX-12-TEX-I-1D456" d="M184 600Q184 624 203 642T247 661Q265 661 277 649T290 619Q290 596 270 577T226 557Q211 557 198 567T184 600ZM21 287Q21 295 30 318T54 369T98 420T158 442Q197 442 223 419T250 357Q250 340 236 301T196 196T154 83Q149 61 149 51Q149 26 166 26Q175 26 185 29T208 43T235 78T260 137Q263 149 265 151T282 153Q302 153 302 143Q302 135 293 112T268 61T223 11T161 -11Q129 -11 102 10T74 74Q74 91 79 106T122 220Q160 321 166 341T173 380Q173 404 156 404H154Q124 404 99 371T61 287Q60 286 59 284T58 281T56 279T53 278T49 278T41 278H27Q21 284 21 287Z"/>
+    <path id="MJX-12-TEX-I-1D70B" d="M132 -11Q98 -11 98 22V33L111 61Q186 219 220 334L228 358H196Q158 358 142 355T103 336Q92 329 81 318T62 297T53 285Q51 284 38 284Q19 284 19 294Q19 300 38 329T93 391T164 429Q171 431 389 431Q549 431 553 430Q573 423 573 402Q573 371 541 360Q535 358 472 358H408L405 341Q393 269 393 222Q393 170 402 129T421 65T431 37Q431 20 417 5T381 -10Q370 -10 363 -7T347 17T331 77Q330 86 330 121Q330 170 339 226T357 318T367 358H269L268 354Q268 351 249 275T206 114T175 17Q164 -11 132 -11Z"/>
+    <path id="MJX-12-TEX-N-3D" d="M56 347Q56 360 70 367H707Q722 359 722 347Q722 336 708 328L390 327H72Q56 332 56 347ZM56 153Q56 168 72 173H708Q722 163 722 153Q722 140 707 133H70Q56 140 56 153Z"/>
+    <path id="MJX-12-TEX-N-2212" d="M84 237T84 250T98 270H679Q694 262 694 250T679 230H98Q84 237 84 250Z"/>
+    <path id="MJX-12-TEX-N-31" d="M213 578L200 573Q186 568 160 563T102 556H83V602H102Q149 604 189 617T245 641T273 663Q275 666 285 666Q294 666 302 660V361L303 61Q310 54 315 52T339 48T401 46H427V0H416Q395 3 257 3Q121 3 100 0H88V46H114Q136 46 152 46T177 47T193 50T201 52T207 57T213 61V578Z"/>
+  </defs>
+  <g stroke="#000000" fill="#000000" stroke-width="0" transform="scale(1,-1)">
+    <g data-mml-node="math">
+      <g data-mml-node="msup">
+        <g data-mml-node="mi">
+          <use data-c="1D452" xlink:href="#MJX-12-TEX-I-1D452"/>
+        </g>
+        <g data-mml-node="TeXAtom" transform="translate(499,413) scale(0.707)" data-mjx-texclass="ORD">
+          <g data-mml-node="mi">
+            <use data-c="1D456" xlink:href="#MJX-12-TEX-I-1D456"/>
+          </g>
+          <g data-mml-node="mi" transform="translate(345,0)">
+            <use data-c="1D70B" xlink:href="#MJX-12-TEX-I-1D70B"/>
+          </g>
+        </g>
+      </g>
+      <g data-mml-node="mo" transform="translate(1473.8,0)">
+        <use data-c="3D" xlink:href="#MJX-12-TEX-N-3D"/>
+      </g>
+      <g data-mml-node="mo" transform="translate(2529.6,0)">
+        <use data-c="2212" xlink:href="#MJX-12-TEX-N-2212"/>
+      </g>
+      <g data-mml-node="mn" transform="translate(3307.6,0)">
+        <use data-c="31" xlink:href="#MJX-12-TEX-N-31"/>
+      </g>
+    </g>
+  </g>
+</svg>
+    `));
+})();
 export {
   smin,
   randomPointInSphere,
+  parse as parseSVG,
   mod,
   lerp,
   isInsideConvex,

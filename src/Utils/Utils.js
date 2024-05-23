@@ -16,20 +16,6 @@ export function measureTimeWithResult(lambda) {
     return { result, time: 1e-3 * (performance.now() - t) };
 }
 
-export function compose(f, g) {
-    return x => f(g(x));
-}
-
-export function or(...lambdas) {
-    for (let i = 0; i < lambdas.length; i++) {
-        try {
-            return lambdas[i]();
-        } catch (err) {
-            continue;
-        }
-    }
-}
-
 export function groupBy(array, groupFunction) {
     const ans = {};
     array.forEach((x, i) => {
@@ -54,26 +40,6 @@ export function argmin(array, costFunction = x => x) {
     return argminIndex;
 }
 
-export function shuffle(elements) {
-    for (let i = elements.length - 1; i > 0; i--) {
-        // random number between 0 and i
-        const r = Math.floor(Math.random() * (i + 1));
-        //swap in place
-        const temp = elements[i];
-        elements[i] = elements[r];
-        elements[r] = temp;
-    }
-    return elements;
-}
-
-export function arrayIsEqual(a, b) {
-    if (a.length !== b.length) return false;
-    for (let i = 0; i < a.length; i++) {
-        if (a[i] !== b[i]) return false;
-    }
-    return true;
-}
-
 export function memoize(func) {
     // not working...
     const cache = {}
@@ -84,4 +50,12 @@ export function memoize(func) {
         cache[key] = ans;
         return ans;
     }
+}
+
+
+const RANDOM = Array(1000).fill().map(Math.random);
+let i = 0;
+export function fRandom() {
+    if(i > 1e6) i = 0;
+    return RANDOM[i++ % RANDOM.length];
 }
