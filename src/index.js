@@ -18,6 +18,7 @@ import Path from "./Geometry/Path.js"
 import Triangle from "./Geometry/Triangle.js"
 import Mesh from "./Geometry/Mesh.js"
 import Ray from "./Ray/Ray.js"
+import parseSVG from "./Utils/SVG.js"
 
 export {
     Box,
@@ -37,11 +38,12 @@ export {
     BScene,
     KScene,
     Stream,
+    parseSVG,
     Triangle,
     Animation,
     NaiveScene,
     VoxelScene,
-    RandomScene
+    RandomScene,
 }
 
 export * from "./Utils/Math.js"
