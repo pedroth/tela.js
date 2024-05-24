@@ -8,17 +8,18 @@ import { lerp } from "../Utils/Math.js";
 
 export default class Camera {
   constructor(props = {}) {
-    const { sphericalCoords, focalPoint, distanceToPlane } = props;
+    const { sphericalCoords, lookAt, distanceToPlane, eye } = props;
     this.sphericalCoords = sphericalCoords ?? Vec3(2, 0, 0);
-    this.focalPoint = focalPoint ?? Vec3(0, 0, 0);
+    this.lookAt = lookAt ?? Vec3(0, 0, 0);
     this.distanceToPlane = distanceToPlane ?? 1;
-    this.orbit();
+    this.eye = eye;
+    if (!eye) this.orbit();
   }
 
   clone() {
     return new Camera({
       sphericalCoordinates: this.sphericalCoords,
-      focalPoint: this.focalPoint,
+      lookAt: this.lookAt,
       distanceToPlane: this.distanceToPlane
     })
   }
@@ -56,7 +57,7 @@ export default class Camera {
       rho * sinP
     );
 
-    this.eye = sphereCoordinates.add(this.focalPoint);
+    this.eye = sphereCoordinates.add(this.lookAt);
     return this;
   }
 

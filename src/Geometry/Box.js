@@ -88,6 +88,8 @@ export default class Box {
         return Vec.fromArray(grad).scale(Math.sign(d)).normalize();
     }
 
+    normalToPoint = this.estimateNormal;
+
     collidesWith(box) {
         const vectorCollision = () => !this.sub(new Box(box, box)).isEmpty;
         const type2action = {

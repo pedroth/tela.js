@@ -464,8 +464,8 @@ const examples = [
         path: "/test/web/interactive_wave.js"
     },
     {
-        title: "6 points",
-        path: "/test/web/six_spheres.js"
+        title: "Elements",
+        path: "/test/web/elements.js"
     },
     {
         title: "n points",

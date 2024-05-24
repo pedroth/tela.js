@@ -9,7 +9,7 @@ async (canvas, logger) => {
     const scene = new BScene()
     const camera = new Camera({
         sphericalCoords: Vec3(3, 0, 0),
-        focalPoint: Vec3(1.5, 1.5, 1.5)
+        lookAt: Vec3(1.5, 1.5, 1.5)
     });
     // mouse handling
     let mousedown = false;

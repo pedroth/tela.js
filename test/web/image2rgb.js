@@ -6,7 +6,7 @@ async (canvas, logger) => {
     canvas.resize(width, height);
     // scene
     const scene = new NaiveScene();
-    const camera = new Camera({ sphericalCoords: Vec3(5, 0, 0), focalPoint: Vec3(0.5, 0.5, 0.5) });
+    const camera = new Camera({ sphericalCoords: Vec3(5, 0, 0), lookAt: Vec3(0.5, 0.5, 0.5) });
     // mouse handling
     let mousedown = false;
     let mouse = Vec2();

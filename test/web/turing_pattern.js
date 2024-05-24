@@ -100,9 +100,11 @@
             canvas.map((x, y) => {
                 let xi = x;
                 let yi = y;
-                const redColor = (U[yi][xi] - minU) / (maxU - minU);
-                const blueColor = (V[yi][xi] - minV) / (maxV - minV);
-                return Color.ofRGB(redColor, 0, blueColor).scale(1);
+                let redColor = (U[yi][xi] - minU) / (maxU - minU);
+                let blueColor = (V[yi][xi] - minV) / (maxV - minV);
+                redColor = isNaN(redColor) ? 1 : redColor;
+                blueColor = isNaN(blueColor) ? 1 : blueColor;
+                return Color.ofRGB(redColor, 0, blueColor);
             })
             return {
                 it: it + 1,

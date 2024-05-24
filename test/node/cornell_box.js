@@ -12,7 +12,7 @@ import { readFileSync } from "fs"
     const scene = new KScene();
     const camera = new Camera({
         sphericalCoords: Vec3(5, 0, 0),
-        focalPoint: Vec3(1.5, 1.5, 1.5)
+        lookAt: Vec3(1.5, 1.5, 1.5)
     });
     // mouse handling
     let mousedown = false;

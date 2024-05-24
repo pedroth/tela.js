@@ -5,8 +5,8 @@ async (canvas, logger) => {
     const height = 480;
     canvas.resize(width, height);
     // scene
-    const scene = new NaiveScene()
-    const camera = new Camera();
+    const scene = new Scene()
+    const camera = new Camera({ sphericalCoords: Vec3(5, 0, 0) });
     // mouse handling
     let mousedown = false;
     let mouse = Vec2();
@@ -43,45 +43,24 @@ async (canvas, logger) => {
         .add(
             Point
                 .builder()
-                .position(Vec3(0, -1, 0))
-                .name("test6-1")
+                .position(Vec3(0, -1.5, 0))
+                .name("point")
                 .radius(0.1)
                 .build()
             ,
-            Point
+            Line
                 .builder()
-                .position(Vec3(0, 1, 0))
-                .name("test6-2")
+                .positions(Vec3(0, 0, -1), Vec3(0, 0, 1))
+                .name("line")
                 .radius(0.1)
                 .build()
             ,
-            Point
+            Triangle
                 .builder()
-                .position(Vec3(0, 0, -1))
-                .name("test6-3")
-                .radius(0.1)
+                .positions(Vec3(0, 1, -1), Vec3(0, 2, -1), Vec3(0, 1.5, 1))
+                .name("triangle")
                 .build()
             ,
-            Point
-                .builder()
-                .position(Vec3(0, 0, 1))
-                .name("test6-4")
-                .radius(0.1)
-                .build()
-            ,
-            Point
-                .builder()
-                .position(Vec3(-1, 0, 0))
-                .name("test6-5")
-                .radius(0.1)
-                .build()
-            ,
-            Point
-                .builder()
-                .position(Vec3(1, 0, 0))
-                .name("test6-6")
-                .radius(0.1)
-                .build()
         )
 
     // boilerplate for fps

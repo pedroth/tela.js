@@ -61,6 +61,7 @@ export default class BScene {
   }
 
   interceptWith(ray, level) {
+    if(!this.boundingBoxScene) return;
     return this.boundingBoxScene.interceptWith(ray, level);
   }
 

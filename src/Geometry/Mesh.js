@@ -5,6 +5,7 @@ import Line from "./Line.js";
 import Triangle from "./Triangle.js";
 import { groupBy } from "../Utils/Utils.js";
 import { Diffuse } from "../Material/Material.js";
+import KScene from "../Scene/KScene.js"
 //========================================================================================
 /*                                                                                      *
  *                                       CONSTANTS                                      *
@@ -29,6 +30,9 @@ export default class Mesh {
         this.texture = texture;
         this.name = name || `Mesh_${MESH_COUNTER++}`;
         this.materials = materials;
+        this.meshScene = new KScene();
+        this.meshScene.addList(this.asTriangles());
+        this.meshScene.rebuild();
     }
 
     setName(name) {
@@ -95,14 +99,12 @@ export default class Mesh {
 
     getBoundingBox() {
         if (this.boundingBox) return this.boundingBox;
-        this.boundingBox = new Box();
-        for (let i = 0; i < this.vertices.length; i++) {
-            this.boundingBox = this.boundingBox.add(new Box(
-                this.vertices[i].add(Vec3(1, 1, 1).scale(RADIUS)),
-                this.vertices[i].add(Vec3(1, 1, 1).scale(RADIUS))
-            ));
-        }
+        this.boundingBox = this.meshScene.boundingBoxScene.box;
         return this.boundingBox;
+    }
+
+    interceptWith(ray) {
+        return this.meshScene.interceptWith(ray);
     }
 
     asPoints(radius = RADIUS) {
@@ -136,7 +138,7 @@ export default class Mesh {
         return Object.values(points);
     }
 
-    asLines() {
+    asLines(radius = RADIUS) {
         const lines = {};
         for (let i = 0; i < this.faces.length; i++) {
             const indices = this.faces[i].vertices;
@@ -149,6 +151,7 @@ export default class Mesh {
                     Line
                         .builder()
                         .name(edge_name)
+                        .radius(radius)
                         .positions(this.vertices[vi], this.vertices[vj])
                         .colors(this.colors[vi], this.colors[vj])
                         .build()

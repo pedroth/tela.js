@@ -9,7 +9,7 @@ const { measureTimeWithResult, measureTime } = Utils;
 
     // scene
     const scene = new NaiveScene();
-    const camera = new Camera({ sphericalCoords: Vec3(2, 0, 0), focalPoint: Vec3(0.5, 0.5, 0.5) });
+    const camera = new Camera({ sphericalCoords: Vec3(2, 0, 0), lookAt: Vec3(0.5, 0.5, 0.5) });
     const img = await Image.ofUrl("./assets/kakashi.jpg");
     const grid = [...Array(img.width * img.height)]
         .map((_, k) => {

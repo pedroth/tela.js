@@ -143,9 +143,6 @@ class Node {
   }
 
   interceptWith(ray) {
-    // const leftHit = this.left.interceptWith(ray);
-    // const rightHit = this.right.interceptWith(ray);
-    // return leftHit && leftHit[0] < (rightHit?.[0] ?? Number.MAX_VALUE) ? leftHit : rightHit;
     const leftT = this.left?.box?.interceptWith(ray)?.[0] ?? Number.MAX_VALUE;
     const rightT = this.right?.box?.interceptWith(ray)?.[0] ?? Number.MAX_VALUE;
     if (leftT === Number.MAX_VALUE && rightT === Number.MAX_VALUE) return;
