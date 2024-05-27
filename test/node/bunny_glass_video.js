@@ -27,7 +27,7 @@ bunnyMesh = bunnyMesh
     .mapVertices(v => Vec3(v.z, v.y, -v.x))
     .mapVertices(v => v.add(Vec3(1.5, 1.5, 1.5)))
     .mapColors(() => Color.WHITE)
-    .mapMaterials(() => Metallic(1.3))
+    .mapMaterials(() => DiElectric(1.3))
 scene.add(...bunnyMesh.asTriangles());
 
 scene.add(

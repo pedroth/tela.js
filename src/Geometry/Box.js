@@ -36,6 +36,7 @@ export default class Box {
         const epsilon = 1e-3;
         let tmin = -Number.MAX_VALUE;
         let tmax = Number.MAX_VALUE;
+        if(this.isEmpty) return;
         const minArray = this.min.toArray();
         const maxArray = this.max.toArray();
         const rInit = ray.init.toArray();

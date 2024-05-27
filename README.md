@@ -14,6 +14,12 @@ The purpose of this graphic engine is to be able to generate images in a computa
 
 # Quick start
 
+## In the browser
+
+## On the desktop
+
+## Generate images and videos
+
 First you need to install [ffmpeg][ffmpeg] in your system, in a way that it is possible to write on the console:
 ```bash
 ffmpeg -version 
@@ -71,7 +77,6 @@ https://pedroth.github.io/tela.js/
 - [X] Interactive applications (desktop / browser)
 	- [X] Web
 	- [X] Desktop(using sdl)
-- [ ] Draw svgs
 
 # Research
 

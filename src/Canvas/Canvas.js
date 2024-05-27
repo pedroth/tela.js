@@ -167,28 +167,6 @@ export default class Canvas {
     }
   });
 
-  // mapProgressive = lambda => {
-  //   const n = this._image.length;
-  //   const w = this._width;
-  //   const h = this._height;
-  //   for(let j = 0; j < h; j++) {
-
-  //   }
-  //   for (let k = 0; k < n; k += 4) {
-  //     const i = Math.floor(k / (4 * w));
-  //     const j = Math.floor((k / 4) % w);
-  //     const x = j;
-  //     const y = h - 1 - i;
-  //     const color = lambda(x, y);
-  //     if (!color) return;
-  //     this._image[k] = color.red * MAX_8BIT;
-  //     this._image[k + 1] = color.green * MAX_8BIT;
-  //     this._image[k + 2] = color.blue * MAX_8BIT;
-  //     this._image[k + 3] = MAX_8BIT;
-  //   }
-  //   return this.paint();
-  // }
-
   paint() {
     this._ctx.putImageData(this._imageData, 0, 0);
     return this;
@@ -213,7 +191,19 @@ export default class Canvas {
   }
 
   onMouseWheel(lambda) {
-    this._canvas.addEventListener("wheel", lambda, false)
+    this._canvas.addEventListener("wheel", lambda, false);
+    return this;
+  }
+
+  onKeyDown(lambda) {
+    this._canvas.addEventListener("keydown", (e) => {
+      lambda(e);
+    })
+    return this;
+  }
+
+  onKeyUp(lambda) {
+
   }
 
   resize(width, height) {
