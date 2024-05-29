@@ -30,5 +30,5 @@ const { measureTimeWithResult } = Utils;
             console.log(`${i} >>> ${minTime}`);
         }
     }
-    console.log(`Size of points: ${size}, Number of vertices: ${mesh.vertices.length}>>> ${minIndex * spacing} >>> ${}`);
+    console.log(`Size of points: ${size}, Number of vertices: ${mesh.vertices.length}>>> K: ${minIndex * spacing}>>>`);
 })();

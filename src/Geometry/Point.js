@@ -17,6 +17,16 @@ class Point {
         this.material = material;
     }
 
+    getBoundingBox() {
+        if (this.boundingBox) return this.boundingBox;
+        const n = this.position.dim;
+        this.boundingBox = new Box(
+            this.position.add(Vec.ONES(n).scale(-this.radius)),
+            this.position.add(Vec.ONES(n).scale(this.radius))
+        );
+        return this.boundingBox;
+    }
+
     distanceToPoint(p) {
         return this.position.sub(p).length() - this.radius;
     }
@@ -31,16 +41,6 @@ class Point {
         const epsilon = 1e-9;
         const t = sphereInterception(this, ray);
         return !t ? undefined : [t, ray.trace(t - epsilon), this];
-    }
-
-    getBoundingBox() {
-        if (this.boundingBox) return this.boundingBox;
-        const n = this.position.dim;
-        this.boundingBox = new Box(
-            this.position.add(Vec.ONES(n).scale(-this.radius)),
-            this.position.add(Vec.ONES(n).scale(this.radius))
-        );
-        return this.boundingBox;
     }
 
     sample() {

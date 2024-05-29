@@ -1,4 +1,4 @@
-import { Camera, IO, Parallel, Vec3, Mesh, Color, Scene, Utils, clamp, NaiveScene } from "../../dist/node/index.js";
+import { Camera, IO, Parallel, Vec3, Mesh, Utils, KScene} from "../../dist/node/index.js";
 import os from "os";
 const { saveParallelImageStreamToVideo } = IO;
 const { measureTimeWithAsyncResult } = Utils;
@@ -23,7 +23,7 @@ const { measureTimeWithAsyncResult } = Utils;
             .builder()
             .numberOfStreams(numOfFrames)
             .lazyInitialState(() => {
-                const scene = new Scene();
+                const scene = new KScene();
                 // eslint-disable-next-line no-undef
                 const obj = fs.readFileSync("./assets/spot.obj", { encoding: "utf-8" });
                 let mesh = Mesh.readObj(obj, "mesh");
@@ -31,6 +31,7 @@ const { measureTimeWithAsyncResult } = Utils;
                     .mapVertices(v => Vec3(-v.y, v.x, v.z))
                     .mapVertices(v => Vec3(v.z, v.y, -v.x))
                 scene.add(...mesh.asPoints(0.05));
+                scene.rebuild();
                 return { scene };
             })
             .inputStreamGenerator((i) => ({ time: i * dt, width, height }))

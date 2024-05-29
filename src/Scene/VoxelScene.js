@@ -1,6 +1,6 @@
 
 import Box from "../Geometry/Box.js";
-import Vec, { Vec3 } from "../Vector/Vector.js";
+import { Vec3 } from "../Vector/Vector.js";
 import NaiveScene from "./NaiveScene.js";
 import Color from "../Color/Color.js";
 import { drawBox } from "../Utils/Utils3D.js";
@@ -54,22 +54,29 @@ export default class VoxelScene {
         return this;
     }
 
+    getElements() {
+        return this.sceneElements;
+    }
+
     clear() {
         this.id2ElemMap = {};
         this.sceneElements = [];
         this.gridMap = {};
     }
 
-    getElements() {
-        return this.sceneElements;
+    distanceToPoint(p) {
+        // TODO
+        return Number.MAX_VALUE;
     }
 
-    getElementInBox(box) {
-        // TODO
-    }
-
-    getElementNear(p) {
-        // TODO
+    normalToPoint(p) {
+        let normal = Vec3();
+        const elements = Object.values(this.gridMap[this.hash(p)] || {});
+        for (let i = 0; i < elements.length; i++) {
+            const elem = elements[i];
+            normal = normal.add(elem.normalToPoint(p));
+        }
+        return normal.length() > 0 ? normal.normalize() : normal;
     }
 
     interceptWithRay(ray) {
@@ -99,11 +106,6 @@ export default class VoxelScene {
         }
     }
 
-    distanceToPoint(p) {
-        // TODO
-        return Number.MAX_VALUE;
-    }
-
     distanceOnRay(ray) {
         const maxDist = 10;
         const maxIte = maxDist / this.gridSpace;
@@ -128,14 +130,16 @@ export default class VoxelScene {
         return Number.MAX_VALUE;
     }
 
-    normalToPoint(p) {
-        let normal = Vec3();
-        const elements = Object.values(this.gridMap[this.hash(p)] || {});
-        for (let i = 0; i < elements.length; i++) {
-            const elem = elements[i];
-            normal = normal.add(elem.normalToPoint(p));
-        }
-        return normal.length() > 0 ? normal.normalize(): normal;
+    getElementNear(p) {
+        throw Error("Not implemented");
+    }
+
+    getElementInBox(box) {
+        throw Error("Not implemented");
+    }
+
+    rebuild() {
+        return this;
     }
 
     debug(props) {
@@ -164,9 +168,5 @@ export default class VoxelScene {
             })
         camera.reverseShot(debugScene, { clearScreen: false }).to(canvas);
         return canvas;
-    }
-
-    rebuild() {
-        return this;
     }
 }

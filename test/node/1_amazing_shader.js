@@ -4,6 +4,8 @@ const { saveImageStreamToVideo } = IO;
 
 const width = 640;
 const height = 480;
+const FPS = 100;
+const dt = 1 / FPS; // 100 FPS
 const clamp = x => Math.max(Math.min(1, x), 0);
 function palette(t) {
     let a = [0.5, 0.5, 0.5];
@@ -16,7 +18,6 @@ function palette(t) {
 const imageStream = new Stream(
     { time: 0, image: Image.ofSize(width, height) },
     ({ time, image }) => {
-        const dt = 0.01; // 100 FPS
         return {
             time: time + dt,
             image: image

@@ -24,6 +24,12 @@ export default class Triangle {
         this.faceNormal = u.cross(v).normalize();
     }
 
+    getBoundingBox() {
+        if (this.boundingBox) return this.boundingBox;
+        this.boundingBox = this.positions.reduce((box, x) => box.add(new Box(x, x)), Box.EMPTY);
+        return this.boundingBox;
+    }
+    
     distanceToPoint(p) {
         // TODO
         return Number.MAX_VALUE;
@@ -51,12 +57,6 @@ export default class Triangle {
             if (dot <= epsilon) return;
         }
         return [t - epsilon, x, this];
-    }
-
-    getBoundingBox() {
-        if (this.boundingBox) return this.boundingBox;
-        this.boundingBox = this.positions.reduce((box, x) => box.add(new Box(x, x)), Box.EMPTY);
-        return this.boundingBox;
     }
 
     sample() {

@@ -14,6 +14,18 @@ export default class Path {
         return this.boundingBox;
     }
 
+    distanceToPoint() {
+        throw Error("No implementation");
+    }
+
+    normalToPoint() {
+        throw Error("No implementation");
+    }
+
+    interceptWithRay(ray) {
+        return this.meshScene.interceptWithRay(ray);
+    }
+
     asLines() {
         const lines = [];
         for (let i = 0; i < this.positions.length - 1; i++) {

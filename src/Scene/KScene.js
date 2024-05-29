@@ -30,18 +30,47 @@ export default class KScene {
         return this;
     }
 
+    getElements() {
+        return this.sceneElements;
+    }
+
     clear() {
         this.id2ElemMap = {};
         this.sceneElements = [];
         this.boundingBoxScene = new Node(this.k);
     }
 
-    getElements() {
-        return this.sceneElements;
+    distanceToPoint(p) {
+        if (this.boundingBoxScene.leafs.length > 0) {
+            let distance = Number.MAX_VALUE;
+            const leafs = this.boundingBoxScene.leafs
+            for (let i = 0; i < leafs.length; i++) {
+                distance = Math.min(distance, leafs[i].element.distanceToPoint(p));
+            }
+            return distance;
+        }
+        return this.getElementNear(p).distanceToPoint(p);
     }
 
-    getElementInBox(box) {
-        return this.boundingBoxScene.getElemIn(box);
+    normalToPoint(p) {
+        let normal = Vec3();
+        let weight = 0;
+        const elements = this.boundingBoxScene.getLeafsNear(p);
+        for (let i = 0; i < elements.length; i++) {
+            const n = elements[i].normalToPoint(p);
+            const d = elements[i].distanceToPoint(p);
+            normal = normal.add(n.scale(d));
+            weight += d;
+        }
+        return normal.length() > 0 ? normal.scale(1 / weight).normalize() : normal;
+    }
+
+    interceptWithRay(ray, level) {
+        return this.boundingBoxScene.interceptWithRay(ray, level);
+    }
+
+    distanceOnRay(ray) {
+        return this.boundingBoxScene.distanceOnRay(ray);
     }
 
     getElementNear(p) {
@@ -67,63 +96,8 @@ export default class KScene {
         }
     }
 
-    interceptWithRay(ray, level) {
-        return this.boundingBoxScene.interceptWithRay(ray, level);
-    }
-
-    distanceToPoint(p) {
-        if (this.boundingBoxScene.leafs.length > 0) {
-            let distance = Number.MAX_VALUE;
-            const leafs = this.boundingBoxScene.leafs
-            for (let i = 0; i < leafs.length; i++) {
-                distance = Math.min(distance, leafs[i].element.distanceToPoint(p));
-            }
-            return distance;
-        }
-        return this.getElementNear(p).distanceToPoint(p);
-    }
-
-    distanceOnRay(ray) {
-        return this.boundingBoxScene.distanceOnRay(ray);
-    }
-
-    normalToPoint(p) {
-        let normal = Vec3();
-        let weight = 0;
-        const elements = this.boundingBoxScene.getLeafsNear(p);
-        for (let i = 0; i < elements.length; i++) {
-            const n = elements[i].normalToPoint(p);
-            const d = elements[i].distanceToPoint(p);
-            normal = normal.add(n.scale(d));
-            weight += d;
-        }
-        return normal.length() > 0 ? normal.scale(1 / weight).normalize() : normal;
-    }
-
-    debug(props) {
-        const { camera, canvas } = props;
-        let { node, level, level2colors, debugScene } = props;
-        node = node || this.boundingBoxScene;
-        level = level || 0;
-        level2colors = level2colors || [];
-        debugScene = debugScene || new NaiveScene();
-        if (level === 0) {
-            let maxLevels = Math.round(Math.log2(node.numberOfLeafs / this.k)) + 1;
-            maxLevels = maxLevels === 0 ? 1 : maxLevels;
-            for (let i = 0; i <= maxLevels; i++)
-                level2colors.push(
-                    Color.RED.scale(1 - i / maxLevels).add(Color.BLUE.scale(i / maxLevels))
-                );
-        }
-        debugScene = drawBox({ box: node.box, color: level2colors[level], debugScene });
-        if (!node.isLeaf && node.left) {
-            this.debug({ canvas, camera, node: node.left, level: level + 1, level2colors, debugScene })
-        }
-        if (!node.isLeaf && node.right) {
-            this.debug({ canvas, camera, node: node.right, level: level + 1, level2colors, debugScene })
-        }
-        if (level === 0) return camera.reverseShot(debugScene, { clearScreen: false }).to(canvas);
-        return canvas;
+    getElementInBox(box) {
+        return this.boundingBoxScene.getElemIn(box);
     }
 
     rebuild() {
@@ -163,6 +137,32 @@ export default class KScene {
         }
         this.boundingBoxScene = nodeOrLeafStack.pop();
         return this;
+    }
+
+    debug(props) {
+        const { camera, canvas } = props;
+        let { node, level, level2colors, debugScene } = props;
+        node = node || this.boundingBoxScene;
+        level = level || 0;
+        level2colors = level2colors || [];
+        debugScene = debugScene || new NaiveScene();
+        if (level === 0) {
+            let maxLevels = Math.round(Math.log2(node.numberOfLeafs / this.k)) + 1;
+            maxLevels = maxLevels === 0 ? 1 : maxLevels;
+            for (let i = 0; i <= maxLevels; i++)
+                level2colors.push(
+                    Color.RED.scale(1 - i / maxLevels).add(Color.BLUE.scale(i / maxLevels))
+                );
+        }
+        debugScene = drawBox({ box: node.box, color: level2colors[level], debugScene });
+        if (!node.isLeaf && node.left) {
+            this.debug({ canvas, camera, node: node.left, level: level + 1, level2colors, debugScene })
+        }
+        if (!node.isLeaf && node.right) {
+            this.debug({ canvas, camera, node: node.right, level: level + 1, level2colors, debugScene })
+        }
+        if (level === 0) return camera.reverseShot(debugScene, { clearScreen: false }).to(canvas);
+        return canvas;
     }
 }
 
@@ -204,7 +204,7 @@ class Node {
 
     interceptWithRay(ray) {
         if (this.leafs.length > 0) {
-            return leafsinterceptWithRay(this.leafs, ray);
+            return leafsInterceptWithRay(this.leafs, ray);
         }
         const leftT = this.left?.box?.interceptWithRay(ray)?.[0] ?? Number.MAX_VALUE;
         const rightT = this.right?.box?.interceptWithRay(ray)?.[0] ?? Number.MAX_VALUE;
@@ -361,7 +361,7 @@ function clusterLeafs(box, leafs, it = 10) {
 }
 
 
-function leafsinterceptWithRay(leafs, ray) {
+function leafsInterceptWithRay(leafs, ray) {
     let closestDistance = Number.MAX_VALUE;
     let closest;
     for (let i = 0; i < leafs.length; i++) {

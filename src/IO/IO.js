@@ -1,6 +1,6 @@
 import { writeFileSync, unlinkSync, readFileSync } from "fs";
 import { execSync, exec } from "child_process";
-import Image from "../Image/Image.js";
+import Image from "../Tela/Image.js";
 import Color from "../Color/Color.js";
 import { MAX_8BIT } from "../Utils/Constants.js";
 import { clamp } from "../Utils/Math.js";
@@ -116,9 +116,28 @@ export function saveParallelImageStreamToVideo(fileAddress, parallelStreamOfImag
     const promises = inputParamsPartitions.map((inputParams, i) => {
         const spawnFile = "IO_parallel" + i + ".js";
         writeFileSync(spawnFile, `
-            import {DOM, Color, Animation, Scene, Camera, Vec2, Vec3, Vec, Box, Point, Mesh, Image,NaiveScene, clamp, MAX_8BIT} from "./dist/node/index.js"
+            import * as _module from "./dist/node/index.js"
             import fs from "fs";
 
+            const {
+                Box,
+                DOM,
+                Vec,
+                Vec2,
+                Vec3,
+                Mesh,
+                clamp,
+                Color,
+                Image,
+                Point,
+                Scene,
+                BScene,
+                Camera,
+                KScene,
+                MAX_8BIT,
+                Animation,
+                NaiveScene,
+            } = _module;
             
             ${createPPMFromImage.toString().replaceAll("function createPPMFromImage(image)", "function __createPPMFromImage__(image)")}
             

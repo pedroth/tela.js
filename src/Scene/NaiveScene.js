@@ -22,13 +22,13 @@ export default class NaiveScene {
     return this;
   }
 
+  getElements() {
+    return this.sceneElements;
+  }
+
   clear() {
     this.id2ElemMap = {};
     this.sceneElements = [];
-  }
-
-  getElements() {
-    return this.sceneElements;
   }
 
   distanceToPoint(p) {
@@ -69,11 +69,15 @@ export default class NaiveScene {
     return this.sceneElements[argmin(this.sceneElements, x => x.distanceToPoint(p))];
   }
 
-  debug(params) {
-    return params.canvas;
+  getElementInBox(box) {
+    throw Error("Not Implemented");
   }
 
   rebuild() {
     return this;
+  }
+
+  debug(params) {
+    return params.canvas;
   }
 }

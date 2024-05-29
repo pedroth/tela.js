@@ -28,6 +28,12 @@ export default class Canvas {
     return this._canvas;
   }
 
+  // flush image data
+  paint() {
+    this._ctx.putImageData(this._imageData, 0, 0);
+    return this;
+  }
+
   /**
    * lambda: (x: Number, y: Number) => Color
    */
@@ -167,12 +173,6 @@ export default class Canvas {
     }
   });
 
-  // flush image data
-  paint() {
-    this._ctx.putImageData(this._imageData, 0, 0);
-    return this;
-  }
-
   onMouseDown(lambda) {
     this._canvas.addEventListener("mousedown", handleMouse(this, lambda), false);
     this._canvas.addEventListener("touchstart", handleMouse(this, lambda), false);
@@ -226,7 +226,6 @@ export default class Canvas {
    *                                                                                      */
   //========================================================================================
 
-
   grid2canvas(i, j) {
     const h = this.height;
     const x = j;
@@ -239,22 +238,6 @@ export default class Canvas {
     const j = Math.floor(x);
     const i = Math.floor(h - 1 - y);
     return [i, j];
-  }
-
-  startVideoRecorder() {
-    let responseBlob;
-    const canvasSnapshots = [];
-    const stream = this._canvas.captureStream();
-    const recorder = new MediaRecorder(stream);
-    recorder.addEventListener("dataavailable", e => canvasSnapshots.push(e.data));
-    recorder.start();
-    recorder.onstop = () => (responseBlob = new Blob(canvasSnapshots, { type: 'video/webm' }));
-    return {
-      stop: () => new Promise((re) => {
-        recorder.stop();
-        setTimeout(() => re([responseBlob, URL.createObjectURL(responseBlob)]));
-      })
-    };
   }
 
   exposure(time = Number.MAX_VALUE) {
@@ -290,12 +273,27 @@ export default class Canvas {
     return ans;
   }
 
+  startVideoRecorder() {
+    let responseBlob;
+    const canvasSnapshots = [];
+    const stream = this._canvas.captureStream();
+    const recorder = new MediaRecorder(stream);
+    recorder.addEventListener("dataavailable", e => canvasSnapshots.push(e.data));
+    recorder.start();
+    recorder.onstop = () => (responseBlob = new Blob(canvasSnapshots, { type: 'video/webm' }));
+    return {
+      stop: () => new Promise((re) => {
+        recorder.stop();
+        setTimeout(() => re([responseBlob, URL.createObjectURL(responseBlob)]));
+      })
+    };
+  }
+
   //========================================================================================
   /*                                                                                      *
    *                                    Static Methods                                    *
    *                                                                                      */
   //========================================================================================
-
 
   static ofSize(width, height) {
     const canvas = document.createElement('canvas');
@@ -330,10 +328,9 @@ export default class Canvas {
 
 //========================================================================================
 /*                                                                                      *
- *                                         UTILS                                        *
+ *                                   Private functions                                  *
  *                                                                                      */
 //========================================================================================
-
 
 function drawConvexPolygon(canvas, positions, shader) {
   const { width, height } = canvas;

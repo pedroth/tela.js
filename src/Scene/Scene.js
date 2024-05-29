@@ -30,26 +30,33 @@ export default class Scene {
     return this;
   }
 
+  getElements() {
+    return this.sceneElements;
+  }
+
   clear() {
     this.id2ElemMap = {};
     this.sceneElements = [];
     this.boundingBoxScene = new Node();
   }
 
-  getElements() {
-    return this.sceneElements;
+  distanceToPoint(p) {
+    return this.getElementNear(p).distanceToPoint(p);
   }
 
-  getElementInBox(box) {
-    return this.boundingBoxScene.getElemIn(box);
+  normalToPoint(p) {
+    const epsilon = 1e-9;
+    const n = p.dim;
+    const grad = [];
+    const d = this.distanceToPoint(p);
+    for (let i = 0; i < n; i++) {
+      grad.push(this.distanceToPoint(p.add(Vec.e(n)(i).scale(epsilon))) - d);
+    }
+    return Vec.fromArray(grad).scale(Math.sign(d)).normalize();
   }
 
   interceptWithRay(ray, level) {
     return this.boundingBoxScene.interceptWithRay(ray, level);
-  }
-
-  distanceToPoint(p) {
-    return this.getElementNear(p).distanceToPoint(p);
   }
 
   getElementNear(p) {
@@ -69,15 +76,22 @@ export default class Scene {
     }
   }
 
-  normalToPoint(p) {
-    const epsilon = 1e-9;
-    const n = p.dim;
-    const grad = [];
-    const d = this.distanceToPoint(p);
-    for (let i = 0; i < n; i++) {
-      grad.push(this.distanceToPoint(p.add(Vec.e(n)(i).scale(epsilon))) - d);
+  getElementInBox(box) {
+    return this.boundingBoxScene.getElemIn(box);
+  }
+
+  rebuild() {
+    let nodeOrLeafStack = this.sceneElements.map(x => new Leaf(x));
+    while (nodeOrLeafStack.length > 1) {
+      const nodeOrLeaf = nodeOrLeafStack[0];
+      nodeOrLeafStack = nodeOrLeafStack.slice(1);
+      const minIndex = argmin(nodeOrLeafStack, x => nodeOrLeaf.box.distanceToBox(x.box));
+      const newNode = nodeOrLeaf.join(nodeOrLeafStack[minIndex]);
+      nodeOrLeafStack.splice(minIndex, 1); // mutates array
+      nodeOrLeafStack.push(newNode);
     }
-    return Vec.fromArray(grad).scale(Math.sign(d)).normalize();
+    this.boundingBoxScene = nodeOrLeafStack.pop();
+    return this;
   }
 
   debug(props) {
@@ -104,20 +118,6 @@ export default class Scene {
     }
     if (level === 0) return camera.reverseShot(debugScene, { clearScreen: false }).to(canvas);
     return canvas;
-  }
-
-  rebuild() {
-    let nodeOrLeafStack = this.sceneElements.map(x => new Leaf(x));
-    while (nodeOrLeafStack.length > 1) {
-      const nodeOrLeaf = nodeOrLeafStack[0];
-      nodeOrLeafStack = nodeOrLeafStack.slice(1);
-      const minIndex = argmin(nodeOrLeafStack, x => nodeOrLeaf.box.distanceToBox(x.box));
-      const newNode = nodeOrLeaf.join(nodeOrLeafStack[minIndex]);
-      nodeOrLeafStack.splice(minIndex, 1); // mutates array
-      nodeOrLeafStack.push(newNode);
-    }
-    this.boundingBoxScene = nodeOrLeafStack.pop();
-    return this;
   }
 }
 

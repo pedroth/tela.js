@@ -1,4 +1,4 @@
-import { Color, Image, Stream, IO, Utils, Mesh, Vec3, Scene, Camera, clamp, NaiveScene } from "../../dist/node/index.js";
+import { Image, Stream, IO, Utils, Mesh, Vec3, Camera, KScene } from "../../dist/node/index.js";
 import { readFileSync } from "fs"
 
 const { measureTime, measureTimeWithResult } = Utils;
@@ -12,7 +12,7 @@ const dt = 1 / FPS;
 const maxT = 10;
 
 // scene
-const scene = new Scene();
+const scene = new KScene();
 const camera = new Camera({ sphericalCoords: Vec3(5, 0, 0) });
 const obj = readFileSync("./assets/spot.obj", { encoding: "utf-8" });
 let mesh = Mesh.readObj(obj, "mesh");

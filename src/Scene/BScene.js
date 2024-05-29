@@ -29,18 +29,34 @@ export default class BScene {
     return this;
   }
 
+  getElements() {
+    return this.sceneElements;
+  }
+
   clear() {
     this.id2ElemMap = {};
     this.sceneElements = [];
     this.boundingBoxScene = new Node();
   }
 
-  getElements() {
-    return this.sceneElements;
+  distanceToPoint(p) {
+    return this.getElementNear(p).distanceToPoint(p);
   }
 
-  getElementInBox(box) {
-    return this.boundingBoxScene.getElemIn(box);
+  normalToPoint(p) {
+    const epsilon = 1e-9;
+    const n = p.dim;
+    const grad = [];
+    const d = this.distanceToPoint(p);
+    for (let i = 0; i < n; i++) {
+      grad.push(this.distanceToPoint(p.add(Vec.e(n)(i).scale(epsilon))) - d);
+    }
+    return Vec.fromArray(grad).scale(Math.sign(d)).normalize();
+  }
+
+  interceptWithRay(ray, level) {
+    if (!this.boundingBoxScene) return;
+    return this.boundingBoxScene.interceptWithRay(ray, level);
   }
 
   getElementNear(p) {
@@ -60,24 +76,22 @@ export default class BScene {
     }
   }
 
-  interceptWithRay(ray, level) {
-    if(!this.boundingBoxScene) return;
-    return this.boundingBoxScene.interceptWithRay(ray, level);
+  getElementInBox(box) {
+    return this.boundingBoxScene.getElemIn(box);
   }
 
-  distanceToPoint(p) {
-    return this.getElementNear(p).distanceToPoint(p);
-  }
-
-  normalToPoint(p) {
-    const epsilon = 1e-9;
-    const n = p.dim;
-    const grad = [];
-    const d = this.distanceToPoint(p);
-    for (let i = 0; i < n; i++) {
-      grad.push(this.distanceToPoint(p.add(Vec.e(n)(i).scale(epsilon))) - d);
+  rebuild() {
+    let nodeOrLeafStack = this.sceneElements.map(x => new Leaf(x));
+    while (nodeOrLeafStack.length > 1) {
+      const nodeOrLeaf = nodeOrLeafStack[0];
+      nodeOrLeafStack = nodeOrLeafStack.slice(1);
+      const minIndex = argmin(nodeOrLeafStack, x => nodeOrLeaf.box.distanceToBox(x.box));
+      const newNode = nodeOrLeaf.join(nodeOrLeafStack[minIndex]);
+      nodeOrLeafStack.splice(minIndex, 1); // mutates array
+      nodeOrLeafStack.push(newNode);
     }
-    return Vec.fromArray(grad).scale(Math.sign(d)).normalize();
+    this.boundingBoxScene = nodeOrLeafStack.pop();
+    return this;
   }
 
   debug(props) {
@@ -104,20 +118,6 @@ export default class BScene {
     }
     if (level === 0) return camera.reverseShot(debugScene, { clearScreen: false }).to(canvas);
     return canvas;
-  }
-
-  rebuild() {
-    let nodeOrLeafStack = this.sceneElements.map(x => new Leaf(x));
-    while (nodeOrLeafStack.length > 1) {
-      const nodeOrLeaf = nodeOrLeafStack[0];
-      nodeOrLeafStack = nodeOrLeafStack.slice(1);
-      const minIndex = argmin(nodeOrLeafStack, x => nodeOrLeaf.box.distanceToBox(x.box));
-      const newNode = nodeOrLeaf.join(nodeOrLeafStack[minIndex]);
-      nodeOrLeafStack.splice(minIndex, 1); // mutates array
-      nodeOrLeafStack.push(newNode);
-    }
-    this.boundingBoxScene = nodeOrLeafStack.pop();
-    return this;
   }
 }
 
@@ -283,20 +283,4 @@ class Leaf {
     if (nodeOrLeaf.isLeaf) return new Node().add(this.element).add(nodeOrLeaf.element);
     return nodeOrLeaf.join(this);
   }
-}
-
-
-//========================================================================================
-/*                                                                                      *
- *                                         UTILS                                        *
- *                                                                                      */
-//========================================================================================
-
-function isBalanced(node) {
-  const n = node.numberOfLeafs;
-  if (n <= 2) return true;
-  const childrenLeafs = [node.left, node.right].map(x => x.numberOfLeafs);
-  let acc = true;
-  childrenLeafs.forEach(x => acc = n >> 1 === x && acc);
-  return !acc && isBalanced(node.left) && isBalanced(node.right);
 }

@@ -44,7 +44,7 @@ async (canvas, logger) => {
     let bunnyMesh = Mesh.readObj(stanfordBunnyObj, "bunny");
     const bunnyBox = bunnyMesh.getBoundingBox();
     bunnyMesh = bunnyMesh
-        .mapVertices(v =>v.sub(bunnyBox.min).div(bunnyBox.diagonal).scale(2).sub(Vec3(1, 1, 1)))
+        .mapVertices(v => v.sub(bunnyBox.min).div(bunnyBox.diagonal).scale(2).sub(Vec3(1, 1, 1)))
         .mapVertices(v => Vec3(-v.y, v.x, v.z))
         .mapVertices(v => Vec3(v.z, v.y, -v.x))
         .mapVertices(v => v.add(Vec3(0, 0, 5)))
@@ -54,6 +54,7 @@ async (canvas, logger) => {
     const bunnyPoints = bunnyMesh.asPoints(0.02);
     const bunnySpeeds = [...Array(bunnyPoints.length)].map(() => Vec3());
     scene.addList(bunnyPoints);
+
     // physics
     const g = -9.8;
     const variance = 5;
@@ -62,29 +63,19 @@ async (canvas, logger) => {
             const acceleration = Vec3(0, 0, g);
             bunnySpeeds[i] = bunnyPoints[i].position.z <= 0 ?
                 Vec3().map(() => variance * (2 * Math.random() - 1))
-                .add(Vec3(0, 0, -bunnyPoints[i].position.z)) :
+                    .add(Vec3(0, 0, -bunnyPoints[i].position.z)) :
                 bunnySpeeds[i].add(acceleration.scale(dt));
             bunnyPoints[i].position = bunnyPoints[i]
-            .position
-            .add(bunnySpeeds[i].scale(dt));
+                .position
+                .add(bunnySpeeds[i].scale(dt));
         }
     }
 
-    // boilerplate for fps
     Animation
-        .builder()
-        .initialState({ it: 1, oldTime: new Date().getTime() })
-        .nextState(({ it, oldTime }) => {
+        .loop(({ dt }) => {
             camera.reverseShot(scene).to(canvas);
-            const dt = (new Date().getTime() - oldTime) * 1e-3;
             logger.print(`FPS: ${Math.floor(1 / dt)}`);
             bunnyPhysics(dt);
-            return {
-                it: it + 1,
-                oldTime: new Date().getTime()
-            };
         })
-        .while(() => true)
-        .build()
         .play();
 }

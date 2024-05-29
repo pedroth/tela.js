@@ -692,6 +692,44 @@ class Box {
     this.diagonal = max.sub(min);
     this.dim = min.dim;
   }
+  getBoundingBox() {
+    return this;
+  }
+  distanceToPoint(pointVec) {
+    const p = pointVec.sub(this.center);
+    const r = this.max.sub(this.center);
+    const q = p.map(Math.abs).sub(r);
+    return q.map((x) => Math.max(x, 0)).length() + Math.min(0, maxComp(q));
+  }
+  normalToPoint(pointVec) {
+    const epsilon = 0.001;
+    const n = pointVec.dim;
+    const grad = [];
+    const d = this.distanceToPoint(pointVec);
+    for (let i = 0;i < n; i++) {
+      grad.push(this.distanceToPoint(pointVec.add(Vec.e(n)(i).scale(epsilon))) - d);
+    }
+    return Vec.fromArray(grad).scale(Math.sign(d)).normalize();
+  }
+  interceptWithRay(ray) {
+    const epsilon = 0.001;
+    let tmin = -Number.MAX_VALUE;
+    let tmax = Number.MAX_VALUE;
+    if (this.isEmpty)
+      return;
+    const minArray = this.min.toArray();
+    const maxArray = this.max.toArray();
+    const rInit = ray.init.toArray();
+    const dirInv = ray.dirInv.toArray();
+    const dim = this.min?.dim;
+    for (let i = 0;i < dim; ++i) {
+      let t1 = (minArray[i] - rInit[i]) * dirInv[i];
+      let t2 = (maxArray[i] - rInit[i]) * dirInv[i];
+      tmin = Math.max(tmin, Math.min(t1, t2));
+      tmax = Math.min(tmax, Math.max(t1, t2));
+    }
+    return tmax >= Math.max(tmin, 0) ? [tmin - epsilon, ray.trace(tmin - epsilon), this] : undefined;
+  }
   add(box) {
     if (this.isEmpty)
       return box;
@@ -726,51 +764,16 @@ class Box {
   distanceToBox(box) {
     return this.min.sub(box.min).length() + this.max.sub(box.max).length();
   }
-  interceptWithRay(ray) {
-    const epsilon = 0.001;
-    let tmin = -Number.MAX_VALUE;
-    let tmax = Number.MAX_VALUE;
-    if (this.isEmpty)
-      return;
-    const minArray = this.min.toArray();
-    const maxArray = this.max.toArray();
-    const rInit = ray.init.toArray();
-    const dirInv = ray.dirInv.toArray();
-    const dim = this.min?.dim;
-    for (let i = 0;i < dim; ++i) {
-      let t1 = (minArray[i] - rInit[i]) * dirInv[i];
-      let t2 = (maxArray[i] - rInit[i]) * dirInv[i];
-      tmin = Math.max(tmin, Math.min(t1, t2));
-      tmax = Math.min(tmax, Math.max(t1, t2));
-    }
-    return tmax >= Math.max(tmin, 0) ? [tmin - epsilon, ray.trace(tmin - epsilon), this] : undefined;
-  }
-  distanceToPoint(pointVec) {
-    const p = pointVec.sub(this.center);
-    const r = this.max.sub(this.center);
-    const q = p.map(Math.abs).sub(r);
-    return q.map((x) => Math.max(x, 0)).length() + Math.min(0, maxComp(q));
-  }
-  normalToPoint(pointVec) {
-    const epsilon = 0.001;
-    const n = pointVec.dim;
-    const grad = [];
-    const d = this.distanceToPoint(pointVec);
-    for (let i = 0;i < n; i++) {
-      grad.push(this.distanceToPoint(pointVec.add(Vec.e(n)(i).scale(epsilon))) - d);
-    }
-    return Vec.fromArray(grad).scale(Math.sign(d)).normalize();
-  }
-  collidesWith(box) {
-    const vectorCollision = () => !this.sub(new Box(box, box)).isEmpty;
+  collidesWith(arg) {
+    const vectorCollision = () => !this.sub(new Box(arg, arg)).isEmpty;
     const type2action = {
-      [Box.name]: () => !this.sub(box).isEmpty,
+      [Box.name]: () => !this.sub(arg).isEmpty,
       Vector: vectorCollision,
       Vector3: vectorCollision,
       Vector2: vectorCollision
     };
-    if (box.constructor.name in type2action) {
-      return type2action[box.constructor.name]();
+    if (arg.constructor.name in type2action) {
+      return type2action[arg.constructor.name]();
     }
     return false;
   }
@@ -881,7 +884,7 @@ function fRandom() {
 var RANDOM = Array(1000).fill().map(Math.random);
 var i = 0;
 
-// src/Canvas/Canvas.js
+// src/Tela/Canvas.js
 var drawConvexPolygon = function(canvas, positions, shader) {
   const { width, height } = canvas;
   const canvasBox = new Box(Vec2(), Vec2(width, height));
@@ -942,6 +945,10 @@ class Canvas {
   }
   get DOM() {
     return this._canvas;
+  }
+  paint() {
+    this._ctx.putImageData(this._imageData, 0, 0);
+    return this;
   }
   map(lambda) {
     const n = this._image.length;
@@ -1073,10 +1080,6 @@ class Canvas {
       }
     };
   });
-  paint() {
-    this._ctx.putImageData(this._imageData, 0, 0);
-    return this;
-  }
   onMouseDown(lambda) {
     this._canvas.addEventListener("mousedown", handleMouse(this, lambda), false);
     this._canvas.addEventListener("touchstart", handleMouse(this, lambda), false);
@@ -1129,21 +1132,6 @@ class Canvas {
     const i2 = Math.floor(h - 1 - y);
     return [i2, j];
   }
-  startVideoRecorder() {
-    let responseBlob;
-    const canvasSnapshots = [];
-    const stream = this._canvas.captureStream();
-    const recorder = new MediaRecorder(stream);
-    recorder.addEventListener("dataavailable", (e) => canvasSnapshots.push(e.data));
-    recorder.start();
-    recorder.onstop = () => responseBlob = new Blob(canvasSnapshots, { type: "video/webm" });
-    return {
-      stop: () => new Promise((re) => {
-        recorder.stop();
-        setTimeout(() => re([responseBlob, URL.createObjectURL(responseBlob)]));
-      })
-    };
-  }
   exposure(time = Number.MAX_VALUE) {
     let it = 1;
     const ans = {};
@@ -1177,6 +1165,21 @@ class Canvas {
       return this.paint();
     };
     return ans;
+  }
+  startVideoRecorder() {
+    let responseBlob;
+    const canvasSnapshots = [];
+    const stream = this._canvas.captureStream();
+    const recorder = new MediaRecorder(stream);
+    recorder.addEventListener("dataavailable", (e) => canvasSnapshots.push(e.data));
+    recorder.start();
+    recorder.onstop = () => responseBlob = new Blob(canvasSnapshots, { type: "video/webm" });
+    return {
+      stop: () => new Promise((re) => {
+        recorder.stop();
+        setTimeout(() => re([responseBlob, URL.createObjectURL(responseBlob)]));
+      })
+    };
   }
   static ofSize(width, height) {
     const canvas = document.createElement("canvas");
@@ -1454,6 +1457,13 @@ class Point {
     this.emissive = emissive;
     this.material = material;
   }
+  getBoundingBox() {
+    if (this.boundingBox)
+      return this.boundingBox;
+    const n = this.position.dim;
+    this.boundingBox = new Box(this.position.add(Vec.ONES(n).scale(-this.radius)), this.position.add(Vec.ONES(n).scale(this.radius)));
+    return this.boundingBox;
+  }
   distanceToPoint(p) {
     return this.position.sub(p).length() - this.radius;
   }
@@ -1466,13 +1476,6 @@ class Point {
     const epsilon = 0.000000001;
     const t = sphereInterception(this, ray);
     return !t ? undefined : [t, ray.trace(t - epsilon), this];
-  }
-  getBoundingBox() {
-    if (this.boundingBox)
-      return this.boundingBox;
-    const n = this.position.dim;
-    this.boundingBox = new Box(this.position.add(Vec.ONES(n).scale(-this.radius)), this.position.add(Vec.ONES(n).scale(this.radius)));
-    return this.boundingBox;
   }
   sample() {
     return randomPointInSphere(this.position.dim).scale(this.radius).add(this.position);
@@ -1576,19 +1579,26 @@ class Line {
     this.texCoords = texCoords;
     this.edge = this.positions[1].sub(this.positions[0]);
   }
+  getBoundingBox() {
+    if (this.boundingBox)
+      return this.boundingBox;
+    const size = Vec3(this.radius, this.radius, this.radius);
+    this.boundingBox = this.positions.reduce((box, x) => box.add(new Box(x.sub(size), x.add(size))), Box.EMPTY);
+    return this.boundingBox;
+  }
   distanceToPoint(p) {
     const l = this.edge;
     const v = p.sub(this.positions[0]);
     const h = clamp()(l.dot(v) / l.dot(l));
     return p.sub(this.positions[0].add(l.scale(h))).length() - this.radius;
   }
-  normalToPoint = (p) => {
+  normalToPoint(p) {
     const epsilon = 0.001;
     const f = this.distanceToPoint(p);
     const sign = Math.sign(f);
     const grad = Vec3(this.distanceToPoint(p.add(Vec3(epsilon, 0, 0))) - f, this.distanceToPoint(p.add(Vec3(0, epsilon, 0))) - f, this.distanceToPoint(p.add(Vec3(0, 0, epsilon))) - f).normalize();
     return grad.scale(sign);
-  };
+  }
   interceptWithRay(ray) {
     const maxIte = 100;
     const epsilon = 0.001;
@@ -1608,13 +1618,6 @@ class Line {
       minT = d;
     }
     return;
-  }
-  getBoundingBox() {
-    if (this.boundingBox)
-      return this.boundingBox;
-    const size = Vec3(this.radius, this.radius, this.radius);
-    this.boundingBox = this.positions.reduce((box, x) => box.add(new Box(x.sub(size), x.add(size))), Box.EMPTY);
-    return this.boundingBox;
   }
   sample() {
     return this.edge.scale(Math.random());
@@ -1723,6 +1726,12 @@ class Triangle {
     const v = this.tangents[1];
     this.faceNormal = u.cross(v).normalize();
   }
+  getBoundingBox() {
+    if (this.boundingBox)
+      return this.boundingBox;
+    this.boundingBox = this.positions.reduce((box, x) => box.add(new Box(x, x)), Box.EMPTY);
+    return this.boundingBox;
+  }
   distanceToPoint(p) {
     return Number.MAX_VALUE;
   }
@@ -1749,12 +1758,6 @@ class Triangle {
         return;
     }
     return [t - epsilon, x, this];
-  }
-  getBoundingBox() {
-    if (this.boundingBox)
-      return this.boundingBox;
-    this.boundingBox = this.positions.reduce((box, x) => box.add(new Box(x, x)), Box.EMPTY);
-    return this.boundingBox;
   }
   sample() {
     return this.tangents[0].scale(Math.random()).add(this.tangents[1].scale(Math.random())).add(this.positions[0]);
@@ -2065,7 +2068,6 @@ class Camera {
   rayMap(lambdaWithRays, params) {
     return {
       to: (canvas) => {
-        let it = 0;
         const w = canvas.width;
         const h = canvas.height;
         const ans = canvas.map((x, y) => {
@@ -2076,7 +2078,6 @@ class Camera {
           ];
           const dir = Vec3(this.basis[0].x * dirInLocal[0] + this.basis[1].x * dirInLocal[1] + this.basis[2].x * dirInLocal[2], this.basis[0].y * dirInLocal[0] + this.basis[1].y * dirInLocal[1] + this.basis[2].y * dirInLocal[2], this.basis[0].z * dirInLocal[0] + this.basis[1].z * dirInLocal[1] + this.basis[2].z * dirInLocal[2]).normalize();
           const c = lambdaWithRays(Ray(this.eye, dir), params);
-          it++;
           return c;
         });
         return ans;
@@ -2151,11 +2152,11 @@ class Camera {
       const maxIte = 100;
       const epsilon = 0.000001;
       let p = ray.init;
-      let t = scene.distanceToPoint(p);
+      let t = scene.distanceOnRay(ray);
       let minT = t;
       for (let i2 = 0;i2 < maxIte; i2++) {
         p = ray.trace(t);
-        const d = scene.distanceToPoint(p);
+        const d = scene.distanceOnRay(Ray(p, ray.dir));
         t += d;
         if (d < epsilon) {
           const normal = scene.normalToPoint(p);
@@ -3721,6 +3722,15 @@ class Path {
     this.boundingBox = this.positions.reduce((box, x) => box.add(new Box(x, x)), Box.EMPTY);
     return this.boundingBox;
   }
+  distanceToPoint() {
+    throw Error("No implementation");
+  }
+  normalToPoint() {
+    throw Error("No implementation");
+  }
+  interceptWithRay(ray) {
+    return this.meshScene.interceptWithRay(ray);
+  }
   asLines() {
     const lines = [];
     for (let i2 = 0;i2 < this.positions.length - 1; i2++) {
@@ -3811,6 +3821,21 @@ class Mesh {
     this.meshScene.addList(this.asTriangles());
     this.meshScene.rebuild();
   }
+  getBoundingBox() {
+    if (this.boundingBox)
+      return this.boundingBox;
+    this.boundingBox = this.meshScene.boundingBoxScene.box;
+    return this.boundingBox;
+  }
+  distanceToPoint(x) {
+    return this.meshScene.distanceToPoint(x);
+  }
+  normalToPoint(x) {
+    throw Error("No implementation");
+  }
+  interceptWithRay(ray) {
+    return this.meshScene.interceptWithRay(ray);
+  }
   setName(name) {
     this.name = name;
     return this;
@@ -3864,15 +3889,6 @@ class Mesh {
       texture: this.texture,
       materials: newMaterials
     });
-  }
-  getBoundingBox() {
-    if (this.boundingBox)
-      return this.boundingBox;
-    this.boundingBox = this.meshScene.boundingBoxScene.box;
-    return this.boundingBox;
-  }
-  interceptWithRay(ray) {
-    return this.meshScene.interceptWithRay(ray);
   }
   asPoints(radius = RADIUS) {
     const points = {};

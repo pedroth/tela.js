@@ -22,21 +22,14 @@ export default class Image {
         return this._height;
     }
 
-    /**
-     * color: Color 
-     */
-    fill(color) {
-        return this.map(() => color);
-    }
-
     paint() {
         // to implement the same interface as canvas
         return this;
     }
 
     /**
-     * lambda: (x: Number, y: Number) => Color 
-     */
+    * lambda: (x: Number, y: Number) => Color 
+    */
     map(lambda) {
         const n = this._image.length;
         const w = this._width;
@@ -49,6 +42,13 @@ export default class Image {
             this._image[k] = lambda(x, y);
         }
         return this;
+    }
+
+    /**
+     * color: Color 
+     */
+    fill(color) {
+        return this.map(() => color);
     }
 
     setPxl(x, y, color) {
@@ -95,8 +95,58 @@ export default class Image {
         return drawConvexPolygon(this, [x1, x2, x3], shader);
     }
 
-    array() {
-        return this.toArray();
+
+    //========================================================================================
+    /*                                                                                      *
+     *                                      Image Utils                                     *
+     *                                                                                      */
+    //========================================================================================
+
+    grid2canvas(i, j) {
+        const h = this.height;
+        const x = j;
+        const y = h - 1 - i;
+        return [x, y]
+    }
+
+    canvas2grid(x, y) {
+        const h = this._height;
+        const j = Math.floor(x);
+        const i = Math.floor(h - 1 - y);
+        return [i, j];
+    }
+
+    exposure(time = Number.MAX_VALUE) {
+        let it = 1;
+        const ans = {};
+        for (let key of Object.getOwnPropertyNames(Object.getPrototypeOf(this))) {
+            const descriptor = Object.getOwnPropertyDescriptor(Object.getPrototypeOf(this), key);
+            if (descriptor && typeof descriptor.value === 'function') {
+                ans[key] = descriptor.value.bind(this);
+            }
+        }
+        ans.width = this.width;
+        ans.height = this.height;
+        ans.map = (lambda) => {
+            const n = this._image.length;
+            const w = this._width;
+            const h = this._height;
+            for (let k = 0; k < n; k += 4) {
+                const i = Math.floor(k / (4 * w));
+                const j = Math.floor((k / 4) % w);
+                const x = j;
+                const y = h - 1 - i;
+                const color = lambda(x, y);
+                if (!color) continue;
+                this._image[k] = this._image[k] + (color.red * MAX_8BIT - this._image[k]) / it;
+                this._image[k + 1] = this._image[k + 1] + (color.green * MAX_8BIT - this._image[k + 1]) / it;
+                this._image[k + 2] = this._image[k + 2] + (color.blue * MAX_8BIT - this._image[k + 2]) / it;
+                this._image[k + 3] = MAX_8BIT;
+            }
+            if (it < time) it++
+            return this.paint();
+        }
+        return ans;
     }
 
     toArray() {
@@ -118,52 +168,12 @@ export default class Image {
         return imageData;
     }
 
-    grid2canvas(i, j) {
-        const h = this.height;
-        const x = j;
-        const y = h - 1 - i;
-        return [x, y]
-    }
+    //========================================================================================
+    /*                                                                                      *
+     *                                    Static Methods                                    *
+     *                                                                                      */
+    //========================================================================================
 
-    canvas2grid(x, y) {
-        const h = this._height;
-        const j = Math.floor(x);
-        const i = Math.floor(h - 1 - y);
-        return [i, j];
-    }
-
-    exposure(time = Number.MAX_VALUE) {
-        let it = 1;
-        const ans = {};
-        for (let key of Object.getOwnPropertyNames(Object.getPrototypeOf(this))) {
-          const descriptor = Object.getOwnPropertyDescriptor(Object.getPrototypeOf(this), key);
-          if (descriptor && typeof descriptor.value === 'function') {
-            ans[key] = descriptor.value.bind(this);
-          }
-        }
-        ans.width = this.width;
-        ans.height = this.height;
-        ans.map = (lambda) => {
-          const n = this._image.length;
-          const w = this._width;
-          const h = this._height;
-          for (let k = 0; k < n; k += 4) {
-            const i = Math.floor(k / (4 * w));
-            const j = Math.floor((k / 4) % w);
-            const x = j;
-            const y = h - 1 - i;
-            const color = lambda(x, y);
-            if (!color) continue;
-            this._image[k] = this._image[k] + (color.red * MAX_8BIT - this._image[k]) / it;
-            this._image[k + 1] = this._image[k + 1] + (color.green * MAX_8BIT - this._image[k + 1]) / it;
-            this._image[k + 2] = this._image[k + 2] + (color.blue * MAX_8BIT - this._image[k + 2]) / it;
-            this._image[k + 3] = MAX_8BIT;
-          }
-          if (it < time) it++
-          return this.paint();
-        }
-        return ans;
-      }
 
     static ofUrl(url) {
         return readImageFrom(url);
@@ -183,7 +193,11 @@ export default class Image {
     }
 }
 
-
+//========================================================================================
+/*                                                                                      *
+ *                                   Private functions                                  *
+ *                                                                                      */
+//========================================================================================
 
 function drawConvexPolygon(canvas, positions, shader) {
     const { width, height } = canvas;

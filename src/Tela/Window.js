@@ -30,6 +30,29 @@ export default class Window {
         return this;
     }
 
+    paint() {
+        const buffer = this.toArray();
+        this._window.render(this._width, this._height, this._width * 4, 'rgba32', buffer)
+        return this;
+    }
+
+    /**
+     * lambda: (x: Number, y: Number) => Color 
+     */
+    map(lambda) {
+        const n = this._image.length;
+        const w = this._width;
+        const h = this._height;
+        for (let k = 0; k < n; k++) {
+            const i = Math.floor(k / w);
+            const j = k % w;
+            const x = j;
+            const y = h - 1 - i;
+            this._image[k] = lambda(x, y);
+        }
+        return this.paint();
+    }
+
     /**
      * color: Color 
      */
@@ -38,11 +61,7 @@ export default class Window {
         return this;
     }
 
-    paint() {
-        const buffer = this.toArray();
-        this._window.render(this._width, this._height, this._width * 4, 'rgba32', buffer)
-        return this;
-    }
+
 
     onMouseDown(lambda) {
         this._window.on("mouseButtonDown", handleMouse(this, lambda));
@@ -64,22 +83,7 @@ export default class Window {
         return this;
     }
 
-    /**
-     * lambda: (x: Number, y: Number) => Color 
-     */
-    map(lambda) {
-        const n = this._image.length;
-        const w = this._width;
-        const h = this._height;
-        for (let k = 0; k < n; k++) {
-            const i = Math.floor(k / w);
-            const j = k % w;
-            const x = j;
-            const y = h - 1 - i;
-            this._image[k] = lambda(x, y);
-        }
-        return this.paint();
-    }
+
 
     setPxl(x, y, color) {
         const w = this._width;
@@ -125,28 +129,11 @@ export default class Window {
         return drawConvexPolygon(this, [x1, x2, x3], shader);
     }
 
-    array() {
-        return this.toArray();
-    }
-
-    toArray() {
-        const w = this._width;
-        const h = this._height;
-        const imageData = Buffer.alloc(w * h * 4);
-
-        for (let i = 0; i < h; i++) {
-            for (let j = 0; j < w; j++) {
-                let index = w * i + j;
-                const color = this._image[index];
-                index <<= 2; // multiply by 4
-                imageData[index] = color.red * MAX_8BIT;
-                imageData[index + 1] = color.green * MAX_8BIT;
-                imageData[index + 2] = color.blue * MAX_8BIT;
-                imageData[index + 3] = MAX_8BIT;
-            }
-        }
-        return imageData;
-    }
+    //========================================================================================
+    /*                                                                                      *
+     *                                     Window Utils                                     *
+     *                                                                                      */
+    //========================================================================================
 
     grid2canvas(i, j) {
         const h = this.height;
@@ -188,13 +175,38 @@ export default class Window {
                     this._image[k].red + (color.red - this._image[k].red) / it,
                     this._image[k].green + (color.green - this._image[k].green) / it,
                     this._image[k].blue + (color.blue - this._image[k].blue) / it,
-                ); 
+                );
             }
             if (it < time) it++
             return this.paint();
         }
         return ans;
     }
+
+    toArray() {
+        const w = this._width;
+        const h = this._height;
+        const imageData = Buffer.alloc(w * h * 4);
+
+        for (let i = 0; i < h; i++) {
+            for (let j = 0; j < w; j++) {
+                let index = w * i + j;
+                const color = this._image[index];
+                index <<= 2; // multiply by 4
+                imageData[index] = color.red * MAX_8BIT;
+                imageData[index + 1] = color.green * MAX_8BIT;
+                imageData[index + 2] = color.blue * MAX_8BIT;
+                imageData[index + 3] = MAX_8BIT;
+            }
+        }
+        return imageData;
+    }
+
+    //========================================================================================
+    /*                                                                                      *
+     *                                    Static Methods                                    *
+     *                                                                                      */
+    //========================================================================================
 
     static ofUrl(url) {
         // TODO
@@ -213,6 +225,12 @@ export default class Window {
             })
     }
 }
+
+//========================================================================================
+/*                                                                                      *
+ *                                   Private functions                                  *
+ *                                                                                      */
+//========================================================================================
 
 function drawConvexPolygon(canvas, positions, shader) {
     const { width, height } = canvas;
@@ -241,7 +259,6 @@ function drawConvexPolygon(canvas, positions, shader) {
     }
     return canvas;
 }
-
 
 function handleMouse(canvas, lambda) {
     return ({ x, y }) => {

@@ -1,3 +1,7 @@
+# Tela
+
+Is the abstraction of an image for different contexts. There is the pure image, _Image_, the web canvas image _Canvas_ and the window in the OS, _Window_
+
 # Canvas
 
 Abstraction for DOM canvas element. Canvas, can be though as a function,$\text{canvas}: \text{position} \rightarrow \text{color}$. 

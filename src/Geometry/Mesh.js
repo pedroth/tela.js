@@ -34,6 +34,24 @@ export default class Mesh {
         this.meshScene.rebuild();
     }
 
+    getBoundingBox() {
+        if (this.boundingBox) return this.boundingBox;
+        this.boundingBox = this.meshScene.boundingBoxScene.box;
+        return this.boundingBox;
+    }
+
+    distanceToPoint(x) {
+        return this.meshScene.distanceToPoint(x);
+    }
+
+    normalToPoint(x) {
+        throw Error("No implementation");
+    }
+
+    interceptWithRay(ray) {
+        return this.meshScene.interceptWithRay(ray);
+    }
+
     setName(name) {
         this.name = name;
         return this;
@@ -94,16 +112,6 @@ export default class Mesh {
             texture: this.texture,
             materials: newMaterials
         })
-    }
-
-    getBoundingBox() {
-        if (this.boundingBox) return this.boundingBox;
-        this.boundingBox = this.meshScene.boundingBoxScene.box;
-        return this.boundingBox;
-    }
-
-    interceptWithRay(ray) {
-        return this.meshScene.interceptWithRay(ray);
     }
 
     asPoints(radius = RADIUS) {

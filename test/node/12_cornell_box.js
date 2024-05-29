@@ -1,5 +1,5 @@
 import { Camera, Mesh, Vec3, Vec2, Color, DiElectric, Triangle, KScene, BScene } from "../../dist/node/index.js";
-import Window from "../../src/Window/Window.js";
+import Window from "../../src/Tela/Window.js";
 import { readFileSync } from "fs"
 
 (async () => {

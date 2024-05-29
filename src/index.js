@@ -1,5 +1,5 @@
 import Animation from "./Utils/Animation.js"
-import Canvas from "./Canvas/Canvas.js"
+import Canvas from "./Tela/Canvas.js"
 import Color from "./Color/Color.js"
 import DOM from "./Utils/DomBuilder.js"
 import Stream from "./Utils/Stream.js"
