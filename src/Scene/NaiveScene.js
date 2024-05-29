@@ -40,7 +40,7 @@ export default class NaiveScene {
     return distance;
   }
 
-  estimateNormal(p) {
+  normalToPoint(p) {
     const epsilon = 1e-3;
     const n = p.dim;
     const grad = [];
@@ -51,12 +51,12 @@ export default class NaiveScene {
     return Vec.fromArray(grad).scale(Math.sign(d)).normalize();
   }
 
-  interceptWith(ray) {
+  interceptWithRay(ray) {
     const elements = this.sceneElements;
     let closestDistance = Number.MAX_VALUE;
     let closest;
     for (let i = 0; i < elements.length; i++) {
-      const hit = elements[i].interceptWith(ray);
+      const hit = elements[i].interceptWithRay(ray);
       if (hit && hit[0] < closestDistance) {
         closest = hit;
         closestDistance = hit[0];

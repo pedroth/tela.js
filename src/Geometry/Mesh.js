@@ -1,6 +1,5 @@
 import { Vec3, Vec2 } from "../Vector/Vector.js";
 import Point from "./Point.js"
-import Box from "../Geometry/Box.js";
 import Line from "./Line.js";
 import Triangle from "./Triangle.js";
 import { groupBy } from "../Utils/Utils.js";
@@ -103,8 +102,8 @@ export default class Mesh {
         return this.boundingBox;
     }
 
-    interceptWith(ray) {
-        return this.meshScene.interceptWith(ray);
+    interceptWithRay(ray) {
+        return this.meshScene.interceptWithRay(ray);
     }
 
     asPoints(radius = RADIUS) {

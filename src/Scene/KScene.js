@@ -67,8 +67,8 @@ export default class KScene {
         }
     }
 
-    interceptWith(ray, level) {
-        return this.boundingBoxScene.interceptWith(ray, level);
+    interceptWithRay(ray, level) {
+        return this.boundingBoxScene.interceptWithRay(ray, level);
     }
 
     distanceToPoint(p) {
@@ -87,7 +87,7 @@ export default class KScene {
         return this.boundingBoxScene.distanceOnRay(ray);
     }
 
-    estimateNormal(p) {
+    normalToPoint(p) {
         let normal = Vec3();
         let weight = 0;
         const elements = this.boundingBoxScene.getLeafsNear(p);
@@ -202,19 +202,19 @@ class Node {
         return this;
     }
 
-    interceptWith(ray) {
+    interceptWithRay(ray) {
         if (this.leafs.length > 0) {
-            return leafsInterceptWith(this.leafs, ray);
+            return leafsinterceptWithRay(this.leafs, ray);
         }
-        const leftT = this.left?.box?.interceptWith(ray)?.[0] ?? Number.MAX_VALUE;
-        const rightT = this.right?.box?.interceptWith(ray)?.[0] ?? Number.MAX_VALUE;
+        const leftT = this.left?.box?.interceptWithRay(ray)?.[0] ?? Number.MAX_VALUE;
+        const rightT = this.right?.box?.interceptWithRay(ray)?.[0] ?? Number.MAX_VALUE;
         if (leftT === Number.MAX_VALUE && rightT === Number.MAX_VALUE) return;
         const first = leftT <= rightT ? this.left : this.right;
         const second = leftT > rightT ? this.left : this.right;
         const secondT = Math.max(leftT, rightT);
-        const firstHit = first.interceptWith(ray);
+        const firstHit = first.interceptWithRay(ray);
         if (firstHit && firstHit[0] < secondT) return firstHit;
-        const secondHit = second.interceptWith(ray);
+        const secondHit = second.interceptWithRay(ray);
         return secondHit && secondHit[0] < (firstHit?.[0] ?? Number.MAX_VALUE) ? secondHit : firstHit;
     }
 
@@ -226,8 +226,8 @@ class Node {
         if (this.leafs.length > 0) {
             return distanceFromLeafs(this.leafs, ray.init);
         }
-        const leftT = this.left?.box?.interceptWith(ray)?.[0] ?? Number.MAX_VALUE;
-        const rightT = this.right?.box?.interceptWith(ray)?.[0] ?? Number.MAX_VALUE;
+        const leftT = this.left?.box?.interceptWithRay(ray)?.[0] ?? Number.MAX_VALUE;
+        const rightT = this.right?.box?.interceptWithRay(ray)?.[0] ?? Number.MAX_VALUE;
         if (leftT === Number.MAX_VALUE && rightT === Number.MAX_VALUE) return Number.MAX_VALUE;
         const first = leftT <= rightT ? this.left : this.right;
         const second = leftT > rightT ? this.left : this.right;
@@ -321,8 +321,8 @@ class Leaf {
         return this.element;
     }
 
-    interceptWith(ray) {
-        return this.element.interceptWith(ray);
+    interceptWithRay(ray) {
+        return this.element.interceptWithRay(ray);
     }
 }
 
@@ -361,11 +361,11 @@ function clusterLeafs(box, leafs, it = 10) {
 }
 
 
-function leafsInterceptWith(leafs, ray) {
+function leafsinterceptWithRay(leafs, ray) {
     let closestDistance = Number.MAX_VALUE;
     let closest;
     for (let i = 0; i < leafs.length; i++) {
-        const hit = leafs[i].interceptWith(ray);
+        const hit = leafs[i].interceptWithRay(ray);
         if (hit && hit[0] < closestDistance) {
             closest = hit;
             closestDistance = hit[0];

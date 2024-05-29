@@ -22,6 +22,13 @@ Canvas coordinate system:
 
 ```
 
+## Canvas API
+
+- props:
+    - width: width of the canvas
+    - height: height of the canvas
+    - DOM: dom element of the canvas
+
 ## Details
 
 While the Canvas API, tries to be user friendly, the reality of the DOM Canvas is different. 
@@ -71,6 +78,8 @@ Seems impossible to solve this because there is only one equation and we have 3 
 Finding $z \in [0, C-1]$:
 $$\text{index} \mod C = (C(Wx+y)+z) \mod C $$
 $$\text{index} \mod C = z $$
+
+> Note that: $(qd + r) \mod d = r$
 
 Finding $y \in [0, W-1]$
 

@@ -4,6 +4,7 @@ async (canvas) => {
     const width = 640;
     const height = 480;
     canvas.resize(width, height);
+    // read texture
     const texture = await Canvas.ofUrl("/assets/earth.jpg");
     // utils
     const size = Vec2(width, height);

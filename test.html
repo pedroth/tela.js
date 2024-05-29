@@ -100,7 +100,7 @@
 
 
     const render = ray => {
-        const hit = scene.interceptWith(ray);
+        const hit = scene.interceptWithRay(ray);
         if (hit) {
             const [, point, element] = hit;
             const normal = element.normalToPoint(point);

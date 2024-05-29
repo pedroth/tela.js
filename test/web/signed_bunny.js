@@ -27,7 +27,7 @@ async (canvas, logger) => {
             const d = scene.distanceOnRay(Ray(p, ray.dir));
             t += d;
             if (d < epsilon) {
-                const normal = scene.estimateNormal(p).map(x => (x + 1) / 2);
+                const normal = scene.normalToPoint(p).map(x => (x + 1) / 2);
                 return Color.ofRGB(normal.x, normal.y, normal.z);
             }
             if (d > maxDist) return Color.ofRGB(0, 0, i / maxIte);

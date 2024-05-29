@@ -27,7 +27,7 @@ class Point {
         return length > this.radius ? r.normalize() : r.scale(-1).normalize();
     }
 
-    interceptWith(ray) {
+    interceptWithRay(ray) {
         const epsilon = 1e-9;
         const t = sphereInterception(this, ray);
         return !t ? undefined : [t, ray.trace(t - epsilon), this];

@@ -73,7 +73,7 @@ scene.add(
         .build(),
 )
 
-const shot = (image) => camera.sceneShot(scene, { samplesPerPxl: 20, bounces: 10 }).to(image ?? Image.ofSize(width, height));
+const shot = (image) => camera.sceneShot(scene, { samplesPerPxl: 1, bounces: 10 }).to(image ?? Image.ofSize(width, height));
 
 const imageStream = new Stream(
     { time: 0, image: shot() },

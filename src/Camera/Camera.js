@@ -166,7 +166,7 @@ export default class Camera {
         const d = scene.distanceToPoint(p);
         t += d;
         if (d < epsilon) {
-          const normal = scene.estimateNormal(p);
+          const normal = scene.normalToPoint(p);
           return Color.ofRGB(
             (normal.x + 1) / 2,
             (normal.y + 1) / 2,
@@ -185,7 +185,7 @@ export default class Camera {
 
   normalShot(scene, params = {}) {
     const lambda = ray => {
-      const hit = scene.interceptWith(ray)
+      const hit = scene.interceptWithRay(ray)
       if (hit) {
         const [, point, element] = hit;
         const normal = element.normalToPoint(point);
@@ -220,7 +220,7 @@ export default class Camera {
 function trace(ray, scene, options) {
   const { bounces } = options;
   if (bounces < 0) return Color.BLACK;
-  const hit = scene.interceptWith(ray);
+  const hit = scene.interceptWithRay(ray);
   if (!hit) return Color.BLACK;
   const [, p, e] = hit;
   const color = e.color ?? e.colors[0];

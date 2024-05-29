@@ -12,6 +12,48 @@ export default class Box {
         this.dim = min.dim;
     }
 
+    getBoundingBox() {
+        return this;
+    }
+
+    distanceToPoint(pointVec) {
+        const p = pointVec.sub(this.center);
+        const r = this.max.sub(this.center);
+        const q = p.map(Math.abs).sub(r);
+        return q.map(x => Math.max(x, 0)).length() + Math.min(0, maxComp(q));
+    }
+
+    normalToPoint(pointVec) {
+        const epsilon = 1e-3;
+        const n = pointVec.dim;
+        const grad = [];
+        const d = this.distanceToPoint(pointVec);
+        for (let i = 0; i < n; i++) {
+            grad.push(this.distanceToPoint(pointVec.add(Vec.e(n)(i).scale(epsilon))) - d)
+        }
+        return Vec.fromArray(grad).scale(Math.sign(d)).normalize();
+    }
+
+    interceptWithRay(ray) {
+        const epsilon = 1e-3;
+        let tmin = -Number.MAX_VALUE;
+        let tmax = Number.MAX_VALUE;
+        if (this.isEmpty) return;
+        const minArray = this.min.toArray();
+        const maxArray = this.max.toArray();
+        const rInit = ray.init.toArray();
+        const dirInv = ray.dirInv.toArray();
+        const dim = this.min?.dim;
+        for (let i = 0; i < dim; ++i) {
+            let t1 = (minArray[i] - rInit[i]) * dirInv[i];
+            let t2 = (maxArray[i] - rInit[i]) * dirInv[i];
+
+            tmin = Math.max(tmin, Math.min(t1, t2));
+            tmax = Math.min(tmax, Math.max(t1, t2));
+        }
+        return tmax >= Math.max(tmin, 0) ? [tmin - epsilon, ray.trace(tmin - epsilon), this] : undefined;
+    }
+
     add(box) {
         if (this.isEmpty) return box;
         const { min, max } = this;
@@ -31,27 +73,7 @@ export default class Box {
     }
 
     intersection = this.sub;
-
-    interceptWith(ray) {
-        const epsilon = 1e-3;
-        let tmin = -Number.MAX_VALUE;
-        let tmax = Number.MAX_VALUE;
-        if(this.isEmpty) return;
-        const minArray = this.min.toArray();
-        const maxArray = this.max.toArray();
-        const rInit = ray.init.toArray();
-        const dirInv = ray.dirInv.toArray();
-        const dim = this.min?.dim;
-        for (let i = 0; i < dim; ++i) {
-            let t1 = (minArray[i] - rInit[i]) * dirInv[i];
-            let t2 = (maxArray[i] - rInit[i]) * dirInv[i];
-
-            tmin = Math.max(tmin, Math.min(t1, t2));
-            tmax = Math.min(tmax, Math.max(t1, t2));
-        }
-        return tmax >= Math.max(tmin, 0) ? [tmin - epsilon, ray.trace(tmin - epsilon), this] : undefined;
-    }
-
+    
     scale(r) {
         return new Box(this.min.sub(this.center).scale(r), this.max.sub(this.center).scale(r)).move(this.center);
     }
@@ -71,36 +93,16 @@ export default class Box {
         return this.min.sub(box.min).length() + this.max.sub(box.max).length();
     }
 
-    distanceToPoint(pointVec) {
-        const p = pointVec.sub(this.center);
-        const r = this.max.sub(this.center);
-        const q = p.map(Math.abs).sub(r);
-        return q.map(x => Math.max(x, 0)).length() + Math.min(0, maxComp(q));
-    }
-
-    estimateNormal(pointVec) {
-        const epsilon = 1e-3;
-        const n = pointVec.dim;
-        const grad = [];
-        const d = this.distanceToPoint(pointVec);
-        for (let i = 0; i < n; i++) {
-            grad.push(this.distanceToPoint(pointVec.add(Vec.e(n)(i).scale(epsilon))) - d)
-        }
-        return Vec.fromArray(grad).scale(Math.sign(d)).normalize();
-    }
-
-    normalToPoint = this.estimateNormal;
-
-    collidesWith(box) {
-        const vectorCollision = () => !this.sub(new Box(box, box)).isEmpty;
+    collidesWith(arg) {
+        const vectorCollision = () => !this.sub(new Box(arg, arg)).isEmpty;
         const type2action = {
-            [Box.name]: () => !this.sub(box).isEmpty,
+            [Box.name]: () => !this.sub(arg).isEmpty,
             "Vector": vectorCollision,
             "Vector3": vectorCollision,
             "Vector2": vectorCollision,
         }
-        if (box.constructor.name in type2action) {
-            return type2action[box.constructor.name]();
+        if (arg.constructor.name in type2action) {
+            return type2action[arg.constructor.name]();
         }
         return false;
     }

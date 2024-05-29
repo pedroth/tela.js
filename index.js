@@ -2,7 +2,7 @@ const isGithub = window.location.host === "pedroth.github.io";
 const SOURCE = isGithub ? "/tela.js" : ""
 // eslint-disable-next-line no-unused-vars
 const { DOM, Monads } = await import(SOURCE + "/dist/web/index.js")
-const { some, none, maybe } = Monads;
+const { some, none } = Monads;
 //========================================================================================
 /*                                                                                      *
  *                                         UTILS                                        *
@@ -512,11 +512,11 @@ const examples = [
         path: "/test/web/image2rgb.js"
     },
     {
-        title: "debug path tracer",
+        title: "debug ray marching",
         path: "/test/web/debug_path_tracer.js"
     },
     {
-        title: "debug dist func",
+        title: "debug distance to scene",
         path: "/test/web/debug_dist_func.js"
     },
     {

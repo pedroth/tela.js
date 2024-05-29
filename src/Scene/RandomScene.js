@@ -89,12 +89,12 @@ export default class RandomScene {
         return this.boundingBoxScene.getElemNear(p);
     }
 
-    interceptWith(ray, level) {
+    interceptWithRay(ray, level) {
         const nodeCache = RAY_CACHE.get(ray);
         if (nodeCache) {
-            return leafsInterceptWith(nodeCache.leafs, ray);
+            return leafsinterceptWithRay(nodeCache.leafs, ray);
         }
-        return this.boundingBoxScene.interceptWith(ray, level);
+        return this.boundingBoxScene.interceptWithRay(ray, level);
     }
 
     distanceToPoint(p) {
@@ -109,7 +109,7 @@ export default class RandomScene {
         return this.getElementNear(p).distanceToPoint(p);
     }
 
-    estimateNormal(p) {
+    normalToPoint(p) {
         const epsilon = 1e-9;
         const n = p.dim;
         const grad = [];
@@ -222,17 +222,17 @@ class Node {
         return this;
     }
 
-    interceptWith(ray) {
-        const boxHit = this.box.interceptWith(ray);
+    interceptWithRay(ray) {
+        const boxHit = this.box.interceptWithRay(ray);
         if (!boxHit) return;
         if (this.leafs.length > 0) {
             RAY_CACHE.put(ray, this);
-            return leafsInterceptWith(this.leafs, ray);
+            return leafsinterceptWithRay(this.leafs, ray);
         }
         const children = [this.left, this.right];
         const hits = [];
         for (let i = 0; i < children.length; i++) {
-            const hit = children[i].interceptWith(ray);
+            const hit = children[i].interceptWithRay(ray);
             if (hit) hits.push(hit);
         }
         const minIndex = argmin(hits, ([t]) => t);
@@ -324,8 +324,8 @@ class Leaf {
         return this.element;
     }
 
-    interceptWith(ray) {
-        return this.element.interceptWith(ray);
+    interceptWithRay(ray) {
+        return this.element.interceptWithRay(ray);
     }
 }
 
@@ -371,11 +371,11 @@ function random(n) {
 
 const RCACHE = random(100);
 
-function leafsInterceptWith(leafs, ray) {
+function leafsinterceptWithRay(leafs, ray) {
     let closestDistance = Number.MAX_VALUE;
     let closest;
     for (let i = 0; i < leafs.length; i++) {
-        const hit = leafs[i].interceptWith(ray);
+        const hit = leafs[i].interceptWithRay(ray);
         if (hit && hit[0] < closestDistance) {
             closest = hit;
             closestDistance = hit[0];

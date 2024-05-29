@@ -5,10 +5,15 @@ export default class Animation {
     this.next = next;
     this.while = doWhile;
     this.requestAnimeId = null;
+    this.isStopping = false;
   }
 
   play() {
-    const timeout = typeof window === "undefined" ? setTimeout : requestAnimationFrame; 
+    const timeout = typeof window === "undefined" ? setTimeout : requestAnimationFrame;
+    if (this.isStopping) {
+      this.isStopping = false;
+      return this;
+    }
     this.requestAnimeId = timeout(() => {
       if (!this.while(this.state)) return this.stop();
       this.state = this.next(this.state);
@@ -19,12 +24,31 @@ export default class Animation {
   }
 
   stop() {
-    const cancel = typeof window === "undefined" ? clearTimeout : cancelAnimationFrame; 
+    const cancel = typeof window === "undefined" ? clearTimeout : cancelAnimationFrame;
     cancel(this.requestAnimeId);
+    this.isStopping = true;
     return this;
   }
 
   static globalAnimationIds = [];
+
+  /**
+   * 
+   * @param lambda: ({time, dt} => {}) 
+   * @returns 
+   */
+  static loop(lambda) {
+    return Animation
+      .builder()
+      .initialState({ time: 0, oldTime: new Date().getTime() })
+      .nextState(({ time, oldTime }) => {
+        const newTime = new Date().getTime();
+        const dt = (newTime - oldTime) * 1e-3;
+        lambda({ time, dt });
+        return { time: time + dt, oldTime: newTime };
+      })
+      .build();
+  }
 
   static builder() {
     return new AnimationBuilder();
@@ -35,7 +59,7 @@ class AnimationBuilder {
   constructor() {
     this._state = {};
     this._next = null;
-    this._end = null;
+    this._end = () => true;
   }
 
   initialState(state) {

@@ -167,6 +167,7 @@ export default class Canvas {
     }
   });
 
+  // flush image data
   paint() {
     this._ctx.putImageData(this._imageData, 0, 0);
     return this;
@@ -203,7 +204,10 @@ export default class Canvas {
   }
 
   onKeyUp(lambda) {
-
+    this._canvas.addEventListener("keyup", (e) => {
+      lambda(e);
+    })
+    return this;
   }
 
   resize(width, height) {

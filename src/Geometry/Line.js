@@ -18,6 +18,16 @@ export default class Line {
         this.edge = this.positions[1].sub(this.positions[0]);
     }
 
+    getBoundingBox() {
+        if (this.boundingBox) return this.boundingBox;
+        const size = Vec3(this.radius, this.radius, this.radius);
+        this.boundingBox = this.positions.reduce(
+            (box, x) => box.add(new Box(x.sub(size), x.add(size))),
+            Box.EMPTY
+        );
+        return this.boundingBox;
+    }
+
     distanceToPoint(p) {
         const l = this.edge;
         const v = p.sub(this.positions[0]);
@@ -25,7 +35,7 @@ export default class Line {
         return p.sub(this.positions[0].add(l.scale(h))).length() - this.radius;
     }
 
-    normalToPoint = (p) => {
+    normalToPoint(p) {
         const epsilon = 1e-3;
         const f = this.distanceToPoint(p);
         const sign = Math.sign(f);
@@ -37,7 +47,7 @@ export default class Line {
         return grad.scale(sign);
     }
 
-    interceptWith(ray) {
+    interceptWithRay(ray) {
         const maxIte = 100;
         const epsilon = 1e-3;
         let p = ray.init;
@@ -56,16 +66,6 @@ export default class Line {
             minT = d;
         }
         return;
-    }
-
-    getBoundingBox() {
-        if (this.boundingBox) return this.boundingBox;
-        const size = Vec3(this.radius, this.radius, this.radius);
-        this.boundingBox = this.positions.reduce(
-            (box, x) => box.add(new Box(x.sub(size), x.add(size))),
-            Box.EMPTY
-        );
-        return this.boundingBox;
     }
 
     sample() {

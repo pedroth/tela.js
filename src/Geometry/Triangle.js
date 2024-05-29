@@ -35,7 +35,7 @@ export default class Triangle {
         return dot < 1e-3 ? this.faceNormal : this.faceNormal.scale(-1);
     }
 
-    interceptWith(ray) {
+    interceptWithRay(ray) {
         const epsilon = 1e-9
         const v = ray.dir;
         const p = ray.init.sub(this.positions[0]);

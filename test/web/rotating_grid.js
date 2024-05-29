@@ -20,22 +20,9 @@
     }, T * 1000)
 
     // setting animation
-    Animation
-        .builder()
-        .initialState({
-            it: 1,
-            time: 0,
-            oldT: new Date().getTime(),
-        })
-        .nextState(({
-            it,
-            time,
-            oldT,
-        }) => {
-            const newT = new Date().getTime();
-            const dt = (newT - oldT) * 1e-3;
+    const animation = Animation
+        .loop(({ time, dt }) => {
             logger.print(`FPS: ${Math.floor(1 / dt)}`);
-
             canvas
                 .map((x, y) => {
                     let u = x / (width - 1);
@@ -50,13 +37,7 @@
                         (1 - step(0.95)(mod(u_t)(1))) * (1 - step(0.95)(mod(v_t)(1)));
                     return Color.ofRGB(color, color, color);
                 })
-            return {
-                it: it + 1,
-                oldT: newT,
-                time: time + dt,
-            };
+            if (time > T) animation.stop();
         })
-        .while(({ time }) => time <= T)
-        .build()
-        .play();
+        .play()
 }

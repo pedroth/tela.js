@@ -72,7 +72,7 @@ export default class VoxelScene {
         // TODO
     }
 
-    interceptWith(ray) {
+    interceptWithRay(ray) {
         const maxDist = 10;
         const maxIte = maxDist / this.gridSpace;
         let t = 0;
@@ -89,7 +89,7 @@ export default class VoxelScene {
             let closestDistance = Number.MAX_VALUE;
             let closest;
             for (let i = 0; i < elements.length; i++) {
-                const hit = elements[i].interceptWith(ray)
+                const hit = elements[i].interceptWithRay(ray)
                 if (hit && hit[0] < closestDistance) {
                     closest = hit;
                     closestDistance = hit[0];
@@ -128,7 +128,7 @@ export default class VoxelScene {
         return Number.MAX_VALUE;
     }
 
-    estimateNormal(p) {
+    normalToPoint(p) {
         let normal = Vec3();
         const elements = Object.values(this.gridMap[this.hash(p)] || {});
         for (let i = 0; i < elements.length; i++) {

@@ -16,9 +16,14 @@ class Animation {
     this.next = next;
     this.while = doWhile;
     this.requestAnimeId = null;
+    this.isStopping = false;
   }
   play() {
     const timeout = typeof window === "undefined" ? setTimeout : requestAnimationFrame;
+    if (this.isStopping) {
+      this.isStopping = false;
+      return this;
+    }
     this.requestAnimeId = timeout(() => {
       if (!this.while(this.state))
         return this.stop();
@@ -31,9 +36,18 @@ class Animation {
   stop() {
     const cancel = typeof window === "undefined" ? clearTimeout : cancelAnimationFrame;
     cancel(this.requestAnimeId);
+    this.isStopping = true;
     return this;
   }
   static globalAnimationIds = [];
+  static loop(lambda) {
+    return Animation.builder().initialState({ time: 0, oldTime: new Date().getTime() }).nextState(({ time, oldTime }) => {
+      const newTime = new Date().getTime();
+      const dt = (newTime - oldTime) * 0.001;
+      lambda({ time, dt });
+      return { time: time + dt, oldTime: newTime };
+    }).build();
+  }
   static builder() {
     return new AnimationBuilder;
   }
@@ -43,7 +57,7 @@ class AnimationBuilder {
   constructor() {
     this._state = {};
     this._next = null;
-    this._end = null;
+    this._end = () => true;
   }
   initialState(state) {
     this._state = state;
@@ -696,7 +710,23 @@ class Box {
     return !isAllPositive ? Box.EMPTY : new Box(newMin, newMax);
   }
   intersection = this.sub;
-  interceptWith(ray) {
+  scale(r) {
+    return new Box(this.min.sub(this.center).scale(r), this.max.sub(this.center).scale(r)).move(this.center);
+  }
+  move(v) {
+    return new Box(this.min.add(v), this.max.add(v));
+  }
+  equals(box) {
+    if (!(box instanceof Box))
+      return false;
+    if (this == Box.EMPTY)
+      return true;
+    return this.min.equals(box.min) && this.max.equals(box.max);
+  }
+  distanceToBox(box) {
+    return this.min.sub(box.min).length() + this.max.sub(box.max).length();
+  }
+  interceptWithRay(ray) {
     const epsilon = 0.001;
     let tmin = -Number.MAX_VALUE;
     let tmax = Number.MAX_VALUE;
@@ -715,29 +745,13 @@ class Box {
     }
     return tmax >= Math.max(tmin, 0) ? [tmin - epsilon, ray.trace(tmin - epsilon), this] : undefined;
   }
-  scale(r) {
-    return new Box(this.min.sub(this.center).scale(r), this.max.sub(this.center).scale(r)).move(this.center);
-  }
-  move(v) {
-    return new Box(this.min.add(v), this.max.add(v));
-  }
-  equals(box) {
-    if (!(box instanceof Box))
-      return false;
-    if (this == Box.EMPTY)
-      return true;
-    return this.min.equals(box.min) && this.max.equals(box.max);
-  }
-  distanceToBox(box) {
-    return this.min.sub(box.min).length() + this.max.sub(box.max).length();
-  }
   distanceToPoint(pointVec) {
     const p = pointVec.sub(this.center);
     const r = this.max.sub(this.center);
     const q = p.map(Math.abs).sub(r);
     return q.map((x) => Math.max(x, 0)).length() + Math.min(0, maxComp(q));
   }
-  estimateNormal(pointVec) {
+  normalToPoint(pointVec) {
     const epsilon = 0.001;
     const n = pointVec.dim;
     const grad = [];
@@ -747,7 +761,6 @@ class Box {
     }
     return Vec.fromArray(grad).scale(Math.sign(d)).normalize();
   }
-  normalToPoint = this.estimateNormal;
   collidesWith(box) {
     const vectorCollision = () => !this.sub(new Box(box, box)).isEmpty;
     const type2action = {
@@ -1081,6 +1094,19 @@ class Canvas {
   }
   onMouseWheel(lambda) {
     this._canvas.addEventListener("wheel", lambda, false);
+    return this;
+  }
+  onKeyDown(lambda) {
+    this._canvas.addEventListener("keydown", (e) => {
+      lambda(e);
+    });
+    return this;
+  }
+  onKeyUp(lambda) {
+    this._canvas.addEventListener("keyup", (e) => {
+      lambda(e);
+    });
+    return this;
   }
   resize(width, height) {
     this._canvas.width = width;
@@ -1436,7 +1462,7 @@ class Point {
     const length = r.length();
     return length > this.radius ? r.normalize() : r.scale(-1).normalize();
   }
-  interceptWith(ray) {
+  interceptWithRay(ray) {
     const epsilon = 0.000000001;
     const t = sphereInterception(this, ray);
     return !t ? undefined : [t, ray.trace(t - epsilon), this];
@@ -1563,7 +1589,7 @@ class Line {
     const grad = Vec3(this.distanceToPoint(p.add(Vec3(epsilon, 0, 0))) - f, this.distanceToPoint(p.add(Vec3(0, epsilon, 0))) - f, this.distanceToPoint(p.add(Vec3(0, 0, epsilon))) - f).normalize();
     return grad.scale(sign);
   };
-  interceptWith(ray) {
+  interceptWithRay(ray) {
     const maxIte = 100;
     const epsilon = 0.001;
     let p = ray.init;
@@ -1705,7 +1731,7 @@ class Triangle {
     const dot = this.faceNormal.dot(r);
     return dot < 0.001 ? this.faceNormal : this.faceNormal.scale(-1);
   }
-  interceptWith(ray) {
+  interceptWithRay(ray) {
     const epsilon = 0.000000001;
     const v = ray.dir;
     const p = ray.init.sub(this.positions[0]);
@@ -1815,7 +1841,7 @@ var trace = function(ray, scene, options) {
   const { bounces } = options;
   if (bounces < 0)
     return Color.BLACK;
-  const hit = scene.interceptWith(ray);
+  const hit = scene.interceptWithRay(ray);
   if (!hit)
     return Color.BLACK;
   const [, p, e] = hit;
@@ -2132,7 +2158,7 @@ class Camera {
         const d = scene.distanceToPoint(p);
         t += d;
         if (d < epsilon) {
-          const normal = scene.estimateNormal(p);
+          const normal = scene.normalToPoint(p);
           return Color.ofRGB((normal.x + 1) / 2, (normal.y + 1) / 2, (normal.z + 1) / 2);
         }
         if (d > 2 * minT) {
@@ -2146,7 +2172,7 @@ class Camera {
   }
   normalShot(scene, params = {}) {
     const lambda = (ray) => {
-      const hit = scene.interceptWith(ray);
+      const hit = scene.interceptWithRay(ray);
       if (hit) {
         const [, point, element] = hit;
         const normal = element.normalToPoint(point);
@@ -2246,7 +2272,7 @@ class NaiveScene {
     }
     return distance;
   }
-  estimateNormal(p) {
+  normalToPoint(p) {
     const epsilon = 0.001;
     const n = p.dim;
     const grad = [];
@@ -2256,12 +2282,12 @@ class NaiveScene {
     }
     return Vec.fromArray(grad).scale(Math.sign(d)).normalize();
   }
-  interceptWith(ray) {
+  interceptWithRay(ray) {
     const elements = this.sceneElements;
     let closestDistance = Number.MAX_VALUE;
     let closest;
     for (let i2 = 0;i2 < elements.length; i2++) {
-      const hit = elements[i2].interceptWith(ray);
+      const hit = elements[i2].interceptWithRay(ray);
       if (hit && hit[0] < closestDistance) {
         closest = hit;
         closestDistance = hit[0];
@@ -2415,8 +2441,8 @@ class Scene {
   getElementInBox(box) {
     return this.boundingBoxScene.getElemIn(box);
   }
-  interceptWith(ray, level) {
-    return this.boundingBoxScene.interceptWith(ray, level);
+  interceptWithRay(ray, level) {
+    return this.boundingBoxScene.interceptWithRay(ray, level);
   }
   distanceToPoint(p) {
     return this.getElementNear(p).distanceToPoint(p);
@@ -2435,7 +2461,7 @@ class Scene {
       children.forEach((c) => stack.push(c));
     }
   }
-  estimateNormal(p) {
+  normalToPoint(p) {
     const epsilon = 0.000000001;
     const n = p.dim;
     const grad = [];
@@ -2503,18 +2529,18 @@ class Node {
     }
     return this;
   }
-  interceptWith(ray) {
-    const leftT = this.left?.box?.interceptWith(ray)?.[0] ?? Number.MAX_VALUE;
-    const rightT = this.right?.box?.interceptWith(ray)?.[0] ?? Number.MAX_VALUE;
+  interceptWithRay(ray) {
+    const leftT = this.left?.box?.interceptWithRay(ray)?.[0] ?? Number.MAX_VALUE;
+    const rightT = this.right?.box?.interceptWithRay(ray)?.[0] ?? Number.MAX_VALUE;
     if (leftT === Number.MAX_VALUE && rightT === Number.MAX_VALUE)
       return;
     const first = leftT <= rightT ? this.left : this.right;
     const second = leftT > rightT ? this.left : this.right;
     const secondT = Math.max(leftT, rightT);
-    const firstHit = first.interceptWith(ray);
+    const firstHit = first.interceptWithRay(ray);
     if (firstHit && firstHit[0] < secondT)
       return firstHit;
-    const secondHit = second.interceptWith(ray);
+    const secondHit = second.interceptWithRay(ray);
     return secondHit && secondHit[0] < (firstHit?.[0] ?? Number.MAX_VALUE) ? secondHit : firstHit;
   }
   distanceToPoint(p) {
@@ -2625,8 +2651,8 @@ class Leaf {
   getElemNear() {
     return this.element;
   }
-  interceptWith(ray) {
-    return this.element.interceptWith(ray);
+  interceptWithRay(ray) {
+    return this.element.interceptWithRay(ray);
   }
   join(nodeOrLeaf) {
     if (nodeOrLeaf.isLeaf)
@@ -2680,15 +2706,15 @@ class BScene {
       children.forEach((c) => stack.push(c));
     }
   }
-  interceptWith(ray, level) {
+  interceptWithRay(ray, level) {
     if (!this.boundingBoxScene)
       return;
-    return this.boundingBoxScene.interceptWith(ray, level);
+    return this.boundingBoxScene.interceptWithRay(ray, level);
   }
   distanceToPoint(p) {
     return this.getElementNear(p).distanceToPoint(p);
   }
-  estimateNormal(p) {
+  normalToPoint(p) {
     const epsilon = 0.000000001;
     const n = p.dim;
     const grad = [];
@@ -2756,18 +2782,18 @@ class Node2 {
     }
     return this;
   }
-  interceptWith(ray) {
-    const leftT = this.left?.box?.interceptWith(ray)?.[0] ?? Number.MAX_VALUE;
-    const rightT = this.right?.box?.interceptWith(ray)?.[0] ?? Number.MAX_VALUE;
+  interceptWithRay(ray) {
+    const leftT = this.left?.box?.interceptWithRay(ray)?.[0] ?? Number.MAX_VALUE;
+    const rightT = this.right?.box?.interceptWithRay(ray)?.[0] ?? Number.MAX_VALUE;
     if (leftT === Number.MAX_VALUE && rightT === Number.MAX_VALUE)
       return;
     const first = leftT <= rightT ? this.left : this.right;
     const second = leftT > rightT ? this.left : this.right;
     const secondT = Math.max(leftT, rightT);
-    const firstHit = first.interceptWith(ray);
+    const firstHit = first.interceptWithRay(ray);
     if (firstHit && firstHit[0] < secondT)
       return firstHit;
-    const secondHit = second.interceptWith(ray);
+    const secondHit = second.interceptWithRay(ray);
     return secondHit && secondHit[0] < (firstHit?.[0] ?? Number.MAX_VALUE) ? secondHit : firstHit;
   }
   distanceToPoint(p) {
@@ -2880,8 +2906,8 @@ class Leaf2 {
   getElemNear() {
     return this.element;
   }
-  interceptWith(ray) {
-    return this.element.interceptWith(ray);
+  interceptWithRay(ray) {
+    return this.element.interceptWithRay(ray);
   }
   join(nodeOrLeaf) {
     if (nodeOrLeaf.isLeaf)
@@ -2920,11 +2946,11 @@ var clusterLeafs = function(box, leafs, it = 10) {
   }
   return [...clusterIndexes].map((indxs) => indxs.map((indx3) => leafs[indx3]));
 };
-var leafsInterceptWith = function(leafs, ray) {
+var leafsinterceptWithRay = function(leafs, ray) {
   let closestDistance = Number.MAX_VALUE;
   let closest;
   for (let i2 = 0;i2 < leafs.length; i2++) {
-    const hit = leafs[i2].interceptWith(ray);
+    const hit = leafs[i2].interceptWithRay(ray);
     if (hit && hit[0] < closestDistance) {
       closest = hit;
       closestDistance = hit[0];
@@ -2992,8 +3018,8 @@ class KScene {
       children.forEach((c) => stack.push(c));
     }
   }
-  interceptWith(ray, level) {
-    return this.boundingBoxScene.interceptWith(ray, level);
+  interceptWithRay(ray, level) {
+    return this.boundingBoxScene.interceptWithRay(ray, level);
   }
   distanceToPoint(p) {
     if (this.boundingBoxScene.leafs.length > 0) {
@@ -3009,7 +3035,7 @@ class KScene {
   distanceOnRay(ray) {
     return this.boundingBoxScene.distanceOnRay(ray);
   }
-  estimateNormal(p) {
+  normalToPoint(p) {
     let normal = Vec3();
     let weight = 0;
     const elements = this.boundingBoxScene.getLeafsNear(p);
@@ -3103,21 +3129,21 @@ class Node3 {
     }
     return this;
   }
-  interceptWith(ray) {
+  interceptWithRay(ray) {
     if (this.leafs.length > 0) {
-      return leafsInterceptWith(this.leafs, ray);
+      return leafsinterceptWithRay(this.leafs, ray);
     }
-    const leftT = this.left?.box?.interceptWith(ray)?.[0] ?? Number.MAX_VALUE;
-    const rightT = this.right?.box?.interceptWith(ray)?.[0] ?? Number.MAX_VALUE;
+    const leftT = this.left?.box?.interceptWithRay(ray)?.[0] ?? Number.MAX_VALUE;
+    const rightT = this.right?.box?.interceptWithRay(ray)?.[0] ?? Number.MAX_VALUE;
     if (leftT === Number.MAX_VALUE && rightT === Number.MAX_VALUE)
       return;
     const first = leftT <= rightT ? this.left : this.right;
     const second = leftT > rightT ? this.left : this.right;
     const secondT = Math.max(leftT, rightT);
-    const firstHit = first.interceptWith(ray);
+    const firstHit = first.interceptWithRay(ray);
     if (firstHit && firstHit[0] < secondT)
       return firstHit;
-    const secondHit = second.interceptWith(ray);
+    const secondHit = second.interceptWithRay(ray);
     return secondHit && secondHit[0] < (firstHit?.[0] ?? Number.MAX_VALUE) ? secondHit : firstHit;
   }
   distanceToPoint(p) {
@@ -3127,8 +3153,8 @@ class Node3 {
     if (this.leafs.length > 0) {
       return distanceFromLeafs(this.leafs, ray.init);
     }
-    const leftT = this.left?.box?.interceptWith(ray)?.[0] ?? Number.MAX_VALUE;
-    const rightT = this.right?.box?.interceptWith(ray)?.[0] ?? Number.MAX_VALUE;
+    const leftT = this.left?.box?.interceptWithRay(ray)?.[0] ?? Number.MAX_VALUE;
+    const rightT = this.right?.box?.interceptWithRay(ray)?.[0] ?? Number.MAX_VALUE;
     if (leftT === Number.MAX_VALUE && rightT === Number.MAX_VALUE)
       return Number.MAX_VALUE;
     const first = leftT <= rightT ? this.left : this.right;
@@ -3211,8 +3237,8 @@ class Leaf3 {
   getElemNear() {
     return this.element;
   }
-  interceptWith(ray) {
-    return this.element.interceptWith(ray);
+  interceptWithRay(ray) {
+    return this.element.interceptWithRay(ray);
   }
 }
 
@@ -3272,7 +3298,7 @@ class VoxelScene {
   }
   getElementNear(p) {
   }
-  interceptWith(ray) {
+  interceptWithRay(ray) {
     const maxDist = 10;
     const maxIte = maxDist / this.gridSpace;
     let t = 0;
@@ -3289,7 +3315,7 @@ class VoxelScene {
       let closestDistance = Number.MAX_VALUE;
       let closest;
       for (let i2 = 0;i2 < elements.length; i2++) {
-        const hit = elements[i2].interceptWith(ray);
+        const hit = elements[i2].interceptWithRay(ray);
         if (hit && hit[0] < closestDistance) {
           closest = hit;
           closestDistance = hit[0];
@@ -3324,7 +3350,7 @@ class VoxelScene {
     }
     return Number.MAX_VALUE;
   }
-  estimateNormal(p) {
+  normalToPoint(p) {
     let normal = Vec3();
     const elements = Object.values(this.gridMap[this.hash(p)] || {});
     for (let i2 = 0;i2 < elements.length; i2++) {
@@ -3390,11 +3416,11 @@ var random = function(n) {
   const numbers = new Float64Array(n).map(() => Math.random());
   return () => numbers[index++ % n];
 };
-var leafsInterceptWith2 = function(leafs, ray) {
+var leafsinterceptWithRay2 = function(leafs, ray) {
   let closestDistance = Number.MAX_VALUE;
   let closest;
   for (let i2 = 0;i2 < leafs.length; i2++) {
-    const hit = leafs[i2].interceptWith(ray);
+    const hit = leafs[i2].interceptWithRay(ray);
     if (hit && hit[0] < closestDistance) {
       closest = hit;
       closestDistance = hit[0];
@@ -3475,12 +3501,12 @@ class RandomScene {
   getElementNear(p) {
     return this.boundingBoxScene.getElemNear(p);
   }
-  interceptWith(ray, level) {
+  interceptWithRay(ray, level) {
     const nodeCache = RAY_CACHE.get(ray);
     if (nodeCache) {
-      return leafsInterceptWith2(nodeCache.leafs, ray);
+      return leafsinterceptWithRay2(nodeCache.leafs, ray);
     }
-    return this.boundingBoxScene.interceptWith(ray, level);
+    return this.boundingBoxScene.interceptWithRay(ray, level);
   }
   distanceToPoint(p) {
     if (this.boundingBoxScene.leafs.length > 0) {
@@ -3493,7 +3519,7 @@ class RandomScene {
     }
     return this.getElementNear(p).distanceToPoint(p);
   }
-  estimateNormal(p) {
+  normalToPoint(p) {
     const epsilon = 0.000000001;
     const n = p.dim;
     const grad = [];
@@ -3585,18 +3611,18 @@ class Node4 {
     }
     return this;
   }
-  interceptWith(ray) {
-    const boxHit = this.box.interceptWith(ray);
+  interceptWithRay(ray) {
+    const boxHit = this.box.interceptWithRay(ray);
     if (!boxHit)
       return;
     if (this.leafs.length > 0) {
       RAY_CACHE.put(ray, this);
-      return leafsInterceptWith2(this.leafs, ray);
+      return leafsinterceptWithRay2(this.leafs, ray);
     }
     const children = [this.left, this.right];
     const hits = [];
     for (let i2 = 0;i2 < children.length; i2++) {
-      const hit = children[i2].interceptWith(ray);
+      const hit = children[i2].interceptWithRay(ray);
       if (hit)
         hits.push(hit);
     }
@@ -3676,8 +3702,8 @@ class Leaf4 {
   getElemNear() {
     return this.element;
   }
-  interceptWith(ray) {
-    return this.element.interceptWith(ray);
+  interceptWithRay(ray) {
+    return this.element.interceptWithRay(ray);
   }
 }
 var RCACHE = random(100);
@@ -3845,8 +3871,8 @@ class Mesh {
     this.boundingBox = this.meshScene.boundingBoxScene.box;
     return this.boundingBox;
   }
-  interceptWith(ray) {
-    return this.meshScene.interceptWith(ray);
+  interceptWithRay(ray) {
+    return this.meshScene.interceptWithRay(ray);
   }
   asPoints(radius = RADIUS) {
     const points = {};

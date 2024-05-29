@@ -6,7 +6,7 @@ async (canvas, logger) => {
     canvas.resize(width, height);
     let exposedCanvas = canvas.exposure();
     // scene
-    const scene = new BScene();
+    const scene = new KScene();
     const camera = new Camera({
         sphericalCoords: Vec3(3, 0, 0),
         lookAt: Vec3(1.5, 1.5, 1.5)
@@ -57,7 +57,7 @@ async (canvas, logger) => {
         .mapVertices(v => v.add(Vec3(1.0, 1.5, 1.0)))
         .mapColors(() => Color.WHITE)
         .mapMaterials(() => DiElectric(1.5))
-    scene.add(...bunnyMesh.asTriangles());
+    scene.add(bunnyMesh);
 
     // cornell box
     scene.add(

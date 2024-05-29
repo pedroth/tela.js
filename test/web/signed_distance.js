@@ -27,7 +27,7 @@ async (canvas, logger) => {
                 const shade = Math.max(
                     0,
                     box
-                        .estimateNormal(p)
+                        .normalToPoint(p)
                         .dot(
                             light
                                 .pos

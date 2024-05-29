@@ -60,16 +60,16 @@ export default class BScene {
     }
   }
 
-  interceptWith(ray, level) {
+  interceptWithRay(ray, level) {
     if(!this.boundingBoxScene) return;
-    return this.boundingBoxScene.interceptWith(ray, level);
+    return this.boundingBoxScene.interceptWithRay(ray, level);
   }
 
   distanceToPoint(p) {
     return this.getElementNear(p).distanceToPoint(p);
   }
 
-  estimateNormal(p) {
+  normalToPoint(p) {
     const epsilon = 1e-9;
     const n = p.dim;
     const grad = [];
@@ -142,16 +142,16 @@ class Node {
     return this;
   }
 
-  interceptWith(ray) {
-    const leftT = this.left?.box?.interceptWith(ray)?.[0] ?? Number.MAX_VALUE;
-    const rightT = this.right?.box?.interceptWith(ray)?.[0] ?? Number.MAX_VALUE;
+  interceptWithRay(ray) {
+    const leftT = this.left?.box?.interceptWithRay(ray)?.[0] ?? Number.MAX_VALUE;
+    const rightT = this.right?.box?.interceptWithRay(ray)?.[0] ?? Number.MAX_VALUE;
     if (leftT === Number.MAX_VALUE && rightT === Number.MAX_VALUE) return;
     const first = leftT <= rightT ? this.left : this.right;
     const second = leftT > rightT ? this.left : this.right;
     const secondT = Math.max(leftT, rightT);
-    const firstHit = first.interceptWith(ray);
+    const firstHit = first.interceptWithRay(ray);
     if (firstHit && firstHit[0] < secondT) return firstHit;
-    const secondHit = second.interceptWith(ray);
+    const secondHit = second.interceptWithRay(ray);
     return secondHit && secondHit[0] < (firstHit?.[0] ?? Number.MAX_VALUE) ? secondHit : firstHit;
   }
 
@@ -275,8 +275,8 @@ class Leaf {
     return this.element;
   }
 
-  interceptWith(ray) {
-    return this.element.interceptWith(ray);
+  interceptWithRay(ray) {
+    return this.element.interceptWithRay(ray);
   }
 
   join(nodeOrLeaf) {

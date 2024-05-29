@@ -41,56 +41,8 @@ async (canvas, logger) => {
         camera.orbit();
     })
     // scene
-    // scene
-    //     .add(
-    //         Point
-    //             .builder()
-    //             .position(Vec3(0, -1, 0))
-    //             .name("test6-1")
-    //             .color(Color.RED)
-    //             .radius(0.1)
-    //             .build()
-    //         ,
-    //         Point
-    //             .builder()
-    //             .position(Vec3(0, 1, 0))
-    //             .name("test6-2")
-    //             .color(Color.RED)
-    //             .radius(0.1)
-    //             .build()
-    //         ,
-    //         Point
-    //             .builder()
-    //             .position(Vec3(0, 0, -1))
-    //             .name("test6-3")
-    //             .color(Color.RED)
-    //             .radius(0.1)
-    //             .build()
-    //         ,
-    //         Point
-    //             .builder()
-    //             .position(Vec3(0, 0, 1))
-    //             .name("test6-4")
-    //             .color(Color.RED)
-    //             .radius(0.1)
-    //             .build()
-    //         ,
-    //         Point
-    //             .builder()
-    //             .position(Vec3(-1, 0, 0))
-    //             .name("test6-5")
-    //             .color(Color.RED)
-    //             .radius(0.1)
-    //             .build()
-    //         ,
-    //         Point
-    //             .builder()
-    //             .position(Vec3(1, 0, 0))
-    //             .name("test6-6")
-    //             .color(Color.RED)
-    //             .radius(0.1)
-    //             .build()
-    //     )
+
+    
     // const obj = await fetch("/assets/spot.obj").then(x => x.text());
     // let mesh = Mesh.readObj(obj, "mesh");
     // mesh = mesh
@@ -99,9 +51,9 @@ async (canvas, logger) => {
     //     .mapColors(v => Color.ofRGB(...v.map(x => (x+1)/2).toArray()))
     // scene.addList(mesh.asPoints(0.05));
     // nscene.addList(mesh.asPoints(0.05));
-
     // scene.rebuild();
-    const n = 3;
+
+    const n = 5;
     const grid = [...Array(n * n)]
         .map((_, k) => {
             const i = Math.floor(k / n);
