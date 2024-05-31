@@ -9,7 +9,7 @@ const width = 640;
 const height = 480;
 // re-usable scene
 const canvas = Image.ofSize(width, height);
-const camera = new Camera({ sphericalCoords: Vec3(5, 0, 0) });
+const camera = new Camera().orbit(5, 0, 0);
 const obj = readFileSync("./assets/spot.obj", { encoding: "utf-8" });
 let mesh = Mesh.readObj(obj, "mesh");
 mesh = mesh

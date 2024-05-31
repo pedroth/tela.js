@@ -1,4 +1,4 @@
-import { Camera, Image, Mesh, Utils, Vec3, Color, VoxelScene } from "../../dist/node/index.js";
+import { Camera, Image, Mesh, Utils, Vec3, VoxelScene } from "../../dist/node/index.js";
 import { readFileSync } from "fs"
 const { measureTimeWithResult } = Utils;
 
@@ -7,7 +7,7 @@ const { measureTimeWithResult } = Utils;
     const width = 640;
     const height = 480;
     // scene
-    const camera = new Camera({ sphericalCoords: Vec3(5, 0, 0) });
+    const camera = new Camera().orbit(5, 0, 0);
     // scene
     const obj = readFileSync("./assets/statue.obj", { encoding: "utf-8" });
     let mesh = Mesh.readObj(obj, "mesh");

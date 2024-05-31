@@ -8,7 +8,7 @@ import { readFileSync } from "fs"
     const window = Window.ofSize(width, height);
     // scene
     const scene = new Scene()
-    const camera = new Camera({ sphericalCoords: Vec3(100, Math.PI, 0) });
+    const camera = new Camera().orbit(100, Math.PI, 0);
     // scene
     const obj = readFileSync("./assets/megaman.obj", { encoding: "utf-8" });
     let mesh = Mesh.readObj(obj, "mesh");
@@ -35,19 +35,17 @@ import { readFileSync } from "fs"
             return;
         }
         const [dx, dy] = newMouse.sub(mouse).toArray();
-        camera.sphericalCoords = camera.sphericalCoords.add(
+        camera.orbit(orbitCoord => orbitCoord.add(
             Vec3(
                 0,
                 -2 * Math.PI * (dx / window.width),
-                2 * Math.PI * (dy / window.height)
+                -2 * Math.PI * (dy / window.height)
             )
-        );
+        ));
         mouse = newMouse;
-        camera.orbit();
     })
     window.onMouseWheel(({ dy }) => {
-        camera.sphericalCoords = camera.sphericalCoords.add(Vec3(-dy, 0, 0));
-        camera.orbit();
+        camera.orbit(orbitCoord => orbitCoord.add(Vec3(-dy, 0, 0)));
     })
 
     // play

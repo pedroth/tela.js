@@ -11,7 +11,7 @@ const { saveImageStreamToVideo } = IO;
     const maxT = 20;
     // scene
     const scene = new Scene()
-    const camera = new Camera({ sphericalCoords: Vec3(100, Math.PI, 0) });
+    const camera = new Camera().orbit(100, Math.PI, 0);
     // scene
     const obj = readFileSync("./assets/megaman.obj", { encoding: "utf-8" });
     let mesh = Mesh.readObj(obj, "mesh");
@@ -25,8 +25,7 @@ const { saveImageStreamToVideo } = IO;
     const imageStream = new Stream(
         { time: 0, i: 0, image: camera.reverseShot(scene, {cullBackFaces: false}).to(Image.ofSize(width, height)) },
         ({ time, i, image }) => {
-            camera.sphericalCoords = Vec3(100, time, 0);
-            camera.orbit();
+            camera.orbit(100, time, 0);
             const newImage = camera.reverseShot(scene, {cullBackFaces: false}).to(image);
             return { time: time + dt, i: i + 1, image: newImage }
         }

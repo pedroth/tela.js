@@ -7,7 +7,7 @@ const { measureTimeWithResult } = Utils;
     const width = 640;
     const height = 480;
     // scene
-    const camera = new Camera({ sphericalCoords: Vec3(5, 0, 0) });
+    const camera = new Camera().orbit(5, 0, 0);
     // scene
     const obj = readFileSync("./assets/statue.obj", { encoding: "utf-8" });
     let mesh = Mesh.readObj(obj, "mesh");

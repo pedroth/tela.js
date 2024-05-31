@@ -54,6 +54,29 @@ export default class Box {
         return tmax >= Math.max(tmin, 0) ? [tmin - epsilon, ray.trace(tmin - epsilon), this] : undefined;
     }
 
+    interceptWithLine(a, b) {
+        const epsilon = 1e-3;
+        let tmin = -Number.MAX_VALUE;
+        let tmax = Number.MAX_VALUE;
+        if (this.isEmpty) return;
+        const minArray = this.min.toArray();
+        const maxArray = this.max.toArray();
+        const rInit = a.toArray();
+        const dir = b.sub(a).normalize();
+        const dirInv = dir.map(x => 1 / (x + epsilon)).toArray();
+        const dim = this.min?.dim;
+        for (let i = 0; i < dim; ++i) {
+            let t1 = (minArray[i] - rInit[i]) * dirInv[i];
+            let t2 = (maxArray[i] - rInit[i]) * dirInv[i];
+
+            tmin = Math.max(tmin, Math.min(t1, t2));
+            tmax = Math.min(tmax, Math.max(t1, t2));
+        }
+        if (Number.isNaN(tmin) || Number.isNaN(tmax)) return;
+        if (Math.abs(tmin - tmax) < epsilon) return [a.add(dir.scale(tmin - epsilon))]
+        return [a.add(dir.scale(tmin - epsilon)), a.add(dir.scale(tmax - epsilon))]
+    }
+
     add(box) {
         if (this.isEmpty) return box;
         const { min, max } = this;
@@ -73,7 +96,7 @@ export default class Box {
     }
 
     intersection = this.sub;
-    
+
     scale(r) {
         return new Box(this.min.sub(this.center).scale(r), this.max.sub(this.center).scale(r)).move(this.center);
     }

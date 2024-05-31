@@ -4,16 +4,13 @@ import { readFileSync } from "fs"
 
 (async () => {
     // resize incoming canvas:Canvas object.
-    const width = 640;
-    const height = 480;
+    const width = 640 / 2;
+    const height = 480 / 2;
     const window = Window.ofSize(width, height);
     let exposedCanvas = window.exposure();
     // scene
     const scene = new KScene();
-    const camera = new Camera({
-        sphericalCoords: Vec3(5, 0, 0),
-        lookAt: Vec3(1.5, 1.5, 1.5)
-    });
+    const camera = new Camera({ lookAt: Vec3(1.5, 1.5, 1.5) }).orbit(5, 0, 0);
     // mouse handling
     let mousedown = false;
     let mouse = Vec2();
@@ -31,21 +28,19 @@ import { readFileSync } from "fs"
             return;
         }
         const [dx, dy] = newMouse.sub(mouse).toArray();
-        camera.sphericalCoords = camera.sphericalCoords.add(
+        camera.orbit(orbitCoord => orbitCoord.add(
             Vec3(
                 0,
                 -2 * Math.PI * (dx / window.width),
                 -2 * Math.PI * (dy / window.height)
             )
-        );
+        ));
         mouse = newMouse;
-        camera.orbit();
         exposedCanvas = window.exposure();
 
     })
-    window.onMouseWheel(({ deltaY }) => {
-        camera.sphericalCoords = camera.sphericalCoords.add(Vec3(deltaY * 0.001, 0, 0));
-        camera.orbit();
+    window.onMouseWheel(({ dy }) => {
+        camera.orbit(orbitCoord => orbitCoord.add(Vec3(-dy, 0, 0)))
         exposedCanvas = window.exposure();
     })
 
@@ -145,7 +140,7 @@ import { readFileSync } from "fs"
     const play = async ({ time, oldT }) => {
         const newT = new Date().getTime();
         const dt = (new Date().getTime() - oldT) * 1e-3;
-        camera.sceneShot(scene, { bounces: 10, samplesPerPxl: 3 }).to(exposedCanvas);
+        camera.sceneShot(scene, { bounces: 3, samplesPerPxl: 1 }).to(exposedCanvas);
         window.setTitle(`FPS: ${Math.floor(1 / dt)}`);
 
         setTimeout(() => play({

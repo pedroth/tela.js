@@ -193,9 +193,9 @@ export default class Window {
                 let index = w * i + j;
                 const color = this._image[index];
                 index <<= 2; // multiply by 4
-                imageData[index] = color.red * MAX_8BIT;
-                imageData[index + 1] = color.green * MAX_8BIT;
-                imageData[index + 2] = color.blue * MAX_8BIT;
+                imageData[index] = Math.min(color.red * MAX_8BIT, MAX_8BIT);
+                imageData[index + 1] = Math.min(color.green * MAX_8BIT, MAX_8BIT);
+                imageData[index + 2] = Math.min(color.blue * MAX_8BIT, MAX_8BIT);
                 imageData[index + 3] = MAX_8BIT;
             }
         }
@@ -262,6 +262,6 @@ function drawConvexPolygon(canvas, positions, shader) {
 
 function handleMouse(canvas, lambda) {
     return ({ x, y }) => {
-        return lambda(x, y);
+        return lambda(x, canvas.height - 1 - y);
     }
 }

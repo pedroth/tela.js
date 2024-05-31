@@ -10,10 +10,7 @@ const height = 480;
 
 // scene
 const scene = new KScene();
-const camera = new Camera({
-    sphericalCoords: Vec3(5, 0, 0),
-    lookAt: Vec3(1.5, 1.5, 1.5)
-});
+const camera = new Camera({ lookAt: Vec3(1.5, 1.5, 1.5) }).orbit(5, 0, 0);
 const stanfordBunnyObj = readFileSync("./assets/bunny_orig.obj", { encoding: "utf-8" });
 let bunnyMesh = Mesh.readObj(stanfordBunnyObj, "bunny");
 const bunnyBox = bunnyMesh.getBoundingBox();
@@ -24,9 +21,8 @@ bunnyMesh = bunnyMesh
     .mapVertices(v => Vec3(v.z, v.y, -v.x))
     .mapVertices(v => v.add(Vec3(1.5, 1.5, 1.5)))
     .mapColors(() => Color.WHITE)
-    .mapMaterials(() => Metallic(1.3333))
+    .mapMaterials(() => DiElectric(1.3333))
 scene.add(...bunnyMesh.asTriangles());
-
 scene.add(
     Triangle
         .builder()

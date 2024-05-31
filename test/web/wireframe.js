@@ -7,7 +7,7 @@ async (canvas, logger) => {
     canvas.resize(width, height);
     // scene
     const scene = new NaiveScene()
-    const camera = new Camera({ sphericalCoords: Vec3(5, 0, 0) });
+    const camera = new Camera().orbit(5, 0, 0);
     // mouse handling
     let mousedown = false;
     let mouse = Vec2();
@@ -25,19 +25,17 @@ async (canvas, logger) => {
             return;
         }
         const [dx, dy] = newMouse.sub(mouse).toArray();
-        camera.sphericalCoords = camera.sphericalCoords.add(
+        camera.orbit(coords => coords.add(
             Vec3(
                 0,
                 -2 * Math.PI * (dx / canvas.width),
                 -2 * Math.PI * (dy / canvas.height)
-            )
-        );
+            ))
+        )
         mouse = newMouse;
-        camera.orbit();
     })
     canvas.onMouseWheel(({ deltaY }) => {
-        camera.sphericalCoords = camera.sphericalCoords.add(Vec3(deltaY * 0.001, 0, 0));
-        camera.orbit();
+        camera.orbit(coords => coords.add(Vec3(deltaY * 0.001, 0, 0)));
     })
     // scene
     const spotObj = await fetch("/assets/spot.obj")
@@ -50,7 +48,6 @@ async (canvas, logger) => {
         .mapColors(() => Color.ofRGB(0.25, 0.25, 0.25))
         .mapVertices(v => v.add(Vec3(0, 0, 0)))
     scene.addList(spotMesh.asTriangles());
-
     scene.addList(
         spotMesh
             .mapVertices(v => v.scale(1.03))
@@ -58,7 +55,6 @@ async (canvas, logger) => {
             .setName("spot-lines")
             .asLines()
     )
-
     // boilerplate for fps
     Animation
         .builder()

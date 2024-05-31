@@ -13,7 +13,7 @@ const maxT = 10;
 
 // scene
 const scene = new KScene();
-const camera = new Camera({ sphericalCoords: Vec3(5, 0, 0) });
+const camera = new Camera().orbit(5, 0, 0);
 const obj = readFileSync("./assets/spot.obj", { encoding: "utf-8" });
 let mesh = Mesh.readObj(obj, "mesh");
 mesh = mesh
@@ -26,8 +26,7 @@ const imageStream = new Stream(
     { time: 0, image: camera.sdfShot(scene).to(canvas) },
     ({ time, image }) => {
         const theta = Math.PI / 4 * time;
-        camera.sphericalCoords = Vec3(camera.sphericalCoords.get(0), theta, 0);
-        camera.orbit();
+        camera.orbit(coords => Vec3(coords.x, theta, 0));
         const { result: newImage, time: t } = measureTimeWithResult(() => camera.sdfShot(scene).to(image));
         console.log(`Image took ${t}s`);
         return {

@@ -11,14 +11,19 @@
 
 </body>
 <script type="module">
-    import { Canvas } from "./dist/web/index.js";
-    import { Camera } from "./dist/web/index.js";
-    import { Scene } from "./dist/web/index.js";
-    import { KScene } from "./dist/web/index.js";
-    import { Vec, Vec2, Vec3 } from "./dist/web/index.js"
-    import { Point } from "./dist/web/index.js"
-    import { Color } from "./dist/web/index.js";
-    import { Box } from "./dist/web/index.js";
+    import {
+        Box,
+        Color,
+        Point,
+        Canvas,
+        Camera,
+        Scene,
+        Vec,
+        Vec2,
+        Vec3,
+        KScene,
+        Mesh
+    } from "./dist/web/index.js";
     const width = 640;
     const height = 480;
 
@@ -43,60 +48,33 @@
             return;
         }
         const [dx, dy] = newMouse.sub(mouse).toArray();
-        camera.sphericalCoords = camera.sphericalCoords.add(
-            Vec3(
-                0,
-                -2 * Math.PI * (dx / canvas.width),
-                -2 * Math.PI * (dy / canvas.height)
-            )
-        );
+        camera.orbit(coords => coords.add(Vec3(
+            0,
+            -2 * Math.PI * (dx / canvas.width),
+            -2 * Math.PI * (dy / canvas.height)
+        )))
         mouse = newMouse;
-        camera.orbit();
     })
     canvas.onMouseWheel(({ deltaY }) => {
-        camera.sphericalCoords = camera.sphericalCoords.add(Vec3(deltaY * 0.001, 0, 0));
-        camera.orbit();
+        camera.orbit(coords => coords.add(Vec3(deltaY * 0.001, 0, 0)));
     })
     // scene
-
-
-    // const n = 30;
-    // const grid = [...Array(n * n)]
-    //     .map((_, k) => {
-    //         const i = Math.floor(k / n);
-    //         const j = k % n;
-    //         const x = j;
-    //         const y = i;
-    //         const initial = Vec3(0, x / n, y / n);
-    //         return new Point({ radius: 1e-1, position: initial.add(Vec.RANDOM(3).map(x => 2 * x - 1)) });
-    //     });
-    // scene.addList(grid);
-    // scene.rebuild();
-
-
-    fetch("./assets/spot.obj")
-        .then(x => x.text())
-        .then(obj => {
-            const lines = obj.split(/\n|\r/);
-            lines.forEach(line => {
-                const spaces = line.split(" ").filter(x => x !== "");
-                const type = spaces[0];
-                if (!type) return;
-                if (type === "v") {
-                    // 3 numbers
-                    const v = spaces.slice(1, 4).map(x => Number.parseFloat(x));
-                    scene.add(new Point({ position: Vec3(...v), radius: 0.05 }));
-                    let n = 10;
-                    for (let i = 0; i < n; i++) {
-                        for (let j = 0; j < n; j++) {
-                            scene.add(new Point({ position: Vec3(...v).add(Vec3(0, 2 * i, 2 * j)), radius: 0.05 }));
-
-                        }
-                    }
-                }
-            });
-            scene.rebuild();
-        })
+    const obj = await fetch("/assets/spot.obj").then(x => x.text());
+    let mesh = Mesh.readObj(obj, "spot");
+    mesh = mesh
+        .mapVertices(v => Vec3(-v.y, v.x, v.z))
+        .mapVertices(v => Vec3(v.z, v.y, -v.x))
+        .mapVertices(v => Vec3(-v.x, v.y, v.z))
+        .mapColors(v =>
+            Color.ofRGB(...v.map(x => Math.max(0, Math.min(1, 0.5 * (x + 1)))).toArray())
+        )
+    let n = 10;
+    for (let i = 0; i < n; i++) {
+        for (let j = 0; j < n; j++) {
+            scene.add(mesh.mapVertices(v => v.add(Vec3(-2 * i, 2 * j, 0))))
+        }
+    }
+    scene.rebuild();
 
 
     const render = ray => {
@@ -114,32 +92,11 @@
         // return Color.ofRGB(...ray.dir.map(x => (x + 1) / 2).toArray());
     }
 
-
-    function testDistance() {
-        const box = new Box(Vec2(-5, -2), Vec2(3, 1))
-        const sphere = new Point({ position: box.center, radius: box.radius.fold((e, x) => Math.max(e, x), -Number.MAX_VALUE) });
-        const ellipsoid = { position: box.center, radius: box.radius };
-        canvas.map((x, y) => {
-            let p = Vec2(x / width, y / height);
-            p = p.scale(2).sub(Vec2(1, 1)).scale(10);
-            let d = box.distanceToPoint(p);
-            d = Math.abs(Math.sin(d));
-            let sd = sphere.distanceToPoint(p);
-            sd = Math.abs(Math.sin(sd));
-            let ed = p.sub(ellipsoid.position).mul(ellipsoid.radius.map(x => 1 / (x * 0.5 ?? 1))).map(x => x ** 100).fold((e, x) => e + x, 0);
-            // ed = Math.abs(Math.sin(ed ** (0.01)));
-            let ld = p.sub(box.center).map(Math.abs).sub(box.radius).map(x => x ** 100).fold((e, x) => e + x, 0);
-            ld = Math.abs(Math.sin(ld ** 0.01));
-            return Color.ofRGB(d > 0 ? d : 0, 0, 0);
-        })
-    }
-
     const play = (options = {}) => {
         const { oldT = new Date().getTime(), time = 0 } = options;
         const newT = new Date().getTime();
         const dt = (newT - oldT) * 1e-3;
         camera.rayMap(render).to(canvas);
-        // testDistance();
         document.title = `UD, FPS: ${(Math.floor(1 / dt))}`;
         requestAnimationFrame(() => play({ oldT: newT, time: time + dt }))
     }

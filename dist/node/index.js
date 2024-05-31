@@ -730,6 +730,30 @@ class Box {
     }
     return tmax >= Math.max(tmin, 0) ? [tmin - epsilon, ray.trace(tmin - epsilon), this] : undefined;
   }
+  interceptWithLine(a, b) {
+    const epsilon = 0.001;
+    let tmin = -Number.MAX_VALUE;
+    let tmax = Number.MAX_VALUE;
+    if (this.isEmpty)
+      return;
+    const minArray = this.min.toArray();
+    const maxArray = this.max.toArray();
+    const rInit = a.toArray();
+    const dir = b.sub(a).normalize();
+    const dirInv = dir.map((x) => 1 / (x + epsilon)).toArray();
+    const dim = this.min?.dim;
+    for (let i = 0;i < dim; ++i) {
+      let t1 = (minArray[i] - rInit[i]) * dirInv[i];
+      let t2 = (maxArray[i] - rInit[i]) * dirInv[i];
+      tmin = Math.max(tmin, Math.min(t1, t2));
+      tmax = Math.min(tmax, Math.max(t1, t2));
+    }
+    if (Number.isNaN(tmin) || Number.isNaN(tmax))
+      return;
+    if (Math.abs(tmin - tmax) < epsilon)
+      return [a.add(dir.scale(tmin - epsilon))];
+    return [a.add(dir.scale(tmin - epsilon)), a.add(dir.scale(tmax - epsilon))];
+  }
   add(box) {
     if (this.isEmpty)
       return box;
@@ -1355,6 +1379,41 @@ function Ray(init, dir) {
   return ans;
 }
 
+// src/Camera/raytrace.js
+function rayTrace(scene, params) {
+  let { samplesPerPxl, bounces, variance, gamma } = params;
+  bounces = bounces ?? 10;
+  variance = variance ?? 0.001;
+  samplesPerPxl = samplesPerPxl ?? 1;
+  gamma = gamma ?? 0.5;
+  const invSamples = bounces / samplesPerPxl;
+  const lambda = (ray) => {
+    let c = Color.BLACK;
+    for (let i2 = 0;i2 < samplesPerPxl; i2++) {
+      const epsilon = Vec.RANDOM(3).scale(variance);
+      const epsilonOrto = epsilon.sub(ray.dir.scale(epsilon.dot(ray.dir)));
+      const r = Ray(ray.init, ray.dir.add(epsilonOrto).normalize());
+      c = c.add(trace(r, scene, { bounces }));
+    }
+    return c.scale(invSamples).toGamma(gamma);
+  };
+  return lambda;
+}
+var trace = function(ray, scene, options) {
+  const { bounces } = options;
+  if (bounces < 0)
+    return Color.BLACK;
+  const hit = scene.interceptWithRay(ray);
+  if (!hit)
+    return Color.BLACK;
+  const [, p, e] = hit;
+  const color = e.color ?? e.colors[0];
+  const mat = e.material;
+  let r = mat.scatter(ray, p, e);
+  let finalC = trace(r, scene, { bounces: bounces - 1 });
+  return e.emissive ? color.add(color.mul(finalC)) : color.mul(finalC);
+};
+
 // src/Material/Material.js
 function Diffuse() {
   return {
@@ -1426,144 +1485,6 @@ function DiElectric(indexOfRefraction = 1) {
     }
   };
 }
-
-// src/Geometry/Point.js
-var sphereInterception = function(point, ray) {
-  const { init, dir } = ray;
-  const diff = init.sub(point.position);
-  const b = 2 * dir.dot(diff);
-  const c = diff.squareLength() - point.radius * point.radius;
-  const discriminant = b * b - 4 * c;
-  if (discriminant < 0)
-    return;
-  const sqrt = Math.sqrt(discriminant);
-  const [t1, t2] = [(-b - sqrt) / 2, (-b + sqrt) / 2];
-  const t = Math.min(t1, t2);
-  const tM = Math.max(t1, t2);
-  if (t1 * t2 < 0)
-    return tM;
-  return t1 >= 0 && t2 >= 0 ? t : undefined;
-};
-
-class Point {
-  constructor({ name, position, color, texCoord, normal, radius, texture, emissive, material }) {
-    this.name = name;
-    this.color = color;
-    this.radius = radius;
-    this.normals = normal;
-    this.texture = texture;
-    this.position = position;
-    this.texCoord = texCoord;
-    this.emissive = emissive;
-    this.material = material;
-  }
-  getBoundingBox() {
-    if (this.boundingBox)
-      return this.boundingBox;
-    const n = this.position.dim;
-    this.boundingBox = new Box(this.position.add(Vec.ONES(n).scale(-this.radius)), this.position.add(Vec.ONES(n).scale(this.radius)));
-    return this.boundingBox;
-  }
-  distanceToPoint(p) {
-    return this.position.sub(p).length() - this.radius;
-  }
-  normalToPoint(p) {
-    const r = p.sub(this.position);
-    const length = r.length();
-    return length > this.radius ? r.normalize() : r.scale(-1).normalize();
-  }
-  interceptWithRay(ray) {
-    const epsilon = 0.000000001;
-    const t = sphereInterception(this, ray);
-    return !t ? undefined : [t, ray.trace(t - epsilon), this];
-  }
-  sample() {
-    return randomPointInSphere(this.position.dim).scale(this.radius).add(this.position);
-  }
-  isInside(p) {
-    return p.sub(this.position).length() < this.radius;
-  }
-  static builder() {
-    return new PointBuilder;
-  }
-}
-
-class PointBuilder {
-  constructor() {
-    this._name;
-    this._texture;
-    this._radius = 1;
-    this._normal = Vec3();
-    this._color = Color.BLACK;
-    this._position = Vec3();
-    this._texCoord = Vec2();
-    this._emissive = false;
-    this._material = Diffuse();
-  }
-  name(name) {
-    this._name = name;
-    return this;
-  }
-  color(color) {
-    if (!color)
-      return this;
-    this._color = color;
-    return this;
-  }
-  normal(normal) {
-    if (!normal)
-      return this;
-    this._normal = normal;
-    return this;
-  }
-  radius(radius) {
-    if (!radius)
-      return this;
-    this._radius = radius;
-    return this;
-  }
-  position(posVec3) {
-    if (!posVec3)
-      return this;
-    this._position = posVec3;
-    return this;
-  }
-  texCoord(t) {
-    if (!t)
-      return this;
-    this._texCoord = t;
-    return this;
-  }
-  texture(image) {
-    this._texture = image;
-    return this;
-  }
-  emissive(isEmissive) {
-    this._emissive = isEmissive;
-    return this;
-  }
-  material(material) {
-    this._material = material;
-    return this;
-  }
-  build() {
-    const attrs = {
-      name: this._name,
-      color: this._color,
-      normal: this._normal,
-      radius: this._radius,
-      position: this._position,
-      texCoord: this._texCoord,
-      emissive: this._emissive,
-      material: this._material
-    };
-    if (Object.values(attrs).some((x) => x === undefined)) {
-      throw new Error("Point is incomplete");
-    }
-    return new Point({ ...attrs, texture: this._texture });
-  }
-}
-var Point_default = Point;
 
 // src/Geometry/Line.js
 class Line {
@@ -1705,6 +1626,144 @@ class LineBuilder {
   }
 }
 
+// src/Geometry/Point.js
+var sphereInterception = function(point, ray) {
+  const { init, dir } = ray;
+  const diff = init.sub(point.position);
+  const b = 2 * dir.dot(diff);
+  const c = diff.squareLength() - point.radius * point.radius;
+  const discriminant = b * b - 4 * c;
+  if (discriminant < 0)
+    return;
+  const sqrt = Math.sqrt(discriminant);
+  const [t1, t2] = [(-b - sqrt) / 2, (-b + sqrt) / 2];
+  const t = Math.min(t1, t2);
+  const tM = Math.max(t1, t2);
+  if (t1 * t2 < 0)
+    return tM;
+  return t1 >= 0 && t2 >= 0 ? t : undefined;
+};
+
+class Point {
+  constructor({ name, position, color, texCoord, normal, radius, texture, emissive, material }) {
+    this.name = name;
+    this.color = color;
+    this.radius = radius;
+    this.normals = normal;
+    this.texture = texture;
+    this.position = position;
+    this.texCoord = texCoord;
+    this.emissive = emissive;
+    this.material = material;
+  }
+  getBoundingBox() {
+    if (this.boundingBox)
+      return this.boundingBox;
+    const n = this.position.dim;
+    this.boundingBox = new Box(this.position.add(Vec.ONES(n).scale(-this.radius)), this.position.add(Vec.ONES(n).scale(this.radius)));
+    return this.boundingBox;
+  }
+  distanceToPoint(p) {
+    return this.position.sub(p).length() - this.radius;
+  }
+  normalToPoint(p) {
+    const r = p.sub(this.position);
+    const length = r.length();
+    return length > this.radius ? r.normalize() : r.scale(-1).normalize();
+  }
+  interceptWithRay(ray) {
+    const epsilon = 0.000000001;
+    const t = sphereInterception(this, ray);
+    return !t ? undefined : [t, ray.trace(t - epsilon), this];
+  }
+  sample() {
+    return randomPointInSphere(this.position.dim).scale(this.radius).add(this.position);
+  }
+  isInside(p) {
+    return p.sub(this.position).length() < this.radius;
+  }
+  static builder() {
+    return new PointBuilder;
+  }
+}
+
+class PointBuilder {
+  constructor() {
+    this._name;
+    this._texture;
+    this._radius = 1;
+    this._normal = Vec3();
+    this._color = Color.BLACK;
+    this._position = Vec3();
+    this._texCoord = Vec2();
+    this._emissive = false;
+    this._material = Diffuse();
+  }
+  name(name) {
+    this._name = name;
+    return this;
+  }
+  color(color) {
+    if (!color)
+      return this;
+    this._color = color;
+    return this;
+  }
+  normal(normal) {
+    if (!normal)
+      return this;
+    this._normal = normal;
+    return this;
+  }
+  radius(radius) {
+    if (!radius)
+      return this;
+    this._radius = radius;
+    return this;
+  }
+  position(posVec3) {
+    if (!posVec3)
+      return this;
+    this._position = posVec3;
+    return this;
+  }
+  texCoord(t) {
+    if (!t)
+      return this;
+    this._texCoord = t;
+    return this;
+  }
+  texture(image) {
+    this._texture = image;
+    return this;
+  }
+  emissive(isEmissive) {
+    this._emissive = isEmissive;
+    return this;
+  }
+  material(material) {
+    this._material = material;
+    return this;
+  }
+  build() {
+    const attrs = {
+      name: this._name,
+      color: this._color,
+      normal: this._normal,
+      radius: this._radius,
+      position: this._position,
+      texCoord: this._texCoord,
+      emissive: this._emissive,
+      material: this._material
+    };
+    if (Object.values(attrs).some((x) => x === undefined)) {
+      throw new Error("Point is incomplete");
+    }
+    return new Point({ ...attrs, texture: this._texture });
+  }
+}
+var Point_default = Point;
+
 // src/Geometry/Triangle.js
 class Triangle {
   constructor({ name, positions, colors, texCoords, normals, texture, emissive, material }) {
@@ -1839,21 +1898,49 @@ class TriangleBuilder {
   }
 }
 
-// src/Camera/Camera.js
-var trace = function(ray, scene, options) {
-  const { bounces } = options;
-  if (bounces < 0)
-    return Color.BLACK;
-  const hit = scene.interceptWithRay(ray);
-  if (!hit)
-    return Color.BLACK;
-  const [, p, e] = hit;
-  const color = e.color ?? e.colors[0];
-  const mat = e.material;
-  let r = mat.scatter(ray, p, e);
-  let finalC = trace(r, scene, { bounces: bounces - 1 });
-  return e.emissive ? color.add(color.mul(finalC)) : color.mul(finalC);
-};
+// src/Camera/raster.js
+function rasterGraphics(scene, camera, params) {
+  const type2render = {
+    [Point_default.name]: rasterPoint,
+    [Line.name]: rasterLine,
+    [Triangle.name]: rasterTriangle
+  };
+  const {
+    cullBackFaces,
+    bilinearTexture,
+    clipCameraPlane,
+    clearScreen,
+    backgroundColor
+  } = params;
+  params.cullBackFaces = cullBackFaces ?? true;
+  params.bilinearTexture = bilinearTexture ?? false;
+  params.clipCameraPlane = clipCameraPlane ?? true;
+  params.clearScreen = clearScreen ?? true;
+  params.backgroundColor = backgroundColor ?? Color.BLACK;
+  return (canvas) => {
+    params.clearScreen && canvas.fill(params.backgroundColor);
+    const w = canvas.width;
+    const h = canvas.height;
+    const zBuffer = new Float64Array(w * h).fill(Number.MAX_VALUE);
+    const elements = scene.getElements();
+    for (let i2 = 0;i2 < elements.length; i2++) {
+      const elem = elements[i2];
+      if (elem.constructor.name in type2render) {
+        type2render[elem.constructor.name]({
+          w,
+          h,
+          elem,
+          canvas,
+          params,
+          zBuffer,
+          camera
+        });
+      }
+    }
+    canvas.paint();
+    return canvas;
+  };
+}
 var rasterPoint = function({ canvas, camera, elem, w, h, zBuffer }) {
   const point = elem;
   const { distanceToPlane } = camera;
@@ -2025,25 +2112,77 @@ var getTexColor = function(texUV, texture) {
   return texture.getPxl(texUV.x * texture.width, texUV.y * texture.height);
 };
 
+// src/Camera/sdf.js
+function sdfTrace(scene) {
+  return (ray) => {
+    const maxIte = 100;
+    const epsilon = 0.000001;
+    let p = ray.init;
+    let t = scene.distanceOnRay(ray);
+    let minT = t;
+    for (let i2 = 0;i2 < maxIte; i2++) {
+      p = ray.trace(t);
+      const d = scene.distanceOnRay(Ray(p, ray.dir));
+      t += d;
+      if (d < epsilon) {
+        const normal = scene.normalToPoint(p);
+        return Color.ofRGB((normal.x + 1) / 2, (normal.y + 1) / 2, (normal.z + 1) / 2);
+      }
+      if (d > 2 * minT) {
+        return Color.ofRGB(0, 0, i2 / maxIte);
+      }
+      minT = d;
+    }
+    return Color.BLACK;
+  };
+}
+
+// src/Camera/normal.js
+function normalTrace(scene) {
+  return (ray) => {
+    const hit = scene.interceptWithRay(ray);
+    if (hit) {
+      const [, point, element] = hit;
+      const normal = element.normalToPoint(point);
+      return Color.ofRGB((normal.get(0) + 1) / 2, (normal.get(1) + 1) / 2, (normal.get(2) + 1) / 2);
+    }
+    return Color.BLACK;
+  };
+}
+
+// src/Camera/Camera.js
 class Camera {
   constructor(props = {}) {
-    const { sphericalCoords, lookAt, distanceToPlane, eye } = props;
-    this.sphericalCoords = sphericalCoords ?? Vec3(2, 0, 0);
+    const { lookAt, distanceToPlane, position } = props;
     this.lookAt = lookAt ?? Vec3(0, 0, 0);
     this.distanceToPlane = distanceToPlane ?? 1;
-    this.eye = eye;
-    if (!eye)
-      this.orbit();
+    this.position = position ?? Vec3(3, 0, 0);
+    this._orientCoords = Vec2();
+    this._orbitCoords = Vec3();
+    this.orient();
   }
   clone() {
     return new Camera({
-      sphericalCoordinates: this.sphericalCoords,
       lookAt: this.lookAt,
+      position: this.position,
       distanceToPlane: this.distanceToPlane
     });
   }
-  orient() {
-    const [, theta, phi] = this.sphericalCoords.toArray();
+  look(at, up = Vec3(0, 0, 1)) {
+    this.lookAt = at;
+    this.basis[2] = this.position.sub(at).normalize();
+    this.basis[0] = this.basis[2].cross(up).normalize();
+    this.basis[1] = this.basis[0].cross(this.basis[2]).normalize();
+    return this;
+  }
+  orient(theta = 0, phi = 0) {
+    if (theta instanceof Function) {
+      this._orientCoords = theta(this._orientCoords);
+      theta = this._orientCoords.x;
+      phi = this._orientCoords.y;
+    } else {
+      this._orientCoords = Vec2(theta, phi);
+    }
     const cosT = Math.cos(theta);
     const sinT = Math.sin(theta);
     const cosP = Math.cos(phi);
@@ -2054,18 +2193,25 @@ class Camera {
     this.basis[0] = Vec3(-sinT, cosT, 0);
     return this;
   }
-  orbit() {
-    this.orient();
-    const [rho, theta, phi] = this.sphericalCoords.toArray();
+  orbit(radius, theta, phi) {
+    if (radius instanceof Function) {
+      this._orbitCoords = radius(this._orbitCoords);
+      radius = this._orbitCoords.x;
+      theta = this._orbitCoords.y;
+      phi = this._orbitCoords.z;
+    } else {
+      this._orbitCoords = Vec3(radius, theta, phi);
+    }
+    this.orient(theta, phi);
     const cosT = Math.cos(theta);
     const sinT = Math.sin(theta);
     const cosP = Math.cos(phi);
     const sinP = Math.sin(phi);
-    const sphereCoordinates = Vec3(rho * cosP * cosT, rho * cosP * sinT, rho * sinP);
-    this.eye = sphereCoordinates.add(this.lookAt);
+    const sphereCoordinates = Vec3(radius * cosP * cosT, radius * cosP * sinT, radius * sinP);
+    this.position = sphereCoordinates.add(this.lookAt);
     return this;
   }
-  rayMap(lambdaWithRays, params) {
+  rayMap(lambdaWithRays) {
     return {
       to: (canvas) => {
         const w = canvas.width;
@@ -2077,7 +2223,7 @@ class Camera {
             this.distanceToPlane
           ];
           const dir = Vec3(this.basis[0].x * dirInLocal[0] + this.basis[1].x * dirInLocal[1] + this.basis[2].x * dirInLocal[2], this.basis[0].y * dirInLocal[0] + this.basis[1].y * dirInLocal[1] + this.basis[2].y * dirInLocal[2], this.basis[0].z * dirInLocal[0] + this.basis[1].z * dirInLocal[1] + this.basis[2].z * dirInLocal[2]).normalize();
-          const c = lambdaWithRays(Ray(this.eye, dir), params);
+          const c = lambdaWithRays(Ray(this.position, dir));
           return c;
         });
         return ans;
@@ -2085,108 +2231,30 @@ class Camera {
     };
   }
   sceneShot(scene, params = {}) {
-    let { samplesPerPxl, bounces, variance, gamma } = params;
-    bounces = bounces ?? 10;
-    variance = variance ?? 0.001;
-    samplesPerPxl = samplesPerPxl ?? 1;
-    gamma = gamma ?? 0.5;
-    const invSamples = bounces / samplesPerPxl;
-    const lambda = (ray) => {
-      let c = Color.BLACK;
-      for (let i2 = 0;i2 < samplesPerPxl; i2++) {
-        const epsilon = Vec.RANDOM(3).scale(variance);
-        const epsilonOrto = epsilon.sub(ray.dir.scale(epsilon.dot(ray.dir)));
-        const r = Ray(ray.init, ray.dir.add(epsilonOrto).normalize());
-        c = c.add(trace(r, scene, { bounces }));
-      }
-      return c.scale(invSamples).toGamma(gamma);
-    };
-    return this.rayMap(lambda, params);
+    return this.rayMap(rayTrace(scene, params));
   }
   reverseShot(scene, params = {}) {
-    const type2render = {
-      [Point_default.name]: rasterPoint,
-      [Line.name]: rasterLine,
-      [Triangle.name]: rasterTriangle
-    };
-    const {
-      cullBackFaces,
-      bilinearTexture,
-      clipCameraPlane,
-      clearScreen,
-      backgroundColor
-    } = params;
-    params.cullBackFaces = cullBackFaces ?? true;
-    params.bilinearTexture = bilinearTexture ?? false;
-    params.clipCameraPlane = clipCameraPlane ?? true;
-    params.clearScreen = clearScreen ?? true;
-    params.backgroundColor = backgroundColor ?? Color.BLACK;
     return {
-      to: (canvas) => {
-        params.clearScreen && canvas.fill(params.backgroundColor);
-        const w = canvas.width;
-        const h = canvas.height;
-        const zBuffer = new Float64Array(w * h).fill(Number.MAX_VALUE);
-        const elements = scene.getElements();
-        for (let i2 = 0;i2 < elements.length; i2++) {
-          const elem = elements[i2];
-          if (elem.constructor.name in type2render) {
-            type2render[elem.constructor.name]({
-              w,
-              h,
-              elem,
-              canvas,
-              params,
-              zBuffer,
-              camera: this
-            });
-          }
-        }
-        canvas.paint();
-        return canvas;
-      }
+      to: rasterGraphics(scene, this, params)
     };
   }
   sdfShot(scene) {
-    const lambda = (ray) => {
-      const maxIte = 100;
-      const epsilon = 0.000001;
-      let p = ray.init;
-      let t = scene.distanceOnRay(ray);
-      let minT = t;
-      for (let i2 = 0;i2 < maxIte; i2++) {
-        p = ray.trace(t);
-        const d = scene.distanceOnRay(Ray(p, ray.dir));
-        t += d;
-        if (d < epsilon) {
-          const normal = scene.normalToPoint(p);
-          return Color.ofRGB((normal.x + 1) / 2, (normal.y + 1) / 2, (normal.z + 1) / 2);
-        }
-        if (d > 2 * minT) {
-          return Color.ofRGB(0, 0, i2 / maxIte);
-        }
-        minT = d;
-      }
-      return Color.BLACK;
-    };
-    return this.rayMap(lambda);
+    return this.rayMap(sdfTrace(scene));
   }
-  normalShot(scene, params = {}) {
-    const lambda = (ray) => {
-      const hit = scene.interceptWithRay(ray);
-      if (hit) {
-        const [, point, element] = hit;
-        const normal = element.normalToPoint(point);
-        return Color.ofRGB((normal.get(0) + 1) / 2, (normal.get(1) + 1) / 2, (normal.get(2) + 1) / 2);
-      }
-      return Color.BLACK;
-    };
-    return this.rayMap(lambda);
+  normalShot(scene) {
+    return this.rayMap(normalTrace(scene));
   }
   toCameraCoord(x) {
-    let pointInCamCoord = x.sub(this.eye);
+    let pointInCamCoord = x.sub(this.position);
     pointInCamCoord = Vec3(this.basis[0].dot(pointInCamCoord), this.basis[1].dot(pointInCamCoord), this.basis[2].dot(pointInCamCoord));
     return pointInCamCoord;
+  }
+  toWorldCoord(camVec) {
+    let x = Vec3();
+    for (let i2 = 0;i2 < this.basis.length; i2++) {
+      x = x.add(this.basis[i2].scale(camVec.get(i2)));
+    }
+    return x;
   }
 }
 
@@ -2258,12 +2326,12 @@ class NaiveScene {
     }
     return this;
   }
+  getElements() {
+    return this.sceneElements;
+  }
   clear() {
     this.id2ElemMap = {};
     this.sceneElements = [];
-  }
-  getElements() {
-    return this.sceneElements;
   }
   distanceToPoint(p) {
     const elements = this.sceneElements;
@@ -2299,11 +2367,14 @@ class NaiveScene {
   getElementNear(p) {
     return this.sceneElements[argmin(this.sceneElements, (x) => x.distanceToPoint(p))];
   }
-  debug(params) {
-    return params.canvas;
+  getElementInBox(box) {
+    throw Error("Not Implemented");
   }
   rebuild() {
     return this;
+  }
+  debug(params) {
+    return params.canvas;
   }
 }
 
@@ -2431,22 +2502,29 @@ class Scene {
     }
     return this;
   }
+  getElements() {
+    return this.sceneElements;
+  }
   clear() {
     this.id2ElemMap = {};
     this.sceneElements = [];
     this.boundingBoxScene = new Node;
   }
-  getElements() {
-    return this.sceneElements;
+  distanceToPoint(p) {
+    return this.getElementNear(p).distanceToPoint(p);
   }
-  getElementInBox(box) {
-    return this.boundingBoxScene.getElemIn(box);
+  normalToPoint(p) {
+    const epsilon = 0.000000001;
+    const n = p.dim;
+    const grad = [];
+    const d = this.distanceToPoint(p);
+    for (let i2 = 0;i2 < n; i2++) {
+      grad.push(this.distanceToPoint(p.add(Vec.e(n)(i2).scale(epsilon))) - d);
+    }
+    return Vec.fromArray(grad).scale(Math.sign(d)).normalize();
   }
   interceptWithRay(ray, level) {
     return this.boundingBoxScene.interceptWithRay(ray, level);
-  }
-  distanceToPoint(p) {
-    return this.getElementNear(p).distanceToPoint(p);
   }
   getElementNear(p) {
     if (this.boundingBoxScene.numberOfLeafs < 2) {
@@ -2462,15 +2540,21 @@ class Scene {
       children.forEach((c) => stack.push(c));
     }
   }
-  normalToPoint(p) {
-    const epsilon = 0.000000001;
-    const n = p.dim;
-    const grad = [];
-    const d = this.distanceToPoint(p);
-    for (let i2 = 0;i2 < n; i2++) {
-      grad.push(this.distanceToPoint(p.add(Vec.e(n)(i2).scale(epsilon))) - d);
+  getElementInBox(box) {
+    return this.boundingBoxScene.getElemIn(box);
+  }
+  rebuild() {
+    let nodeOrLeafStack = this.sceneElements.map((x) => new Leaf(x));
+    while (nodeOrLeafStack.length > 1) {
+      const nodeOrLeaf = nodeOrLeafStack[0];
+      nodeOrLeafStack = nodeOrLeafStack.slice(1);
+      const minIndex = argmin(nodeOrLeafStack, (x) => nodeOrLeaf.box.distanceToBox(x.box));
+      const newNode = nodeOrLeaf.join(nodeOrLeafStack[minIndex]);
+      nodeOrLeafStack.splice(minIndex, 1);
+      nodeOrLeafStack.push(newNode);
     }
-    return Vec.fromArray(grad).scale(Math.sign(d)).normalize();
+    this.boundingBoxScene = nodeOrLeafStack.pop();
+    return this;
   }
   debug(props) {
     const { camera, canvas } = props;
@@ -2495,19 +2579,6 @@ class Scene {
     if (level === 0)
       return camera.reverseShot(debugScene, { clearScreen: false }).to(canvas);
     return canvas;
-  }
-  rebuild() {
-    let nodeOrLeafStack = this.sceneElements.map((x) => new Leaf(x));
-    while (nodeOrLeafStack.length > 1) {
-      const nodeOrLeaf = nodeOrLeafStack[0];
-      nodeOrLeafStack = nodeOrLeafStack.slice(1);
-      const minIndex = argmin(nodeOrLeafStack, (x) => nodeOrLeaf.box.distanceToBox(x.box));
-      const newNode = nodeOrLeaf.join(nodeOrLeafStack[minIndex]);
-      nodeOrLeafStack.splice(minIndex, 1);
-      nodeOrLeafStack.push(newNode);
-    }
-    this.boundingBoxScene = nodeOrLeafStack.pop();
-    return this;
   }
 }
 
@@ -2682,16 +2753,31 @@ class BScene {
     }
     return this;
   }
+  getElements() {
+    return this.sceneElements;
+  }
   clear() {
     this.id2ElemMap = {};
     this.sceneElements = [];
     this.boundingBoxScene = new Node2;
   }
-  getElements() {
-    return this.sceneElements;
+  distanceToPoint(p) {
+    return this.getElementNear(p).distanceToPoint(p);
   }
-  getElementInBox(box) {
-    return this.boundingBoxScene.getElemIn(box);
+  normalToPoint(p) {
+    const epsilon = 0.000000001;
+    const n = p.dim;
+    const grad = [];
+    const d = this.distanceToPoint(p);
+    for (let i2 = 0;i2 < n; i2++) {
+      grad.push(this.distanceToPoint(p.add(Vec.e(n)(i2).scale(epsilon))) - d);
+    }
+    return Vec.fromArray(grad).scale(Math.sign(d)).normalize();
+  }
+  interceptWithRay(ray, level) {
+    if (!this.boundingBoxScene)
+      return;
+    return this.boundingBoxScene.interceptWithRay(ray, level);
   }
   getElementNear(p) {
     if (this.boundingBoxScene.numberOfLeafs < 2) {
@@ -2707,23 +2793,21 @@ class BScene {
       children.forEach((c) => stack.push(c));
     }
   }
-  interceptWithRay(ray, level) {
-    if (!this.boundingBoxScene)
-      return;
-    return this.boundingBoxScene.interceptWithRay(ray, level);
+  getElementInBox(box) {
+    return this.boundingBoxScene.getElemIn(box);
   }
-  distanceToPoint(p) {
-    return this.getElementNear(p).distanceToPoint(p);
-  }
-  normalToPoint(p) {
-    const epsilon = 0.000000001;
-    const n = p.dim;
-    const grad = [];
-    const d = this.distanceToPoint(p);
-    for (let i2 = 0;i2 < n; i2++) {
-      grad.push(this.distanceToPoint(p.add(Vec.e(n)(i2).scale(epsilon))) - d);
+  rebuild() {
+    let nodeOrLeafStack = this.sceneElements.map((x) => new Leaf2(x));
+    while (nodeOrLeafStack.length > 1) {
+      const nodeOrLeaf = nodeOrLeafStack[0];
+      nodeOrLeafStack = nodeOrLeafStack.slice(1);
+      const minIndex = argmin(nodeOrLeafStack, (x) => nodeOrLeaf.box.distanceToBox(x.box));
+      const newNode = nodeOrLeaf.join(nodeOrLeafStack[minIndex]);
+      nodeOrLeafStack.splice(minIndex, 1);
+      nodeOrLeafStack.push(newNode);
     }
-    return Vec.fromArray(grad).scale(Math.sign(d)).normalize();
+    this.boundingBoxScene = nodeOrLeafStack.pop();
+    return this;
   }
   debug(props) {
     const { camera, canvas } = props;
@@ -2748,19 +2832,6 @@ class BScene {
     if (level === 0)
       return camera.reverseShot(debugScene, { clearScreen: false }).to(canvas);
     return canvas;
-  }
-  rebuild() {
-    let nodeOrLeafStack = this.sceneElements.map((x) => new Leaf2(x));
-    while (nodeOrLeafStack.length > 1) {
-      const nodeOrLeaf = nodeOrLeafStack[0];
-      nodeOrLeafStack = nodeOrLeafStack.slice(1);
-      const minIndex = argmin(nodeOrLeafStack, (x) => nodeOrLeaf.box.distanceToBox(x.box));
-      const newNode = nodeOrLeaf.join(nodeOrLeafStack[minIndex]);
-      nodeOrLeafStack.splice(minIndex, 1);
-      nodeOrLeafStack.push(newNode);
-    }
-    this.boundingBoxScene = nodeOrLeafStack.pop();
-    return this;
   }
 }
 
@@ -2947,7 +3018,7 @@ var clusterLeafs = function(box, leafs, it = 10) {
   }
   return [...clusterIndexes].map((indxs) => indxs.map((indx3) => leafs[indx3]));
 };
-var leafsinterceptWithRay = function(leafs, ray) {
+var leafsInterceptWithRay = function(leafs, ray) {
   let closestDistance = Number.MAX_VALUE;
   let closest;
   for (let i2 = 0;i2 < leafs.length; i2++) {
@@ -2988,16 +3059,42 @@ class KScene {
     }
     return this;
   }
+  getElements() {
+    return this.sceneElements;
+  }
   clear() {
     this.id2ElemMap = {};
     this.sceneElements = [];
     this.boundingBoxScene = new Node3(this.k);
   }
-  getElements() {
-    return this.sceneElements;
+  distanceToPoint(p) {
+    if (this.boundingBoxScene.leafs.length > 0) {
+      let distance = Number.MAX_VALUE;
+      const leafs = this.boundingBoxScene.leafs;
+      for (let i2 = 0;i2 < leafs.length; i2++) {
+        distance = Math.min(distance, leafs[i2].element.distanceToPoint(p));
+      }
+      return distance;
+    }
+    return this.getElementNear(p).distanceToPoint(p);
   }
-  getElementInBox(box) {
-    return this.boundingBoxScene.getElemIn(box);
+  normalToPoint(p) {
+    let normal2 = Vec3();
+    let weight = 0;
+    const elements = this.boundingBoxScene.getLeafsNear(p);
+    for (let i2 = 0;i2 < elements.length; i2++) {
+      const n = elements[i2].normalToPoint(p);
+      const d = elements[i2].distanceToPoint(p);
+      normal2 = normal2.add(n.scale(d));
+      weight += d;
+    }
+    return normal2.length() > 0 ? normal2.scale(1 / weight).normalize() : normal2;
+  }
+  interceptWithRay(ray, level) {
+    return this.boundingBoxScene.interceptWithRay(ray, level);
+  }
+  distanceOnRay(ray) {
+    return this.boundingBoxScene.distanceOnRay(ray);
   }
   getElementNear(p) {
     if (this.boundingBoxScene.leafs.length > 0) {
@@ -3019,34 +3116,31 @@ class KScene {
       children.forEach((c) => stack.push(c));
     }
   }
-  interceptWithRay(ray, level) {
-    return this.boundingBoxScene.interceptWithRay(ray, level);
+  getElementInBox(box) {
+    return this.boundingBoxScene.getElemIn(box);
   }
-  distanceToPoint(p) {
-    if (this.boundingBoxScene.leafs.length > 0) {
-      let distance = Number.MAX_VALUE;
-      const leafs = this.boundingBoxScene.leafs;
-      for (let i2 = 0;i2 < leafs.length; i2++) {
-        distance = Math.min(distance, leafs[i2].element.distanceToPoint(p));
+  rebuild() {
+    let groupsQueue = PQueue.ofArray([...clusterLeafs(this.boundingBoxScene.box, this.sceneElements.map((x) => new Leaf3(x)))], (a, b) => b.length - a.length);
+    while (groupsQueue.data.map((x) => x.length > this.k).some((x) => x)) {
+      if (groupsQueue.peek().length > this.k) {
+        const groupOfLeafs = groupsQueue.pop();
+        const box = groupOfLeafs.reduce((e, x) => e.add(x.box), new Box);
+        const [left, right] = clusterLeafs(box, groupOfLeafs);
+        groupsQueue.push(left);
+        groupsQueue.push(right);
       }
-      return distance;
     }
-    return this.getElementNear(p).distanceToPoint(p);
-  }
-  distanceOnRay(ray) {
-    return this.boundingBoxScene.distanceOnRay(ray);
-  }
-  normalToPoint(p) {
-    let normal = Vec3();
-    let weight = 0;
-    const elements = this.boundingBoxScene.getLeafsNear(p);
-    for (let i2 = 0;i2 < elements.length; i2++) {
-      const n = elements[i2].normalToPoint(p);
-      const d = elements[i2].distanceToPoint(p);
-      normal = normal.add(n.scale(d));
-      weight += d;
+    let nodeOrLeafStack = groupsQueue.data.map((group) => group.reduce((e, x) => e.add(x.element), new Node3(this.k)));
+    while (nodeOrLeafStack.length > 1) {
+      const nodeOrLeaf = nodeOrLeafStack[0];
+      nodeOrLeafStack = nodeOrLeafStack.slice(1);
+      const minIndex = argmin(nodeOrLeafStack, (x) => nodeOrLeaf.box.distanceToBox(x.box));
+      const newNode = nodeOrLeaf.join(nodeOrLeafStack[minIndex]);
+      nodeOrLeafStack.splice(minIndex, 1);
+      nodeOrLeafStack.push(newNode);
     }
-    return normal.length() > 0 ? normal.scale(1 / weight).normalize() : normal;
+    this.boundingBoxScene = nodeOrLeafStack.pop();
+    return this;
   }
   debug(props) {
     const { camera, canvas } = props;
@@ -3071,29 +3165,6 @@ class KScene {
     if (level === 0)
       return camera.reverseShot(debugScene, { clearScreen: false }).to(canvas);
     return canvas;
-  }
-  rebuild() {
-    let groupsQueue = PQueue.ofArray([...clusterLeafs(this.boundingBoxScene.box, this.sceneElements.map((x) => new Leaf3(x)))], (a, b) => b.length - a.length);
-    while (groupsQueue.data.map((x) => x.length > this.k).some((x) => x)) {
-      if (groupsQueue.peek().length > this.k) {
-        const groupOfLeafs = groupsQueue.pop();
-        const box = groupOfLeafs.reduce((e, x) => e.add(x.box), new Box);
-        const [left, right] = clusterLeafs(box, groupOfLeafs);
-        groupsQueue.push(left);
-        groupsQueue.push(right);
-      }
-    }
-    let nodeOrLeafStack = groupsQueue.data.map((group) => group.reduce((e, x) => e.add(x.element), new Node3(this.k)));
-    while (nodeOrLeafStack.length > 1) {
-      const nodeOrLeaf = nodeOrLeafStack[0];
-      nodeOrLeafStack = nodeOrLeafStack.slice(1);
-      const minIndex = argmin(nodeOrLeafStack, (x) => nodeOrLeaf.box.distanceToBox(x.box));
-      const newNode = nodeOrLeaf.join(nodeOrLeafStack[minIndex]);
-      nodeOrLeafStack.splice(minIndex, 1);
-      nodeOrLeafStack.push(newNode);
-    }
-    this.boundingBoxScene = nodeOrLeafStack.pop();
-    return this;
   }
 }
 
@@ -3132,7 +3203,7 @@ class Node3 {
   }
   interceptWithRay(ray) {
     if (this.leafs.length > 0) {
-      return leafsinterceptWithRay(this.leafs, ray);
+      return leafsInterceptWithRay(this.leafs, ray);
     }
     const leftT = this.left?.box?.interceptWithRay(ray)?.[0] ?? Number.MAX_VALUE;
     const rightT = this.right?.box?.interceptWithRay(ray)?.[0] ?? Number.MAX_VALUE;
@@ -3287,17 +3358,25 @@ class VoxelScene {
     }
     return this;
   }
+  getElements() {
+    return this.sceneElements;
+  }
   clear() {
     this.id2ElemMap = {};
     this.sceneElements = [];
     this.gridMap = {};
   }
-  getElements() {
-    return this.sceneElements;
+  distanceToPoint(p) {
+    return Number.MAX_VALUE;
   }
-  getElementInBox(box) {
-  }
-  getElementNear(p) {
+  normalToPoint(p) {
+    let normal2 = Vec3();
+    const elements = Object.values(this.gridMap[this.hash(p)] || {});
+    for (let i2 = 0;i2 < elements.length; i2++) {
+      const elem = elements[i2];
+      normal2 = normal2.add(elem.normalToPoint(p));
+    }
+    return normal2.length() > 0 ? normal2.normalize() : normal2;
   }
   interceptWithRay(ray) {
     const maxDist = 10;
@@ -3325,9 +3404,6 @@ class VoxelScene {
       return closest;
     }
   }
-  distanceToPoint(p) {
-    return Number.MAX_VALUE;
-  }
   distanceOnRay(ray) {
     const maxDist = 10;
     const maxIte = maxDist / this.gridSpace;
@@ -3351,14 +3427,14 @@ class VoxelScene {
     }
     return Number.MAX_VALUE;
   }
-  normalToPoint(p) {
-    let normal = Vec3();
-    const elements = Object.values(this.gridMap[this.hash(p)] || {});
-    for (let i2 = 0;i2 < elements.length; i2++) {
-      const elem = elements[i2];
-      normal = normal.add(elem.normalToPoint(p));
-    }
-    return normal.length() > 0 ? normal.normalize() : normal;
+  getElementNear(p) {
+    throw Error("Not implemented");
+  }
+  getElementInBox(box) {
+    throw Error("Not implemented");
+  }
+  rebuild() {
+    return this;
   }
   debug(props) {
     const { camera, canvas } = props;
@@ -3376,9 +3452,6 @@ class VoxelScene {
     });
     camera.reverseShot(debugScene, { clearScreen: false }).to(canvas);
     return canvas;
-  }
-  rebuild() {
-    return this;
   }
 }
 
@@ -3417,7 +3490,7 @@ var random = function(n) {
   const numbers = new Float64Array(n).map(() => Math.random());
   return () => numbers[index++ % n];
 };
-var leafsinterceptWithRay2 = function(leafs, ray) {
+var leafsinterceptWithRay = function(leafs, ray) {
   let closestDistance = Number.MAX_VALUE;
   let closest;
   for (let i2 = 0;i2 < leafs.length; i2++) {
@@ -3505,7 +3578,7 @@ class RandomScene {
   interceptWithRay(ray, level) {
     const nodeCache = RAY_CACHE.get(ray);
     if (nodeCache) {
-      return leafsinterceptWithRay2(nodeCache.leafs, ray);
+      return leafsinterceptWithRay(nodeCache.leafs, ray);
     }
     return this.boundingBoxScene.interceptWithRay(ray, level);
   }
@@ -3618,7 +3691,7 @@ class Node4 {
       return;
     if (this.leafs.length > 0) {
       RAY_CACHE.put(ray, this);
-      return leafsinterceptWithRay2(this.leafs, ray);
+      return leafsinterceptWithRay(this.leafs, ray);
     }
     const children = [this.left, this.right];
     const hits = [];

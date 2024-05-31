@@ -7,10 +7,7 @@ async (canvas, logger) => {
     let exposedCanvas = canvas.exposure();
     // scene
     const scene = new KScene();
-    const camera = new Camera({
-        sphericalCoords: Vec3(3, 0, 0),
-        lookAt: Vec3(1.5, 1.5, 1.5)
-    });
+    const camera = new Camera({ lookAt: Vec3(1.5, 1.5, 1.5) }).orbit(3, 0, 0);
     // mouse handling
     let mousedown = false;
     let mouse = Vec2();
@@ -28,21 +25,19 @@ async (canvas, logger) => {
             return;
         }
         const [dx, dy] = newMouse.sub(mouse).toArray();
-        camera.sphericalCoords = camera.sphericalCoords.add(
+        camera.orbit(coords => coords.add(
             Vec3(
                 0,
                 -2 * Math.PI * (dx / canvas.width),
                 -2 * Math.PI * (dy / canvas.height)
             )
-        );
+        ));
         mouse = newMouse;
-        camera.orbit();
         exposedCanvas = canvas.exposure();
 
     })
     canvas.onMouseWheel(({ deltaY }) => {
-        camera.sphericalCoords = camera.sphericalCoords.add(Vec3(deltaY * 0.001, 0, 0));
-        camera.orbit();
+        camera.orbit(coords => coords.add(Vec3(deltaY * 0.001, 0, 0)));
         exposedCanvas = canvas.exposure();
     })
 

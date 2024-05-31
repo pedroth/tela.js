@@ -22,7 +22,7 @@ const { measureTime } = Utils;
     const maxT = 20;
     // scene
     const scene = new NaiveScene();
-    const camera = new Camera({ sphericalCoords: Vec3(5, 0, 0) });
+    const camera = new Camera().orbit(5, 0, 0);
 
     const spotObj = readFileSync("./assets/spot.obj", { encoding: "utf-8" });
     const spotMesh = Mesh.readObj(spotObj, "spot")
@@ -57,8 +57,7 @@ const { measureTime } = Utils;
         { time: 0, i: 0, image: Image.ofSize(width, height) },
         ({ time, i, image }) => {
             const theta = Math.PI / 4 * time;
-            camera.sphericalCoords = Vec3(camera.sphericalCoords.get(0), theta, 0);
-            camera.orbit();
+            camera.orbit(orbit => Vec3(orbit.x, theta, 0));
             const newImage = camera.reverseShot(scene).to(image);
             return {
                 time: time + dt,

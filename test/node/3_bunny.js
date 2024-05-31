@@ -13,7 +13,7 @@ const maxT = 10;
 
 // scene
 const scene = new BScene(10);
-const camera = new Camera({ sphericalCoords: Vec3(5, 0, 0) });
+const camera = new Camera({ position: Vec3(5, 0, 0) });
 const stanfordBunnyObj = readFileSync("./assets/bunny_orig.obj", { encoding: "utf-8" });
 let bunnyMesh = Mesh.readObj(stanfordBunnyObj, "bunny");
 const bunnyBox = bunnyMesh.getBoundingBox();
@@ -31,8 +31,7 @@ const imageStream = new Stream(
     { time: 0, image: shoot(Image.ofSize(width, height)) },
     ({ time, image }) => {
         const theta = Math.PI / 4 * time;
-        camera.sphericalCoords = Vec3(camera.sphericalCoords.get(0), theta, 0);
-        camera.orbit();
+        camera.orbit(coord => Vec3(coord.x, theta,0));
         const { result: newImage, time: t } = measureTimeWithResult(() => shoot(image));
         console.log(`Image took ${t}s`);
         return {

@@ -14,7 +14,7 @@ const { measureTimeWithAsyncResult } = Utils;
 
     function bunny({ time, scene, width, height }) {
         const theta = Math.PI / 4 * time;
-        const camera = new Camera({ sphericalCoords: Vec3(5, theta, 0) })
+        const camera = new Camera().orbit(5, theta, 0);
         return camera.normalShot(scene).to(Image.ofSize(width, height));
     }
 

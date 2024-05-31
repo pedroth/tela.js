@@ -1,5 +1,3 @@
-import { KScene } from "../../dist/node";
-
 /* eslint-disable no-undef */
 async (canvas, logger) => {
     // resize incoming canvas:Canvas object.
@@ -8,10 +6,23 @@ async (canvas, logger) => {
     canvas.resize(width, height);
     // scene
     const scene = new KScene()
-    const camera = new Camera({ sphericalCoords: Vec3(5, 0, 0) });
+    const camera = new Camera();
+    camera.look()
+    .at(Vec3(8496,1431, 2429))
+    .from(Vec3())
+    // From https://www.models-resource.com/playstation/spyro2riptosrage/
+    const texture = await Canvas.ofUrl("/assets/summer_forest.png");
+    const earthObj = await fetch("/assets/summer_forest.obj").then(x => x.text());
+    const earthMesh = Mesh.readObj(earthObj, "earth")
+        .mapColors(() => Color.ofRGB(0.25, 0.25, 0.25))
+        .addTexture(texture)
+    scene.add(earthMesh);
+
+
     // mouse handling
     let mousedown = false;
     let mouse = Vec2();
+    let camSpeed = Vec3();
     canvas.onMouseDown((x, y) => {
         mousedown = true;
         mouse = Vec2(x, y);
@@ -26,45 +37,37 @@ async (canvas, logger) => {
             return;
         }
         const [dx, dy] = newMouse.sub(mouse).toArray();
-        camera.sphericalCoords = camera.sphericalCoords.add(
+        camera.orbit(coords => coords.add(
             Vec3(
                 0,
                 -2 * Math.PI * (dx / canvas.width),
                 -2 * Math.PI * (dy / canvas.height)
             )
-        );
+        ));
         mouse = newMouse;
-        camera.orbit();
     })
-    canvas.onMouseWheel(({ deltaY }) => {
-        camera.sphericalCoords = camera.sphericalCoords.add(Vec3(deltaY * 0.001, 0, 0));
-        camera.orbit();
+
+    canvas.onKeyDown((e) => {
+        const magnitude = 1;
+        if (e.code === "KeyW") camSpeed.add(Vec3(0, 0, magnitude));
+        if (e.code === "KeyS") camSpeed.add(Vec3(0, 0, -magnitude));
     })
+
     // scene
-    // From https://eoimages.gsfc.nasa.gov/images/imagerecords/73000/73751/world.topo.bathy.200407.3x5400x2700.jpg
-    const texture = await Canvas.ofUrl("/assets/summer_forest.jpg");
-    const earthObj = await fetch("/assets/summer_forest.obj").then(x => x.text());
-    const earthMesh = Mesh.readObj(earthObj, "earth")
-        .mapColors(() => Color.ofRGB(0.25, 0.25, 0.25))
-        .addTexture(texture)
-    scene.addList(earthMesh.asTriangles());
+    
     Animation
-        .builder()
-        .initialState({ it: 1, oldTime: new Date().getTime() })
-        .nextState(({ it, oldTime }) => {
+        .loop(({ dt }) => {
+            camera.position = camera.position.add(camera.toWorldCoord(camSpeed).scale(dt));
             camera.reverseShot(
                 scene,
-                { cullBackFaces: true, bilinearTextures: false, clipCameraPlane: false }
+                {
+                    cullBackFaces: true,
+                    bilinearTextures: false,
+                    clipCameraPlane: true
+                }
             )
                 .to(canvas);
-            const dt = (new Date().getTime() - oldTime) * 1e-3;
             logger.print(Math.floor(1 / dt));
-            return {
-                it: it + 1,
-                oldTime: new Date().getTime()
-            };
         })
-        .while(() => true)
-        .build()
         .play();
 }

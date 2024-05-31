@@ -7,7 +7,7 @@ async (canvas, logger) => {
     canvas.resize(width, height);
     // scene
     const scene = new NaiveScene()
-    const camera = new Camera({ sphericalCoords: Vec3(20, 0, Math.PI / 6) });
+    const camera = new Camera().orbit(20, 0, Math.PI / 6);
     // mouse handling
     let mousedown = false;
     let mouse = Vec2();
@@ -25,19 +25,17 @@ async (canvas, logger) => {
             return;
         }
         const [dx, dy] = newMouse.sub(mouse).toArray();
-        camera.sphericalCoords = camera.sphericalCoords.add(
+        camera.orbit(sphereCoords => sphereCoords.add(
             Vec3(
                 0,
                 -2 * Math.PI * (dx / canvas.width),
                 -2 * Math.PI * (dy / canvas.height)
             )
-        );
+        ));
         mouse = newMouse;
-        camera.orbit();
     })
     canvas.onMouseWheel(({ deltaY }) => {
-        camera.sphericalCoords = camera.sphericalCoords.add(Vec3(deltaY * 0.001, 0, 0));
-        camera.orbit();
+        camera.orbit(sphereCoords => sphereCoords.add(Vec3(deltaY * 0.001, 0, 0)));
     })
     // scene
     const stanfordBunnyObj = await fetch("/assets/bunny.obj").then(x => x.text());

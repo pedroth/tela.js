@@ -9,7 +9,7 @@ const width = 640;
 const height = 480;
 // re-usable scene
 const canvas = Image.ofSize(width, height);
-const camera = new Camera({ sphericalCoords: Vec3(5, 0, 0) });
+const camera = new Camera().orbit(5, 0, 0);
 const obj = readFileSync("./assets/spot.obj", { encoding: "utf-8" });
 let mesh = Mesh.readObj(obj, "mesh");
 mesh = mesh
@@ -22,5 +22,5 @@ scenes.forEach(scene => {
     scene.addList(triangles);
     const { result, time } = measureTimeWithResult(() => camera.normalShot(scene).to(canvas));
     console.log(`${scene.constructor.name}: ${time}s`);
-    saveImageToFile(`${scene.constructor.name}_${Math.floor(100 *Math.random())}.png`, result);
+    saveImageToFile(`${scene.constructor.name}_${Math.floor(100 * Math.random())}.png`, result);
 })

@@ -1,8 +1,8 @@
 /* eslint-disable no-undef */
 async (canvas, logger) => {
     // resize incoming canvas:Canvas object.
-    const width = 640/2;
-    const height = 480/2;
+    const width = 640 / 2;
+    const height = 480 / 2;
     canvas.resize(width, height);
     // scene
     const camera = new Camera();
@@ -58,19 +58,17 @@ async (canvas, logger) => {
             return;
         }
         const [dx, dy] = newMouse.sub(mouse).toArray();
-        camera.sphericalCoords = camera.sphericalCoords.add(
+        camera.orbit(coords => coords.add(
             Vec3(
                 0,
                 -2 * Math.PI * (dx / canvas.width),
                 -2 * Math.PI * (dy / canvas.height)
             )
-        );
+        ));
         mouse = newMouse;
-        camera.orbit();
     })
     canvas.onMouseWheel(({ deltaY }) => {
-        camera.sphericalCoords = camera.sphericalCoords.add(Vec3(deltaY * 0.001, 0, 0));
-        camera.orbit();
+        camera.orbit(coords => coords.add(Vec3(deltaY * 0.001, 0, 0)));
     })
 
     Animation

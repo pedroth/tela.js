@@ -7,7 +7,7 @@ async (canvas, logger) => {
     canvas.resize(width, height);
     // scene
     const scene = new Scene();
-    const camera = new Camera({ sphericalCoords: Vec3(5, 0, 0) });
+    const camera = new Camera().orbit(5, 0, 0);
     // mouse handling
     let mousedown = false;
     let mouse = Vec2();
@@ -25,22 +25,19 @@ async (canvas, logger) => {
             return;
         }
         const [dx, dy] = newMouse.sub(mouse).toArray();
-        camera.sphericalCoords = camera.sphericalCoords.add(
+        camera.orbit(coords => coords.add(
             Vec3(
                 0,
                 -2 * Math.PI * (dx / canvas.width),
                 -2 * Math.PI * (dy / canvas.height)
             )
-        );
+        ));
         mouse = newMouse;
-        camera.orbit();
     })
     canvas.onMouseWheel(({ deltaY }) => {
-        camera.sphericalCoords = camera.sphericalCoords.add(Vec3(deltaY * 0.001, 0, 0));
-        camera.orbit();
+        camera.orbit(coords => coords.add(Vec3(deltaY * 0.001, 0, 0)));
     })
     // scene
-
     // const obj = await fetch("/assets/spot.obj").then(x => x.text());
     // let mesh = Mesh.readObj(obj, "mesh");
     // mesh = mesh

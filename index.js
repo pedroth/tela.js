@@ -488,6 +488,10 @@ const examples = [
         path: "/test/web/earth.js"
     },
     {
+        title: "Summer forest",
+        path: "/test/web/summer_forest.js"
+    },
+    {
         title: "SDF test",
         path: "/test/web/signed_distance.js"
     },
