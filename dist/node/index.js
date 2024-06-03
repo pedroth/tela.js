@@ -911,7 +911,7 @@ var i = 0;
 // src/Tela/Canvas.js
 var drawConvexPolygon = function(canvas, positions, shader) {
   const { width, height } = canvas;
-  const canvasBox = new Box(Vec2(), Vec2(width, height));
+  const canvasBox = this.box;
   let boundingBox = Box.EMPTY;
   positions.forEach((x) => {
     boundingBox = boundingBox.add(new Box(x, x));
@@ -4374,7 +4374,7 @@ import {execSync, exec} from "child_process";
 // src/Tela/Image.js
 var drawConvexPolygon2 = function(canvas, positions, shader) {
   const { width, height } = canvas;
-  const canvasBox = new Box(Vec2(), Vec2(width, height));
+  const canvasBox = this.box;
   let boundingBox = Box.EMPTY;
   positions.forEach((x) => {
     boundingBox = boundingBox.add(new Box(x, x));
@@ -4406,6 +4406,7 @@ class Image {
     this._width = width;
     this._height = height;
     this._image = new Array(this._width * this._height).fill(() => Color.ofRGB());
+    this.box = new Box(Vec2(0, 0), Vec2(this._width, this._height));
   }
   get width() {
     return this._width;
@@ -4451,7 +4452,7 @@ class Image {
   drawLine(p1, p2, shader) {
     const w = this._width;
     const h = this._height;
-    const line = clipLine(p1, p2, new Box(Vec2(0, 0), Vec2(w, h)));
+    const line = clipLine(p1, p2, this.box);
     if (line.length <= 1)
       return;
     const [pi, pf] = line;

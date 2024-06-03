@@ -14,6 +14,7 @@ export default class Window {
         this._window = sdl.video.createWindow({ title, resizable: true });
         this._image = new Array(this._width * this._height)
             .fill(Color.ofRGB());
+        this.box = new Box(Vec2(0, 0), Vec2(this._width, this._height))
     }
 
     get width() {
@@ -106,7 +107,7 @@ export default class Window {
     drawLine(p1, p2, shader) {
         const w = this._width;
         const h = this._height;
-        const line = clipLine(p1, p2, new Box(Vec2(0, 0), Vec2(w, h)));
+        const line = clipLine(p1, p2, this.box));
         if (line.length <= 1) return;
         const [pi, pf] = line;
         const v = pf.sub(pi);
@@ -234,7 +235,7 @@ export default class Window {
 
 function drawConvexPolygon(canvas, positions, shader) {
     const { width, height } = canvas;
-    const canvasBox = new Box(Vec2(), Vec2(width, height));
+    const canvasBox = this.box;
     let boundingBox = Box.EMPTY;
     positions.forEach((x) => {
         boundingBox = boundingBox.add(new Box(x, x));
