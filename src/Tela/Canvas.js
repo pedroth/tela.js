@@ -9,6 +9,7 @@ export default class Canvas {
 
   constructor(canvas) {
     this._canvas = canvas;
+    this._canvas.setAttribute('tabindex', '1');
     this._width = canvas.width;
     this._height = canvas.height;
     this._ctx = this._canvas.getContext("2d", { willReadFrequently: true });
@@ -104,7 +105,7 @@ export default class Canvas {
       this._image[index] = color.red * MAX_8BIT;
       this._image[index + 1] = color.green * MAX_8BIT;
       this._image[index + 2] = color.blue * MAX_8BIT;
-      this._image[index + 3] = 255;
+      this._image[index + 3] = MAX_8BIT;
     }
     return this;
   }

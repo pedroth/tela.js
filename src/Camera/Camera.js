@@ -14,7 +14,7 @@ export default class Camera {
     this.distanceToPlane = distanceToPlane ?? 1;
     this.position = position ?? Vec3(3, 0, 0);
     this._orientCoords = Vec2();
-    this._orbitCoords = Vec3();
+    this._orbitCoords = Vec3(this.position.length(), 0, 0);
     this.orient();
   }
 

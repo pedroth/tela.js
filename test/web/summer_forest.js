@@ -6,10 +6,7 @@ async (canvas, logger) => {
     canvas.resize(width, height);
     // scene
     const scene = new KScene()
-    const camera = new Camera();
-    camera.look()
-    .at(Vec3(8496,1431, 2429))
-    .from(Vec3())
+    const camera = new Camera({ lookAt: Vec3(8496, 1431, 2429) }).orbit(3, 0, 0);
     // From https://www.models-resource.com/playstation/spyro2riptosrage/
     const texture = await Canvas.ofUrl("/assets/summer_forest.png");
     const earthObj = await fetch("/assets/summer_forest.obj").then(x => x.text());
@@ -37,9 +34,8 @@ async (canvas, logger) => {
             return;
         }
         const [dx, dy] = newMouse.sub(mouse).toArray();
-        camera.orbit(coords => coords.add(
-            Vec3(
-                0,
+        camera.orient(coords => coords.add(
+            Vec2(
                 -2 * Math.PI * (dx / canvas.width),
                 -2 * Math.PI * (dy / canvas.height)
             )
@@ -48,20 +44,22 @@ async (canvas, logger) => {
     })
 
     canvas.onKeyDown((e) => {
-        const magnitude = 1;
-        if (e.code === "KeyW") camSpeed.add(Vec3(0, 0, magnitude));
-        if (e.code === "KeyS") camSpeed.add(Vec3(0, 0, -magnitude));
+        const magnitude = 50;
+        if (e.code === "KeyW") camSpeed = Vec3(0, 0, magnitude);
+        if (e.code === "KeyS") camSpeed = Vec3(0, 0, -magnitude);
     })
 
-    // scene
-    
+    canvas.onKeyUp(() => {
+        camSpeed = Vec3();
+    })
+
     Animation
         .loop(({ dt }) => {
             camera.position = camera.position.add(camera.toWorldCoord(camSpeed).scale(dt));
             camera.reverseShot(
                 scene,
                 {
-                    cullBackFaces: true,
+                    cullBackFaces: false,
                     bilinearTextures: false,
                     clipCameraPlane: true
                 }
@@ -70,4 +68,8 @@ async (canvas, logger) => {
             logger.print(Math.floor(1 / dt));
         })
         .play();
+
+    const audio = new Audio("/assets/summer_forest.mp3");
+    audio.loop = true;
+    audio.play();
 }

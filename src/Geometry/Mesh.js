@@ -52,6 +52,10 @@ export default class Mesh {
         return this.meshScene.interceptWithRay(ray);
     }
 
+    distanceOnRay(ray) {
+        return this.meshScene.distanceOnRay(ray);
+    }
+
     setName(name) {
         this.name = name;
         return this;
@@ -62,6 +66,7 @@ export default class Mesh {
      */
     addTexture(image) {
         this.texture = image;
+        this.meshScene.getElements().forEach(e => e.texture = this.texture);
         return this;
     }
 
@@ -197,7 +202,7 @@ export default class Mesh {
             )
 
         }
-        return Object.values(triangles);
+        return triangles;
     }
 
     static readObj(objFile, name = `Mesh_${MESH_COUNTER++}`) {
