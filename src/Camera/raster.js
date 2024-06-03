@@ -1,22 +1,24 @@
 import Color from "../Color/Color.js";
 import Line from "../Geometry/Line.js";
 import Point from "../Geometry/Point.js";
+import Mesh from "../Geometry/Mesh.js";
 import Triangle from "../Geometry/Triangle.js";
 import { lerp } from "../Utils/Math.js";
-import { Vec2, Vec3 } from "../Vector/Vector.js";
+import { Vec2 } from "../Vector/Vector.js";
 
 export function rasterGraphics(scene, camera, params) {
     const type2render = {
         [Point.name]: rasterPoint,
         [Line.name]: rasterLine,
         [Triangle.name]: rasterTriangle,
+        [Mesh.name]: rasterMesh,
     }
     const {
         cullBackFaces,
         bilinearTexture,
         clipCameraPlane,
         clearScreen,
-        backgroundColor
+        backgroundColor,
     } = params;
     params.cullBackFaces = cullBackFaces ?? true;
     params.bilinearTexture = bilinearTexture ?? false;
@@ -163,13 +165,8 @@ function rasterTriangle({ canvas, camera, elem, w, h, zBuffer, params }) {
     if (params.cullBackFaces) {
         const du = pointsInCamCoord[1].sub(pointsInCamCoord[0]);
         const dv = pointsInCamCoord[2].sub(pointsInCamCoord[0]);
-        const n = Vec3(
-            du.y * dv.z - du.z * dv.y,
-            du.x * dv.z - du.z * dv.x,
-            du.x * dv.y - du.y * dv.x
-        );
-        const triangleDot = Vec3(0, 0, 1).dot(n);
-        if (triangleDot < 0) return
+        const n = du.cross(dv).normalize();
+        if (n.dot(pointsInCamCoord[0]) <= 0) return;
     }
     //frustum culling
     let inFrustum = [];
@@ -200,28 +197,36 @@ function rasterTriangle({ canvas, camera, elem, w, h, zBuffer, params }) {
     const v = intPoints[2].sub(intPoints[0]);
     const det = u.x * v.y - u.y * v.x; // wedge product
     if (det === 0) return;
+    const invDet = 1 / det;
+    const c1 = colors[0].toArray();
+    const c2 = colors[1].toArray();
+    const c3 = colors[2].toArray();
+    const haveTextures = texCoords &&
+        texCoords.length > 0 &&
+        !texCoords.some(x => x === undefined);
     const shader = (x, y) => {
         const p = Vec2(x, y).sub(intPoints[0]);
-        const alpha = - (v.x * p.y - v.y * p.x) / det;
-        const beta = (u.x * p.y - u.y * p.x) / det;
+        const alpha = - (v.x * p.y - v.y * p.x) * invDet;
+        const beta = (u.x * p.y - u.y * p.x) * invDet;
         const gamma = 1 - alpha - beta;
         const z = pointsInCamCoord[0].z * gamma +
             pointsInCamCoord[1].z * alpha +
             pointsInCamCoord[2].z * beta;
         // compute color
-        let c = colors[0].scale(gamma)
-            .add(colors[1].scale(alpha))
-            .add(colors[2].scale(beta));
-        if (
-            texCoords &&
-            texCoords.length > 0 &&
-            !texCoords.some(x => x === undefined)
-        ) {
+        let c = Color.ofRGB(
+            c1[0] * gamma + c2[0] * alpha + c3[0] * beta,
+            c1[1] * gamma + c2[1] * alpha + c3[1] * beta,
+            c1[2] * gamma + c2[2] * alpha + c3[2] * beta,
+            c1[3] * gamma + c2[3] * alpha + c3[3] * beta,
+        );
+        if (haveTextures) {
             const texUV = texCoords[0].scale(gamma)
                 .add(texCoords[1].scale(alpha))
                 .add(texCoords[2].scale(beta));
             const texColor = texture ?
-                params.bilinearTexture ? getBiLinearTexColor(texUV, texture) : getTexColor(texUV, texture) :
+                params.bilinearTexture ?
+                    getBiLinearTexColor(texUV, texture) :
+                    getTexColor(texUV, texture) :
                 getDefaultTexColor(texUV);
             c = texColor;
         }
@@ -233,6 +238,13 @@ function rasterTriangle({ canvas, camera, elem, w, h, zBuffer, params }) {
         }
     }
     canvas.drawTriangle(intPoints[0], intPoints[1], intPoints[2], shader);
+}
+
+function rasterMesh({ canvas, camera, elem, w, h, zBuffer, params }) {
+    const triangles = elem.meshScene.getElements();
+    for (let i = 0; i < triangles.length; i++) {
+        rasterTriangle({ canvas, camera, elem: triangles[i], w, h, zBuffer, params })
+    }
 }
 
 function lineCameraPlaneIntersection(vertexOut, vertexIn, camera) {
