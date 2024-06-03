@@ -15,6 +15,7 @@ export default class Canvas {
     this._ctx = this._canvas.getContext("2d", { willReadFrequently: true });
     this._imageData = this._ctx.getImageData(0, 0, this._width, this._height);
     this._image = this._imageData.data; // by changing this, imageData is change magically
+    this.box = new Box(Vec2(0, 0), Vec2(this._width, this._height))
   }
 
   get width() {
@@ -88,7 +89,7 @@ export default class Canvas {
   drawLine(p1, p2, shader) {
     const w = this._width;
     const h = this._height;
-    const line = clipLine(p1, p2, new Box(Vec2(0, 0), Vec2(w, h)));
+    const line = clipLine(p1, p2, this.box);
     if (line.length <= 1) return;
     const [pi, pf] = line;
     const v = pf.sub(pi);
@@ -219,6 +220,8 @@ export default class Canvas {
     this._ctx = this._canvas.getContext("2d", { willReadFrequently: true });
     this._imageData = this._ctx.getImageData(0, 0, this._width, this._height);
     this._image = this._imageData.data;
+    this.box = new Box(Vec2(), Vec2(width, height))
+    return this;
   }
 
   //========================================================================================
