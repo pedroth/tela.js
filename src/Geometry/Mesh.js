@@ -29,9 +29,19 @@ export default class Mesh {
         this.texture = texture;
         this.name = name || `Mesh_${MESH_COUNTER++}`;
         this.materials = materials;
-        this.meshScene = new KScene();
-        this.meshScene.addList(this.asTriangles());
-        this.meshScene.rebuild();
+    }
+
+    _init() {
+        if(this._meshScene) return this;
+        this._meshScene = new KScene();
+        this._meshScene.addList(this.asTriangles());
+        this._meshScene.rebuild();
+        return this;
+    }
+
+    get meshScene() {
+        this._init();
+        return this._meshScene;
     }
 
     getBoundingBox() {

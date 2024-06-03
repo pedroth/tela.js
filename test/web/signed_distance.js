@@ -72,22 +72,11 @@ async (canvas, logger) => {
     })
 
     Animation
-        .builder()
-        .initialState({ it: 1, time: 0, oldTime: new Date().getTime() })
-        .nextState(({ it, time, oldTime }) => {
-            const dt = (new Date().getTime() - oldTime) * 1e-3;
-            oldTime = new Date().getTime()
+        .loop(({ dt, time }) => {
             const t = time;
             light.pos = Vec3(Math.cos(t), Math.sin(t), 1).scale(2);
             camera.rayMap(rayScene).to(canvas);
             logger.print(`FPS: ${Math.floor(1 / dt)}`);
-            return {
-                it: it + 1,
-                time: time + dt,
-                oldTime
-            };
         })
-        .while(() => true)
-        .build()
         .play();
 }

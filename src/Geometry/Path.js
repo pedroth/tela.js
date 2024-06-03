@@ -21,9 +21,9 @@ export default class Path {
     normalToPoint() {
         throw Error("No implementation");
     }
-
+    
     interceptWithRay(ray) {
-        return this.meshScene.interceptWithRay(ray);
+        throw Error("No implementation");
     }
 
     asLines() {

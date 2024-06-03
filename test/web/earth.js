@@ -45,22 +45,17 @@ async (canvas, logger) => {
         .addTexture(texture)
     scene.addList(earthMesh.asTriangles());
     Animation
-        .builder()
-        .initialState({ it: 1, oldTime: new Date().getTime() })
-        .nextState(({ it, oldTime }) => {
+        .loop(({ dt }) => {
             camera.reverseShot(
                 scene,
-                { cullBackFaces: true, bilinearTextures: false, clipCameraPlane: false }
+                {
+                    cullBackFaces: true,
+                    bilinearTextures: false,
+                    clipCameraPlane: false
+                }
             )
                 .to(canvas);
-            const dt = (new Date().getTime() - oldTime) * 1e-3;
             logger.print(Math.floor(1 / dt));
-            return {
-                it: it + 1,
-                oldTime: new Date().getTime()
-            };
         })
-        .while(() => true)
-        .build()
         .play();
 }

@@ -13,20 +13,8 @@
         let d = [0.263, 0.416, 0.557];
         return [a[0] + b[0] * Math.cos(6.28318 * (c[0] * t + d[0])), a[1] + b[1] * Math.cos(6.28318 * (c[1] * t + d[1])), a[2] + b[2] * Math.cos(6.28318 * (c[2] * t + d[2]))];
     }
-    Animation
-        .builder()
-        .initialState({
-            it: 1,
-            time: 0,
-            oldT: new Date().getTime(),
-        })
-        .nextState(({
-            it,
-            time,
-            oldT,
-        }) => {
-            const newT = new Date().getTime();
-            const dt = (newT - oldT) * 1e-3;
+    const animation = Animation
+        .loop(({ time, dt }) => {
             logger.print(`FPS: ${Math.floor(1 / dt)}`);
             canvas.map((x, y) => {
                 let u = (2 * x - width) / height
@@ -48,13 +36,7 @@
                 }
                 return Color.ofRGB(finalColor[0], finalColor[1], finalColor[2]);
             })
-            return {
-                it: it + 1,
-                oldT: newT,
-                time: time + dt,
-            };
+            if (time > T) animation.stop();
         })
-        .while(({ time }) => time <= T)
-        .build()
         .play();
 }

@@ -4,7 +4,6 @@
     const height = 100;
     canvas.resize(width, height);
     // utils
-    const T = 100;
     const amp = 10;
     const spread = 200;
     const friction = 0.1;
@@ -26,22 +25,8 @@
     );
     // start animation
     Animation
-        .builder()
-        .initialState({
-            it: 1,
-            time: 0,
-            oldT: new Date().getTime(),
-        })
-        .nextState(({
-            it,
-            time,
-            oldT,
-        }) => {
-            const newT = new Date().getTime();
-            const dt = (newT - oldT) * 1e-3;
+        .loop(({ dt }) => {
             logger.print(`FPS: ${Math.floor(1 / dt)}`);
-
-
             let maxWave = Number.MIN_VALUE;
             let minWave = Number.MAX_VALUE;
             let maxAbsSpeed = Number.MIN_VALUE;
@@ -82,13 +67,6 @@
                 const greenColor = Math.abs(waveSpeed[yi][xi]) / maxAbsSpeed;
                 return Color.ofRGB(redColor, greenColor, blueColor);
             })
-            return {
-                it: it + 1,
-                oldT: newT,
-                time: time + dt,
-            };
         })
-        .while(({ time }) => time <= T)
-        .build()
         .play();
 }

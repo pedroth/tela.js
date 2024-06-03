@@ -91,20 +91,10 @@ async (canvas, logger) => {
 
     // boilerplate for fps
     Animation
-        .builder()
-        .initialState({ it: 1, oldTime: new Date().getTime(), time: 0 })
-        .nextState(({ it, oldTime, time }) => {
+        .loop(({ time, dt }) => {
             camera.reverseShot(scene).to(canvas);
             stateMachine(time)
-            const dt = (new Date().getTime() - oldTime) * 1e-3;
             logger.print(Math.floor(1 / dt));
-            return {
-                it: it + 1,
-                oldTime: new Date().getTime(),
-                time: time + dt
-            };
         })
-        .while(() => true)
-        .build()
         .play();
 }

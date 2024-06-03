@@ -241,7 +241,7 @@ function rasterTriangle({ canvas, camera, elem, w, h, zBuffer, params }) {
 }
 
 function rasterMesh({ canvas, camera, elem, w, h, zBuffer, params }) {
-    const triangles = elem.meshScene.getElements();
+    const triangles = elem._meshScene.getElements();
     for (let i = 0; i < triangles.length; i++) {
         rasterTriangle({ canvas, camera, elem: triangles[i], w, h, zBuffer, params })
     }

@@ -57,18 +57,9 @@ async (canvas, logger) => {
 
     // boilerplate for fps
     Animation
-        .builder()
-        .initialState({ it: 1, oldTime: new Date().getTime() })
-        .nextState(({ it, oldTime }) => {
-            camera.normalShot(scene).to(canvas);
-            const dt = (new Date().getTime() - oldTime) * 1e-3;
+        .loop(({ dt }) => {
             logger.print(Math.floor(1 / dt));
-            return {
-                it: it + 1,
-                oldTime: new Date().getTime()
-            };
+            camera.normalShot(scene).to(canvas);
         })
-        .while(() => true)
-        .build()
         .play();
 }

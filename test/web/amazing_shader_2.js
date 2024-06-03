@@ -11,19 +11,7 @@
     const mod = (x) => (n) => ((x % n) + n) % n;
     // Using Animation from tela.js
     Animation
-        .builder()
-        .initialState({
-            it: 1,
-            time: 0,
-            oldT: new Date().getTime(),
-        })
-        .nextState(({
-            it,
-            time,
-            oldT,
-        }) => {
-            const newT = new Date().getTime();
-            const dt = (newT - oldT) * 1e-3;
+        .loop(({ time, dt }) => {
             logger.print(`FPS: ${Math.floor(1 / dt)}`);
             canvas
                 .map((x, y) => {
@@ -42,13 +30,6 @@
                     }
                     return Color.ofRGB(...c).scale(1 / l);
                 })
-            return {
-                it: it + 1,
-                oldT: newT,
-                time: time + dt,
-            };
         })
-        .while(({ time }) => time <= T)
-        .build()
         .play();
 }

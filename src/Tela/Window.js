@@ -235,7 +235,7 @@ export default class Window {
 
 function drawConvexPolygon(canvas, positions, shader) {
     const { width, height } = canvas;
-    const canvasBox = this.box;
+    const canvasBox = canvas.box;
     let boundingBox = Box.EMPTY;
     positions.forEach((x) => {
         boundingBox = boundingBox.add(new Box(x, x));

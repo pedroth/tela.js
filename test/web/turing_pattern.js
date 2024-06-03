@@ -41,19 +41,7 @@
 
     // start animation
     Animation
-        .builder()
-        .initialState({
-            it: 1,
-            time: 0,
-            oldT: new Date().getTime(),
-        })
-        .nextState(({
-            it,
-            time,
-            oldT,
-        }) => {
-            const newT = new Date().getTime();
-            let dt = (newT - oldT) * 1e-3;
+        .loop(({ dt }) => {
             logger.print(`FPS: ${Math.floor(1 / dt)}`);
             dt = 0.8;
 
@@ -106,13 +94,6 @@
                 blueColor = isNaN(blueColor) ? 1 : blueColor;
                 return Color.ofRGB(redColor, 0, blueColor);
             })
-            return {
-                it: it + 1,
-                oldT: newT,
-                time: time + dt,
-            };
         })
-        .while(({ time }) => true)
-        .build()
         .play();
 }

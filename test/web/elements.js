@@ -6,7 +6,7 @@ async (canvas, logger) => {
     canvas.resize(width, height);
     // scene
     const scene = new Scene()
-    const camera = new Camera().orbit(5,0,0);
+    const camera = new Camera().orbit(5, 0, 0);
     // mouse handling
     let mousedown = false;
     let mouse = Vec2();
@@ -63,18 +63,9 @@ async (canvas, logger) => {
 
     // boilerplate for fps
     Animation
-        .builder()
-        .initialState({ it: 1, oldTime: new Date().getTime() })
-        .nextState(({ it, oldTime }) => {
+        .loop(({ dt }) => {
             camera.normalShot(scene).to(canvas);
-            const dt = (new Date().getTime() - oldTime) * 1e-3;
             logger.print(Math.floor(1 / dt));
-            return {
-                it: it + 1,
-                oldTime: new Date().getTime()
-            };
         })
-        .while(() => true)
-        .build()
         .play();
 }

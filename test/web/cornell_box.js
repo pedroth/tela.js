@@ -7,7 +7,7 @@ async (canvas, logger) => {
     let exposedCanvas = canvas.exposure();
     // scene
     const scene = new BScene()
-    const camera = new Camera({lookAt: Vec3(1.5, 1.5, 1.5)}).orbit(3, 0, 0);
+    const camera = new Camera({ lookAt: Vec3(1.5, 1.5, 1.5) }).orbit(3, 0, 0);
     // mouse handling
     let mousedown = false;
     let mouse = Vec2();
@@ -172,18 +172,9 @@ async (canvas, logger) => {
 
     // boilerplate for fps
     Animation
-        .builder()
-        .initialState({ it: 1, oldTime: new Date().getTime() })
-        .nextState(({ it, oldTime }) => {
+        .loop(({ dt }) => {
             camera.sceneShot(scene).to(exposedCanvas);
-            const dt = (new Date().getTime() - oldTime) * 1e-3;
             logger.print(Math.floor(1 / dt));
-            return {
-                it: it + 1,
-                oldTime: new Date().getTime()
-            };
         })
-        .while(() => true)
-        .build()
         .play();
 }

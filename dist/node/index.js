@@ -911,7 +911,7 @@ var i = 0;
 // src/Tela/Canvas.js
 var drawConvexPolygon = function(canvas, positions, shader) {
   const { width, height } = canvas;
-  const canvasBox = this.box;
+  const canvasBox = canvas.box;
   let boundingBox = Box.EMPTY;
   positions.forEach((x) => {
     boundingBox = boundingBox.add(new Box(x, x));
@@ -2445,9 +2445,18 @@ class Mesh {
     this.texture = texture;
     this.name = name || `Mesh_${MESH_COUNTER++}`;
     this.materials = materials;
-    this.meshScene = new KScene;
-    this.meshScene.addList(this.asTriangles());
-    this.meshScene.rebuild();
+  }
+  _init() {
+    if (this._meshScene)
+      return this;
+    this._meshScene = new KScene;
+    this._meshScene.addList(this.asTriangles());
+    this._meshScene.rebuild();
+    return this;
+  }
+  get meshScene() {
+    this._init();
+    return this._meshScene;
   }
   getBoundingBox() {
     if (this.boundingBox)
@@ -2795,7 +2804,7 @@ var rasterTriangle = function({ canvas, camera, elem, w, h, zBuffer, params }) {
   canvas.drawTriangle(intPoints[0], intPoints[1], intPoints[2], shader);
 };
 var rasterMesh = function({ canvas, camera, elem, w, h, zBuffer, params }) {
-  const triangles = elem.meshScene.getElements();
+  const triangles = elem._meshScene.getElements();
   for (let i2 = 0;i2 < triangles.length; i2++) {
     rasterTriangle({ canvas, camera, elem: triangles[i2], w, h, zBuffer, params });
   }
@@ -4021,7 +4030,7 @@ class Path {
     throw Error("No implementation");
   }
   interceptWithRay(ray) {
-    return this.meshScene.interceptWithRay(ray);
+    throw Error("No implementation");
   }
   asLines() {
     const lines = [];
@@ -4374,7 +4383,7 @@ import {execSync, exec} from "child_process";
 // src/Tela/Image.js
 var drawConvexPolygon2 = function(canvas, positions, shader) {
   const { width, height } = canvas;
-  const canvasBox = this.box;
+  const canvasBox = canvas.box;
   let boundingBox = Box.EMPTY;
   positions.forEach((x) => {
     boundingBox = boundingBox.add(new Box(x, x));
