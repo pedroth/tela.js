@@ -7,6 +7,10 @@
     "url": "git+https://github.com/pedroth/tela.js.git"
   },
   "module": "./src/index.js",
+  "files": [
+    "src/",
+    "dist/"
+  ],
   "devDependencies": {
     "bun-types": "latest",
     "child_process": "^1.0.2",
