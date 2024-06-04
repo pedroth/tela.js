@@ -6,3 +6,4 @@ import Image from "./Tela/Image.js"
 
 // export { IO, Image, Window };
 export { IO, Image, Parallel };
+export * from "./Utils/Video.js"

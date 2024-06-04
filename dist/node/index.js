@@ -10,7 +10,9 @@ var __export = (target, all) => {
 };
 
 // src/Utils/Animation.js
-window.globalAnimationIds = [];
+var isNode = typeof window === "undefined";
+if (!isNode)
+  window.globalAnimationIds = [];
 
 class Animation {
   constructor(state, next, doWhile) {
@@ -21,7 +23,7 @@ class Animation {
     this.isStopping = false;
   }
   play() {
-    const timeout = typeof window === "undefined" ? setTimeout : requestAnimationFrame;
+    const timeout = isNode ? setTimeout : requestAnimationFrame;
     if (this.isStopping) {
       this.isStopping = false;
       return this;
@@ -32,7 +34,8 @@ class Animation {
       this.state = this.next(this.state);
       this.play();
     });
-    window.globalAnimationIds.push(this.requestAnimeId);
+    if (!isNode)
+      window.globalAnimationIds.push(this.requestAnimeId);
     return this;
   }
   stop() {
@@ -4654,7 +4657,7 @@ function saveImageStreamToVideo(fileAddress, streamWithImages, { imageGetter = (
   };
 }
 function saveParallelImageStreamToVideo(fileAddress, parallelStreamOfImages, options) {
-  const { fps, isNode = true } = options;
+  const { fps, isNode: isNode2 = true } = options;
   const { fileName, extension } = getFileNameAndExtensionFromAddress(fileAddress);
   const partition = parallelStreamOfImages.getPartition();
   const inputParamsPartitions = Object.values(partition);
@@ -4705,7 +4708,7 @@ function saveParallelImageStreamToVideo(fileAddress, parallelStreamOfImages, opt
             });
         `);
     return new Promise((resolve) => {
-      exec(`${isNode ? "node" : "bun"} ${spawnFile}`, () => resolve());
+      exec(`${isNode2 ? "node" : "bun"} ${spawnFile}`, () => resolve());
     });
   });
   return Promise.all(promises).then(() => {
@@ -4793,7 +4796,23 @@ class ParallelBuilder {
     return new Parallel(...attrs);
   }
 }
+
+// src/Utils/Video.js
+function video(file, lambda, { width = 640, height = 480, FPS = 25 }) {
+  const dt = 1 / FPS;
+  const stream2 = new Stream({
+    time: 0,
+    image: lambda({ time: 0, image: Image.ofSize(width, height) })
+  }, ({ time, image }) => {
+    return {
+      time: time + dt,
+      image: lambda({ time, image })
+    };
+  });
+  return saveImageStreamToVideo(file, stream2, { fps: FPS });
+}
 export {
+  video,
   smin,
   randomPointInSphere,
   parse as parseSVG,

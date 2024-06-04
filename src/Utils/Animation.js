@@ -1,4 +1,6 @@
-window.globalAnimationIds = []
+const isNode = typeof window === "undefined";
+if (!isNode) window.globalAnimationIds = [];
+
 export default class Animation {
   constructor(state, next, doWhile) {
     this.state = state;
@@ -9,7 +11,7 @@ export default class Animation {
   }
 
   play() {
-    const timeout = typeof window === "undefined" ? setTimeout : requestAnimationFrame;
+    const timeout = isNode ? setTimeout : requestAnimationFrame;
     if (this.isStopping) {
       this.isStopping = false;
       return this;
@@ -19,7 +21,7 @@ export default class Animation {
       this.state = this.next(this.state);
       this.play();
     });
-    window.globalAnimationIds.push(this.requestAnimeId);
+    if (!isNode) window.globalAnimationIds.push(this.requestAnimeId);
     return this;
   }
 

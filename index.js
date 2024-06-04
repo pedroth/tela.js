@@ -245,7 +245,11 @@ function headerTools() {
 function header() {
     return DOM.of("header")
         .appendChild(
-            DOM.of("h2").inner("Tela.js playground"),
+            DOM.of("a")
+                .attr("href", "https://pedroth.github.io/tela.js")
+                .appendChild(
+                    DOM.of("h2").inner("Tela.js playground")
+                ),
         )
 }
 
@@ -557,7 +561,7 @@ function execCode(code) {
                 const id = window.requestAnimationFrame(lambda);
                 window.globalAnimationIds.push(id);
             }
-            window.globalAnimationIds.forEach(id => cancelAnimationFrame(id));
+            window?.globalAnimationIds?.forEach(id => cancelAnimationFrame(id));
             window.globalAnimationIds = [];
             const canvasDOM = document.getElementsByTagName("canvas")[0];
             const canvas = Canvas.ofDOM(canvasDOM);

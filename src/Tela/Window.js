@@ -107,7 +107,7 @@ export default class Window {
     drawLine(p1, p2, shader) {
         const w = this._width;
         const h = this._height;
-        const line = clipLine(p1, p2, this.box));
+        const line = clipLine(p1, p2, this.box);
         if (line.length <= 1) return;
         const [pi, pf] = line;
         const v = pf.sub(pi);

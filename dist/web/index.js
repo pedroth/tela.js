@@ -10,7 +10,9 @@ var __export = (target, all) => {
 };
 
 // src/Utils/Animation.js
-window.globalAnimationIds = [];
+var isNode = typeof window === "undefined";
+if (!isNode)
+  window.globalAnimationIds = [];
 
 class Animation {
   constructor(state, next, doWhile) {
@@ -21,7 +23,7 @@ class Animation {
     this.isStopping = false;
   }
   play() {
-    const timeout = typeof window === "undefined" ? setTimeout : requestAnimationFrame;
+    const timeout = isNode ? setTimeout : requestAnimationFrame;
     if (this.isStopping) {
       this.isStopping = false;
       return this;
@@ -32,7 +34,8 @@ class Animation {
       this.state = this.next(this.state);
       this.play();
     });
-    window.globalAnimationIds.push(this.requestAnimeId);
+    if (!isNode)
+      window.globalAnimationIds.push(this.requestAnimeId);
     return this;
   }
   stop() {

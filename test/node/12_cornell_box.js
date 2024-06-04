@@ -55,7 +55,7 @@ import { readFileSync } from "fs"
         .mapVertices(v => v.add(Vec3(0.5, 1.5, 1.0)))
         .mapColors(() => Color.BLUE)
         .mapMaterials(() => DiElectric(1.33333))
-    scene.add(...mesh.asTriangles());
+    // scene.add(mesh);
 
     // cornell box
     scene.add(
@@ -140,7 +140,8 @@ import { readFileSync } from "fs"
     const play = async ({ time, oldT }) => {
         const newT = new Date().getTime();
         const dt = (new Date().getTime() - oldT) * 1e-3;
-        camera.sceneShot(scene, { bounces: 3, samplesPerPxl: 1 }).to(exposedCanvas);
+        // camera.sceneShot(scene, { bounces: 10, samplesPerPxl: 3, gamma: 0.1 }).to(exposedCanvas);
+        camera.sceneShot(scene).to(exposedCanvas);
         window.setTitle(`FPS: ${Math.floor(1 / dt)}`);
 
         setTimeout(() => play({
