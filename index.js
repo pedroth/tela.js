@@ -25,7 +25,7 @@ function toggleFullScreen(elem) {
     }
 }
 
-const MAGIC_CODE_LINE_NUMBER_OFFSET = toggleFullScreen.toString().split("\n").length + 15;
+const MAGIC_CODE_LINE_NUMBER_OFFSET = toggleFullScreen.toString().split("\n").length + 21;
 
 async function svg(url) {
     const data = await fetch(SOURCE + url);
@@ -553,6 +553,12 @@ function execCode(code) {
             script.textContent = `
             import {Path, Ray, Canvas, DOM, Color, Animation, Scene, KScene, BScene, Camera, Vec2, Vec3, Vec, Box, Point, Mesh, NaiveScene, RandomScene, VoxelScene, Line, Triangle, Diffuse, Metallic, Alpha, DiElectric, clamp} from "${SOURCE}/dist/web/index.js"
             ${toggleFullScreen.toString()}
+            function requestAnimationFrame(lambda) {
+                const id = window.requestAnimationFrame(lambda);
+                window.globalAnimationIds.push(id);
+            }
+            window.globalAnimationIds.forEach(id => cancelAnimationFrame(id));
+            window.globalAnimationIds = [];
             const canvasDOM = document.getElementsByTagName("canvas")[0];
             const canvas = Canvas.ofDOM(canvasDOM);
             document.getElementById("expandButton").addEventListener('click', () => {
@@ -567,6 +573,7 @@ function execCode(code) {
                 }
             };
             (${code.replaceAll("/assets/", SOURCE + "/assets/")})(canvas, logger)
+            console.log(window.globalAnimationIds);
             `;
             iframe.element.contentDocument.body.appendChild(script);
         })

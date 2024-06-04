@@ -6,6 +6,10 @@ Experimental graphic library from scratch, with reference implementation of comp
 
 The purpose of this graphic engine is to be able to generate images in a computational way, with minimal dependencies, such that the readable graphical algorithms shine instead of opaque graphical APIs. The engine should also be capable to create videos and interactive demos or games. 
 
+Playground usage:
+
+
+
 # Table of Contents
 
 - [Quick start](#quick-start)

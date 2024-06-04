@@ -10,6 +10,8 @@ var __export = (target, all) => {
 };
 
 // src/Utils/Animation.js
+window.globalAnimationIds = [];
+
 class Animation {
   constructor(state, next, doWhile) {
     this.state = state;
@@ -30,7 +32,7 @@ class Animation {
       this.state = this.next(this.state);
       this.play();
     });
-    Animation.globalAnimationIds.push(this.requestAnimeId);
+    window.globalAnimationIds.push(this.requestAnimeId);
     return this;
   }
   stop() {
@@ -39,7 +41,6 @@ class Animation {
     this.isStopping = true;
     return this;
   }
-  static globalAnimationIds = [];
   static loop(lambda) {
     return Animation.builder().initialState({ time: 0, oldTime: new Date().getTime() }).nextState(({ time, oldTime }) => {
       const newTime = new Date().getTime();

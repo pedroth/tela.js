@@ -1,4 +1,4 @@
-
+window.globalAnimationIds = []
 export default class Animation {
   constructor(state, next, doWhile) {
     this.state = state;
@@ -19,7 +19,7 @@ export default class Animation {
       this.state = this.next(this.state);
       this.play();
     });
-    Animation.globalAnimationIds.push(this.requestAnimeId);
+    window.globalAnimationIds.push(this.requestAnimeId);
     return this;
   }
 
@@ -29,8 +29,6 @@ export default class Animation {
     this.isStopping = true;
     return this;
   }
-
-  static globalAnimationIds = [];
 
   /**
    * 

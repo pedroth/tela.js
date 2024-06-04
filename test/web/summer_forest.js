@@ -71,5 +71,5 @@ async (canvas, logger) => {
 
     const audio = new Audio("/assets/summer_forest.mp3");
     audio.loop = true;
-    setTimeout(() => audio.play());
+    setTimeout(() => audio.play(), 100);
 }
