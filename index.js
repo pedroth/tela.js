@@ -566,7 +566,7 @@ function execCode(code) {
                     document.getElementById("logger").innerText +=  \`\${message}\\n\`;
                 }
             };
-            (${code.replace("/assets/", SOURCE + "/assets/")})(canvas, logger)
+            (${code.replaceAll("/assets/", SOURCE + "/assets/")})(canvas, logger)
             `;
             iframe.element.contentDocument.body.appendChild(script);
         })
