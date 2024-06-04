@@ -1,27 +1,52 @@
 # tela.js
 
-Graphic library from scratch, with reference implementation of computer graphics algorithms.
+Experimental graphic library from scratch, with reference implementation of computer graphics algorithms.
 
 ## Purpose
 
-The propose of a graphic engine is to be able to generate images in a computational way. This includes drawing geometrical figures, in the plane and in the space. Visualization of further dimensions are only available through [slices of 4th dimensional object](https://www.youtube.com/watch?v=zxphFdRDjxM), or through animations of objects.
+The purpose of this graphic engine is to be able to generate images in a computational way, with minimal dependencies, such that the readable graphical algorithms shine instead of opaque graphical APIs. The engine should also be capable to create videos and interactive demos or games. The engine should also be able to render complex scenes with dynamic objects with realistic or cartoonish appearance.
 
-# Main Features
+# Table of Contents
 
-- Draw basic geometrical objects (aka [Simplices](https://en.wikipedia.org/wiki/Simplex)):
-  - Draw 2D objects
-  - Draw 3D objects
-  - Generate images
-  - Generate video
-  - Interactive application
-  - Different resolutions
+- [Quick start](#quick-start)
+- [Playground](#playground)
+- [Main features](#main-features)
 
-# Usage
+# Quick start
 
-# Import
+## In the browser
 
-## Via HTML
+## On the desktop
 
-## Via Bundlers
+## Generate images and videos
 
-## Via Node
+First you need to install [ffmpeg][ffmpeg] in your system, in a way that it is possible to write on the console:
+```bash
+ffmpeg -version 
+
+# it should output something like: fmpeg version 4.4.2-0ubuntu0.22.04.1...
+# maybe with a different OS...
+
+```
+
+Then just install using `npm` or `bun`.
+
+# Dependencies
+
+- [`bun`][bun]/[`node`][node]
+- [`ffmpeg`][ffmpeg]
+- [`node-sdl`][sdl]
+
+[Node][node] is preferred when running the demos (it is faster), [bun][bun] is needed to build the library.
+
+# Playground
+
+https://pedroth.github.io/tela.js/
+
+
+
+[ffmpeg]: https://ffmpeg.org/
+[bun]: https://bun.sh/
+[node]: https://nodejs.org/en
+[sdl]: https://github.com/kmamal/node-sdl
+
