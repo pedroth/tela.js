@@ -18,8 +18,7 @@
     "bun-types": "latest",
     "child_process": "^1.0.2",
     "eslint": "^8.55.0",
-    "node-watch": "^0.7.4",
-    "@kmamal/sdl": "^0.10.2"
+    "node-watch": "^0.7.4"
   },
   "trustedDependencies": [
     "@kmamal/sdl"
