@@ -577,7 +577,6 @@ function execCode(code) {
                 }
             };
             (${code.replaceAll("/assets/", SOURCE + "/assets/")})(canvas, logger)
-            console.log(window.globalAnimationIds);
             `;
             iframe.element.contentDocument.body.appendChild(script);
         })

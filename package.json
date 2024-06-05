@@ -11,6 +11,9 @@
     "src/",
     "dist/"
   ],
+  "dependencies": {
+    "@kmamal/sdl": "^0.10.2"
+  },
   "devDependencies": {
     "bun-types": "latest",
     "child_process": "^1.0.2",

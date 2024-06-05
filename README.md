@@ -59,8 +59,8 @@ Playground usage:
 Install `tela.js` it using `npm install tela.js` / `bun add tela.js`.
 
 ```js
-import { Animation, Color } from "../../dist/node/index.js";
-import Window from "../../src/Tela/Window.js";
+import { Animation, Color } from "tela.js/dist/node/index.js";
+import Window from "tela.js/src/Tela/Window.js";
 
 const width = 640;
 const height = 480;
@@ -78,7 +78,7 @@ Animation
     .play();
 ```
 
-And run it: `node index.js` / `bun index.js`
+And run it: `node index.mjs` / `bun index.js`
 
 > Note: [Attention to running node with ES6 imports module](https://nodejs.org/api/esm.html#modules-ecmascript-modules)
 
@@ -90,11 +90,11 @@ Install `tela.js` it using `npm install tela.js` / `bun add tela.js`.
 Create a file:
 ```js
 // index.js
-import { Color, video } from "./node_modules/tela.js/dist/node/index.js";
+import { Color, video } from "tela.js/dist/node/index.js";
 
 const width = 640;
 const height = 480;
-const FPS = 60;
+const FPS = 25;
 const maxVideoTime = 10; // time in seconds
 
 function animation({ time, image }) {
@@ -107,14 +107,14 @@ function animation({ time, image }) {
 }
 
 video(
-    "hello_tela_60.mp4",
+    "hello_world.mp4",
     animation,
     { width, height, FPS }
 )
     .until(({ time }) => time < maxVideoTime);
 ```
 
-And run it: `node index.js` / `bun index.js`
+And run it: `node index.mjs` / `bun index.js`
 
 ### Note generating videos
 
