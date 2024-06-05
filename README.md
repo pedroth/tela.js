@@ -127,6 +127,13 @@ ffmpeg -version
 
 ```
 
+## More examples
+
+You can find more examples of usage in:
+- [Playground (for web examples)](https://pedroth.github.io/tela.js)
+- [Test folder (for desktop)](/test/node/)
+
+
 # Dependencies
 
 - [`bun`][bun]/[`node`][node]
