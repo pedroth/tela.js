@@ -28,7 +28,7 @@ const UNIT_BOX_FACES = [
 ]
 
 export function drawBox({ box, color, debugScene }) {
-    if (box.isEmpty) return;
+    if (box.isEmpty) return debugScene;
     const vertices = UNIT_BOX_VERTEX.map(v => v.mul(box.diagonal).add(box.min))
     const lines = UNIT_BOX_FACES
         .map(([i, j]) =>

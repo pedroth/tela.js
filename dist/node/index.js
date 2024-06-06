@@ -2049,7 +2049,7 @@ class NaiveScene {
 // src/Utils/Utils3D.js
 function drawBox({ box, color, debugScene }) {
   if (box.isEmpty)
-    return;
+    return debugScene;
   const vertices = UNIT_BOX_VERTEX3.map((v) => v.mul(box.diagonal).add(box.min));
   const lines = UNIT_BOX_FACES3.map(([i2, j]) => Line.builder().name(`debug_box_${i2}_${j}`).positions(vertices[i2], vertices[j]).colors(color, color).build());
   debugScene.addList(lines);
@@ -2182,8 +2182,8 @@ class KScene {
     }
     return normal.length() > 0 ? normal.scale(1 / weight).normalize() : normal;
   }
-  interceptWithRay(ray, level) {
-    return this.boundingBoxScene.interceptWithRay(ray, level);
+  interceptWithRay(ray) {
+    return this.boundingBoxScene.interceptWithRay(ray);
   }
   distanceOnRay(ray) {
     return this.boundingBoxScene.distanceOnRay(ray);
@@ -2212,6 +2212,8 @@ class KScene {
     return this.boundingBoxScene.getElemIn(box);
   }
   rebuild() {
+    if (!this.sceneElements.length)
+      return this;
     let groupsQueue = PQueue.ofArray([...clusterLeafs(this.boundingBoxScene.box, this.sceneElements.map((x) => new Leaf(x)))], (a, b) => b.length - a.length);
     while (groupsQueue.data.map((x) => x.length > this.k).some((x) => x)) {
       if (groupsQueue.peek().length > this.k) {
@@ -2987,6 +2989,19 @@ class Camera {
       x = x.add(this.basis[i2].scale(camVec.get(i2)));
     }
     return x;
+  }
+  getRaysFromCanvas(canvas) {
+    const w = canvas.width;
+    const h = canvas.height;
+    return (x, y) => {
+      const dirInLocal = [
+        x / w - 0.5,
+        y / h - 0.5,
+        this.distanceToPlane
+      ];
+      const dir = Vec3(this.basis[0].x * dirInLocal[0] + this.basis[1].x * dirInLocal[1] + this.basis[2].x * dirInLocal[2], this.basis[0].y * dirInLocal[0] + this.basis[1].y * dirInLocal[1] + this.basis[2].y * dirInLocal[2], this.basis[0].z * dirInLocal[0] + this.basis[1].z * dirInLocal[1] + this.basis[2].z * dirInLocal[2]).normalize();
+      return Ray(this.position, dir);
+    };
   }
 }
 

@@ -244,6 +244,7 @@ function headerTools() {
 
 function header() {
     return DOM.of("header")
+        .style("max-width: fit-content")
         .appendChild(
             DOM.of("a")
                 .attr("href", "https://pedroth.github.io/tela.js")

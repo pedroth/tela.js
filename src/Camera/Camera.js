@@ -147,4 +147,23 @@ export default class Camera {
     }
     return x;
   }
+
+  getRaysFromCanvas(canvas) {
+    const w = canvas.width;
+    const h = canvas.height;
+    return (x, y) => {
+      const dirInLocal = [
+        (x / w - 0.5),
+        (y / h - 0.5),
+        this.distanceToPlane
+      ]
+      const dir = Vec3(
+        this.basis[0].x * dirInLocal[0] + this.basis[1].x * dirInLocal[1] + this.basis[2].x * dirInLocal[2],
+        this.basis[0].y * dirInLocal[0] + this.basis[1].y * dirInLocal[1] + this.basis[2].y * dirInLocal[2],
+        this.basis[0].z * dirInLocal[0] + this.basis[1].z * dirInLocal[1] + this.basis[2].z * dirInLocal[2]
+      )
+        .normalize()
+      return Ray(this.position, dir);
+    }
+  }
 }

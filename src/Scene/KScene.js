@@ -6,6 +6,7 @@ import PQueue from "../Utils/PQueue.js";
 import NaiveScene from "./NaiveScene.js";
 import Color from "../Color/Color.js";
 import { drawBox } from "../Utils/Utils3D.js";
+import { smin } from "../Utils/Math.js";
 
 export default class KScene {
     constructor(k = 10) {
@@ -65,8 +66,8 @@ export default class KScene {
         return normal.length() > 0 ? normal.scale(1 / weight).normalize() : normal;
     }
 
-    interceptWithRay(ray, level) {
-        return this.boundingBoxScene.interceptWithRay(ray, level);
+    interceptWithRay(ray) {
+        return this.boundingBoxScene.interceptWithRay(ray);
     }
 
     distanceOnRay(ray) {
@@ -101,6 +102,7 @@ export default class KScene {
     }
 
     rebuild() {
+        if(!this.sceneElements.length) return this;
         let groupsQueue = PQueue.ofArray(
             [...clusterLeafs(this.boundingBoxScene.box, this.sceneElements.map(x => new Leaf(x)))],
             (a, b) => b.length - a.length

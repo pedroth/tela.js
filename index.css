@@ -49,6 +49,14 @@ dialog button {
     transition: all 0.25s ease-in-out;
 }
 
+a {
+    color: var(--primary-color);
+}
+
+a:hover {
+    color: var(--secondary-color);
+}
+
 /* IDS */
 
 #root {
