@@ -6,7 +6,6 @@ import PQueue from "../Utils/PQueue.js";
 import NaiveScene from "./NaiveScene.js";
 import Color from "../Color/Color.js";
 import { drawBox } from "../Utils/Utils3D.js";
-import { smin } from "../Utils/Math.js";
 
 export default class KScene {
     constructor(k = 10) {
@@ -56,10 +55,13 @@ export default class KScene {
     normalToPoint(p) {
         let normal = Vec3();
         let weight = 0;
-        const elements = this.boundingBoxScene.getLeafsNear(p);
-        for (let i = 0; i < elements.length; i++) {
+        const ones = Vec3(1, 1, 1).scale(1 / (2 * this.k));
+        const box = new Box(p.sub(ones), p.add(ones));
+        const elements = this.getElementInBox(box);
+        const size = elements.length;
+        for (let i = 0; i < size; i++) {
             const n = elements[i].normalToPoint(p);
-            const d = elements[i].distanceToPoint(p);
+            const d = 1 / elements[i].distanceToPoint(p);
             normal = normal.add(n.scale(d));
             weight += d;
         }
@@ -76,7 +78,7 @@ export default class KScene {
 
     getElementNear(p) {
         if (this.boundingBoxScene.leafs.length > 0) {
-            return this.boundingBoxScene.getElemNear(p);
+            return this.boundingBoxScene.getElementNear(p);
         }
         const initial = [this.boundingBoxScene.left, this.boundingBoxScene.right]
             .map(x => ({ node: x, distance: x.box.distanceToPoint(p) }));
@@ -98,13 +100,13 @@ export default class KScene {
     }
 
     getElementInBox(box) {
-        return this.boundingBoxScene.getElemIn(box);
+        return this.boundingBoxScene.getElemInBox(box);
     }
 
     rebuild() {
-        if(!this.sceneElements.length) return this;
+        if (!this.sceneElements.length) return this;
         let groupsQueue = PQueue.ofArray(
-            [...clusterLeafs(this.boundingBoxScene.box, this.sceneElements.map(x => new Leaf(x)))],
+            clusterLeafs(this.boundingBoxScene.box, this.sceneElements.map(x => new Leaf(x))),
             (a, b) => b.length - a.length
         )
         while (
@@ -175,6 +177,7 @@ class Node {
         this.k = k;
         this.box = Box.EMPTY;
         this.leafs = [];
+        this.parent = undefined;
     }
 
     add(element) {
@@ -183,11 +186,13 @@ class Node {
         this.box = this.box.add(elemBox);
         if (!this.left && !this.right) {
             this.leafs.push(new Leaf(element));
-            if (this.leafs.length < this.k) return this;
+            if (this.leafs.length <= this.k) return this;
             // group children into cluster
             const [lefts, rights] = clusterLeafs(this.box, this.leafs);
             this.left = new Node(this.k).addList(lefts.map(x => x.element));
             this.right = new Node(this.k).addList(rights.map(x => x.element));
+            this.left.parent = this;
+            this.right.parent = this;
             this.leafs = [];
         } else {
             const children = [this.left, this.right];
@@ -221,7 +226,7 @@ class Node {
     }
 
     distanceToPoint(p) {
-        return this.getElemNear(p).distanceToPoint(p);
+        return this.getElementNear(p).distanceToPoint(p);
     }
 
     distanceOnRay(ray) {
@@ -241,26 +246,35 @@ class Node {
         return secondHit <= firstHit ? secondHit : firstHit;
     }
 
-    getElemNear(p) {
+    getElementNear(p) {
         if (this.leafs.length > 0) {
             const minIndex = argmin(this.leafs, x => x.distanceToPoint(p));
             return this.leafs[minIndex].element;
         }
         const children = [this.left, this.right];
         const index = argmin(children, n => n.box.center.sub(p).length());
-        return children[index].getElemNear(p);
+        return children[index].getElementNear(p);
+    }
+
+    getNodeNear(p) {
+        if (this.leafs.length > 0) {
+            return this;
+        }
+        const children = [this.left, this.right];
+        const index = argmin(children, n => n.box.center.sub(p).length());
+        return children[index].getNodeNear(p);
     }
 
     getLeafsNear(p) {
         if (this.leafs.length > 0) {
-            return this.leafs.map(x => x.element);
+            return this.leafs;
         }
         const children = [this.left, this.right];
         const index = argmin(children, n => n.box.center.sub(p).length());
         return children[index].getLeafsNear(p);
     }
 
-    getElemIn(box) {
+    getElemInBox(box) {
         let elements = [];
         if (this.leafs.length > 0) {
             this.leafs.forEach(leaf =>
@@ -272,7 +286,7 @@ class Node {
         const children = [this.left, this.right];
         for (let i = 0; i < children.length; i++) {
             if (!children[i].box.sub(box).isEmpty) {
-                elements = elements.concat(children[i].getElemIn(box));
+                elements = elements.concat(children[i].getElemInBox(box));
             }
         }
         return elements;
@@ -287,7 +301,9 @@ class Node {
         if (nodeOrLeaf.isLeaf) return this.add(nodeOrLeaf.element);
         const newNode = new Node(this.k);
         newNode.left = this;
+        newNode.left.parent = newNode;
         newNode.right = nodeOrLeaf;
+        newNode.right.parent = newNode;
         newNode.box = this.box.add(nodeOrLeaf.box);
         newNode.numberOfLeafs = newNode.left.numberOfLeafs + newNode.right.numberOfLeafs;
         return newNode;
@@ -328,7 +344,6 @@ class Leaf {
     }
 }
 
-
 function clusterLeafs(box, leafs, it = 10) {
     // initialization
     const clusters = [box.sample(), box.sample()];
@@ -343,6 +358,7 @@ function clusterLeafs(box, leafs, it = 10) {
             const kIndex = argmin(clusters, c => c.sub(leafPosition).squareLength());
             clusterIndexes[kIndex].push(j);
         }
+        // add a point to an empty cluster 
         for (let j = 0; j < clusters.length; j++) {
             if (clusterIndexes[j].length === 0) {
                 const dataPoints = clusterIndexes[(j + 1) % clusters.length];
@@ -359,7 +375,7 @@ function clusterLeafs(box, leafs, it = 10) {
             clusters[j] = acc.scale(1 / clusterIndexes[j].length);
         }
     }
-    return [...clusterIndexes].map((indxs) => indxs.map(indx => leafs[indx]));
+    return clusterIndexes.map((indxs) => indxs.map(indx => leafs[indx]));
 }
 
 

@@ -59,9 +59,13 @@ export default class BScene {
     return this.boundingBoxScene.interceptWithRay(ray, level);
   }
 
+  distanceOnRay(ray) {
+    return this.boundingBoxScene.distanceOnRay(ray);
+  }
+
   getElementNear(p) {
     if (this.boundingBoxScene.numberOfLeafs < 2) {
-      return this.boundingBoxScene.getElemNear(p);
+      return this.boundingBoxScene.getElementNear(p);
     }
     const initial = [this.boundingBoxScene.left, this.boundingBoxScene.right]
       .map(x => ({ node: x, distance: x.box.distanceToPoint(p) }));
@@ -77,7 +81,7 @@ export default class BScene {
   }
 
   getElementInBox(box) {
-    return this.boundingBoxScene.getElemIn(box);
+    return this.boundingBoxScene.getElemInBox(box);
   }
 
   rebuild() {
@@ -142,6 +146,13 @@ class Node {
     return this;
   }
 
+  addList(elements) {
+    for (let i = 0; i < elements.length; i++) {
+      this.add(elements[i]);
+    }
+    return this;
+  }
+
   interceptWithRay(ray) {
     const leftT = this.left?.box?.interceptWithRay(ray)?.[0] ?? Number.MAX_VALUE;
     const rightT = this.right?.box?.interceptWithRay(ray)?.[0] ?? Number.MAX_VALUE;
@@ -161,13 +172,33 @@ class Node {
     return children[index].distanceToPoint(p);
   }
 
-  getElemNear(p) {
+  distanceOnRay(ray) {
+    if (this.left.isLeaf && this.right.isLeaf) {
+      return Math.min(
+        this.left.distanceToPoint(ray.init),
+        this.right.distanceToPoint(ray.init)
+      );
+    }
+    const leftT = this.left?.box?.interceptWithRay(ray)?.[0] ?? Number.MAX_VALUE;
+    const rightT = this.right?.box?.interceptWithRay(ray)?.[0] ?? Number.MAX_VALUE;
+    if (leftT === Number.MAX_VALUE && rightT === Number.MAX_VALUE) return Number.MAX_VALUE;
+    const first = leftT <= rightT ? this.left : this.right;
+    const second = leftT > rightT ? this.left : this.right;
+    const firstT = Math.min(leftT, rightT);
+    const secondT = Math.max(leftT, rightT);
+    const firstHit = first.distanceOnRay(ray, firstT);
+    if (firstHit < secondT) return firstHit;
+    const secondHit = second.distanceOnRay(ray, secondT);
+    return secondHit <= firstHit ? secondHit : firstHit;
+  }
+
+  getElementNear(p) {
     const children = [this.left, this.right].filter(x => x);
     const index = argmin(children, n => n.box.center.sub(p).length());
     return children[index].getElemNear(p);
   }
 
-  getElemIn(box) {
+  getElemInBox(box) {
     let elements = [];
     const children = [this.left, this.right].filter(x => x);
     for (let i = 0; i < children.length; i++) {

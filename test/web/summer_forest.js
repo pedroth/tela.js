@@ -1,8 +1,8 @@
 /* eslint-disable no-undef */
 async (canvas, logger) => {
     // resize incoming canvas:Canvas object.
-    const width = 640;
-    const height = 480;
+    const width = 640 / 2;
+    const height = 480 / 2;
     canvas.resize(width, height);
     // scene
     const scene = new KScene()
@@ -44,7 +44,7 @@ async (canvas, logger) => {
     })
 
     canvas.onKeyDown((e) => {
-        const magnitude = 50;
+        const magnitude = 500;
         if (e.code === "KeyW") camSpeed = Vec3(0, 0, magnitude);
         if (e.code === "KeyS") camSpeed = Vec3(0, 0, -magnitude);
     })

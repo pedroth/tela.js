@@ -244,13 +244,15 @@ function headerTools() {
 
 function header() {
     return DOM.of("header")
-        .style("max-width: fit-content")
+        .style("max-width: fit-content; display:flex; gap: 1rem")
         .appendChild(
             DOM.of("a")
-                .attr("href", "https://pedroth.github.io/tela.js")
+                .attr("href", "https://github.com/pedroth/tela.js")
                 .appendChild(
-                    DOM.of("h2").inner("Tela.js playground")
+                    DOM.of("h2").inner("Tela.js"),
                 ),
+            DOM.of("h2").inner("playground")
+
         )
 }
 
@@ -501,8 +503,12 @@ const examples = [
         path: "/test/web/signed_distance.js"
     },
     {
-        title: "bunny SDF test",
+        title: "bunny SDF",
         path: "/test/web/signed_bunny.js"
+    },
+    {
+        title: "SDF editor",
+        path: "/test/web/sdf_editor.js"
     },
     {
         title: "Cornell box",

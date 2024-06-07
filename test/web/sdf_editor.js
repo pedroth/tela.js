@@ -1,12 +1,18 @@
 /* eslint-disable no-undef */
 async (canvas, logger) => {
+    const div = document.createElement("div");
+    div.innerHTML = `
+        <p>Left mouse button: draw</p>
+        <p>Right mouse button: move camera</p>
+    `
+    document.body.appendChild(div);
     canvas.DOM.addEventListener("contextmenu", (e) => e.preventDefault());
     // resize incoming canvas:Canvas object.
     const width = 640 / 2;
     const height = 480 / 2;
     canvas.resize(width, height);
     // scene
-    const scene = new KScene(20)
+    const scene = new KScene()
     const camera = new Camera().orbit(5, 0, 0);
     const canvas2Ray = camera.getRaysFromCanvas(canvas);
     // mouse handling
@@ -32,12 +38,17 @@ async (canvas, logger) => {
         const newMouse = Vec2(x, y);
         const [dx, dy] = newMouse.sub(mouse).toArray();
         if (leftMouseDown) {
-            
             const ray = canvas2Ray(x, y);
-            const normal = canvas2Ray(width/2, height/2).dir;
-
+            const normal = canvas2Ray(width / 2, height / 2).dir;
             const p = ray.trace(-normal.dot(ray.init) / normal.dot(ray.dir));
-            scene.add(Point.builder().radius(0.25).position(p).name(ballId++).build());
+            scene.add(
+                Point
+                    .builder()
+                    .radius(0.25)
+                    .position(p)
+                    .name(ballId++)
+                    .build()
+            );
         }
         if (rightMouseDown) {
             camera.orbit(coords => coords.add(
@@ -84,8 +95,8 @@ async (canvas, logger) => {
         .loop(({ dt, time }) => {
             logger.print(Math.floor(1 / dt));
             camera.rayMap(render).to(canvas);
-            scene.debug({camera, canvas});
-            if(time % 10 < 0.5) scene.rebuild();
+            // scene.debug({ camera, canvas });
+            if (time % 10 < 0.5) scene.rebuild();
         })
         .play();
 }
