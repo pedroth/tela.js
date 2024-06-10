@@ -3,8 +3,8 @@ import Line from "../Geometry/Line.js";
 import Point from "../Geometry/Point.js";
 import Mesh from "../Geometry/Mesh.js";
 import Triangle from "../Geometry/Triangle.js";
-import { lerp } from "../Utils/Math.js";
 import { Vec2 } from "../Vector/Vector.js";
+import { getBiLinearTexColor, getDefaultTexColor, getTexColor } from "./common.js";
 
 export function rasterGraphics(scene, camera, params) {
     const type2render = {
@@ -253,37 +253,4 @@ function lineCameraPlaneIntersection(vertexOut, vertexIn, camera) {
     const alpha = (distanceToPlane - vertexOut.z) / v.z;
     const p = vertexOut.add(v.scale(alpha));
     return p;
-}
-
-function getDefaultTexColor(texUV) {
-    texUV = texUV.scale(16).map(x => x % 1)
-    return texUV.x < 0.5 && texUV.y < 0.5 ?
-        Color.BLACK :
-        texUV.x > 0.5 && texUV.y > 0.5 ?
-            Color.BLACK :
-            Color.PURPLE;
-}
-
-function getBiLinearTexColor(texUV, texture) {
-    const size = Vec2(texture.width, texture.height);
-    const texInt = texUV.mul(size);
-
-    const texInt0 = texInt.map(Math.floor);
-    const texInt1 = texInt0.add(Vec2(1, 0));
-    const texInt2 = texInt0.add(Vec2(0, 1));
-    const texInt3 = texInt0.add(Vec2(1, 1));
-
-    const color0 = texture.getPxl(...texInt0.toArray());
-    const color1 = texture.getPxl(...texInt1.toArray());
-    const color2 = texture.getPxl(...texInt2.toArray());
-    const color3 = texture.getPxl(...texInt3.toArray());
-
-    const x = texInt.sub(texInt0);
-    const bottomX = lerp(color0, color1)(x.x);
-    const topX = lerp(color2, color3)(x.x);
-    return lerp(bottomX, topX)(x.y);
-}
-
-function getTexColor(texUV, texture) {
-    return texture.getPxl(texUV.x * texture.width, texUV.y * texture.height);
 }

@@ -1387,41 +1387,6 @@ function Ray(init, dir) {
   return ans;
 }
 
-// src/Camera/raytrace.js
-function rayTrace(scene, params) {
-  let { samplesPerPxl, bounces, variance, gamma } = params;
-  bounces = bounces ?? 10;
-  variance = variance ?? 0.001;
-  samplesPerPxl = samplesPerPxl ?? 1;
-  gamma = gamma ?? 0.5;
-  const invSamples = bounces / samplesPerPxl;
-  const lambda = (ray) => {
-    let c = Color.BLACK;
-    for (let i2 = 0;i2 < samplesPerPxl; i2++) {
-      const epsilon = Vec.RANDOM(3).scale(variance);
-      const epsilonOrto = epsilon.sub(ray.dir.scale(epsilon.dot(ray.dir)));
-      const r = Ray(ray.init, ray.dir.add(epsilonOrto).normalize());
-      c = c.add(trace(r, scene, { bounces }));
-    }
-    return c.scale(invSamples).toGamma(gamma);
-  };
-  return lambda;
-}
-var trace = function(ray, scene, options) {
-  const { bounces } = options;
-  if (bounces < 0)
-    return Color.BLACK;
-  const hit = scene.interceptWithRay(ray);
-  if (!hit)
-    return Color.BLACK;
-  const [, p, e] = hit;
-  const color = e.color ?? e.colors[0];
-  const mat = e.material;
-  let r = mat.scatter(ray, p, e);
-  let finalC = trace(r, scene, { bounces: bounces - 1 });
-  return e.emissive ? color.add(color.mul(finalC)) : color.mul(finalC);
-};
-
 // src/Material/Material.js
 function Diffuse() {
   return {
@@ -1494,6 +1459,224 @@ function DiElectric(indexOfRefraction = 1) {
   };
 }
 
+// src/Geometry/Triangle.js
+class Triangle {
+  constructor({ name, positions, colors, texCoords, normals, texture, emissive, material }) {
+    this.name = name;
+    this.colors = colors;
+    this.normals = normals;
+    this.texture = texture;
+    this.positions = positions;
+    this.texCoords = texCoords;
+    this.emissive = emissive;
+    this.material = material;
+    this.edges = [];
+    const n = this.positions.length;
+    for (let i2 = 0;i2 < n; i2++) {
+      this.edges.push(this.positions[(i2 + 1) % n].sub(this.positions[i2]));
+    }
+    this.tangents = [this.edges[0], this.edges.at(-1).scale(-1)];
+    const u = this.tangents[0];
+    const v = this.tangents[1];
+    this.faceNormal = u.cross(v).normalize();
+  }
+  getBoundingBox() {
+    if (this.boundingBox)
+      return this.boundingBox;
+    this.boundingBox = this.positions.reduce((box, x) => box.add(new Box(x, x)), Box.EMPTY);
+    return this.boundingBox;
+  }
+  distanceToPoint(p) {
+    return Number.MAX_VALUE;
+  }
+  normalToPoint(p) {
+    const r = p.sub(this.positions[0]);
+    const dot = this.faceNormal.dot(r);
+    return dot < 0.001 ? this.faceNormal : this.faceNormal.scale(-1);
+  }
+  interceptWithRay(ray) {
+    const epsilon = 0.000000001;
+    const v = ray.dir;
+    const p = ray.init.sub(this.positions[0]);
+    const n = this.faceNormal;
+    const t = -n.dot(p) / n.dot(v);
+    if (t <= epsilon)
+      return;
+    const x = ray.trace(t);
+    for (let i2 = 0;i2 < this.positions.length; i2++) {
+      const xi = this.positions[i2];
+      const u = x.sub(xi);
+      const ni = n.cross(this.edges[i2]);
+      const dot = ni.dot(u);
+      if (dot <= epsilon)
+        return;
+    }
+    return [t - epsilon, x, this];
+  }
+  sample() {
+    return this.tangents[0].scale(Math.random()).add(this.tangents[1].scale(Math.random())).add(this.positions[0]);
+  }
+  isInside(p) {
+    return this.faceNormal.dot(p.sub(this.positions[0])) >= 0;
+  }
+  static builder() {
+    return new TriangleBuilder;
+  }
+}
+var indx = [1, 2, 3];
+
+class TriangleBuilder {
+  constructor() {
+    this._name;
+    this._texture;
+    this._normals = indx.map(() => Vec3());
+    this._colors = indx.map(() => Color.BLACK);
+    this._positions = indx.map(() => Vec3());
+    this._texCoords = [Vec2(), Vec2(1, 0), Vec2(0, 1)];
+    this._emissive = false;
+    this._material = Diffuse();
+  }
+  name(name) {
+    this._name = name;
+    return this;
+  }
+  positions(v1, v2, v3) {
+    if ([v1, v2, v3].some((x) => !x))
+      return this;
+    this._positions = [v1, v2, v3];
+    return this;
+  }
+  colors(c1, c2, c3) {
+    if ([c1, c2, c3].some((x) => !x))
+      return this;
+    this._colors = [c1, c2, c3];
+    return this;
+  }
+  texCoords(t1, t2, t3) {
+    if ([t1, t2, t3].some((x) => !x))
+      return this;
+    this._texCoords = [t1, t2, t3];
+    return this;
+  }
+  normals(n1, n2, n3) {
+    if ([n1, n2, n3].some((x) => !x))
+      return this;
+    this._normals = [n1, n2, n3];
+    return this;
+  }
+  texture(image) {
+    this._texture = image;
+    return this;
+  }
+  emissive(isEmissive) {
+    this._emissive = isEmissive;
+    return this;
+  }
+  material(material) {
+    this._material = material;
+    return this;
+  }
+  build() {
+    const attrs = {
+      name: this._name,
+      colors: this._colors,
+      normals: this._normals,
+      positions: this._positions,
+      texCoords: this._texCoords,
+      emissive: this._emissive,
+      material: this._material
+    };
+    if (Object.values(attrs).some((x) => x === undefined)) {
+      throw new Error("Triangle is incomplete");
+    }
+    return new Triangle({ ...attrs, texture: this._texture });
+  }
+}
+
+// src/Camera/common.js
+function getDefaultTexColor(texUV) {
+  texUV = texUV.scale(16).map((x) => x % 1);
+  return texUV.x < 0.5 && texUV.y < 0.5 ? Color.BLACK : texUV.x > 0.5 && texUV.y > 0.5 ? Color.BLACK : Color.PURPLE;
+}
+function getBiLinearTexColor(texUV, texture) {
+  const size = Vec2(texture.width, texture.height);
+  const texInt = texUV.mul(size);
+  const texInt0 = texInt.map(Math.floor);
+  const texInt1 = texInt0.add(Vec2(1, 0));
+  const texInt2 = texInt0.add(Vec2(0, 1));
+  const texInt3 = texInt0.add(Vec2(1, 1));
+  const color0 = texture.getPxl(...texInt0.toArray());
+  const color1 = texture.getPxl(...texInt1.toArray());
+  const color2 = texture.getPxl(...texInt2.toArray());
+  const color3 = texture.getPxl(...texInt3.toArray());
+  const x = texInt.sub(texInt0);
+  const bottomX = lerp(color0, color1)(x.x);
+  const topX = lerp(color2, color3)(x.x);
+  return lerp(bottomX, topX)(x.y);
+}
+function getTexColor(texUV, texture) {
+  return texture.getPxl(texUV.x * texture.width, texUV.y * texture.height);
+}
+
+// src/Camera/raytrace.js
+function rayTrace(scene, params = {}) {
+  let { samplesPerPxl, bounces, variance, gamma, bilinearTexture } = params;
+  bounces = bounces ?? 10;
+  variance = variance ?? 0.001;
+  samplesPerPxl = samplesPerPxl ?? 1;
+  gamma = gamma ?? 0.5;
+  bilinearTexture = bilinearTexture ?? false;
+  const invSamples = bounces / samplesPerPxl;
+  const lambda = (ray) => {
+    let c = Color.BLACK;
+    for (let i2 = 0;i2 < samplesPerPxl; i2++) {
+      const epsilon = Vec.RANDOM(3).scale(variance);
+      const epsilonOrto = epsilon.sub(ray.dir.scale(epsilon.dot(ray.dir)));
+      const r = Ray(ray.init, ray.dir.add(epsilonOrto).normalize());
+      c = c.add(trace(r, scene, { bounces, bilinearTexture }));
+    }
+    return c.scale(invSamples).toGamma(gamma);
+  };
+  return lambda;
+}
+var trace = function(ray, scene, options) {
+  const { bounces, bilinearTexture } = options;
+  if (bounces < 0)
+    return Color.BLACK;
+  const hit = scene.interceptWithRay(ray);
+  if (!hit)
+    return Color.BLACK;
+  const [, p, e] = hit;
+  const color = getColorFromElement(e, ray, { bilinearTexture });
+  const mat = e.material;
+  let r = mat.scatter(ray, p, e);
+  let finalC = trace(r, scene, { bounces: bounces - 1, bilinearTexture });
+  return e.emissive ? color.add(color.mul(finalC)) : color.mul(finalC);
+};
+var getColorFromElement = function(e, ray, params) {
+  if (Triangle.name === e.constructor.name) {
+    return getTriangleColor(e, ray, params);
+  }
+  return e.color ?? e.colors[0];
+};
+var getTriangleColor = function(triangle, ray, params) {
+  const { tangents, positions, texCoords, texture, colors } = triangle;
+  const haveTextures = texture && texCoords && texCoords.length > 0 && !texCoords.some((x) => x === undefined);
+  const v = ray.init.sub(positions[0]);
+  const u1 = tangents[0];
+  const u2 = tangents[1];
+  const r = ray.dir;
+  const detInv = 1 / u1.cross(u2).dot(r);
+  const alpha = v.cross(u2).dot(r) * detInv;
+  const beta = u1.cross(v).dot(r) * detInv;
+  if (haveTextures) {
+    const texUV = texCoords[0].scale(1 - alpha - beta).add(texCoords[1].scale(alpha)).add(texCoords[2].scale(beta));
+    const texColor = texture ? params.bilinearTexture ? getBiLinearTexColor(texUV, texture) : getTexColor(texUV, texture) : getDefaultTexColor(texUV);
+    return texColor;
+  }
+  return colors[0].scale(alpha).add(colors[1].scale(beta)).add(colors[2].scale(1 - alpha - beta));
+};
+
 // src/Geometry/Line.js
 class Line {
   constructor({ name, positions, colors, texCoords, normals, texture, radius, emissive, material }) {
@@ -1558,17 +1741,17 @@ class Line {
     return new LineBuilder;
   }
 }
-var indx = [1, 2];
+var indx2 = [1, 2];
 
 class LineBuilder {
   constructor() {
     this._name;
     this._texture;
     this._radius = 1;
-    this._normals = indx.map(() => Vec3());
-    this._colors = indx.map(() => Color.BLACK);
-    this._positions = indx.map(() => Vec3());
-    this._texCoords = indx.map(() => Vec2());
+    this._normals = indx2.map(() => Vec3());
+    this._colors = indx2.map(() => Color.BLACK);
+    this._positions = indx2.map(() => Vec3());
+    this._texCoords = indx2.map(() => Vec2());
     this._emissive = false;
     this._material = Diffuse();
   }
@@ -1771,140 +1954,6 @@ class PointBuilder {
   }
 }
 var Point_default = Point;
-
-// src/Geometry/Triangle.js
-class Triangle {
-  constructor({ name, positions, colors, texCoords, normals, texture, emissive, material }) {
-    this.name = name;
-    this.colors = colors;
-    this.normals = normals;
-    this.texture = texture;
-    this.positions = positions;
-    this.texCoords = texCoords;
-    this.emissive = emissive;
-    this.material = material;
-    this.edges = [];
-    const n = this.positions.length;
-    for (let i2 = 0;i2 < n; i2++) {
-      this.edges.push(this.positions[(i2 + 1) % n].sub(this.positions[i2]));
-    }
-    this.tangents = [this.edges[0], this.edges.at(-1).scale(-1)];
-    const u = this.tangents[0];
-    const v = this.tangents[1];
-    this.faceNormal = u.cross(v).normalize();
-  }
-  getBoundingBox() {
-    if (this.boundingBox)
-      return this.boundingBox;
-    this.boundingBox = this.positions.reduce((box, x) => box.add(new Box(x, x)), Box.EMPTY);
-    return this.boundingBox;
-  }
-  distanceToPoint(p) {
-    return Number.MAX_VALUE;
-  }
-  normalToPoint(p) {
-    const r = p.sub(this.positions[0]);
-    const dot = this.faceNormal.dot(r);
-    return dot < 0.001 ? this.faceNormal : this.faceNormal.scale(-1);
-  }
-  interceptWithRay(ray) {
-    const epsilon = 0.000000001;
-    const v = ray.dir;
-    const p = ray.init.sub(this.positions[0]);
-    const n = this.faceNormal;
-    const t = -n.dot(p) / n.dot(v);
-    if (t <= epsilon)
-      return;
-    const x = ray.trace(t);
-    for (let i2 = 0;i2 < this.positions.length; i2++) {
-      const xi = this.positions[i2];
-      const u = x.sub(xi);
-      const ni = n.cross(this.edges[i2]);
-      const dot = ni.dot(u);
-      if (dot <= epsilon)
-        return;
-    }
-    return [t - epsilon, x, this];
-  }
-  sample() {
-    return this.tangents[0].scale(Math.random()).add(this.tangents[1].scale(Math.random())).add(this.positions[0]);
-  }
-  isInside(p) {
-    return this.faceNormal.dot(p.sub(this.positions[0])) >= 0;
-  }
-  static builder() {
-    return new TriangleBuilder;
-  }
-}
-var indx2 = [1, 2, 3];
-
-class TriangleBuilder {
-  constructor() {
-    this._name;
-    this._texture;
-    this._normals = indx2.map(() => Vec3());
-    this._colors = indx2.map(() => Color.BLACK);
-    this._positions = indx2.map(() => Vec3());
-    this._texCoords = indx2.map(() => Vec2());
-    this._emissive = false;
-    this._material = Diffuse();
-  }
-  name(name) {
-    this._name = name;
-    return this;
-  }
-  positions(v1, v2, v3) {
-    if ([v1, v2, v3].some((x) => !x))
-      return this;
-    this._positions = [v1, v2, v3];
-    return this;
-  }
-  colors(c1, c2, c3) {
-    if ([c1, c2, c3].some((x) => !x))
-      return this;
-    this._colors = [c1, c2, c3];
-    return this;
-  }
-  texCoords(t1, t2, t3) {
-    if ([t1, t2, t3].some((x) => !x))
-      return this;
-    this._texCoords = [t1, t2, t3];
-    return this;
-  }
-  normals(n1, n2, n3) {
-    if ([n1, n2, n3].some((x) => !x))
-      return this;
-    this._normals = [n1, n2, n3];
-    return this;
-  }
-  texture(image) {
-    this._texture = image;
-    return this;
-  }
-  emissive(isEmissive) {
-    this._emissive = isEmissive;
-    return this;
-  }
-  material(material) {
-    this._material = material;
-    return this;
-  }
-  build() {
-    const attrs = {
-      name: this._name,
-      colors: this._colors,
-      normals: this._normals,
-      positions: this._positions,
-      texCoords: this._texCoords,
-      emissive: this._emissive,
-      material: this._material
-    };
-    if (Object.values(attrs).some((x) => x === undefined)) {
-      throw new Error("Triangle is incomplete");
-    }
-    return new Triangle({ ...attrs, texture: this._texture });
-  }
-}
 
 // src/Utils/PQueue.js
 var heapifyBuilder = function(data, comparator) {
@@ -2840,29 +2889,6 @@ var lineCameraPlaneIntersection = function(vertexOut, vertexIn, camera) {
   const alpha = (distanceToPlane - vertexOut.z) / v.z;
   const p = vertexOut.add(v.scale(alpha));
   return p;
-};
-var getDefaultTexColor = function(texUV) {
-  texUV = texUV.scale(16).map((x) => x % 1);
-  return texUV.x < 0.5 && texUV.y < 0.5 ? Color.BLACK : texUV.x > 0.5 && texUV.y > 0.5 ? Color.BLACK : Color.PURPLE;
-};
-var getBiLinearTexColor = function(texUV, texture) {
-  const size = Vec2(texture.width, texture.height);
-  const texInt = texUV.mul(size);
-  const texInt0 = texInt.map(Math.floor);
-  const texInt1 = texInt0.add(Vec2(1, 0));
-  const texInt2 = texInt0.add(Vec2(0, 1));
-  const texInt3 = texInt0.add(Vec2(1, 1));
-  const color0 = texture.getPxl(...texInt0.toArray());
-  const color1 = texture.getPxl(...texInt1.toArray());
-  const color2 = texture.getPxl(...texInt2.toArray());
-  const color3 = texture.getPxl(...texInt3.toArray());
-  const x = texInt.sub(texInt0);
-  const bottomX = lerp(color0, color1)(x.x);
-  const topX = lerp(color2, color3)(x.x);
-  return lerp(bottomX, topX)(x.y);
-};
-var getTexColor = function(texUV, texture) {
-  return texture.getPxl(texUV.x * texture.width, texUV.y * texture.height);
 };
 
 // src/Camera/sdf.js

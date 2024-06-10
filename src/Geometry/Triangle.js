@@ -29,7 +29,7 @@ export default class Triangle {
         this.boundingBox = this.positions.reduce((box, x) => box.add(new Box(x, x)), Box.EMPTY);
         return this.boundingBox;
     }
-    
+
     distanceToPoint(p) {
         // TODO
         return Number.MAX_VALUE;
@@ -80,7 +80,7 @@ class TriangleBuilder {
         this._normals = indx.map(() => Vec3());
         this._colors = indx.map(() => Color.BLACK);
         this._positions = indx.map(() => Vec3());
-        this._texCoords = indx.map(() => Vec2());
+        this._texCoords = [Vec2(), Vec2(1, 0), Vec2(0, 1)];
         this._emissive = false;
         this._material = Diffuse();
     }

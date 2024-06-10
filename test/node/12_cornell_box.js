@@ -1,4 +1,4 @@
-import { Camera, Mesh, Vec3, Vec2, Color, DiElectric, Triangle, KScene, BScene } from "../../dist/node/index.js";
+import { Camera, Mesh, Vec3, Vec2, Color, DiElectric, Triangle, KScene, BScene, Image } from "../../dist/node/index.js";
 import Window from "../../src/Tela/Window.js";
 import { readFileSync } from "fs"
 
@@ -44,16 +44,17 @@ import { readFileSync } from "fs"
         exposedCanvas = window.exposure();
     })
 
-    const meshObj = readFileSync("./assets/bunny_orig.obj", { encoding: "utf-8" });
+    const meshObj = readFileSync("./assets/spot.obj", { encoding: "utf-8" });
     let mesh = Mesh.readObj(meshObj, "mesh");
-    const box = mesh.getBoundingBox();
     mesh = mesh
-        .mapVertices(v => v.sub(box.min).div(box.diagonal).scale(2).sub(Vec3(1, 1, 1)))
         .mapVertices(v => v.scale(1))
         .mapVertices(v => Vec3(-v.y, v.x, v.z))
         .mapVertices(v => Vec3(v.z, v.y, -v.x))
-        .mapVertices(v => v.add(Vec3(0.5, 1.5, 1.0)))
+        .mapVertices(v => Vec3(-v.y, v.x, v.z))
+        .mapVertices(v => Vec3(-v.y, v.x, v.z))
+        .mapVertices(v => v.add(Vec3(1.5, 1.5, 1.0)))
         .mapColors(() => Color.BLUE)
+        .addTexture(await Image.ofUrl("./assets/spot.png"))
         .mapMaterials(() => DiElectric(1.33333))
     scene.add(mesh);
 
