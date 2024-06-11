@@ -1,6 +1,6 @@
 # tela.js
 
-Experimental graphic library from scratch, with reference implementation of computer graphics algorithms.
+Experimental graphic library from scratch(software-only), with reference implementation of computer graphics algorithms.
 
 ## Purpose
 

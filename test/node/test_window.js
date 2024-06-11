@@ -3,7 +3,7 @@ import Window from "../../src/Tela/Window.js";
 
 const width = 640;
 const height = 480;
-const window = Window.ofSize(640, 480);
+const window = Window.ofSize(width, height);
 Animation
     .loop(({ time, dt }) => {
         window.setTitle(`FPS: ${Math.floor(1 / dt)}`);
