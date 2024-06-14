@@ -72,8 +72,8 @@ export default class Scene {
     return this.boundingBoxScene.interceptWithRay(ray);
   }
 
-  distanceOnRay(ray) {
-    return this.boundingBoxScene.distanceOnRay(ray);
+  distanceOnRay(ray, combineLeafs = Math.min) {
+    return this.boundingBoxScene.distanceOnRay(ray, combineLeafs);
   }
 
   getElementNear(p) {
@@ -229,9 +229,9 @@ class Node {
     return this.getElementNear(p).distanceToPoint(p);
   }
 
-  distanceOnRay(ray) {
+  distanceOnRay(ray, combineLeafs) {
     if (this.leafs.length > 0) {
-      return distanceFromLeafs(this.leafs, ray.init);
+      return distanceFromLeafs(this.leafs, ray.init, combineLeafs);
     }
     const leftT = this.left?.box?.interceptWithRay(ray)?.[0] ?? Number.MAX_VALUE;
     const rightT = this.right?.box?.interceptWithRay(ray)?.[0] ?? Number.MAX_VALUE;
@@ -240,9 +240,9 @@ class Node {
     const second = leftT > rightT ? this.left : this.right;
     const firstT = Math.min(leftT, rightT);
     const secondT = Math.max(leftT, rightT);
-    const firstHit = first.distanceOnRay(ray, firstT);
+    const firstHit = first.distanceOnRay(ray, combineLeafs);
     if (firstHit < secondT) return firstHit;
-    const secondHit = second.distanceOnRay(ray, secondT);
+    const secondHit = second.distanceOnRay(ray, combineLeafs);
     return secondHit <= firstHit ? secondHit : firstHit;
   }
 
@@ -392,11 +392,11 @@ function leafsInterceptWithRay(leafs, ray) {
   return closest;
 }
 
-function distanceFromLeafs(leafs, p) {
+function distanceFromLeafs(leafs, p, combineLeafs) {
   const elements = leafs.map(x => x.element);
   let distance = Number.MAX_VALUE;
   for (let i = 0; i < elements.length; i++) {
-    distance = Math.min(distance, elements[i].distanceToPoint(p));
+    distance = combineLeafs(distance, elements[i].distanceToPoint(p));
   }
   return distance;
 }

@@ -2174,11 +2174,11 @@ var leafsInterceptWithRay = function(leafs, ray) {
   }
   return closest;
 };
-var distanceFromLeafs = function(leafs, p) {
+var distanceFromLeafs = function(leafs, p, combineLeafs) {
   const elements = leafs.map((x) => x.element);
   let distance = Number.MAX_VALUE;
   for (let i2 = 0;i2 < elements.length; i2++) {
-    distance = Math.min(distance, elements[i2].distanceToPoint(p));
+    distance = combineLeafs(distance, elements[i2].distanceToPoint(p));
   }
   return distance;
 };
@@ -2240,8 +2240,8 @@ class KScene {
   interceptWithRay(ray) {
     return this.boundingBoxScene.interceptWithRay(ray);
   }
-  distanceOnRay(ray) {
-    return this.boundingBoxScene.distanceOnRay(ray);
+  distanceOnRay(ray, combineLeafs = Math.min) {
+    return this.boundingBoxScene.distanceOnRay(ray, combineLeafs);
   }
   getElementNear(p) {
     if (this.boundingBoxScene.leafs.length > 0) {
@@ -2373,9 +2373,9 @@ class Node {
   distanceToPoint(p) {
     return this.getElementNear(p).distanceToPoint(p);
   }
-  distanceOnRay(ray) {
+  distanceOnRay(ray, combineLeafs) {
     if (this.leafs.length > 0) {
-      return distanceFromLeafs(this.leafs, ray.init);
+      return distanceFromLeafs(this.leafs, ray.init, combineLeafs);
     }
     const leftT = this.left?.box?.interceptWithRay(ray)?.[0] ?? Number.MAX_VALUE;
     const rightT = this.right?.box?.interceptWithRay(ray)?.[0] ?? Number.MAX_VALUE;
@@ -2385,10 +2385,10 @@ class Node {
     const second = leftT > rightT ? this.left : this.right;
     const firstT = Math.min(leftT, rightT);
     const secondT = Math.max(leftT, rightT);
-    const firstHit = first.distanceOnRay(ray, firstT);
+    const firstHit = first.distanceOnRay(ray, combineLeafs);
     if (firstHit < secondT)
       return firstHit;
-    const secondHit = second.distanceOnRay(ray, secondT);
+    const secondHit = second.distanceOnRay(ray, combineLeafs);
     return secondHit <= firstHit ? secondHit : firstHit;
   }
   getElementNear(p) {
@@ -3092,11 +3092,11 @@ var leafsInterceptWithRay2 = function(leafs, ray) {
   }
   return closest;
 };
-var distanceFromLeafs2 = function(leafs, p) {
+var distanceFromLeafs2 = function(leafs, p, combineLeafs) {
   const elements = leafs.map((x) => x.element);
   let distance = Number.MAX_VALUE;
   for (let i2 = 0;i2 < elements.length; i2++) {
-    distance = Math.min(distance, elements[i2].distanceToPoint(p));
+    distance = combineLeafs(distance, elements[i2].distanceToPoint(p));
   }
   return distance;
 };
@@ -3158,8 +3158,8 @@ class Scene {
   interceptWithRay(ray) {
     return this.boundingBoxScene.interceptWithRay(ray);
   }
-  distanceOnRay(ray) {
-    return this.boundingBoxScene.distanceOnRay(ray);
+  distanceOnRay(ray, combineLeafs = Math.min) {
+    return this.boundingBoxScene.distanceOnRay(ray, combineLeafs);
   }
   getElementNear(p) {
     if (this.boundingBoxScene.leafs.length > 0) {
@@ -3291,9 +3291,9 @@ class Node2 {
   distanceToPoint(p) {
     return this.getElementNear(p).distanceToPoint(p);
   }
-  distanceOnRay(ray) {
+  distanceOnRay(ray, combineLeafs) {
     if (this.leafs.length > 0) {
-      return distanceFromLeafs2(this.leafs, ray.init);
+      return distanceFromLeafs2(this.leafs, ray.init, combineLeafs);
     }
     const leftT = this.left?.box?.interceptWithRay(ray)?.[0] ?? Number.MAX_VALUE;
     const rightT = this.right?.box?.interceptWithRay(ray)?.[0] ?? Number.MAX_VALUE;
@@ -3303,10 +3303,10 @@ class Node2 {
     const second = leftT > rightT ? this.left : this.right;
     const firstT = Math.min(leftT, rightT);
     const secondT = Math.max(leftT, rightT);
-    const firstHit = first.distanceOnRay(ray, firstT);
+    const firstHit = first.distanceOnRay(ray, combineLeafs);
     if (firstHit < secondT)
       return firstHit;
-    const secondHit = second.distanceOnRay(ray, secondT);
+    const secondHit = second.distanceOnRay(ray, combineLeafs);
     return secondHit <= firstHit ? secondHit : firstHit;
   }
   getElementNear(p) {

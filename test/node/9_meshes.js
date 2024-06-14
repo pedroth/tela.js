@@ -16,7 +16,7 @@ const { saveImageStreamToVideo } = IO;
     const obj = readFileSync("./assets/megaman.obj", { encoding: "utf-8" });
     let mesh = Mesh.readObj(obj, "mesh");
     mesh = mesh
-        .addTexture(await Image.ofUrl("./assets/megaman.png"))
+        .addTexture(Image.ofUrl("./assets/megaman.png"))
         .mapColors(() => Color.ofRGB(0.25, 0.25, 0.25))
         .mapVertices(v => Vec3(-v.y, v.x, v.z))
         .mapVertices(v => Vec3(v.z, v.y, -v.x))

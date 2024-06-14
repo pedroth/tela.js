@@ -593,11 +593,15 @@ function getSelectedExample() {
     return TelaLocalStorage.getItem("selectedExample") || "Simple shader";
 }
 
+function getURLData() {
+    
+}
+
 (async () => {
     await renderUI()
     AppState.editor.forEach(async editor => {
         const examplePath = examples.filter(({ title }) => getSelectedExample() === title)[0].path;
-        const exampleTxt = TelaLocalStorage.getItem("input") || await getExampleFromPath(examplePath);
+        const exampleTxt = getURLData() ||TelaLocalStorage.getItem("input") || await getExampleFromPath(examplePath);
         editor.setValue(exampleTxt);
         setTimeout(() => execCode(exampleTxt), 100); // needs this for some unknown reason
     });

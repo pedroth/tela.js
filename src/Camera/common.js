@@ -1,6 +1,6 @@
-import Color from "../Color/Color";
-import { lerp } from "../Utils/Math";
-import { Vec2 } from "../Vector/Vector";
+import Color from "../Color/Color.js";
+import { lerp } from "../Utils/Math.js";
+import { Vec2 } from "../Vector/Vector.js";
 
 export function getDefaultTexColor(texUV) {
     texUV = texUV.scale(16).map(x => x % 1)

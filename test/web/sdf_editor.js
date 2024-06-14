@@ -8,8 +8,8 @@ async (canvas, logger) => {
     document.body.appendChild(div);
     canvas.DOM.addEventListener("contextmenu", (e) => e.preventDefault());
     // resize incoming canvas:Canvas object.
-    const width = 640 / 2;
-    const height = 480 / 2;
+    const width = 640 / 3;
+    const height = 480 / 3;
     canvas.resize(width, height);
     // scene
     const scene = new KScene()
@@ -65,15 +65,21 @@ async (canvas, logger) => {
         camera.orbit(coords => coords.add(Vec3(deltaY * 0.001, 0, 0)));
     })
 
+
+    function smin(a, b, k = 32) {
+        const res = Math.exp(-k * a) + Math.exp(-k * b);
+        return -Math.log(res) / k;
+    }
+
     function render(ray) {
         const maxIte = 100;
         const epsilon = 1e-6;
         let p = ray.init;
-        let t = scene.distanceOnRay(ray);
+        let t = scene.distanceOnRay(ray, smin);
         let minT = t;
         for (let i = 0; i < maxIte; i++) {
             p = ray.trace(t);
-            const d = scene.distanceOnRay(Ray(p, ray.dir));
+            const d = scene.distanceOnRay(Ray(p, ray.dir), smin);
             t += d;
             if (d < epsilon) {
                 const normal = scene.normalToPoint(p);
@@ -84,7 +90,7 @@ async (canvas, logger) => {
                 )
             }
             if (d > 10) {
-                return Color.ofRGB(0, 0, i / maxIte);
+                return Color.ofRGB(0, 0, 10 * (i / maxIte));
             }
             minT = d;
         }
