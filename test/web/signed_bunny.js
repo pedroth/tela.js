@@ -1,8 +1,8 @@
 /* eslint-disable no-undef */
 async (canvas, logger) => {
     // resize incoming canvas:Canvas object.
-    const width = 640 / 2;
-    const height = 480 / 2;
+    const width = 640 / 3;
+    const height = 480 / 3;
     canvas.resize(width, height);
     // scene
     const scene = new KScene();
@@ -30,7 +30,7 @@ async (canvas, logger) => {
                 const normal = scene.normalToPoint(p).map(x => (x + 1) / 2);
                 return Color.ofRGB(normal.x, normal.y, normal.z);
             }
-            if (d > maxDist) return Color.ofRGB(0, 0, i / maxIte);
+            if (d > maxDist) return Color.ofRGB(0, 0, 10 * (i / maxIte));
         }
         return Color.BLACK;
     }

@@ -12,8 +12,7 @@ export default class Window {
         this._height = height;
         this._title = title;
         this._window = sdl.video.createWindow({ title, resizable: true });
-        this._image = new Array(this._width * this._height)
-            .fill(Color.ofRGB());
+        this._image = new Array(this._width * this._height).fill(Color.ofRGB());
         this.box = new Box(Vec2(0, 0), Vec2(this._width, this._height))
     }
 
@@ -61,8 +60,6 @@ export default class Window {
         this._image.fill(color);
         return this;
     }
-
-
 
     onMouseDown(lambda) {
         this._window.on("mouseButtonDown", handleMouse(this, lambda));
