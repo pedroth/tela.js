@@ -33,8 +33,7 @@ function parsePPM(data) {
         if (data[index] === NEW_LINE_CHAR) headerLines--;
         index++;
     }
-    const [, width, height, maxColor] = data
-        .slice(0, index)
+    const [, width, height, maxColor] = Array.from(data.slice(0, index))
         .map(x => String.fromCharCode(x))
         .join("")
         .match(/\d+/g)
@@ -56,7 +55,7 @@ export function readImageFrom(src) {
     const { fileName } = getFileNameAndExtensionFromAddress(src);
     execSync(`ffmpeg -i ${src} ${fileName}.ppm`);
     const imageFile = readFileSync(`${fileName}.ppm`);
-    const { width: w, height: h, pixels } = parsePPM(Array.from(imageFile));
+    const { width: w, height: h, pixels } = parsePPM(imageFile);
     unlinkSync(`${fileName}.ppm`);
     const img = Image.ofSize(w, h);
     for (let k = 0; k < pixels.length; k++) {
