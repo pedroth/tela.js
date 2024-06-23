@@ -106,7 +106,7 @@ export default class VoxelScene {
         }
     }
 
-    distanceOnRay(ray) {
+    distanceOnRay(ray, combineLeafs = Math.min) {
         const maxDist = 10;
         const maxIte = maxDist / this.gridSpace;
         let t = 0;
@@ -123,7 +123,7 @@ export default class VoxelScene {
         if (elements?.length) {
             let distance = Number.MAX_VALUE;
             for (let i = 0; i < elements.length; i++) {
-                distance = Math.min(distance, elements[i].distanceToPoint(ray.init));
+                distance = combineLeafs(distance, elements[i].distanceToPoint(ray.init));
             }
             return distance;
         }
@@ -135,7 +135,14 @@ export default class VoxelScene {
     }
 
     getElementInBox(box) {
-        throw Error("Not implemented");
+        const size = box.diagonal.fold((e, x) => e * x, 1);
+        const samples = Math.floor(size / this.gridSpace);
+        let elements = [];
+        for (let i = 0; i < samples; i++) {
+            const p = box.sample();
+            elements = elements.concat(Object.values(this.gridMap[this.hash(p)] || {}));
+        }
+        return elements;
     }
 
     rebuild() {

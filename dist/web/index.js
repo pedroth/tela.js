@@ -3260,7 +3260,7 @@ class Node2 {
       this.leafs = [];
     } else {
       const children = [this.left, this.right];
-      const index = argmin(children, (x) => element.boundingBox.distanceToBox(x.box));
+      const index = argmin(children, (x) => element.getBoundingBox().distanceToBox(x.box));
       children[index].add(element);
     }
     return this;
@@ -3766,7 +3766,7 @@ class VoxelScene {
       return closest;
     }
   }
-  distanceOnRay(ray) {
+  distanceOnRay(ray, combineLeafs = Math.min) {
     const maxDist = 10;
     const maxIte = maxDist / this.gridSpace;
     let t = 0;
@@ -3783,7 +3783,7 @@ class VoxelScene {
     if (elements?.length) {
       let distance = Number.MAX_VALUE;
       for (let i2 = 0;i2 < elements.length; i2++) {
-        distance = Math.min(distance, elements[i2].distanceToPoint(ray.init));
+        distance = combineLeafs(distance, elements[i2].distanceToPoint(ray.init));
       }
       return distance;
     }
@@ -3793,7 +3793,14 @@ class VoxelScene {
     throw Error("Not implemented");
   }
   getElementInBox(box) {
-    throw Error("Not implemented");
+    const size = box.diagonal.fold((e, x) => e * x, 1);
+    const samples = Math.floor(size / this.gridSpace);
+    let elements = [];
+    for (let i2 = 0;i2 < samples; i2++) {
+      const p = box.sample();
+      elements = elements.concat(Object.values(this.gridMap[this.hash(p)] || {}));
+    }
+    return elements;
   }
   rebuild() {
     return this;
