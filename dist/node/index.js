@@ -2342,7 +2342,7 @@ class Node {
       this.leafs = [];
     } else {
       const children = [this.left, this.right];
-      const index = argmin(children, (x) => element.boundingBox.distanceToBox(x.box));
+      const index = argmin(children, (x) => element.getBoundingBox().distanceToBox(x.box));
       children[index].add(element);
     }
     return this;
