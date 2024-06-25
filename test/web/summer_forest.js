@@ -1,5 +1,10 @@
 /* eslint-disable no-undef */
 async (canvas, logger) => {
+    const div = document.createElement("div");
+    div.innerHTML = `
+        <p>AWSD to move the camera</p>
+    `
+    document.body.appendChild(div);
     // resize incoming canvas:Canvas object.
     const width = 640 / 2;
     const height = 480 / 2;
