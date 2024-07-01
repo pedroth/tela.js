@@ -3,7 +3,6 @@ import Window from "../../src/Tela/Window.js";
 import { readFileSync } from "fs"
 
 (async () => {
-    // resize incoming canvas:Canvas object.
     const width = 640 / 2;
     const height = 480 / 2;
     const window = Window.ofSize(width, height);

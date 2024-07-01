@@ -143,6 +143,13 @@ You can find more examples of usage in:
 [Node][node] is preferred when running the demos (it is faster, [opened a bug in bun](https://github.com/oven-sh/bun/issues/9218)), [bun][bun] is needed to build the library.
 
 
+# TODOs
+
+- Update Window performance and parallel map
+- Add parallel ray tracing
+- Join canvas, image, window into single interface
+
+
 
 [ffmpeg]: https://ffmpeg.org/
 [bun]: https://bun.sh/

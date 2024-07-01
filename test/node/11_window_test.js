@@ -1,7 +1,6 @@
 import { Camera, Mesh, Scene, Vec3, Vec2, Color, Image } from "../../src/index.node.js";
 import Window from "../../src/Tela/Window.js";
 import { readFileSync } from "fs"
-// resize incoming canvas:Canvas object.
 (async () => {
     const width = 640;
     const height = 480;

@@ -2,7 +2,6 @@ import { Camera, Image, Mesh, Utils, Vec3, KScene } from "../../dist/node/index.
 import { readFileSync } from "fs"
 const { measureTimeWithResult } = Utils;
 
-// resize incoming canvas:Canvas object.
 (async () => {
     const width = 640;
     const height = 480;

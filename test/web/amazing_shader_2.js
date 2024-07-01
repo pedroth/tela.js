@@ -6,7 +6,6 @@
     canvas.resize(width, height);
 
     // util variables
-    const T = Number.MAX_VALUE;
     const r = Vec2(width, height);
     const mod = (x) => (n) => ((x % n) + n) % n;
     // Using Animation from tela.js
