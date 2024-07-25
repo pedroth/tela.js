@@ -1,9 +1,15 @@
 import Box from "../Geometry/Box.js";
+import { memoize } from "../Utils/Utils.js";
 import Color from "../Color/Color.js";
 import { MAX_8BIT } from "../Utils/Constants.js";
-import { clipLine, isInsideConvex, mod } from "../Utils/Math.js";
+import { clamp, clipLine, isInsideConvex, mod } from "../Utils/Math.js";
 import { Vec2 } from "../Vector/Vector.js";
-import sdl from "@kmamal/sdl"
+import sdl from "@kmamal/sdl";
+import os from 'node:os';
+import { Worker } from "node:worker_threads";
+
+
+const clamp01 = clamp();
 
 export default class Window {
 
@@ -11,8 +17,8 @@ export default class Window {
         this._width = width;
         this._height = height;
         this._title = title;
-        this._window = sdl.video.createWindow({ title, resizable: true });
-        this._image = new Array(this._width * this._height).fill(Color.ofRGB());
+        this._window = sdl.video.createWindow({ title, width, height, resizable: true });
+        this._image = new Float32Array(this._width * this._height * 4);
         this.box = new Box(Vec2(0, 0), Vec2(this._width, this._height))
     }
 
@@ -31,33 +37,111 @@ export default class Window {
     }
 
     paint() {
-        const buffer = this.toArray();
-        this._window.render(this._width, this._height, this._width * 4, 'rgba32', buffer)
+        const buffer = Buffer.allocUnsafe(this._image.length);
+        buffer.set(this._image.map(x => clamp01(x) * MAX_8BIT));
+        this._window.render(this._width, this._height, this._width * 4, 'rgba32', buffer);
+        return this;
+    }
+
+    close() {
+        this._window.hide();
+        this._window.destroy();
         return this;
     }
 
     /**
      * lambda: (x: Number, y: Number) => Color 
      */
-    map(lambda) {
+    map(lambda, paint = true) {
         const n = this._image.length;
         const w = this._width;
         const h = this._height;
-        for (let k = 0; k < n; k++) {
-            const i = Math.floor(k / w);
-            const j = k % w;
+        for (let k = 0; k < n; k += 4) {
+            const i = Math.floor(k / (4 * w));
+            const j = Math.floor((k / 4) % w);
             const x = j;
             const y = h - 1 - i;
-            this._image[k] = lambda(x, y);
+            const color = lambda(x, y);
+            if (!color) continue;
+            this._image[k] = color.red;
+            this._image[k + 1] = color.green;
+            this._image[k + 2] = color.blue;
+            this._image[k + 3] = 1;
         }
-        return this.paint();
+        if (paint) return this.paint();
+        return this;
     }
+
+    mapParallel = memoize((lambda, dependencies = []) => {
+        const N = os.cpus().length;
+        const w = this._width;
+        const h = this._height;
+        const fun = ({ _start_row, _end_row, _width_, _height_, _worker_id_, _vars_ }) => {
+            const image = new Float32Array(4 * _width_ * (_end_row - _start_row));
+            const startIndex = 4 * _width_ * _start_row;
+            const endIndex = 4 * _width_ * _end_row;
+            let index = 0;
+            for (let k = startIndex; k < endIndex; k += 4) {
+                const i = Math.floor(k / (4 * _width_));
+                const j = Math.floor((k / 4) % _width_);
+                const x = j;
+                const y = _height_ - 1 - i;
+                const color = lambda(x, y, { ..._vars_ });
+                if (!color) continue;
+                image[index] = color.red;
+                image[index + 1] = color.green;
+                image[index + 2] = color.blue;
+                image[index + 3] = 1;
+                index += 4;
+            }
+            return { image, _start_row, _end_row, _worker_id_ };
+        }
+        const workers = [...Array(N)].map(() => createWorker(fun, lambda, dependencies));
+        return {
+            run: (vars = {}) => {
+                return Promise
+                    .all(workers.map((worker, k) => {
+                        return new Promise((resolve) => {
+                            worker.removeAllListeners('message');
+                            worker.on("message", (message) => {
+                                const { image, _start_row, _end_row, _worker_id_ } = message;
+                                let index = 0;
+                                const startIndex = 4 * w * _start_row;
+                                const endIndex = 4 * w * _end_row;
+                                for (let i = startIndex; i < endIndex; i++) {
+                                    this._image[i] = image[index];
+                                    index++;
+                                }
+                                return resolve();
+                            });
+                            const ratio = Math.floor(h / N);
+                            worker.postMessage({
+                                _start_row: k * ratio,
+                                _end_row: Math.min(h - 1, (k + 1) * ratio),
+                                _width_: w,
+                                _height_: h,
+                                _worker_id_: k,
+                                _vars_: vars
+                            });
+                        })
+                    }))
+                    .then(() => this.paint());
+            }
+        }
+    });
 
     /**
      * color: Color 
      */
     fill(color) {
-        this._image.fill(color);
+        if (!color) return;
+        const n = this._image.length;
+        for (let k = 0; k < n; k += 4) {
+            this._image[k] = color.red;
+            this._image[k + 1] = color.green;
+            this._image[k + 2] = color.blue;
+            this._image[k + 3] = 1;
+        }
         return this;
     }
 
@@ -81,11 +165,13 @@ export default class Window {
         return this;
     }
 
-    setPxl(x, y, color) {
-        const w = this._width;
-        const [i, j] = this.canvas2grid(x, y);
-        let index = w * i + j;
-        this._image[index] = color;
+    onKeyDown(lambda) {
+        this._window.on("keyDown", lambda);
+        return this;
+    }
+
+    onKeyUp(lambda) {
+        this._window.on("keyDown", lambda);
         return this;
     }
 
@@ -97,6 +183,22 @@ export default class Window {
         j = mod(j, w);
         let index = w * i + j;
         return this._image[index];
+    }
+
+    setPxl(x, y, color) {
+        const w = this._width;
+        const [i, j] = this.canvas2grid(x, y);
+        let index = w * i + j;
+        this._image[index] = color;
+        return this;
+    }
+
+    setPxlData(index, [r, g, b]) {
+        this._image[index] = r;
+        this._image[index + 1] = g;
+        this._image[index + 2] = b;
+        this._image[index + 3] = 1.0;
+        return this;
     }
 
     drawLine(p1, p2, shader) {
@@ -179,25 +281,6 @@ export default class Window {
         return ans;
     }
 
-    toArray() {
-        const w = this._width;
-        const h = this._height;
-        const imageData = Buffer.alloc(w * h * 4);
-
-        for (let i = 0; i < h; i++) {
-            for (let j = 0; j < w; j++) {
-                let index = w * i + j;
-                const color = this._image[index];
-                index <<= 2; // multiply by 4
-                imageData[index] = Math.min(color.red * MAX_8BIT, MAX_8BIT);
-                imageData[index + 1] = Math.min(color.green * MAX_8BIT, MAX_8BIT);
-                imageData[index + 2] = Math.min(color.blue * MAX_8BIT, MAX_8BIT);
-                imageData[index + 3] = MAX_8BIT;
-            }
-        }
-        return imageData;
-    }
-
     //========================================================================================
     /*                                                                                      *
      *                                    Static Methods                                    *
@@ -220,6 +303,10 @@ export default class Window {
                 return image.get(x, y);
             })
     }
+
+    static LEFT_CLICK = 1;
+    static MIDDLE_CLICK = 2;
+    static RIGHT_CLICK = 3;
 }
 
 //========================================================================================
@@ -261,3 +348,19 @@ function handleMouse(canvas, lambda) {
         return lambda(x, canvas.height - 1 - y);
     }
 }
+
+const createWorker = (main, lambda, dependencies) => {
+    const workerFile = `
+    const { parentPort } = require("node:worker_threads");
+
+    ${dependencies.concat([Color]).map(d => d.toString()).join("\n")}
+    const lambda = ${lambda.toString()};
+    const __main__ = ${main.toString()};
+    parentPort.on("message", message => {
+        const output = __main__(message);
+        parentPort.postMessage(output);
+    });
+    `;
+    const worker = new Worker(workerFile, { eval: true });
+    return worker;
+};
