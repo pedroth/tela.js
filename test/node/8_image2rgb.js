@@ -1,4 +1,4 @@
-import { Image, Stream, IO, Utils, Vec3, NaiveScene, Camera, Point } from "../../dist/node/index.js";
+import { Image, Stream, IO, Utils, Vec3, NaiveScene, Camera, Sphere } from "../../dist/node/index.js";
 const { saveImageStreamToVideo } = IO;
 const { measureTimeWithResult, measureTime } = Utils;
 
@@ -20,7 +20,7 @@ const { measureTimeWithResult, measureTime } = Utils;
             const initial = Vec3(0, x / img.width, y / img.height);
             return {
                 init: initial,
-                point: Point
+                point: Sphere
                     .builder()
                     .name(`pxl_${k}`)
                     .radius(1e-5)

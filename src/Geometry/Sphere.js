@@ -1,10 +1,10 @@
-import Box from "../Geometry/Box.js";
+import Box from "./Box.js";
 import Color from "../Color/Color.js";
 import { Diffuse } from "../Material/Material.js";
 import { randomPointInSphere } from "../Utils/Math.js";
 import Vec, { Vec2, Vec3 } from "../Vector/Vector.js";
 
-class Point {
+class Sphere {
     constructor({ name, position, color, texCoord, normal, radius, texture, emissive, material }) {
         this.name = name;
         this.color = color;
@@ -131,9 +131,9 @@ class PointBuilder {
             material: this._material
         }
         if (Object.values(attrs).some((x) => x === undefined)) {
-            throw new Error("Point is incomplete");
+            throw new Error("Sphere is incomplete");
         }
-        return new Point({ ...attrs, texture: this._texture });
+        return new Sphere({ ...attrs, texture: this._texture });
     }
 }
 
@@ -152,4 +152,4 @@ function sphereInterception(point, ray) {
     return t1 >= 0 && t2 >= 0 ? t : undefined;
 }
 
-export default Point;
+export default Sphere;

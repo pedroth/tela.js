@@ -122,7 +122,7 @@ async (canvas, logger) => {
 
     // some objects
     scene.add(
-        Point
+        Sphere
             .builder()
             .radius(0.25)
             .name("sphere")
@@ -130,7 +130,7 @@ async (canvas, logger) => {
             .material(Metallic(0.25))
             .position(Vec3(1.5, 0.5, 1.5))
             .build(),
-        Point
+        Sphere
             .builder()
             .radius(0.25)
             .name("metal-sphere")
@@ -138,7 +138,7 @@ async (canvas, logger) => {
             .material(Metallic())
             .position(Vec3(1.5, 2.5, 1.5))
             .build(),
-        Point
+        Sphere
             .builder()
             .radius(0.5)
             .name("glass-sphere")
@@ -160,7 +160,7 @@ async (canvas, logger) => {
             .material(DiElectric(2))
             .positions(Vec3(3, 1, 1), Vec3(3, 2, 1), Vec3(3, 1.5, 2))
             .build(),
-        Point
+        Sphere
             .builder()
             .radius(0.25)
             .name("alpha-sphere")

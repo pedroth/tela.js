@@ -47,7 +47,7 @@ async (canvas, logger) => {
             const initial = Vec3(0, x / img.width, y / img.height);
             return {
                 init: initial,
-                point: Point
+                point: Sphere
                     .builder()
                     .name(`pxl_${k}`)
                     .radius(1e-5)

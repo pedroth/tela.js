@@ -81,8 +81,6 @@ export default class Window {
         return this;
     }
 
-
-
     setPxl(x, y, color) {
         const w = this._width;
         const [i, j] = this.canvas2grid(x, y);

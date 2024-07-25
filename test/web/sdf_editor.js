@@ -42,7 +42,7 @@ async (canvas, logger) => {
             const normal = canvas2Ray(width / 2, height / 2).dir;
             const p = ray.trace(-normal.dot(ray.init) / normal.dot(ray.dir));
             scene.add(
-                Point
+                Sphere
                     .builder()
                     .radius(0.25)
                     .position(p)

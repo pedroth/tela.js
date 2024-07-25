@@ -1,6 +1,6 @@
 import Color from "../Color/Color.js";
 import Line from "../Geometry/Line.js";
-import Point from "../Geometry/Point.js";
+import Sphere from "../Geometry/Sphere.js";
 import Mesh from "../Geometry/Mesh.js";
 import Triangle from "../Geometry/Triangle.js";
 import { Vec2 } from "../Vector/Vector.js";
@@ -8,7 +8,7 @@ import { getBiLinearTexColor, getDefaultTexColor, getTexColor } from "./common.j
 
 export function rasterGraphics(scene, camera, params) {
     const type2render = {
-        [Point.name]: rasterPoint,
+        [Sphere.name]: rasterSphere,
         [Line.name]: rasterLine,
         [Triangle.name]: rasterTriangle,
         [Mesh.name]: rasterMesh,
@@ -52,7 +52,7 @@ export function rasterGraphics(scene, camera, params) {
 }
 
 
-function rasterPoint({ canvas, camera, elem, w, h, zBuffer }) {
+function rasterSphere({ canvas, camera, elem, w, h, zBuffer }) {
     const point = elem;
     const { distanceToPlane } = camera;
     const { texCoord, texture, position, color, radius } = point;
@@ -71,6 +71,7 @@ function rasterPoint({ canvas, camera, elem, w, h, zBuffer }) {
     y = Math.floor(y);
     if (x < 0 || x >= w || y < 0 || y >= h) return;
     const intRadius = Math.ceil((radius) * (distanceToPlane / z) * w);
+    const intRadiusSquare = intRadius * intRadius;
     let finalColor = color;
     if (
         texture &&
@@ -83,6 +84,8 @@ function rasterPoint({ canvas, camera, elem, w, h, zBuffer }) {
         for (let l = -intRadius; l < intRadius; l++) {
             const xl = Math.max(0, Math.min(w - 1, x + k));
             const yl = Math.floor(y + l);
+            const squareLength = k * k + l * l;
+            if(squareLength > intRadiusSquare) continue;
             const [i, j] = canvas.canvas2grid(xl, yl);
             const zBufferIndex = Math.floor(w * i + j);
             if (z < zBuffer[zBufferIndex]) {

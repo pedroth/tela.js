@@ -1,5 +1,5 @@
 import { Vec3, Vec2 } from "../Vector/Vector.js";
-import Point from "./Point.js"
+import Sphere from "./Sphere.js"
 import Line from "./Line.js";
 import Triangle from "./Triangle.js";
 import { groupBy } from "../Utils/Utils.js";
@@ -144,7 +144,7 @@ export default class Mesh {
             for (let j = 0; j < 3; j++) {
                 const pointName = `${this.name}_${verticesIndexes[j]}`
                 if (!(pointName in points)) {
-                    points[pointName] = Point
+                    points[pointName] = Sphere
                         .builder()
                         .name(pointName)
                         .radius(radius)

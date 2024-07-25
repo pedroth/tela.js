@@ -562,7 +562,7 @@ function execCode(code) {
             const script = DOM.of("script").build();
             script.type = "module";
             script.textContent = `
-            import {Path, Ray, Canvas, DOM, Color, Animation, Scene, KScene, BScene, Camera, Vec2, Vec3, Vec, Box, Point, Mesh, NaiveScene, RandomScene, VoxelScene, Line, Triangle, Diffuse, Metallic, Alpha, DiElectric, clamp} from "${SOURCE}/dist/web/index.js"
+            import {Path, Ray, Canvas, DOM, Color, Animation, Scene, KScene, BScene, Camera, Vec2, Vec3, Vec, Box, Sphere, Mesh, NaiveScene, RandomScene, VoxelScene, Line, Triangle, Diffuse, Metallic, Alpha, DiElectric, clamp} from "${SOURCE}/dist/web/index.js"
             ${toggleFullScreen.toString()}
             function requestAnimationFrame(lambda) {
                 const id = window.requestAnimationFrame(lambda);

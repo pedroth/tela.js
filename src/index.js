@@ -12,7 +12,7 @@ import VoxelScene from "./Scene/VoxelScene.js"
 import RandomScene from "./Scene/RandomScene.js"
 import Vec, { Vec2, Vec3 } from "./Vector/Vector.js"
 import Box from "./Geometry/Box.js"
-import Point from "./Geometry/Point.js"
+import Sphere from "./Geometry/Sphere.js"
 import Line from "./Geometry/Line.js"
 import Path from "./Geometry/Path.js"
 import Triangle from "./Geometry/Triangle.js"
@@ -31,12 +31,12 @@ export {
     Vec2,
     Vec3,
     Color,
-    Point,
     Scene,
+    BScene,
     Canvas,
     Camera,
-    BScene,
     KScene,
+    Sphere,
     Stream,
     parseSVG,
     Triangle,

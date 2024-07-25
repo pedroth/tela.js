@@ -54,7 +54,7 @@ async (canvas, logger) => {
             const x = j;
             const y = i;
             const initial = Vec3(0, x / n, y / n);
-            return Point
+            return Sphere
                 .builder()
                 .name(`pxl_${k}`)
                 .radius(1e-2)
@@ -113,7 +113,7 @@ async (canvas, logger) => {
             let t = scene.distanceToPoint(p);
             const maxDist = t;
             debugScene.add(
-                Point
+                Sphere
                     .builder()
                     .name("init")
                     .position(p)
@@ -125,7 +125,7 @@ async (canvas, logger) => {
             debugScene.add(line(init, ray.trace(t), Color.RED));
             for (let i = 0; i < maxIte; i++) {
                 debugScene.add(
-                    Point
+                    Sphere
                         .builder()
                         .name("init" + i)
                         .position(p)
@@ -140,7 +140,7 @@ async (canvas, logger) => {
                 t += d;
                 if (d < epsilon) {
                     debugScene.add(
-                        Point
+                        Sphere
                             .builder()
                             .name("hit")
                             .position(p)

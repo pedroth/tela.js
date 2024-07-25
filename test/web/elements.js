@@ -39,7 +39,7 @@ async (canvas, logger) => {
     // scene
     scene
         .add(
-            Point
+            Sphere
                 .builder()
                 .position(Vec3(0, -1.5, 0))
                 .name("point")

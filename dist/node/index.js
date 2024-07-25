@@ -1817,7 +1817,7 @@ class LineBuilder {
   }
 }
 
-// src/Geometry/Point.js
+// src/Geometry/Sphere.js
 var sphereInterception = function(point, ray) {
   const { init, dir } = ray;
   const diff = init.sub(point.position);
@@ -1835,7 +1835,7 @@ var sphereInterception = function(point, ray) {
   return t1 >= 0 && t2 >= 0 ? t : undefined;
 };
 
-class Point {
+class Sphere {
   constructor({ name, position, color, texCoord, normal, radius, texture, emissive, material }) {
     this.name = name;
     this.color = color;
@@ -1948,12 +1948,12 @@ class PointBuilder {
       material: this._material
     };
     if (Object.values(attrs).some((x) => x === undefined)) {
-      throw new Error("Point is incomplete");
+      throw new Error("Sphere is incomplete");
     }
-    return new Point({ ...attrs, texture: this._texture });
+    return new Sphere({ ...attrs, texture: this._texture });
   }
 }
-var Point_default = Point;
+var Sphere_default = Sphere;
 
 // src/Utils/PQueue.js
 var heapifyBuilder = function(data, comparator) {
@@ -2614,7 +2614,7 @@ class Mesh {
       for (let j = 0;j < 3; j++) {
         const pointName = `${this.name}_${verticesIndexes[j]}`;
         if (!(pointName in points)) {
-          points[pointName] = Point_default.builder().name(pointName).radius(radius).texture(this.texture).color(this.colors[verticesIndexes[j]]).normal(this.normals[normalIndexes[j]]).position(this.vertices[verticesIndexes[j]]).texCoord(this.textureCoords[texCoordIndexes[j]]).build();
+          points[pointName] = Sphere_default.builder().name(pointName).radius(radius).texture(this.texture).color(this.colors[verticesIndexes[j]]).normal(this.normals[normalIndexes[j]]).position(this.vertices[verticesIndexes[j]]).texCoord(this.textureCoords[texCoordIndexes[j]]).build();
         }
       }
     }
@@ -2692,7 +2692,7 @@ class Mesh {
 // src/Camera/raster.js
 function rasterGraphics(scene, camera, params) {
   const type2render = {
-    [Point_default.name]: rasterPoint,
+    [Sphere_default.name]: rasterSphere,
     [Line.name]: rasterLine,
     [Triangle.name]: rasterTriangle,
     [Mesh.name]: rasterMesh
@@ -2733,7 +2733,7 @@ function rasterGraphics(scene, camera, params) {
     return canvas;
   };
 }
-var rasterPoint = function({ canvas, camera, elem, w, h, zBuffer }) {
+var rasterSphere = function({ canvas, camera, elem, w, h, zBuffer }) {
   const point = elem;
   const { distanceToPlane } = camera;
   const { texCoord, texture, position, color, radius } = point;
@@ -2749,6 +2749,7 @@ var rasterPoint = function({ canvas, camera, elem, w, h, zBuffer }) {
   if (x < 0 || x >= w || y < 0 || y >= h)
     return;
   const intRadius = Math.ceil(radius * (distanceToPlane / z) * w);
+  const intRadiusSquare = intRadius * intRadius;
   let finalColor = color;
   if (texture && texCoord) {
     const texColor = getTexColor(texCoord, texture);
@@ -2758,6 +2759,9 @@ var rasterPoint = function({ canvas, camera, elem, w, h, zBuffer }) {
     for (let l = -intRadius;l < intRadius; l++) {
       const xl = Math.max(0, Math.min(w - 1, x + k));
       const yl = Math.floor(y + l);
+      const squareLength = k * k + l * l;
+      if (squareLength > intRadiusSquare)
+        continue;
       const [i2, j] = canvas.canvas2grid(xl, yl);
       const zBufferIndex = Math.floor(w * i2 + j);
       if (z < zBuffer[zBufferIndex]) {
@@ -4867,11 +4871,11 @@ function saveParallelImageStreamToVideo(fileAddress, parallelStreamOfImages, opt
                 clamp,
                 Color,
                 Image,
-                Point,
                 Scene,
                 BScene,
                 Camera,
                 KScene,
+                Sphere,
                 MAX_8BIT,
                 Animation,
                 NaiveScene,
@@ -5016,11 +5020,11 @@ export {
   UNIT_BOX_FACES2 as UNIT_BOX_FACES,
   Triangle,
   Stream,
+  Sphere_default as Sphere,
   Scene,
   Ray,
   RandomScene,
   RAD2DEG,
-  Point_default as Point,
   Path,
   Parallel,
   NaiveScene,
