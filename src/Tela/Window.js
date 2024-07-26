@@ -99,6 +99,7 @@ export default class Window {
         const workers = [...Array(N)].map(() => createWorker(fun, lambda, dependencies));
         return {
             run: (vars = {}) => {
+                // in node promise.all is faster than the canvas method
                 return Promise
                     .all(workers.map((worker, k) => {
                         return new Promise((resolve) => {

@@ -143,6 +143,7 @@ export default class Canvas {
     const workers = [...Array(N)].map(() => createWorker(fun, lambda, dependencies));
     return {
       run: (vars = {}) => {
+        // works better than Promise.all solution
         return new Promise((resolve) => {
           const allWorkersDone = [...Array(N)].fill(false);
           workers.forEach((worker, k) => {
