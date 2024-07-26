@@ -90,11 +90,9 @@ async (canvas, logger) => {
     })();
 
     // boilerplate for fps
-    Animation
-        .loop(({ time, dt }) => {
-            camera.reverseShot(scene).to(canvas);
-            stateMachine(time)
-            logger.print(Math.floor(1 / dt));
-        })
-        .play();
+    loop(({ time, dt }) => {
+        camera.reverseShot(scene).to(canvas);
+        stateMachine(time)
+        logger.print(Math.floor(1 / dt));
+    }).play();
 }

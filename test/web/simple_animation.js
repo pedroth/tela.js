@@ -5,9 +5,8 @@
     canvas.resize(width, height);
     // util variables
     const T = 20;
-    // Using Animation from tela.js
-    const animation = Animation
-    .loop(({time, dt}) => {
+    // Using loop from tela.js
+    const animation = loop(({ time, dt }) => {
         logger.print(`FPS: ${Math.floor(1 / dt)}`);
         canvas
             .map((x, y) => {
@@ -15,7 +14,6 @@
                 let py = (y * time) / height;
                 return Color.ofRGB(px % 1, py % 1, 0);
             })
-        if(time > T) animation.stop();
-    })
-    .play();
+        if (time > T) animation.stop();
+    }).play();
 }

@@ -37,17 +37,15 @@ Playground usage:
     const width = 640;
     const height = 480;
     const canvas = Canvas.ofSize(640, 480);
-    Animation
-        .loop(({ time, dt }) => {
-            document.title = `FPS: ${(Math.floor(1 / dt))}`;
-            canvas.map((x, y) => {
-                return Color.ofRGB(
-                    ((x * time) / width) % 1,
-                    ((y * time) / height) % 1
-                )
-            })
+    loop(({ time, dt }) => {
+        document.title = `FPS: ${(Math.floor(1 / dt))}`;
+        canvas.map((x, y) => {
+            return Color.ofRGB(
+                ((x * time) / width) % 1,
+                ((y * time) / height) % 1
+            )
         })
-        .play();
+    }).play();
     document.body.appendChild(canvas.DOM);
 
 </script>

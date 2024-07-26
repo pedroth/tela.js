@@ -180,15 +180,14 @@ export const BUILD_VEC = (n) => new Float64Array(n);
 export const COPY_VEC = (array) => Float64Array.from(array);
 export class VectorException extends Error { }
 
-export const Vec3 = (x = 0, y = 0, z = 0) => new Vector3(x, y, z);
-export const Vec2 = (x = 0, y = 0) => new Vector2(x, y);
+export function Vec3(x = 0, y = 0, z = 0) { return new Vector3(x, y, z); }
+export function Vec2(x = 0, y = 0) { return new Vector2(x, y); }
 
 class Vector3 {
   constructor(x = 0, y = 0, z = 0) {
     this.x = x;
     this.y = y;
     this.z = z;
-
   }
 
   get n() {

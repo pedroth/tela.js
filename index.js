@@ -1,8 +1,7 @@
 const isGithub = window.location.host === "pedroth.github.io";
 const SOURCE = isGithub ? "/tela.js" : ""
 // eslint-disable-next-line no-unused-vars
-const { DOM, Monads } = await import(SOURCE + "/dist/web/index.js")
-const { some, none } = Monads;
+const { DOM, some, none } = await import(SOURCE + "/dist/web/index.js")
 //========================================================================================
 /*                                                                                      *
  *                                         UTILS                                        *
@@ -562,7 +561,7 @@ function execCode(code) {
             const script = DOM.of("script").build();
             script.type = "module";
             script.textContent = `
-            import {Path, Ray, Canvas, DOM, Color, Animation, Scene, KScene, BScene, Camera, Vec2, Vec3, Vec, Box, Sphere, Mesh, NaiveScene, RandomScene, VoxelScene, Line, Triangle, Diffuse, Metallic, Alpha, DiElectric, clamp} from "${SOURCE}/dist/web/index.js"
+            import {Path, Ray, Canvas, DOM, Color, Scene, KScene, BScene, Camera, Vec2, Vec3, Vec, Box, Sphere, Mesh, NaiveScene, RandomScene, VoxelScene, Line, Triangle, Diffuse, Metallic, Alpha, DiElectric, clamp, loop} from "${SOURCE}/dist/web/index.js"
             ${toggleFullScreen.toString()}
             function requestAnimationFrame(lambda) {
                 const id = window.requestAnimationFrame(lambda);
@@ -594,14 +593,14 @@ function getSelectedExample() {
 }
 
 function getURLData() {
-    
+
 }
 
 (async () => {
     await renderUI()
     AppState.editor.forEach(async editor => {
         const examplePath = examples.filter(({ title }) => getSelectedExample() === title)[0].path;
-        const exampleTxt = getURLData() ||TelaLocalStorage.getItem("input") || await getExampleFromPath(examplePath);
+        const exampleTxt = getURLData() || TelaLocalStorage.getItem("input") || await getExampleFromPath(examplePath);
         editor.setValue(exampleTxt);
         setTimeout(() => execCode(exampleTxt), 100); // needs this for some unknown reason
     });

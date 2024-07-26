@@ -1,4 +1,4 @@
-import { Camera, Mesh, Scene, Vec3, Vec2, Color, Image } from "../../src/index.node.js";
+import { Camera, Mesh, Scene, Vec3, Vec2, Color, Image, loop } from "../../src/index.node.js";
 import Window from "../../src/Tela/Window.js";
 import { readFileSync } from "fs"
 (async () => {
@@ -48,9 +48,7 @@ import { readFileSync } from "fs"
     })
 
     // play
-    const play = async ({ time, oldT }) => {
-        const newT = new Date().getTime();
-        const dt = (new Date().getTime() - oldT) * 1e-3;
+    loop(({dt}) => {
         camera.reverseShot(
             scene,
             {
@@ -61,11 +59,5 @@ import { readFileSync } from "fs"
         )
             .to(window);
         window.setTitle(`FPS: ${Math.floor(1 / dt)}`);
-
-        setTimeout(() => play({
-            oldT: newT,
-            time: time + dt,
-        }));
-    }
-    setTimeout(() => play({ oldT: new Date().getTime(), time: 0 }))
+    }).play()
 })();

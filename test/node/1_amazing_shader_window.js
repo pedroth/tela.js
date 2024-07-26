@@ -1,4 +1,4 @@
-import { Animation, Color } from "../../dist/node/index.js";
+import { Color, loop } from "../../dist/node/index.js";
 import Window from "../../src/Tela/Window.js";
 
 const width = 640;
@@ -11,7 +11,7 @@ function palette(t) {
     let d = [0.263, 0.416, 0.557];
     return [a[0] + b[0] * Math.cos(6.28318 * (c[0] * t + d[0])), a[1] + b[1] * Math.cos(6.28318 * (c[1] * t + d[1])), a[2] + b[2] * Math.cos(6.28318 * (c[2] * t + d[2]))];
 }
-Animation.loop(({ time, dt }) => {
+loop(({ time, dt }) => {
     window.setTitle(`FPS:${Math.floor(1 / dt)}`);
     window.map(
         (x, y) => {

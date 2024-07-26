@@ -157,24 +157,12 @@ async (canvas, logger) => {
     }
 
     // boilerplate for fps
-    Animation
-        .builder()
-        .initialState({ it: 1, time: 0, oldTime: new Date().getTime() })
-        .nextState(({ it, time, oldTime }) => {
-            camera.reverseShot(scene).to(canvas);
-            scene.debug({ camera, canvas })
-            const freq = 0.05;
-            let t = time % 10;
-            debugRay(Ray(Vec3(0, -5, 2), Vec3(0, Math.cos(freq * t), -Math.sin(freq * t))))();
-            const dt = (new Date().getTime() - oldTime) * 1e-3;
-            logger.print(Math.floor(1 / dt));
-            return {
-                it: it + 1,
-                time: time + dt,
-                oldTime: new Date().getTime()
-            };
-        })
-        .while(() => true)
-        .build()
-        .play();
+    loop(({ dt, time }) => {
+        camera.reverseShot(scene).to(canvas);
+        scene.debug({ camera, canvas })
+        const freq = 0.05;
+        let t = time % 10;
+        debugRay(Ray(Vec3(0, -5, 2), Vec3(0, Math.cos(freq * t), -Math.sin(freq * t))))();
+        logger.print(Math.floor(1 / dt));
+    }).play();
 }

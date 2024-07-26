@@ -71,12 +71,10 @@ async (canvas, logger) => {
         camera.orbit(coords => coords.add(Vec3(deltaY * 0.001, 0, 0)));
     })
 
-    Animation
-        .loop(({ dt, time }) => {
-            const t = time;
-            light.pos = Vec3(Math.cos(t), Math.sin(t), 1).scale(2);
-            camera.rayMap(rayScene).to(canvas);
-            logger.print(`FPS: ${Math.floor(1 / dt)}`);
-        })
-        .play();
+    loop(({ dt, time }) => {
+        const t = time;
+        light.pos = Vec3(Math.cos(t), Math.sin(t), 1).scale(2);
+        camera.rayMap(rayScene).to(canvas);
+        logger.print(`FPS: ${Math.floor(1 / dt)}`);
+    }).play();
 }

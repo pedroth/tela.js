@@ -1,4 +1,3 @@
-import Animation from "./Utils/Animation.js"
 import Canvas from "./Tela/Canvas.js"
 import Color from "./Color/Color.js"
 import DOM from "./Utils/DomBuilder.js"
@@ -40,7 +39,6 @@ export {
     Stream,
     parseSVG,
     Triangle,
-    Animation,
     NaiveScene,
     VoxelScene,
     RandomScene,
@@ -48,6 +46,6 @@ export {
 
 export * from "./Utils/Math.js"
 export * from "./Material/Material.js";
-export * as Utils from "./Utils/Utils.js";
-export * as Monads from "./Utils/Monads.js";
+export * from "./Utils/Utils.js";
+export * from "./Utils/Monads.js";
 export * from "./Utils/Constants.js"

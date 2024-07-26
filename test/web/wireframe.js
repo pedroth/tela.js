@@ -56,10 +56,8 @@ async (canvas, logger) => {
             .asLines()
     )
     // boilerplate for fps
-    Animation
-        .loop(({ dt }) => {
-            camera.reverseShot(scene).to(canvas);
-            logger.print(Math.floor(1 / dt));
-        })
-        .play();
+    loop(({ dt }) => {
+        camera.reverseShot(scene).to(canvas);
+        logger.print(Math.floor(1 / dt));
+    }).play();
 }

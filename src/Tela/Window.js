@@ -104,7 +104,7 @@ export default class Window {
                         return new Promise((resolve) => {
                             worker.removeAllListeners('message');
                             worker.on("message", (message) => {
-                                const { image, _start_row, _end_row, _worker_id_ } = message;
+                                const { image, _start_row, _end_row } = message;
                                 let index = 0;
                                 const startIndex = 4 * w * _start_row;
                                 const endIndex = 4 * w * _end_row;
@@ -181,15 +181,18 @@ export default class Window {
         let [i, j] = this.canvas2grid(x, y);
         i = mod(i, h);
         j = mod(j, w);
-        let index = w * i + j;
-        return this._image[index];
+        let index = 4 * (w * i + j);
+        return Color.ofRGB(this._image[index], this._image[index + 1], this._image[index + 2], this._image[index + 3]);
     }
 
     setPxl(x, y, color) {
         const w = this._width;
         const [i, j] = this.canvas2grid(x, y);
-        let index = w * i + j;
-        this._image[index] = color;
+        let index = 4 * (w * i + j);
+        this._image[index] = color.red;
+        this._image[index + 1] = color.green;
+        this._image[index + 2] = color.blue;
+        this._image[index + 3] = 1;
         return this;
     }
 
@@ -335,8 +338,11 @@ function drawConvexPolygon(canvas, positions, shader) {
                 const i = height - 1 - y;
                 const color = shader(x, y);
                 if (!color) continue;
-                const index = width * i + j;
-                canvas._image[index] = color;
+                const index = 4 * (width * i + j);
+                canvas._image[index] = color.red;
+                canvas._image[index + 1] = color.green;
+                canvas._image[index + 2] = color.blue;
+                canvas._image[index + 3] = color.alpha;
             }
         }
     }

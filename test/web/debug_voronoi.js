@@ -48,32 +48,27 @@ async (canvas) => {
     scene.addList(grid);
     nscene.addList(grid);
     const cameraSize = 2;
-    Animation
-        .builder()
-        .nextState(() => {
-            canvas.map((x, y) => {
-                const p = Vec2(x, y)
-                    .div(size)
-                    .map(x => cameraSize * (2 * x - 1));
-                if (x < verticalBarX) {
-                    const elem = nscene.getElementNear(p);
-                    return elem.color;
-                }
-                if (x === verticalBarX) return Color.BLACK;
-                const elem = scene.getElementNear(p);
+    loop(() => {
+        canvas.map((x, y) => {
+            const p = Vec2(x, y)
+                .div(size)
+                .map(x => cameraSize * (2 * x - 1));
+            if (x < verticalBarX) {
+                const elem = nscene.getElementNear(p);
                 return elem.color;
-            })
-            nscene.getElements()
-                .forEach(p => {
-                    const intCoords = p.position
-                        .map(x => (x / cameraSize + 1) / 2)
-                        .mul(size)
-                        .map(Math.floor);
-                    canvas.setPxl(intCoords.x, intCoords.y, Color.BLACK);
-                })
-            canvas.paint();
+            }
+            if (x === verticalBarX) return Color.BLACK;
+            const elem = scene.getElementNear(p);
+            return elem.color;
         })
-        .while(() => true)
-        .build()
-        .play();
+        nscene.getElements()
+            .forEach(p => {
+                const intCoords = p.position
+                    .map(x => (x / cameraSize + 1) / 2)
+                    .mul(size)
+                    .map(Math.floor);
+                canvas.setPxl(intCoords.x, intCoords.y, Color.BLACK);
+            })
+        canvas.paint();
+    }).play();
 }

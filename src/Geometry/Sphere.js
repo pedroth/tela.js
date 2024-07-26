@@ -52,11 +52,11 @@ class Sphere {
     }
 
     static builder() {
-        return new PointBuilder();
+        return new SphereBuilder();
     }
 }
 
-class PointBuilder {
+class SphereBuilder {
     constructor() {
         this._name;
         this._texture;

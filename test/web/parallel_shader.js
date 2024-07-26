@@ -11,9 +11,7 @@
         return [a[0] + b[0] * Math.cos(6.28318 * (c[0] * t + d[0])), a[1] + b[1] * Math.cos(6.28318 * (c[1] * t + d[1])), a[2] + b[2] * Math.cos(6.28318 * (c[2] * t + d[2]))];
     }
     // Another way to create a loop 
-    const play = async ({ time, oldT }) => {
-        const newT = new Date().getTime();
-        const dt = (newT - oldT) * 1e-3;
+    loop(async ({dt, time}) => {
         logger.print(`FPS:${Math.floor(1 / dt)}`)
         await canvas
             .mapParallel(
@@ -40,10 +38,5 @@
                 [palette] // add dependencies
             )
             .run({ width, height, time }); // run parallel shader with variables
-        requestAnimationFrame(() => play({
-            oldT: newT,
-            time: time + dt,
-        }));
-    }
-    requestAnimationFrame(() => play({ oldT: new Date().getTime(), time: 0 }))
+    }).play()
 }

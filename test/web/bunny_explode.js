@@ -69,11 +69,9 @@ async (canvas, logger) => {
         }
     }
 
-    Animation
-        .loop(({ dt }) => {
-            camera.reverseShot(scene).to(canvas);
-            logger.print(`FPS: ${Math.floor(1 / dt)}`);
-            bunnyPhysics(dt);
-        })
-        .play();
+    loop(({ dt }) => {
+        camera.reverseShot(scene).to(canvas);
+        logger.print(`FPS: ${Math.floor(1 / dt)}`);
+        bunnyPhysics(dt);
+    }).play();
 }

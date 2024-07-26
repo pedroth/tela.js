@@ -125,6 +125,7 @@ export function saveParallelImageStreamToVideo(fileAddress, parallelStreamOfImag
                 Vec2,
                 Vec3,
                 Mesh,
+                loop
                 clamp,
                 Color,
                 Image,
@@ -134,7 +135,6 @@ export function saveParallelImageStreamToVideo(fileAddress, parallelStreamOfImag
                 KScene,
                 Sphere,
                 MAX_8BIT,
-                Animation,
                 NaiveScene,
             } = _module;
             

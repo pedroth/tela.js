@@ -56,10 +56,8 @@ async (canvas, logger) => {
     scene.addList(grid);
 
     // boilerplate for fps
-    Animation
-        .loop(({ dt }) => {
-            logger.print(Math.floor(1 / dt));
-            camera.normalShot(scene).to(canvas);
-        })
-        .play();
+    loop(({ dt }) => {
+        logger.print(Math.floor(1 / dt));
+        camera.normalShot(scene).to(canvas);
+    }).play();
 }

@@ -52,10 +52,9 @@ async (canvas, logger) => {
     scene.addList(bunnyMesh.asPoints(0.02));
 
     // boilerplate for fps
-    Animation
-        .loop(({ dt }) => {
-            camera.reverseShot(scene).to(canvas);
-            logger.print(Math.floor(1 / dt));
-        })
+    loop(({ dt }) => {
+        camera.reverseShot(scene).to(canvas);
+        logger.print(Math.floor(1 / dt));
+    })
         .play();
 }

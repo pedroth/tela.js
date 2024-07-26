@@ -97,12 +97,10 @@ async (canvas, logger) => {
         return Color.BLACK;
     }
     // scene
-    Animation
-        .loop(({ dt, time }) => {
-            logger.print(Math.floor(1 / dt));
-            camera.rayMap(render).to(canvas);
-            // scene.debug({ camera, canvas });
-            if (time % 10 < 0.5) scene.rebuild();
-        })
-        .play();
+    loop(({ dt, time }) => {
+        logger.print(Math.floor(1 / dt));
+        camera.rayMap(render).to(canvas);
+        // scene.debug({ camera, canvas });
+        if (time % 10 < 0.5) scene.rebuild();
+    }).play();
 }

@@ -56,6 +56,32 @@ export function memoize(func) {
 const RANDOM = Array(1000).fill().map(Math.random);
 let i = 0;
 export function fRandom() {
-    if(i > 1e6) i = 0;
+    if (i > 1e6) i = 0;
     return RANDOM[i++ % RANDOM.length];
+}
+
+const isNode = typeof window === "undefined";
+const setTimeOut = isNode ? setTimeout : requestAnimationFrame;
+export function loop(lambda) {
+    let isFinished = false;
+    const play = async ({ time, oldT }) => {
+        const newT = new Date().getTime();
+        const dt = (newT - oldT) * 1e-3;
+
+        await lambda({ time, dt });
+
+        if (isFinished) return;
+        setTimeOut(() => play({
+            oldT: newT,
+            time: time + dt,
+        }));
+    }
+    const loopControl = {
+        stop: () => {
+            isFinished = true;
+        },
+        play: () => play({ oldT: new Date().getTime(), time: 0 })
+    };
+
+    return loopControl;
 }
