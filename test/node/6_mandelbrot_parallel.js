@@ -1,7 +1,6 @@
 import os from "os";
-import { Image, IO, Utils, Vec2, Box, Color, Parallel } from "../../dist/node/index.js";
+import { Image, IO, Vec2, Box, Color, Parallel, measureTimeWithAsyncResult } from "../../dist/node/index.js";
 const { saveParallelImageStreamToVideo } = IO;
-const { measureTimeWithAsyncResult } = Utils;
 
 (async () => {
     const width = 640;

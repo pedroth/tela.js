@@ -10,8 +10,7 @@ export default class Image {
     constructor(width, height) {
         this._width = width;
         this._height = height;
-        this._image = new Array(this._width * this._height)
-            .fill(() => Color.ofRGB());
+        this._image = new Float32Array(4 * this._width * this._height);
         this.box = new Box(Vec2(0, 0), Vec2(this._width, this._height))
     }
 
@@ -35,12 +34,17 @@ export default class Image {
         const n = this._image.length;
         const w = this._width;
         const h = this._height;
-        for (let k = 0; k < n; k++) {
-            const i = Math.floor(k / w);
-            const j = k % w;
+        for (let k = 0; k < n; k += 4) {
+            const i = Math.floor(k / (4 * w));
+            const j = Math.floor((k / 4) % w);
             const x = j;
             const y = h - 1 - i;
-            this._image[k] = lambda(x, y);
+            const color = lambda(x, y);
+            if (!color) continue;
+            this._image[k] = color.red;
+            this._image[k + 1] = color.green;
+            this._image[k + 2] = color.blue;
+            this._image[k + 3] = color.alpha;
         }
         return this;
     }
@@ -55,8 +59,11 @@ export default class Image {
     setPxl(x, y, color) {
         const w = this._width;
         const [i, j] = this.canvas2grid(x, y);
-        let index = w * i + j;
-        this._image[index] = color;
+        let index = 4 * (w * i + j);
+        this._image[index] = color.red;
+        this._image[index + 1] = color.green;
+        this._image[index + 2] = color.blue;
+        this._image[index + 3] = color.alpha;
         return this;
     }
 
@@ -66,8 +73,8 @@ export default class Image {
         let [i, j] = this.canvas2grid(x, y);
         i = mod(i, h);
         j = mod(j, w);
-        let index = w * i + j;
-        return this._image[index];
+        let index = 4 * (w * i + j);
+        return Color.ofRGB(this._image[index], this._image[index + 1], this._image[index + 2], this._image[index + 3]);
     }
 
     drawLine(p1, p2, shader) {
@@ -84,10 +91,13 @@ export default class Image {
             const [x, y] = lineP.toArray();
             const j = x;
             const i = h - 1 - y;
-            const index = w * i + j;
+            const index = 4 * (i * w + j);
             const color = shader(x, y);
             if (!color) continue;
-            this._image[index] = color;
+            this._image[index] = color.red;
+            this._image[index + 1] = color.green;
+            this._image[index + 2] = color.blue;
+            this._image[index + 3] = color.alpha;
         }
         return this;
     }
@@ -139,10 +149,10 @@ export default class Image {
                 const y = h - 1 - i;
                 const color = lambda(x, y);
                 if (!color) continue;
-                this._image[k] = this._image[k] + (color.red * MAX_8BIT - this._image[k]) / it;
-                this._image[k + 1] = this._image[k + 1] + (color.green * MAX_8BIT - this._image[k + 1]) / it;
-                this._image[k + 2] = this._image[k + 2] + (color.blue * MAX_8BIT - this._image[k + 2]) / it;
-                this._image[k + 3] = MAX_8BIT;
+                this._image[k] = this._image[k] + (color.red - this._image[k]) / it;
+                this._image[k + 1] = this._image[k + 1] + (color.green - this._image[k + 1]) / it;
+                this._image[k + 2] = this._image[k + 2] + (color.blue - this._image[k + 2]) / it;
+                this._image[k + 3] = this._image[k + 3] + (color.alpha - this._image[k + 3]) / it;
             }
             if (it < time) it++
             return this.paint();
@@ -158,12 +168,11 @@ export default class Image {
         for (let i = 0; i < h; i++) {
             for (let j = 0; j < w; j++) {
                 let index = w * i + j;
-                const color = this._image[index];
                 index <<= 2; // multiply by 4
-                imageData[index] = color.red * MAX_8BIT;
-                imageData[index + 1] = color.green * MAX_8BIT;
-                imageData[index + 2] = color.blue * MAX_8BIT;
-                imageData[index + 3] = MAX_8BIT;
+                imageData[index] = this._image[index] * MAX_8BIT;
+                imageData[index + 1] = this._image[index + 1] * MAX_8BIT;
+                imageData[index + 2] = this._image[index + 2] * MAX_8BIT;
+                imageData[index + 3] = this._image[index + 3] * MAX_8BIT;
             }
         }
         return imageData;
@@ -220,8 +229,11 @@ function drawConvexPolygon(canvas, positions, shader) {
                 const i = height - 1 - y;
                 const color = shader(x, y);
                 if (!color) continue;
-                const index = width * i + j;
-                canvas._image[index] = color;
+                const index = 4 * (i * width + j);
+                canvas._image[index] = color.red;
+                canvas._image[index + 1] = color.green;
+                canvas._image[index + 2] = color.blue;
+                canvas._image[index + 3] = color.alpha;
             }
         }
     }

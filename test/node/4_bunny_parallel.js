@@ -1,7 +1,6 @@
-import { Camera, IO, Parallel, Vec3, Mesh, Color, Scene, Utils, clamp } from "../../dist/node/index.js";
-import os from "os";
+import { Camera, IO, Parallel, Vec3, Mesh, Color, Scene, measureTimeWithAsyncResult } from "../../dist/node/index.js";
+import os from "node:os";
 const { saveParallelImageStreamToVideo } = IO;
-const { measureTimeWithAsyncResult } = Utils;
 
 (async () => {
     const width = 640;

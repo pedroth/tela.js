@@ -1,12 +1,12 @@
-import { Camera, Mesh, Vec3, Vec2, Color, DiElectric, Triangle, KScene, BScene, Image } from "../../dist/node/index.js";
+import { Camera, Mesh, Vec3, Vec2, Color, DiElectric, Triangle, KScene, BScene, Image, loop, Metallic } from "../../dist/node/index.js";
 import Window from "../../src/Tela/Window.js";
 import { readFileSync } from "fs"
 
 (async () => {
-    const width = 640 / 2;
-    const height = 480 / 2;
+    const width = 640/2;
+    const height = 480/2;
     const window = Window.ofSize(width, height);
-    let exposedCanvas = window.exposure();
+    let exposedWindow = window.exposure();
     // scene
     const scene = new KScene();
     const camera = new Camera({ lookAt: Vec3(1.5, 1.5, 1.5) }).orbit(5, 0, 0);
@@ -35,12 +35,12 @@ import { readFileSync } from "fs"
             )
         ));
         mouse = newMouse;
-        exposedCanvas = window.exposure();
+        exposedWindow = window.exposure();
 
     })
     window.onMouseWheel(({ dy }) => {
         camera.orbit(orbitCoord => orbitCoord.add(Vec3(-dy, 0, 0)))
-        exposedCanvas = window.exposure();
+        exposedWindow = window.exposure();
     })
 
     const meshObj = readFileSync("./assets/spot.obj", { encoding: "utf-8" });
@@ -54,7 +54,7 @@ import { readFileSync } from "fs"
         .mapVertices(v => v.add(Vec3(1.5, 1.5, 1.0)))
         .mapColors(() => Color.BLUE)
         .addTexture(await Image.ofUrl("./assets/spot.png"))
-        .mapMaterials(() => DiElectric(1.33333))
+        .mapMaterials(() => Metallic(1.33333))
     scene.add(mesh);
 
     // cornell box
@@ -135,19 +135,10 @@ import { readFileSync } from "fs"
             .build(),
     )
     scene.rebuild();
-
     // play
-    const play = async ({ time, oldT }) => {
-        const newT = new Date().getTime();
-        const dt = (new Date().getTime() - oldT) * 1e-3;
+    loop(({ dt }) => {
         // camera.sceneShot(scene, { bounces: 10, samplesPerPxl: 10, gamma: 0.1 }).to(exposedCanvas);
-        camera.sceneShot(scene).to(exposedCanvas);
+        camera.sceneShot(scene).to(exposedWindow);
         window.setTitle(`FPS: ${Math.floor(1 / dt)}`);
-
-        setTimeout(() => play({
-            oldT: newT,
-            time: time + dt,
-        }));
-    }
-    setTimeout(() => play({ oldT: new Date().getTime(), time: 0 }))
+    }).play();
 })()

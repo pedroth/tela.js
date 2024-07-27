@@ -1,7 +1,6 @@
-import { Color, Image, IO, Utils, Mesh, Vec3, Camera, Triangle, DiElectric, KScene } from "../../dist/node/index.js";
+import { Color, Image, IO, measureTime, Mesh, Vec3, Camera, Triangle, DiElectric, KScene } from "../../dist/node/index.js";
 import { readFileSync } from "fs"
 
-const { measureTime, } = Utils;
 const { saveImageToFile } = IO;
 
 // constants

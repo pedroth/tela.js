@@ -52,7 +52,7 @@ export default class Window {
     /**
      * lambda: (x: Number, y: Number) => Color 
      */
-    map(lambda, paint = true) {
+    map(lambda) {
         const n = this._image.length;
         const w = this._width;
         const h = this._height;
@@ -66,10 +66,9 @@ export default class Window {
             this._image[k] = color.red;
             this._image[k + 1] = color.green;
             this._image[k + 2] = color.blue;
-            this._image[k + 3] = 1;
+            this._image[k + 3] = color.alpha;
         }
-        if (paint) return this.paint();
-        return this;
+        return this.paint();
     }
 
     mapParallel = memoize((lambda, dependencies = []) => {
@@ -197,11 +196,11 @@ export default class Window {
         return this;
     }
 
-    setPxlData(index, [r, g, b]) {
-        this._image[index] = r;
-        this._image[index + 1] = g;
-        this._image[index + 2] = b;
-        this._image[index + 3] = 1.0;
+    setPxlData(index, color) {
+        this._image[index] = color.red;
+        this._image[index + 1] = color.green;
+        this._image[index + 2] = color.blue;
+        this._image[index + 3] = color.alpha;
         return this;
     }
 
@@ -254,7 +253,7 @@ export default class Window {
     exposure(time = Number.MAX_VALUE) {
         let it = 1;
         const ans = {};
-        for (let key of Object.getOwnPropertyNames(Object.getPrototypeOf(this))) {
+        for (const key of Object.getOwnPropertyNames(Object.getPrototypeOf(this))) {
             const descriptor = Object.getOwnPropertyDescriptor(Object.getPrototypeOf(this), key);
             if (descriptor && typeof descriptor.value === 'function') {
                 ans[key] = descriptor.value.bind(this);
@@ -266,19 +265,22 @@ export default class Window {
             const n = this._image.length;
             const w = this._width;
             const h = this._height;
-            for (let k = 0; k < n; k++) {
-                const i = Math.floor(k / w);
-                const j = k % w;
+            for (let k = 0; k < n; k += 4) {
+                const i = Math.floor(k / (4 * w));
+                const j = Math.floor((k / 4) % w);
                 const x = j;
                 const y = h - 1 - i;
                 const color = lambda(x, y);
                 if (!color) continue;
-                this._image[k] = Color.ofRGB(
-                    this._image[k].red + (color.red - this._image[k].red) / it,
-                    this._image[k].green + (color.green - this._image[k].green) / it,
-                    this._image[k].blue + (color.blue - this._image[k].blue) / it,
-                );
+                this._image[k] = this._image[k] + (color.red - this._image[k]) / it;
+                this._image[k + 1] = this._image[k + 1] + (color.green - this._image[k + 1]) / it;
+                this._image[k + 2] = this._image[k + 2] + (color.blue - this._image[k + 2]) / it;
+                this._image[k + 3] = this._image[k + 3] + (color.alpha - this._image[k + 3]) / it;
             }
+            return ans.paint();
+        }
+
+        ans.paint = () => {
             if (it < time) it++
             return this.paint();
         }

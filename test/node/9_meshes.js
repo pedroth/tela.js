@@ -1,7 +1,7 @@
-import { Camera, Image, Mesh, Scene, Stream, Utils, IO, Vec3, Color } from "../../dist/node/index.js";
+import { Camera, Image, Mesh, Scene, Stream, measureTime, IO, Vec3, Color } from "../../dist/node/index.js";
 import { readFileSync } from "fs"
-const { measureTime } = Utils;
 const { saveImageStreamToVideo } = IO;
+
 // resize incoming canvas:Canvas object.
 (async () => {
     const width = 640;
@@ -23,10 +23,10 @@ const { saveImageStreamToVideo } = IO;
     scene.addList(mesh.asTriangles());
 
     const imageStream = new Stream(
-        { time: 0, i: 0, image: camera.reverseShot(scene, {cullBackFaces: false}).to(Image.ofSize(width, height)) },
+        { time: 0, i: 0, image: camera.reverseShot(scene, { cullBackFaces: false }).to(Image.ofSize(width, height)) },
         ({ time, i, image }) => {
             camera.orbit(100, time, 0);
-            const newImage = camera.reverseShot(scene, {cullBackFaces: false}).to(image);
+            const newImage = camera.reverseShot(scene, { cullBackFaces: false }).to(image);
             return { time: time + dt, i: i + 1, image: newImage }
         }
     )

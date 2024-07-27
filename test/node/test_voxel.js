@@ -1,6 +1,5 @@
-import { Camera, Image, Mesh, Utils, Vec3, VoxelScene } from "../../dist/node/index.js";
+import { Camera, Image, Mesh, measureTimeWithResult, Vec3, VoxelScene } from "../../dist/node/index.js";
 import { readFileSync } from "fs"
-const { measureTimeWithResult } = Utils;
 
 // resize incoming canvas:Canvas object.
 (async () => {

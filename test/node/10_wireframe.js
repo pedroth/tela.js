@@ -2,7 +2,7 @@ import {
     Image,
     Stream,
     IO,
-    Utils,
+    measureTime,
     Color,
     NaiveScene,
     Camera,
@@ -12,14 +12,13 @@ import {
 } from "../../dist/node/index.js";
 import { readFileSync } from "fs";
 const { saveImageStreamToVideo } = IO;
-const { measureTime } = Utils;
 
 (async () => {
     const width = 640;
     const height = 480;
     const FPS = 25;
     const dt = 1 / FPS;
-    const maxT = 20;
+    const maxT = 10;
     // scene
     const scene = new NaiveScene();
     const camera = new Camera().orbit(5, 0, 0);

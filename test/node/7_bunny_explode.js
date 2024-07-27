@@ -1,7 +1,6 @@
-import { Color, Image, Stream, IO, Utils, Mesh, Vec3, Scene, Camera, clamp } from "../../dist/node/index.js";
-import { readFileSync } from "fs"
+import { Color, Image, Stream, IO, Mesh, Vec3, Scene, Camera, clamp, measureTime, measureTimeWithResult } from "../../dist/node/index.js";
+import { readFileSync } from "node:fs"
 
-const { measureTime, measureTimeWithResult } = Utils;
 const { saveImageStreamToVideo } = IO;
 
 // constants

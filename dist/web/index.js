@@ -839,10 +839,10 @@ var drawConvexPolygon = function(canvas, positions, shader) {
         if (!color)
           continue;
         const index = 4 * (i2 * width + j);
-        canvas._image[index] = color.red * MAX_8BIT;
-        canvas._image[index + 1] = color.green * MAX_8BIT;
-        canvas._image[index + 2] = color.blue * MAX_8BIT;
-        canvas._image[index + 3] = MAX_8BIT;
+        canvas._image[index] = color.red;
+        canvas._image[index + 1] = color.green;
+        canvas._image[index + 2] = color.blue;
+        canvas._image[index + 3] = color.alpha;
       }
     }
   }
@@ -868,7 +868,7 @@ class Canvas {
     this._height = canvas.height;
     this._ctx = this._canvas.getContext("2d", { willReadFrequently: true });
     this._imageData = this._ctx.getImageData(0, 0, this._width, this._height);
-    this._image = this._imageData.data;
+    this._image = new Float32Array(this._width * this._height * 4);
     this.box = new Box(Vec2(0, 0), Vec2(this._width, this._height));
   }
   get width() {
@@ -881,6 +881,10 @@ class Canvas {
     return this._canvas;
   }
   paint() {
+    const data = this._imageData.data;
+    for (let i2 = 0;i2 < data.length; i2++) {
+      data[i2] = this._image[i2] * MAX_8BIT;
+    }
     this._ctx.putImageData(this._imageData, 0, 0);
     return this;
   }
@@ -896,10 +900,10 @@ class Canvas {
       const color = lambda(x, y);
       if (!color)
         return;
-      this._image[k] = color.red * MAX_8BIT;
-      this._image[k + 1] = color.green * MAX_8BIT;
-      this._image[k + 2] = color.blue * MAX_8BIT;
-      this._image[k + 3] = MAX_8BIT;
+      this._image[k] = color.red;
+      this._image[k + 1] = color.green;
+      this._image[k + 2] = color.blue;
+      this._image[k + 3] = color.alpha;
     }
     return this.paint();
   }
@@ -910,10 +914,10 @@ class Canvas {
     const w = this._width;
     const [i2, j] = this.canvas2grid(x, y);
     let index = 4 * (w * i2 + j);
-    this._image[index] = color.red * MAX_8BIT;
-    this._image[index + 1] = color.green * MAX_8BIT;
-    this._image[index + 2] = color.blue * MAX_8BIT;
-    this._image[index + 3] = MAX_8BIT;
+    this._image[index] = color.red;
+    this._image[index + 1] = color.green;
+    this._image[index + 2] = color.blue;
+    this._image[index + 3] = color.alpha;
     return this;
   }
   getPxl(x, y) {
@@ -923,7 +927,14 @@ class Canvas {
     i2 = mod(i2, h);
     j = mod(j, w);
     let index = 4 * (w * i2 + j);
-    return Color.ofRGBRaw(this._image[index], this._image[index + 1], this._image[index + 2], this._image[index + 3]);
+    return Color.ofRGB(this._image[index], this._image[index + 1], this._image[index + 2], this._image[index + 3]);
+  }
+  setPxlData(index, color) {
+    this._image[index] = color.red;
+    this._image[index + 1] = color.green;
+    this._image[index + 2] = color.blue;
+    this._image[index + 3] = color.alpha;
+    return this;
   }
   drawLine(p1, p2, shader) {
     const w = this._width;
@@ -944,10 +955,10 @@ class Canvas {
       const color = shader(x, y);
       if (!color)
         continue;
-      this._image[index] = color.red * MAX_8BIT;
-      this._image[index + 1] = color.green * MAX_8BIT;
-      this._image[index + 2] = color.blue * MAX_8BIT;
-      this._image[index + 3] = MAX_8BIT;
+      this._image[index] = color.red;
+      this._image[index + 1] = color.green;
+      this._image[index + 2] = color.blue;
+      this._image[index + 3] = color.alpha;
     }
     return this;
   }
@@ -959,11 +970,10 @@ class Canvas {
     const w = this._width;
     const h = this._height;
     const fun = ({ _start_row, _end_row, _width_, _height_, _worker_id_, _vars_ }) => {
-      const image = new Uint8Array(4 * _width_ * (_end_row - _start_row));
+      const image = new Float32Array(4 * _width_ * (_end_row - _start_row));
       const startIndex = 4 * _width_ * _start_row;
       const endIndex = 4 * _width_ * _end_row;
       let index = 0;
-      const clamp2 = (x) => Math.min(1, Math.max(0, x));
       for (let k = startIndex;k < endIndex; k += 4) {
         const i2 = Math.floor(k / (4 * _width_));
         const j = Math.floor(k / 4 % _width_);
@@ -972,10 +982,10 @@ class Canvas {
         const color = lambda(x, y, { ..._vars_ });
         if (!color)
           return;
-        image[index] = clamp2(color.red) * MAX_8BIT;
-        image[index + 1] = clamp2(color.green) * MAX_8BIT;
-        image[index + 2] = clamp2(color.blue) * MAX_8BIT;
-        image[index + 3] = MAX_8BIT;
+        image[index] = color.red;
+        image[index + 1] = color.green;
+        image[index + 2] = color.blue;
+        image[index + 3] = color.alpha;
         index += 4;
       }
       return { image, _start_row, _end_row, _worker_id_ };
@@ -1052,7 +1062,7 @@ class Canvas {
     this._height = this._canvas.height;
     this._ctx = this._canvas.getContext("2d", { willReadFrequently: true });
     this._imageData = this._ctx.getImageData(0, 0, this._width, this._height);
-    this._image = this._imageData.data;
+    this._image = new Float32Array(width * height * 4);
     this.box = new Box(Vec2(), Vec2(width, height));
     return this;
   }
@@ -1091,10 +1101,10 @@ class Canvas {
         const color = lambda(x, y);
         if (!color)
           continue;
-        this._image[k] = this._image[k] + (color.red * MAX_8BIT - this._image[k]) / it;
-        this._image[k + 1] = this._image[k + 1] + (color.green * MAX_8BIT - this._image[k + 1]) / it;
-        this._image[k + 2] = this._image[k + 2] + (color.blue * MAX_8BIT - this._image[k + 2]) / it;
-        this._image[k + 3] = MAX_8BIT;
+        this._image[k] = this._image[k] + (color.red - this._image[k]) / it;
+        this._image[k + 1] = this._image[k + 1] + (color.green - this._image[k + 1]) / it;
+        this._image[k + 2] = this._image[k + 2] + (color.blue - this._image[k + 2]) / it;
+        this._image[k + 3] = this._image[k + 3] + (color.alpha - this._image[k + 3]) / it;
       }
       if (it < time)
         it++;
@@ -1124,7 +1134,12 @@ class Canvas {
     return new Canvas(canvas);
   }
   static ofDOM(canvasDOM) {
-    return new Canvas(canvasDOM);
+    const canvas = new Canvas(canvasDOM);
+    const data = canvas._imageData.data;
+    for (let i2 = 0;i2 < data.length; i2 += 4) {
+      canvas.setPxlData(i2, Color.ofRGBRaw(data[i2], data[i2 + 1], data[i2 + 2], data[i2 + 3]));
+    }
+    return canvas;
   }
   static ofCanvas(canvas) {
     return new Canvas(canvas._canvas);
@@ -1146,7 +1161,6 @@ class Canvas {
 }
 var createWorker = (main, lambda, dependencies) => {
   const workerFile = `
-  const MAX_8BIT=${MAX_8BIT};
   ${Color.toString()}
   ${dependencies.map((d) => d.toString()).join("\n")}
   const lambda = ${lambda.toString()};
