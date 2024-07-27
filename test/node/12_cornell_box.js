@@ -3,8 +3,8 @@ import Window from "../../src/Tela/Window.js";
 import { readFileSync } from "fs"
 
 (async () => {
-    const width = 640/2;
-    const height = 480/2;
+    const width = 640;
+    const height = 480;
     const window = Window.ofSize(width, height);
     let exposedWindow = window.exposure();
     // scene
@@ -54,7 +54,7 @@ import { readFileSync } from "fs"
         .mapVertices(v => v.add(Vec3(1.5, 1.5, 1.0)))
         .mapColors(() => Color.BLUE)
         .addTexture(await Image.ofUrl("./assets/spot.png"))
-        .mapMaterials(() => Metallic(1.33333))
+        .mapMaterials(() => DiElectric(1.33333))
     scene.add(mesh);
 
     // cornell box
