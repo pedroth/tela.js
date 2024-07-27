@@ -91,11 +91,13 @@ export default class Camera {
     return {
       to: canvas => {
         const w = canvas.width;
+        const invW = 1 / w;
         const h = canvas.height;
+        const invH = 1 / h;
         const ans = canvas.map((x, y) => {
           const dirInLocal = [
-            (x / w - 0.5),
-            (y / h - 0.5),
+            (x * invW - 0.5),
+            (y * invH - 0.5),
             this.distanceToPlane
           ]
           const dir = Vec3(
@@ -150,11 +152,13 @@ export default class Camera {
 
   getRaysFromCanvas(canvas) {
     const w = canvas.width;
+    const invW = 1 / w;
     const h = canvas.height;
+    const invH = 1 / h;
     return (x, y) => {
       const dirInLocal = [
-        (x / w - 0.5),
-        (y / h - 0.5),
+        (x * invW - 0.5),
+        (y * invH - 0.5),
         this.distanceToPlane
       ]
       const dir = Vec3(

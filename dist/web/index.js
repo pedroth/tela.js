@@ -472,270 +472,6 @@ class Color {
   static CYAN = Color.ofRGB(0, 1, 1);
 }
 
-// src/Utils/Math.js
-function smin(a, b, k = 32) {
-  const res = Math.exp(-k * a) + Math.exp(-k * b);
-  return -Math.log(res) / k;
-}
-function mod(n, m) {
-  return (n % m + m) % m;
-}
-function clamp(min = 0, max = 1) {
-  return (x) => Math.max(min, Math.min(max, x));
-}
-function lerp(a, b) {
-  if (typeof a === "number" && typeof b === "number")
-    return (t) => a + (b - a) * t;
-  return (t) => a.scale(1 - t).add(b.scale(t));
-}
-function isInsideConvex(positions) {
-  const m = positions.length;
-  const v = [];
-  const n = [];
-  for (let i = 0;i < m; i++) {
-    const p1 = positions[(i + 1) % m];
-    const p0 = positions[i];
-    v[i] = p1.sub(p0);
-    n[i] = Vec2(-v[i].y, v[i].x);
-  }
-  const orientation = v[0].x * v[1].y - v[0].y * v[1].x >= 0 ? 1 : -1;
-  return (x) => {
-    for (let i = 0;i < m; i++) {
-      const r = x.sub(positions[i]);
-      const myDot = r.dot(n[i]) * orientation;
-      if (myDot < 0)
-        return false;
-    }
-    return true;
-  };
-}
-function clipLine(p0, p1, box) {
-  const pointStack = [p0, p1];
-  const inStack = [];
-  const outStack = [];
-  for (let i = 0;i < pointStack.length; i++) {
-    const p = pointStack[i];
-    if (box.collidesWith(p)) {
-      inStack.push(p);
-    } else {
-      outStack.push(p);
-    }
-  }
-  if (inStack.length >= 2) {
-    return inStack;
-  }
-  if (inStack.length === 1) {
-    const [inPoint] = inStack;
-    const [outPoint] = outStack;
-    return [inPoint, ...lineBoxIntersection(inPoint, outPoint, box)];
-  }
-  return lineBoxIntersection(...outStack, box);
-}
-function randomPointInSphere(dim) {
-  let randomInSphere;
-  while (true) {
-    const random = Vec.RANDOM(dim).map((x) => 2 * x - 1);
-    if (random.squareLength() >= 1)
-      continue;
-    randomInSphere = random.normalize();
-    break;
-  }
-  return randomInSphere;
-}
-var lineBoxIntersection = function(start, end, box) {
-  const width = box.diagonal.x;
-  const height = box.diagonal.y;
-  const v = end.sub(start);
-  const boundary = [
-    [Vec2(), Vec2(width, 0)],
-    [Vec2(width, 0), Vec2(0, height)],
-    [Vec2(width, height), Vec2(-width, 0)],
-    [Vec2(0, height), Vec2(0, -height)]
-  ];
-  const intersectionSolutions = [];
-  boundary.forEach(([s, d]) => {
-    if (d.x === 0) {
-      const solution = solveLowTriMatrix(v, -d.y, s.sub(start));
-      solution !== undefined && intersectionSolutions.push(solution);
-    } else {
-      const solution = solveUpTriMatrix(v, -d.x, s.sub(start));
-      solution !== undefined && intersectionSolutions.push(solution);
-    }
-  });
-  const validIntersections = [];
-  intersectionSolutions.forEach((solution) => {
-    const [x, y] = [solution.x, solution.y];
-    if (0 <= x && x <= 1 && 0 <= y && y <= 1) {
-      validIntersections.push(solution);
-    }
-  });
-  if (validIntersections.length === 0)
-    return [];
-  if (validIntersections.length >= 2) {
-    const p1 = start.add(v.scale(validIntersections[0].x));
-    const p2 = start.add(v.scale(validIntersections[1].x));
-    return [p1, p2];
-  }
-  return [start.add(v.scale(validIntersections[0].x))];
-};
-var solveLowTriMatrix = function(v, a, f) {
-  const v1 = v.x;
-  const v2 = v.y;
-  const av1 = a * v1;
-  if (av1 === 0 || v1 === 0)
-    return;
-  const f1 = f.x;
-  const f2 = f.y;
-  return Vec2(f1 / v1, (f2 * v1 - v2 * f1) / av1);
-};
-var solveUpTriMatrix = function(v, a, f) {
-  const v1 = v.x;
-  const v2 = v.y;
-  const av2 = a * v2;
-  if (av2 === 0 || v2 === 0)
-    return;
-  const f1 = f.x;
-  const f2 = f.y;
-  return Vec2(f2 / v2, (f1 * v2 - v1 * f2) / av2);
-};
-
-// src/Geometry/Box.js
-var maxComp = function(u) {
-  return u.fold((e, x) => Math.max(e, x), -Number.MAX_VALUE);
-};
-
-class Box {
-  constructor(min, max) {
-    this.isEmpty = min === undefined || max === undefined;
-    if (this.isEmpty)
-      return this;
-    this.min = min.op(max, Math.min);
-    this.max = max.op(min, Math.max);
-    this.center = min.add(max).scale(1 / 2);
-    this.diagonal = max.sub(min);
-    this.dim = min.dim;
-  }
-  getBoundingBox() {
-    return this;
-  }
-  distanceToPoint(pointVec) {
-    const p = pointVec.sub(this.center);
-    const r = this.max.sub(this.center);
-    const q = p.map(Math.abs).sub(r);
-    return q.map((x) => Math.max(x, 0)).length() + Math.min(0, maxComp(q));
-  }
-  normalToPoint(pointVec) {
-    const epsilon = 0.001;
-    const n = pointVec.dim;
-    const grad = [];
-    const d = this.distanceToPoint(pointVec);
-    for (let i = 0;i < n; i++) {
-      grad.push(this.distanceToPoint(pointVec.add(Vec.e(n)(i).scale(epsilon))) - d);
-    }
-    return Vec.fromArray(grad).scale(Math.sign(d)).normalize();
-  }
-  interceptWithRay(ray) {
-    const epsilon = 0.001;
-    let tmin = -Number.MAX_VALUE;
-    let tmax = Number.MAX_VALUE;
-    if (this.isEmpty)
-      return;
-    const minArray = this.min.toArray();
-    const maxArray = this.max.toArray();
-    const rInit = ray.init.toArray();
-    const dirInv = ray.dirInv.toArray();
-    const dim = this.min?.dim;
-    for (let i = 0;i < dim; ++i) {
-      let t1 = (minArray[i] - rInit[i]) * dirInv[i];
-      let t2 = (maxArray[i] - rInit[i]) * dirInv[i];
-      tmin = Math.max(tmin, Math.min(t1, t2));
-      tmax = Math.min(tmax, Math.max(t1, t2));
-    }
-    return tmax >= Math.max(tmin, 0) ? [tmin - epsilon, ray.trace(tmin - epsilon), this] : undefined;
-  }
-  interceptWithLine(a, b) {
-    const epsilon = 0.001;
-    let tmin = -Number.MAX_VALUE;
-    let tmax = Number.MAX_VALUE;
-    if (this.isEmpty)
-      return;
-    const minArray = this.min.toArray();
-    const maxArray = this.max.toArray();
-    const rInit = a.toArray();
-    const dir = b.sub(a).normalize();
-    const dirInv = dir.map((x) => 1 / (x + epsilon)).toArray();
-    const dim = this.min?.dim;
-    for (let i = 0;i < dim; ++i) {
-      let t1 = (minArray[i] - rInit[i]) * dirInv[i];
-      let t2 = (maxArray[i] - rInit[i]) * dirInv[i];
-      tmin = Math.max(tmin, Math.min(t1, t2));
-      tmax = Math.min(tmax, Math.max(t1, t2));
-    }
-    if (Number.isNaN(tmin) || Number.isNaN(tmax))
-      return;
-    if (Math.abs(tmin - tmax) < epsilon)
-      return [a.add(dir.scale(tmin - epsilon))];
-    return [a.add(dir.scale(tmin - epsilon)), a.add(dir.scale(tmax - epsilon))];
-  }
-  add(box) {
-    if (this.isEmpty)
-      return box;
-    const { min, max } = this;
-    return new Box(min.op(box.min, Math.min), max.op(box.max, Math.max));
-  }
-  union = this.add;
-  sub(box) {
-    if (this.isEmpty)
-      return Box.EMPTY;
-    const { min, max } = this;
-    const newMin = min.op(box.min, Math.max);
-    const newMax = max.op(box.max, Math.min);
-    const newDiag = newMax.sub(newMin);
-    const isAllPositive = newDiag.fold((e, x) => e && x >= 0, true);
-    return !isAllPositive ? Box.EMPTY : new Box(newMin, newMax);
-  }
-  intersection = this.sub;
-  scale(r) {
-    return new Box(this.min.sub(this.center).scale(r), this.max.sub(this.center).scale(r)).move(this.center);
-  }
-  move(v) {
-    return new Box(this.min.add(v), this.max.add(v));
-  }
-  equals(box) {
-    if (!(box instanceof Box))
-      return false;
-    if (this == Box.EMPTY)
-      return true;
-    return this.min.equals(box.min) && this.max.equals(box.max);
-  }
-  distanceToBox(box) {
-    return this.min.sub(box.min).length() + this.max.sub(box.max).length();
-  }
-  collidesWith(arg) {
-    const vectorCollision = () => !this.sub(new Box(arg, arg)).isEmpty;
-    const type2action = {
-      [Box.name]: () => !this.sub(arg).isEmpty,
-      Vector: vectorCollision,
-      Vector3: vectorCollision,
-      Vector2: vectorCollision
-    };
-    if (arg.constructor.name in type2action) {
-      return type2action[arg.constructor.name]();
-    }
-    return false;
-  }
-  toString() {
-    return `{
-        min:${this.min.toString()},
-        max:${this.max.toString()}
-    }`;
-  }
-  sample() {
-    return this.min.add(Vec.RANDOM(this.dim).mul(this.diagonal));
-  }
-  static EMPTY = new Box;
-}
-
 // src/Utils/Utils.js
 function measureTime(lambda) {
   const t = performance.now();
@@ -816,17 +552,182 @@ var i = 0;
 var isNode = typeof window === "undefined";
 var setTimeOut = isNode ? setTimeout : requestAnimationFrame;
 
-// src/Tela/Canvas.js
-var drawConvexPolygon = function(canvas, positions, shader) {
-  const { width, height } = canvas;
-  const canvasBox = canvas.box;
+// src/Geometry/Box.js
+var maxComp = function(u) {
+  return u.fold((e, x) => Math.max(e, x), -Number.MAX_VALUE);
+};
+
+class Box {
+  constructor(min, max) {
+    this.isEmpty = min === undefined || max === undefined;
+    if (this.isEmpty)
+      return this;
+    this.min = min.op(max, Math.min);
+    this.max = max.op(min, Math.max);
+    this.center = min.add(max).scale(1 / 2);
+    this.diagonal = max.sub(min);
+    this.dim = min.dim;
+  }
+  getBoundingBox() {
+    return this;
+  }
+  distanceToPoint(pointVec) {
+    const p = pointVec.sub(this.center);
+    const r = this.max.sub(this.center);
+    const q = p.map(Math.abs).sub(r);
+    return q.map((x) => Math.max(x, 0)).length() + Math.min(0, maxComp(q));
+  }
+  normalToPoint(pointVec) {
+    const epsilon = 0.001;
+    const n = pointVec.dim;
+    const grad = [];
+    const d = this.distanceToPoint(pointVec);
+    for (let i2 = 0;i2 < n; i2++) {
+      grad.push(this.distanceToPoint(pointVec.add(Vec.e(n)(i2).scale(epsilon))) - d);
+    }
+    return Vec.fromArray(grad).scale(Math.sign(d)).normalize();
+  }
+  interceptWithRay(ray) {
+    const epsilon = 0.001;
+    let tmin = -Number.MAX_VALUE;
+    let tmax = Number.MAX_VALUE;
+    if (this.isEmpty)
+      return;
+    const minArray = this.min.toArray();
+    const maxArray = this.max.toArray();
+    const rInit = ray.init.toArray();
+    const dirInv = ray.dirInv.toArray();
+    const dim = this.min?.dim;
+    for (let i2 = 0;i2 < dim; ++i2) {
+      let t1 = (minArray[i2] - rInit[i2]) * dirInv[i2];
+      let t2 = (maxArray[i2] - rInit[i2]) * dirInv[i2];
+      tmin = Math.max(tmin, Math.min(t1, t2));
+      tmax = Math.min(tmax, Math.max(t1, t2));
+    }
+    return tmax >= Math.max(tmin, 0) ? [tmin - epsilon, ray.trace(tmin - epsilon), this] : undefined;
+  }
+  interceptWithLine(a, b) {
+    const epsilon = 0.001;
+    let tmin = -Number.MAX_VALUE;
+    let tmax = Number.MAX_VALUE;
+    if (this.isEmpty)
+      return;
+    const minArray = this.min.toArray();
+    const maxArray = this.max.toArray();
+    const rInit = a.toArray();
+    const dir = b.sub(a).normalize();
+    const dirInv = dir.map((x) => 1 / (x + epsilon)).toArray();
+    const dim = this.min?.dim;
+    for (let i2 = 0;i2 < dim; ++i2) {
+      let t1 = (minArray[i2] - rInit[i2]) * dirInv[i2];
+      let t2 = (maxArray[i2] - rInit[i2]) * dirInv[i2];
+      tmin = Math.max(tmin, Math.min(t1, t2));
+      tmax = Math.min(tmax, Math.max(t1, t2));
+    }
+    if (Number.isNaN(tmin) || Number.isNaN(tmax))
+      return;
+    if (Math.abs(tmin - tmax) < epsilon)
+      return [a.add(dir.scale(tmin - epsilon))];
+    return [a.add(dir.scale(tmin - epsilon)), a.add(dir.scale(tmax - epsilon))];
+  }
+  add(box) {
+    if (this.isEmpty)
+      return box;
+    const { min, max } = this;
+    return new Box(min.op(box.min, Math.min), max.op(box.max, Math.max));
+  }
+  union = this.add;
+  sub(box) {
+    if (this.isEmpty)
+      return Box.EMPTY;
+    const { min, max } = this;
+    const newMin = min.op(box.min, Math.max);
+    const newMax = max.op(box.max, Math.min);
+    const newDiag = newMax.sub(newMin);
+    const isAllPositive = newDiag.fold((e, x) => e && x >= 0, true);
+    return !isAllPositive ? Box.EMPTY : new Box(newMin, newMax);
+  }
+  intersection = this.sub;
+  scale(r) {
+    return new Box(this.min.sub(this.center).scale(r), this.max.sub(this.center).scale(r)).move(this.center);
+  }
+  move(v) {
+    return new Box(this.min.add(v), this.max.add(v));
+  }
+  equals(box) {
+    if (!(box instanceof Box))
+      return false;
+    if (this == Box.EMPTY)
+      return true;
+    return this.min.equals(box.min) && this.max.equals(box.max);
+  }
+  distanceToBox(box) {
+    return this.min.sub(box.min).length() + this.max.sub(box.max).length();
+  }
+  collidesWith(arg) {
+    const vectorCollision = () => !this.sub(new Box(arg, arg)).isEmpty;
+    const type2action = {
+      [Box.name]: () => !this.sub(arg).isEmpty,
+      Vector: vectorCollision,
+      Vector3: vectorCollision,
+      Vector2: vectorCollision
+    };
+    if (arg.constructor.name in type2action) {
+      return type2action[arg.constructor.name]();
+    }
+    return false;
+  }
+  toString() {
+    return `{
+        min:${this.min.toString()},
+        max:${this.max.toString()}
+    }`;
+  }
+  sample() {
+    return this.min.add(Vec.RANDOM(this.dim).mul(this.diagonal));
+  }
+  static EMPTY = new Box;
+}
+
+// src/Utils/Math.js
+function smin(a, b, k = 32) {
+  const res = Math.exp(-k * a) + Math.exp(-k * b);
+  return -Math.log(res) / k;
+}
+function mod(n, m) {
+  return (n % m + m) % m;
+}
+function clamp(min = 0, max = 1) {
+  return (x) => Math.max(min, Math.min(max, x));
+}
+function lerp(a, b) {
+  if (typeof a === "number" && typeof b === "number")
+    return (t) => a + (b - a) * t;
+  return (t) => a.scale(1 - t).add(b.scale(t));
+}
+function randomPointInSphere(dim) {
+  let randomInSphere;
+  while (true) {
+    const random = Vec.RANDOM(dim).map((x) => 2 * x - 1);
+    if (random.squareLength() >= 1)
+      continue;
+    randomInSphere = random.normalize();
+    break;
+  }
+  return randomInSphere;
+}
+
+// src/Tela/Tela.js
+var drawConvexPolygon = function(tela, positions, shader) {
+  const { width, height } = tela;
+  const canvasBox = tela.box;
   let boundingBox = Box.EMPTY;
   positions.forEach((x) => {
     boundingBox = boundingBox.add(new Box(x, x));
   });
   const finalBox = canvasBox.intersection(boundingBox);
   if (finalBox.isEmpty)
-    return canvas;
+    return tela;
   const [xMin, yMin] = finalBox.min.toArray();
   const [xMax, yMax] = finalBox.max.toArray();
   const isInsideFunc = isInsideConvex(positions);
@@ -838,107 +739,187 @@ var drawConvexPolygon = function(canvas, positions, shader) {
         const color = shader(x, y);
         if (!color)
           continue;
-        const index = 4 * (i2 * width + j);
-        canvas._image[index] = color.red;
-        canvas._image[index + 1] = color.green;
-        canvas._image[index + 2] = color.blue;
-        canvas._image[index + 3] = color.alpha;
+        const index = CHANNELS * (i2 * width + j);
+        tela.image[index] = color.red;
+        tela.image[index + 1] = color.green;
+        tela.image[index + 2] = color.blue;
+        tela.image[index + 3] = color.alpha;
       }
     }
   }
-  return canvas;
+  return tela;
 };
-var handleMouse = function(canvas, lambda) {
-  return (event) => {
-    const h = canvas.height;
-    const w = canvas.width;
-    const rect = canvas._canvas.getBoundingClientRect();
-    const mx = (event.clientX - rect.left) / rect.width, my = (event.clientY - rect.top) / rect.height;
-    const x = Math.floor(mx * w);
-    const y = Math.floor(h - 1 - my * h);
-    return lambda(x, y, event);
+var isInsideConvex = function(positions) {
+  const m = positions.length;
+  const v = [];
+  const n = [];
+  for (let i2 = 0;i2 < m; i2++) {
+    const p1 = positions[(i2 + 1) % m];
+    const p0 = positions[i2];
+    v[i2] = p1.sub(p0);
+    n[i2] = Vec2(-v[i2].y, v[i2].x);
+  }
+  const orientation = v[0].x * v[1].y - v[0].y * v[1].x >= 0 ? 1 : -1;
+  return (x) => {
+    for (let i2 = 0;i2 < m; i2++) {
+      const r = x.sub(positions[i2]);
+      const myDot = r.dot(n[i2]) * orientation;
+      if (myDot < 0)
+        return false;
+    }
+    return true;
   };
 };
+var clipLine = function(p0, p1, box) {
+  const pointStack = [p0, p1];
+  const inStack = [];
+  const outStack = [];
+  for (let i2 = 0;i2 < pointStack.length; i2++) {
+    const p = pointStack[i2];
+    if (box.collidesWith(p)) {
+      inStack.push(p);
+    } else {
+      outStack.push(p);
+    }
+  }
+  if (inStack.length >= 2) {
+    return inStack;
+  }
+  if (inStack.length === 1) {
+    const [inPoint] = inStack;
+    const [outPoint] = outStack;
+    return [inPoint, ...lineBoxIntersection(inPoint, outPoint, box)];
+  }
+  return lineBoxIntersection(...outStack, box);
+};
+var lineBoxIntersection = function(start, end, box) {
+  const width = box.diagonal.x;
+  const height = box.diagonal.y;
+  const v = end.sub(start);
+  const boundary = [
+    [Vec2(), Vec2(width, 0)],
+    [Vec2(width, 0), Vec2(0, height)],
+    [Vec2(width, height), Vec2(-width, 0)],
+    [Vec2(0, height), Vec2(0, -height)]
+  ];
+  const intersectionSolutions = [];
+  boundary.forEach(([s, d]) => {
+    if (d.x === 0) {
+      const solution = solveLowTriMatrix(v, -d.y, s.sub(start));
+      solution !== undefined && intersectionSolutions.push(solution);
+    } else {
+      const solution = solveUpTriMatrix(v, -d.x, s.sub(start));
+      solution !== undefined && intersectionSolutions.push(solution);
+    }
+  });
+  const validIntersections = [];
+  intersectionSolutions.forEach((solution) => {
+    const [x, y] = [solution.x, solution.y];
+    if (0 <= x && x <= 1 && 0 <= y && y <= 1) {
+      validIntersections.push(solution);
+    }
+  });
+  if (validIntersections.length === 0)
+    return [];
+  if (validIntersections.length >= 2) {
+    const p1 = start.add(v.scale(validIntersections[0].x));
+    const p2 = start.add(v.scale(validIntersections[1].x));
+    return [p1, p2];
+  }
+  return [start.add(v.scale(validIntersections[0].x))];
+};
+var solveLowTriMatrix = function(v, a, f) {
+  const v1 = v.x;
+  const v2 = v.y;
+  const av1 = a * v1;
+  if (av1 === 0 || v1 === 0)
+    return;
+  const f1 = f.x;
+  const f2 = f.y;
+  return Vec2(f1 / v1, (f2 * v1 - v2 * f1) / av1);
+};
+var solveUpTriMatrix = function(v, a, f) {
+  const v1 = v.x;
+  const v2 = v.y;
+  const av2 = a * v2;
+  if (av2 === 0 || v2 === 0)
+    return;
+  const f1 = f.x;
+  const f2 = f.y;
+  return Vec2(f2 / v2, (f1 * v2 - v1 * f2) / av2);
+};
+var CHANNELS = 4;
 
-class Canvas {
-  constructor(canvas) {
-    this._canvas = canvas;
-    this._canvas.setAttribute("tabindex", "1");
-    this._width = canvas.width;
-    this._height = canvas.height;
-    this._ctx = this._canvas.getContext("2d", { willReadFrequently: true });
-    this._imageData = this._ctx.getImageData(0, 0, this._width, this._height);
-    this._image = new Float32Array(this._width * this._height * 4);
-    this.box = new Box(Vec2(0, 0), Vec2(this._width, this._height));
-  }
-  get width() {
-    return this._canvas.width;
-  }
-  get height() {
-    return this._canvas.height;
-  }
-  get DOM() {
-    return this._canvas;
+class Tela {
+  constructor(width, height) {
+    this.width = width;
+    this.height = height;
+    this.image = new Float32Array(CHANNELS * this.width * this.height);
+    this.box = new Box(Vec2(0, 0), Vec2(this.width, this.height));
   }
   paint() {
-    const data = this._imageData.data;
-    for (let i2 = 0;i2 < data.length; i2++) {
-      data[i2] = this._image[i2] * MAX_8BIT;
-    }
-    this._ctx.putImageData(this._imageData, 0, 0);
     return this;
   }
   map(lambda) {
-    const n = this._image.length;
-    const w = this._width;
-    const h = this._height;
-    for (let k = 0;k < n; k += 4) {
-      const i2 = Math.floor(k / (4 * w));
-      const j = Math.floor(k / 4 % w);
+    const n = this.image.length;
+    const w = this.width;
+    const h = this.height;
+    for (let k = 0;k < n; k += CHANNELS) {
+      const i2 = Math.floor(k / (CHANNELS * w));
+      const j = Math.floor(k / CHANNELS % w);
       const x = j;
       const y = h - 1 - i2;
       const color = lambda(x, y);
       if (!color)
-        return;
-      this._image[k] = color.red;
-      this._image[k + 1] = color.green;
-      this._image[k + 2] = color.blue;
-      this._image[k + 3] = color.alpha;
+        continue;
+      this.image[k] = color.red;
+      this.image[k + 1] = color.green;
+      this.image[k + 2] = color.blue;
+      this.image[k + 3] = color.alpha;
     }
     return this.paint();
   }
   fill(color) {
-    return this.map(() => color);
-  }
-  setPxl(x, y, color) {
-    const w = this._width;
-    const [i2, j] = this.canvas2grid(x, y);
-    let index = 4 * (w * i2 + j);
-    this._image[index] = color.red;
-    this._image[index + 1] = color.green;
-    this._image[index + 2] = color.blue;
-    this._image[index + 3] = color.alpha;
+    if (!color)
+      return;
+    const n = this.image.length;
+    for (let k = 0;k < n; k += CHANNELS) {
+      this.image[k] = color.red;
+      this.image[k + 1] = color.green;
+      this.image[k + 2] = color.blue;
+      this.image[k + 3] = color.alpha;
+    }
     return this;
   }
   getPxl(x, y) {
-    const w = this._width;
-    const h = this._height;
+    const w = this.width;
+    const h = this.height;
     let [i2, j] = this.canvas2grid(x, y);
     i2 = mod(i2, h);
     j = mod(j, w);
-    let index = 4 * (w * i2 + j);
-    return Color.ofRGB(this._image[index], this._image[index + 1], this._image[index + 2], this._image[index + 3]);
+    let index = CHANNELS * (w * i2 + j);
+    return Color.ofRGB(this.image[index], this.image[index + 1], this.image[index + 2], this.image[index + 3]);
+  }
+  setPxl(x, y, color) {
+    const w = this.width;
+    const [i2, j] = this.canvas2grid(x, y);
+    let index = CHANNELS * (w * i2 + j);
+    this.image[index] = color.red;
+    this.image[index + 1] = color.green;
+    this.image[index + 2] = color.blue;
+    this.image[index + 3] = color.alpha;
+    return this;
   }
   setPxlData(index, color) {
-    this._image[index] = color.red;
-    this._image[index + 1] = color.green;
-    this._image[index + 2] = color.blue;
-    this._image[index + 3] = color.alpha;
+    this.image[index] = color.red;
+    this.image[index + 1] = color.green;
+    this.image[index + 2] = color.blue;
+    this.image[index + 3] = color.alpha;
     return this;
   }
   drawLine(p1, p2, shader) {
-    const w = this._width;
-    const h = this._height;
+    const w = this.width;
+    const h = this.height;
     const line = clipLine(p1, p2, this.box);
     if (line.length <= 1)
       return;
@@ -951,32 +932,121 @@ class Canvas {
       const [x, y] = lineP.toArray();
       const j = x;
       const i2 = h - 1 - y;
-      const index = 4 * (i2 * w + j);
+      const index = CHANNELS * (i2 * w + j);
       const color = shader(x, y);
       if (!color)
         continue;
-      this._image[index] = color.red;
-      this._image[index + 1] = color.green;
-      this._image[index + 2] = color.blue;
-      this._image[index + 3] = color.alpha;
+      this.image[index] = color.red;
+      this.image[index + 1] = color.green;
+      this.image[index + 2] = color.blue;
+      this.image[index + 3] = color.alpha;
     }
     return this;
   }
   drawTriangle(x1, x2, x3, shader) {
     return drawConvexPolygon(this, [x1, x2, x3], shader);
   }
+  grid2canvas(i2, j) {
+    const h = this.height;
+    const x = j;
+    const y = h - 1 - i2;
+    return [x, y];
+  }
+  canvas2grid(x, y) {
+    const h = this.height;
+    const j = Math.floor(x);
+    const i2 = Math.floor(h - 1 - y);
+    return [i2, j];
+  }
+  exposure(time = Number.MAX_VALUE) {
+    let it = 1;
+    const ans = {};
+    for (let key of Object.getOwnPropertyNames(Object.getPrototypeOf(this))) {
+      const descriptor = Object.getOwnPropertyDescriptor(Object.getPrototypeOf(this), key);
+      if (descriptor && typeof descriptor.value === "function") {
+        ans[key] = descriptor.value.bind(this);
+      }
+    }
+    ans.width = this.width;
+    ans.height = this.height;
+    ans.map = (lambda) => {
+      const n = this.image.length;
+      const w = this.width;
+      const h = this.height;
+      for (let k = 0;k < n; k += 4) {
+        const i2 = Math.floor(k / (4 * w));
+        const j = Math.floor(k / 4 % w);
+        const x = j;
+        const y = h - 1 - i2;
+        const color = lambda(x, y);
+        if (!color)
+          continue;
+        this.image[k] = this.image[k] + (color.red - this.image[k]) / it;
+        this.image[k + 1] = this.image[k + 1] + (color.green - this.image[k + 1]) / it;
+        this.image[k + 2] = this.image[k + 2] + (color.blue - this.image[k + 2]) / it;
+        this.image[k + 3] = this.image[k + 3] + (color.alpha - this.image[k + 3]) / it;
+      }
+      if (it < time)
+        it++;
+      return this.paint();
+    };
+    ans.fill = (color) => {
+      return this.fill(color);
+    };
+    return ans;
+  }
+  resize(width, height) {
+    this.width = width;
+    this.height = height;
+    this.image = new Float32Array(CHANNELS * this.width * this.height);
+    this.box = new Box(Vec2(0, 0), Vec2(this.width, this.height));
+  }
+}
+
+// src/Tela/Canvas.js
+var handleMouse = function(canvas, lambda) {
+  return (event) => {
+    const h = canvas.height;
+    const w = canvas.width;
+    const rect = canvas.canvas.getBoundingClientRect();
+    const mx = (event.clientX - rect.left) / rect.width, my = (event.clientY - rect.top) / rect.height;
+    const x = Math.floor(mx * w);
+    const y = Math.floor(h - 1 - my * h);
+    return lambda(x, y, event);
+  };
+};
+
+class Canvas extends Tela {
+  constructor(canvas) {
+    super(canvas.width, canvas.height);
+    this.canvas = canvas;
+    this.canvas.setAttribute("tabindex", "1");
+    this.ctx = this.canvas.getContext("2d", { willReadFrequently: true });
+    this.imageData = this.ctx.getImageData(0, 0, this.width, this.height);
+  }
+  get DOM() {
+    return this.canvas;
+  }
+  paint() {
+    const data = this.imageData.data;
+    for (let i2 = 0;i2 < data.length; i2++) {
+      data[i2] = this.image[i2] * MAX_8BIT;
+    }
+    this.ctx.putImageData(this.imageData, 0, 0);
+    return this;
+  }
   mapParallel = memoize((lambda, dependencies = []) => {
     const N = navigator.hardwareConcurrency;
-    const w = this._width;
-    const h = this._height;
+    const w = this.width;
+    const h = this.height;
     const fun = ({ _start_row, _end_row, _width_, _height_, _worker_id_, _vars_ }) => {
-      const image = new Float32Array(4 * _width_ * (_end_row - _start_row));
-      const startIndex = 4 * _width_ * _start_row;
-      const endIndex = 4 * _width_ * _end_row;
+      const image = new Float32Array(CHANNELS * _width_ * (_end_row - _start_row));
+      const startIndex = CHANNELS * _width_ * _start_row;
+      const endIndex = CHANNELS * _width_ * _end_row;
       let index = 0;
-      for (let k = startIndex;k < endIndex; k += 4) {
-        const i2 = Math.floor(k / (4 * _width_));
-        const j = Math.floor(k / 4 % _width_);
+      for (let k = startIndex;k < endIndex; k += CHANNELS) {
+        const i2 = Math.floor(k / (CHANNELS * _width_));
+        const j = Math.floor(k / CHANNELS % _width_);
         const x = j;
         const y = _height_ - 1 - i2;
         const color = lambda(x, y, { ..._vars_ });
@@ -986,7 +1056,7 @@ class Canvas {
         image[index + 1] = color.green;
         image[index + 2] = color.blue;
         image[index + 3] = color.alpha;
-        index += 4;
+        index += CHANNELS;
       }
       return { image, _start_row, _end_row, _worker_id_ };
     };
@@ -999,10 +1069,10 @@ class Canvas {
             worker.onmessage = (event) => {
               const { image, _start_row, _end_row, _worker_id_ } = event.data;
               let index = 0;
-              const startIndex = 4 * w * _start_row;
-              const endIndex = 4 * w * _end_row;
+              const startIndex = CHANNELS * w * _start_row;
+              const endIndex = CHANNELS * w * _end_row;
               for (let i2 = startIndex;i2 < endIndex; i2++) {
-                this._image[i2] = image[index];
+                this.image[i2] = image[index];
                 index++;
               }
               allWorkersDone[_worker_id_] = true;
@@ -1025,97 +1095,48 @@ class Canvas {
     };
   });
   onMouseDown(lambda) {
-    this._canvas.addEventListener("mousedown", handleMouse(this, lambda), false);
-    this._canvas.addEventListener("touchstart", handleMouse(this, lambda), false);
+    this.canvas.addEventListener("mousedown", handleMouse(this, lambda), false);
+    this.canvas.addEventListener("touchstart", handleMouse(this, lambda), false);
     return this;
   }
   onMouseUp(lambda) {
-    this._canvas.addEventListener("mouseup", handleMouse(this, lambda), false);
-    this._canvas.addEventListener("touchend", handleMouse(this, lambda), false);
+    this.canvas.addEventListener("mouseup", handleMouse(this, lambda), false);
+    this.canvas.addEventListener("touchend", handleMouse(this, lambda), false);
     return this;
   }
   onMouseMove(lambda) {
-    this._canvas.addEventListener("mousemove", handleMouse(this, lambda), false);
-    this._canvas.addEventListener("touchmove", handleMouse(this, lambda), false);
+    this.canvas.addEventListener("mousemove", handleMouse(this, lambda), false);
+    this.canvas.addEventListener("touchmove", handleMouse(this, lambda), false);
     return this;
   }
   onMouseWheel(lambda) {
-    this._canvas.addEventListener("wheel", lambda, false);
+    this.canvas.addEventListener("wheel", lambda, false);
     return this;
   }
   onKeyDown(lambda) {
-    this._canvas.addEventListener("keydown", (e) => {
+    this.canvas.addEventListener("keydown", (e) => {
       lambda(e);
     });
     return this;
   }
   onKeyUp(lambda) {
-    this._canvas.addEventListener("keyup", (e) => {
+    this.canvas.addEventListener("keyup", (e) => {
       lambda(e);
     });
     return this;
   }
   resize(width, height) {
-    this._canvas.width = width;
-    this._canvas.height = height;
-    this._width = this._canvas.width;
-    this._height = this._canvas.height;
-    this._ctx = this._canvas.getContext("2d", { willReadFrequently: true });
-    this._imageData = this._ctx.getImageData(0, 0, this._width, this._height);
-    this._image = new Float32Array(width * height * 4);
-    this.box = new Box(Vec2(), Vec2(width, height));
+    super.resize(width, height);
+    this.canvas.width = width;
+    this.canvas.height = height;
+    this.ctx = this.canvas.getContext("2d", { willReadFrequently: true });
+    this.imageData = this.ctx.getImageData(0, 0, this.width, this.height);
     return this;
-  }
-  grid2canvas(i2, j) {
-    const h = this.height;
-    const x = j;
-    const y = h - 1 - i2;
-    return [x, y];
-  }
-  canvas2grid(x, y) {
-    const h = this._height;
-    const j = Math.floor(x);
-    const i2 = Math.floor(h - 1 - y);
-    return [i2, j];
-  }
-  exposure(time = Number.MAX_VALUE) {
-    let it = 1;
-    const ans = {};
-    for (let key of Object.getOwnPropertyNames(Object.getPrototypeOf(this))) {
-      const descriptor = Object.getOwnPropertyDescriptor(Object.getPrototypeOf(this), key);
-      if (descriptor && typeof descriptor.value === "function") {
-        ans[key] = descriptor.value.bind(this);
-      }
-    }
-    ans.width = this.width;
-    ans.height = this.height;
-    ans.map = (lambda) => {
-      const n = this._image.length;
-      const w = this._width;
-      const h = this._height;
-      for (let k = 0;k < n; k += 4) {
-        const i2 = Math.floor(k / (4 * w));
-        const j = Math.floor(k / 4 % w);
-        const x = j;
-        const y = h - 1 - i2;
-        const color = lambda(x, y);
-        if (!color)
-          continue;
-        this._image[k] = this._image[k] + (color.red - this._image[k]) / it;
-        this._image[k + 1] = this._image[k + 1] + (color.green - this._image[k + 1]) / it;
-        this._image[k + 2] = this._image[k + 2] + (color.blue - this._image[k + 2]) / it;
-        this._image[k + 3] = this._image[k + 3] + (color.alpha - this._image[k + 3]) / it;
-      }
-      if (it < time)
-        it++;
-      return this.paint();
-    };
-    return ans;
   }
   startVideoRecorder() {
     let responseBlob;
     const canvasSnapshots = [];
-    const stream = this._canvas.captureStream();
+    const stream = this.canvas.captureStream();
     const recorder = new MediaRecorder(stream);
     recorder.addEventListener("dataavailable", (e) => canvasSnapshots.push(e.data));
     recorder.start();
@@ -1135,8 +1156,8 @@ class Canvas {
   }
   static ofDOM(canvasDOM) {
     const canvas = new Canvas(canvasDOM);
-    const data = canvas._imageData.data;
-    for (let i2 = 0;i2 < data.length; i2 += 4) {
+    const data = canvas.imageData.data;
+    for (let i2 = 0;i2 < data.length; i2 += CHANNELS) {
       canvas.setPxlData(i2, Color.ofRGBRaw(data[i2], data[i2 + 1], data[i2 + 2], data[i2 + 3]));
     }
     return canvas;
@@ -1161,6 +1182,7 @@ class Canvas {
 }
 var createWorker = (main, lambda, dependencies) => {
   const workerFile = `
+  const CHANNELS = ${CHANNELS};
   ${Color.toString()}
   ${dependencies.map((d) => d.toString()).join("\n")}
   const lambda = ${lambda.toString()};
@@ -2916,11 +2938,13 @@ class Camera {
     return {
       to: (canvas) => {
         const w = canvas.width;
+        const invW = 1 / w;
         const h = canvas.height;
+        const invH = 1 / h;
         const ans = canvas.map((x, y) => {
           const dirInLocal = [
-            x / w - 0.5,
-            y / h - 0.5,
+            x * invW - 0.5,
+            y * invH - 0.5,
             this.distanceToPlane
           ];
           const dir = Vec3(this.basis[0].x * dirInLocal[0] + this.basis[1].x * dirInLocal[1] + this.basis[2].x * dirInLocal[2], this.basis[0].y * dirInLocal[0] + this.basis[1].y * dirInLocal[1] + this.basis[2].y * dirInLocal[2], this.basis[0].z * dirInLocal[0] + this.basis[1].z * dirInLocal[1] + this.basis[2].z * dirInLocal[2]).normalize();
@@ -2959,11 +2983,13 @@ class Camera {
   }
   getRaysFromCanvas(canvas) {
     const w = canvas.width;
+    const invW = 1 / w;
     const h = canvas.height;
+    const invH = 1 / h;
     return (x, y) => {
       const dirInLocal = [
-        x / w - 0.5,
-        y / h - 0.5,
+        x * invW - 0.5,
+        y * invH - 0.5,
         this.distanceToPlane
       ];
       const dir = Vec3(this.basis[0].x * dirInLocal[0] + this.basis[1].x * dirInLocal[1] + this.basis[2].x * dirInLocal[2], this.basis[0].y * dirInLocal[0] + this.basis[1].y * dirInLocal[1] + this.basis[2].y * dirInLocal[2], this.basis[0].z * dirInLocal[0] + this.basis[1].z * dirInLocal[1] + this.basis[2].z * dirInLocal[2]).normalize();
@@ -4456,10 +4482,8 @@ export {
   maybe,
   loop,
   lerp,
-  isInsideConvex,
   groupBy,
   fRandom,
-  clipLine,
   clamp,
   argmin,
   VoxelScene,
