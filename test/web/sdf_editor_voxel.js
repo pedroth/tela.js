@@ -14,7 +14,7 @@ async (canvas, logger) => {
     // scene
     const scene = new VoxelScene(0.25)
     const camera = new Camera().orbit(5, 0, 0);
-    const canvas2Ray = camera.getRaysFromCanvas(canvas);
+    const canvas2Ray = camera.rayFromImage(canvas.width, canvas.height);
     // mouse handling
     let leftMouseDown = false;
     let rightMouseDown = false;

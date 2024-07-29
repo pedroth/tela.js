@@ -6,6 +6,8 @@ import PQueue from "../Utils/PQueue.js";
 import NaiveScene from "./NaiveScene.js";
 import Color from "../Color/Color.js";
 import { drawBox } from "../Utils/Utils3D.js";
+import Triangle from "../Geometry/Triangle.js";
+import Sphere from "../Geometry/Sphere.js";
 
 export default class Scene {
   constructor(k = 10) {
@@ -167,6 +169,18 @@ export default class Scene {
     }
     if (level === 0) return camera.reverseShot(debugScene, { clearScreen: false }).to(canvas);
     return canvas;
+  }
+
+  serialize() {
+    return this.getElements().map(x => x.serialize())
+  }
+
+  static deserialize(serializedScene) {
+    return new Scene()
+      .addList(serializedScene.map(x => {
+        if(x.type  === Triangle.name) return Triangle.deserialize(x);
+        if(x.type  === Sphere.name) return Sphere.deserialize(x); 
+      }));
   }
 }
 

@@ -141,6 +141,14 @@ export default class Box {
         return this.min.add(Vec.RANDOM(this.dim).mul(this.diagonal));
     }
 
+    serialize() {
+
+    }
+
+    deserialize() {
+        
+    }
+
     static EMPTY = new Box();
 }
 

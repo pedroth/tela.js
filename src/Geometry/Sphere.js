@@ -1,6 +1,6 @@
 import Box from "./Box.js";
 import Color from "../Color/Color.js";
-import { Diffuse } from "../Material/Material.js";
+import { Diffuse, MATERIALS } from "../Material/Material.js";
 import { randomPointInSphere } from "../Utils/Math.js";
 import Vec, { Vec2, Vec3 } from "../Vector/Vector.js";
 
@@ -49,6 +49,31 @@ class Sphere {
 
     isInside(p) {
         return p.sub(this.position).length() < this.radius;
+    }
+
+    serialize() {
+        return {
+            type: Sphere.name,
+            name: this.name,
+            radius: this.radius,
+            emissive: this.emissive,
+            color: this.color.toArray(),
+            position: this.position.toArray(),
+            material: { type: this.material.type, args: this.material.args }
+        }
+    }
+
+    static deserialize(json) {
+        const { type, args } = json.material;
+        return Sphere
+            .builder()
+            .name(json.name)
+            .radius(json.radius)
+            .position(Vec.fromArray(json.position))
+            .color(new Color(json.color))
+            .emissive(json.emissive)
+            .material(MATERIALS[type](...args))
+            .build()
     }
 
     static builder() {

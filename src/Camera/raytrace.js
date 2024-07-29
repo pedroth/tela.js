@@ -17,8 +17,8 @@ export function rayTrace(scene, params = {}) {
         let c = Color.BLACK;
         for (let i = 0; i < samplesPerPxl; i++) {
             const epsilon = Vec.RANDOM(3).scale(variance);
-            const epsilonOrto = epsilon.sub(ray.dir.scale(epsilon.dot(ray.dir)));
-            const r = Ray(ray.init, ray.dir.add(epsilonOrto).normalize());
+            const epsilonOrtho = epsilon.sub(ray.dir.scale(epsilon.dot(ray.dir)));
+            const r = Ray(ray.init, ray.dir.add(epsilonOrtho).normalize());
             c = c.add(trace(r, scene, { bounces, bilinearTexture }));
         }
         return c.scale(invSamples).toGamma(gamma);
@@ -26,7 +26,7 @@ export function rayTrace(scene, params = {}) {
     return lambda;
 }
 
-function trace(ray, scene, options) {
+export function trace(ray, scene, options) {
     const { bounces, bilinearTexture } = options;
     if (bounces < 0) return Color.BLACK;
     const hit = scene.interceptWithRay(ray);

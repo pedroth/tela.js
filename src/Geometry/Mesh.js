@@ -5,6 +5,7 @@ import Triangle from "./Triangle.js";
 import { groupBy } from "../Utils/Utils.js";
 import { Diffuse } from "../Material/Material.js";
 import KScene from "../Scene/KScene.js"
+import { UNIT_BOX_LINES, UNIT_BOX_VERTEX } from "../Utils/Utils3D.js";
 //========================================================================================
 /*                                                                                      *
  *                                       CONSTANTS                                      *
@@ -32,7 +33,7 @@ export default class Mesh {
     }
 
     _init() {
-        if(this._meshScene) return this;
+        if (this._meshScene) return this;
         this._meshScene = new KScene();
         this._meshScene.addList(this.asTriangles());
         this._meshScene.rebuild();
@@ -215,6 +216,14 @@ export default class Mesh {
         return triangles;
     }
 
+    serialize() {
+
+    }
+
+    deserialize(jsonMesh) {
+        
+    }
+
     static readObj(objFile, name = `Mesh_${MESH_COUNTER++}`) {
         const vertices = [];
         const normals = [];
@@ -263,7 +272,7 @@ export default class Mesh {
 
     static ofBox(box, name) {
         const vertices = UNIT_BOX_VERTEX.map(v => v.mul(box.diagonal).add(box.min))
-        return new Mesh({ name: name, vertices, faces: UNIT_BOX_FACES.map(indx => ({ vertices: indx })) });
+        return new Mesh({ name: name, vertices, faces: UNIT_BOX_LINES.map(indx => ({ vertices: indx })) });
     }
 }
 

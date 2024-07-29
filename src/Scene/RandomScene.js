@@ -1,6 +1,6 @@
 
 import Box from "../Geometry/Box.js";
-import Vec, { Vec2 } from "../Vector/Vector.js";
+import Vec from "../Vector/Vector.js";
 import { argmin } from "../Utils/Utils.js";
 import NaiveScene from "./NaiveScene.js";
 import Color from "../Color/Color.js";
@@ -16,9 +16,8 @@ const rayCache = (gridSize = 0.01, dirGrid = 0.01) => {
         return Math.abs(h);
     }
     function dirHash(d) {
-        const sphericalCoords = Vec2(Math.atan2(d.y, d.x), Math.asin(d.z));
-        const integerCoord = sphericalCoords.map(z => Math.floor(z / dirGrid));
-        const h = (integerCoord.x * 92837111) ^ (integerCoord.y * 689287499);
+        const integerCoord = d.map(z => Math.floor(z / dirGrid));
+        const h = (integerCoord.x * 92837111) ^ (integerCoord.y * 689287499) ^ (integerCoord.z * 283923481);
         return Math.abs(h);
     }
     cache.put = (ray, value) => {

@@ -1,7 +1,7 @@
 import Box from "../Geometry/Box.js";
 import Color from "../Color/Color.js";
-import { Diffuse } from "../Material/Material.js";
-import { Vec2, Vec3 } from "../Vector/Vector.js";
+import { Diffuse, MATERIALS } from "../Material/Material.js";
+import Vec, { Vec2, Vec3 } from "../Vector/Vector.js";
 
 export default class Triangle {
     constructor({ name, positions, colors, texCoords, normals, texture, emissive, material }) {
@@ -65,6 +65,29 @@ export default class Triangle {
 
     isInside(p) {
         return this.faceNormal.dot(p.sub(this.positions[0])) >= 0;
+    }
+
+    serialize() {
+        return {
+            type: Triangle.name,
+            name: this.name,
+            emissive: this.emissive,
+            colors: this.colors.map(x => x.toArray()),
+            positions: this.positions.map(x => x.toArray()),
+            material: { type: this.material.type, args: this.material.args }
+        }
+    }
+
+    static deserialize(json) {
+        const { type, args } = json.material;
+        return Triangle
+            .builder()
+            .name(json.name)
+            .positions(...json.positions.map(x => Vec.fromArray(x)))
+            .colors(...json.colors.map(x => new Color(x)))
+            .emissive(json.emissive)
+            .material(MATERIALS[type](...args))
+            .build()
     }
 
     static builder() {

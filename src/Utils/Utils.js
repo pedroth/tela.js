@@ -1,3 +1,5 @@
+import { IS_NODE } from "./Constants";
+
 export function measureTime(lambda) {
     const t = performance.now();
     lambda()
@@ -60,8 +62,7 @@ export function fRandom() {
     return RANDOM[i++ % RANDOM.length];
 }
 
-const isNode = typeof window === "undefined";
-const setTimeOut = isNode ? setTimeout : requestAnimationFrame;
+const setTimeOut = IS_NODE ? setTimeout : requestAnimationFrame;
 export function loop(lambda) {
     let isFinished = false;
     const play = async ({ time, oldT }) => {

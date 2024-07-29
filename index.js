@@ -442,11 +442,15 @@ const examples = [
         path: "/test/web/mandelbrot.js"
     },
     {
+        title: "Parallel mandelbrot set",
+        path: "/test/web/mandelbrot_parallel.js"
+    },
+    {
         title: "Simple animation shader",
         path: "/test/web/simple_animation.js"
     },
     {
-        title: "Rotating grid shader",
+        title: "Rotating grid and video gen",
         path: "/test/web/rotating_grid.js"
     },
     {
@@ -509,6 +513,10 @@ const examples = [
         title: "SDF editor",
         path: "/test/web/sdf_editor.js"
     },
+    // {
+    //     title: "Voxel SDF editor",
+    //     path: "/test/web/sdf_editor_voxel.js"
+    // },
     {
         title: "Cornell box",
         path: "/test/web/cornell_box.js"

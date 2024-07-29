@@ -1,402 +1,176 @@
-// src/Vector/Vector.js
-function Vec3(x = 0, y = 0, z = 0) {
-  return new Vector3(x, y, z);
-}
-function Vec2(x = 0, y = 0) {
-  return new Vector2(x, y);
-}
+var __defProp = Object.defineProperty;
+var __export = (target, all) => {
+  for (var name in all)
+    __defProp(target, name, {
+      get: all[name],
+      enumerable: true,
+      configurable: true,
+      set: (newValue) => all[name] = () => newValue
+    });
+};
+var __esm = (fn, res) => () => (fn && (res = fn(fn = 0)), res);
 
-class Vec {
-  constructor(array) {
-    this._vec = array;
-    this._n = this._vec.length;
-  }
-  get n() {
-    return this._n;
-  }
-  get dim() {
-    return this._n;
-  }
-  clone() {
-    return new Vec(COPY_VEC(this._vec));
-  }
-  get(i) {
-    return this._vec[i];
-  }
-  toArray() {
-    return COPY_VEC(this._vec);
-  }
-  toString() {
-    return "[" + this._vec.join(", ") + "]";
-  }
-  serialize() {
-    return this._vec.join(", ");
-  }
-  add(u) {
-    return this.op(u, (a, b) => a + b);
-  }
-  sub(u) {
-    return this.op(u, (a, b) => a - b);
-  }
-  mul(u) {
-    return this.op(u, (a, b) => a * b);
-  }
-  div(u) {
-    return this.op(u, (a, b) => a / b);
-  }
-  dot(u) {
-    let acc = 0;
-    for (let i = 0;i < this._n; i++) {
-      acc += this._vec[i] * u._vec[i];
+// node:os
+var exports_os = {};
+__export(exports_os, {
+  uptime: () => {
+    {
+      return A;
     }
-    return acc;
-  }
-  squareLength() {
-    return this.dot(this);
-  }
-  length() {
-    return Math.sqrt(this.dot(this));
-  }
-  normalize() {
-    return this.scale(1 / this.length());
-  }
-  scale(r) {
-    return this.map((z) => z * r);
-  }
-  map(lambda) {
-    const ans = BUILD_VEC(this._n);
-    for (let i = 0;i < this._n; i++) {
-      ans[i] = lambda(this._vec[i], i);
+  },
+  type: () => {
+    {
+      return V;
     }
-    return new Vec(ans);
-  }
-  op(u, operation) {
-    const ans = BUILD_VEC(this._n);
-    for (let i = 0;i < this._n; i++) {
-      ans[i] = operation(this._vec[i], u._vec[i]);
+  },
+  totalmem: () => {
+    {
+      return N;
     }
-    return new Vec(ans);
-  }
-  reduce(fold, init = 0) {
-    let acc = init;
-    for (let i = 0;i < this._n; i++) {
-      acc = fold(acc, this._vec[i], i);
+  },
+  tmpdir: () => {
+    {
+      return U;
     }
-    return acc;
-  }
-  fold = this.reduce;
-  foldLeft = this.fold;
-  equals(u, precision = 0.00001) {
-    if (!(u instanceof Vec))
-      return false;
-    return this.sub(u).length() < precision;
-  }
-  take(n = 0, m = this._vec.length) {
-    return Vec.fromArray(this._vec.slice(n, m));
-  }
-  findIndex(predicate) {
-    for (let i = 0;i < this._n; i++) {
-      if (predicate(this._vec[i]))
-        return i;
+  },
+  release: () => {
+    {
+      return x;
     }
-    return -1;
+  },
+  platform: () => {
+    {
+      return O;
+    }
+  },
+  networkInterfaces: () => {
+    {
+      return j;
+    }
+  },
+  loadavg: () => {
+    {
+      return y;
+    }
+  },
+  hostname: () => {
+    {
+      return k;
+    }
+  },
+  homedir: () => {
+    {
+      return _;
+    }
+  },
+  getNetworkInterfaces: () => {
+    {
+      return B;
+    }
+  },
+  freemem: () => {
+    {
+      return I;
+    }
+  },
+  endianness: () => {
+    {
+      return L;
+    }
+  },
+  default: () => {
+    {
+      return E;
+    }
+  },
+  cpus: () => {
+    {
+      return b;
+    }
+  },
+  arch: () => {
+    {
+      return M;
+    }
+  },
+  EOL: () => {
+    {
+      return X;
+    }
   }
-  static fromArray(array) {
-    if (array.length === 2)
-      return Vector2.fromArray(array);
-    if (array.length === 3)
-      return Vector3.fromArray(array);
-    return new Vec(array);
-  }
-  static of(...values) {
-    if (values.length === 2)
-      return Vector2.of(...values);
-    if (values.length === 3)
-      return Vector3.of(...values);
-    return new Vec(values);
-  }
-  static ZERO = (n) => n === 3 ? new Vector3 : n === 2 ? new Vector2 : new Vec(BUILD_VEC(n));
-  static ONES = (n) => {
-    if (n === 2)
-      return Vector2.ONES;
-    if (n === 3)
-      return Vector3.ONES;
-    return Vec.ZERO(n).map(() => 1);
+});
+var c, a, m, s, p, d, l, h, g, f, u, E, L, k, y, A, I, N, b, V, x, M, O, U, X, _, j, B;
+var init_os = __esm(() => {
+  c = Object.create;
+  a = Object.defineProperty;
+  m = Object.getOwnPropertyDescriptor;
+  s = Object.getOwnPropertyNames;
+  p = Object.getPrototypeOf;
+  d = Object.prototype.hasOwnProperty;
+  l = (r, n) => () => (n || r((n = { exports: {} }).exports, n), n.exports);
+  h = (r, n, t, i) => {
+    if (n && typeof n == "object" || typeof n == "function")
+      for (let o of s(n))
+        !d.call(r, o) && o !== t && a(r, o, { get: () => n[o], enumerable: !(i = m(n, o)) || i.enumerable });
+    return r;
   };
-  static e = (n) => (i) => {
-    if (n === 2)
-      return Vector2.e(i);
-    if (n === 3)
-      return Vector3.e(i);
-    const vec = BUILD_VEC(n);
-    if (i >= 0 && i < n) {
-      vec[i] = 1;
-    }
-    return new Vec(vec);
-  };
-  static RANDOM = (n) => {
-    if (n === 2)
-      return Vector2.RANDOM();
-    if (n === 3)
-      return Vector3.RANDOM();
-    const v = BUILD_VEC(n);
-    for (let i = 0;i < n; i++) {
-      v[i] = Math.random();
-    }
-    return new Vec(v);
-  };
-}
-var BUILD_VEC = (n) => new Float64Array(n);
-var COPY_VEC = (array) => Float64Array.from(array);
-class Vector3 {
-  constructor(x = 0, y = 0, z = 0) {
-    this.x = x;
-    this.y = y;
-    this.z = z;
-  }
-  get n() {
-    return 3;
-  }
-  get dim() {
-    return 3;
-  }
-  size = () => 3;
-  shape = () => [3];
-  clone() {
-    return new Vector3(this.x, this.y, this.z);
-  }
-  get(i) {
-    return [this.x, this.y, this.z][i];
-  }
-  toArray() {
-    return [this.x, this.y, this.z];
-  }
-  toString() {
-    return "[" + this.toArray().join(", ") + "]";
-  }
-  serialize() {
-    return this.toArray().join(", ");
-  }
-  add(u) {
-    return this.op(u, (a, b) => a + b);
-  }
-  sub(u) {
-    return this.op(u, (a, b) => a - b);
-  }
-  mul(u) {
-    return this.op(u, (a, b) => a * b);
-  }
-  div(u) {
-    return this.op(u, (a, b) => a / b);
-  }
-  dot(u) {
-    return this.x * u.x + this.y * u.y + this.z * u.z;
-  }
-  squareLength() {
-    return this.dot(this);
-  }
-  length() {
-    return Math.sqrt(this.dot(this));
-  }
-  normalize() {
-    return this.scale(1 / this.length());
-  }
-  scale(r) {
-    return this.map((z) => z * r);
-  }
-  map(lambda) {
-    return new Vector3(lambda(this.x, 0), lambda(this.y, 1), lambda(this.z, 2));
-  }
-  cross(v) {
-    const u = this;
-    return Vec3(u.y * v.z - u.z * v.y, u.z * v.x - u.x * v.z, u.x * v.y - u.y * v.x);
-  }
-  op(u, operation) {
-    return new Vector3(operation(this.x, u.x), operation(this.y, u.y), operation(this.z, u.z));
-  }
-  reduce(fold, init = 0) {
-    let acc = init;
-    acc = fold(acc, this.x);
-    acc = fold(acc, this.y);
-    acc = fold(acc, this.z);
-    return acc;
-  }
-  fold = this.reduce;
-  foldLeft = this.fold;
-  equals(u, precision = 0.00001) {
-    if (!(u instanceof Vector3))
-      return false;
-    return this.sub(u).length() < precision;
-  }
-  take(n = 0, m = 3) {
-    const array = [this.x, this.y, this.z].slice(n, m);
-    return Vec.fromArray(array);
-  }
-  findIndex(predicate) {
-    if (predicate(this.x))
+  g = (r, n, t) => (t = r != null ? c(p(r)) : {}, h(n || !r || !r.__esModule ? a(t, "default", { value: r, enumerable: true }) : t, r));
+  f = l((e) => {
+    e.endianness = function() {
+      return "LE";
+    };
+    e.hostname = function() {
+      return typeof location < "u" ? location.hostname : "";
+    };
+    e.loadavg = function() {
+      return [];
+    };
+    e.uptime = function() {
       return 0;
-    if (predicate(this.y))
-      return 1;
-    if (predicate(this.z))
-      return 2;
-    return -1;
-  }
-  static fromArray(array) {
-    return new Vector3(...array);
-  }
-  static of(...values) {
-    return new Vector3(...values);
-  }
-  static e = (i) => {
-    if (i === 0)
-      return new Vector3(1, 0, 0);
-    if (i === 1)
-      return new Vector3(0, 1, 0);
-    if (i === 2)
-      return new Vector3(0, 0, 1);
-    return new Vec3;
-  };
-  static RANDOM = () => {
-    return new Vector3(Math.random(), Math.random(), Math.random());
-  };
-  static ONES = new Vector3(1, 1, 1);
-}
-
-class Vector2 {
-  constructor(x = 0, y = 0) {
-    this.x = x;
-    this.y = y;
-  }
-  get n() {
-    return 2;
-  }
-  get dim() {
-    return 2;
-  }
-  size = () => 2;
-  shape = () => [2];
-  clone() {
-    return new Vector2(this.x, this.y);
-  }
-  get(i) {
-    return [this.x, this.y][i];
-  }
-  toArray() {
-    return [this.x, this.y];
-  }
-  toString() {
-    return "[" + this.toArray().join(", ") + "]";
-  }
-  serialize() {
-    return this.toArray().join(", ");
-  }
-  add(u) {
-    return this.op(u, (a, b) => a + b);
-  }
-  sub(u) {
-    return this.op(u, (a, b) => a - b);
-  }
-  mul(u) {
-    return this.op(u, (a, b) => a * b);
-  }
-  div(u) {
-    return this.op(u, (a, b) => a / b);
-  }
-  dot(u) {
-    return this.x * u.x + this.y * u.y;
-  }
-  squareLength() {
-    return this.dot(this);
-  }
-  length() {
-    return Math.sqrt(this.dot(this));
-  }
-  normalize() {
-    return this.scale(1 / this.length());
-  }
-  scale(r) {
-    return this.map((z) => z * r);
-  }
-  map(lambda) {
-    return new Vector2(lambda(this.x, 0), lambda(this.y, 1));
-  }
-  cross(v) {
-    const u = this;
-    return u.x * v.y - u.y * v.x;
-  }
-  op(u, operation) {
-    return new Vector2(operation(this.x, u.x), operation(this.y, u.y));
-  }
-  reduce(fold, init = 0) {
-    let acc = init;
-    acc = fold(acc, this.x);
-    acc = fold(acc, this.y);
-    return acc;
-  }
-  fold = this.reduce;
-  foldLeft = this.fold;
-  equals(u, precision = 0.00001) {
-    if (!(u instanceof Vector2))
-      return false;
-    return this.sub(u).length() < precision;
-  }
-  take(n = 0, m = 2) {
-    const array = [this.x, this.y].slice(n, m);
-    return Vec.fromArray(array);
-  }
-  findIndex(predicate) {
-    if (predicate(this.x))
-      return 0;
-    if (predicate(this.y))
-      return 1;
-    return -1;
-  }
-  static fromArray(array) {
-    return new Vector2(...array);
-  }
-  static of(...values) {
-    return new Vector2(...values);
-  }
-  static e = (i) => {
-    if (i === 0)
-      return new Vector2(1, 0);
-    if (i === 1)
-      return new Vector2(0, 1);
-    return new Vector2;
-  };
-  static RANDOM = () => {
-    return new Vector2(Math.random(), Math.random());
-  };
-  static ONES = new Vector2(1, 1);
-}
+    };
+    e.freemem = function() {
+      return Number.MAX_VALUE;
+    };
+    e.totalmem = function() {
+      return Number.MAX_VALUE;
+    };
+    e.cpus = function() {
+      return [];
+    };
+    e.type = function() {
+      return "Browser";
+    };
+    e.release = function() {
+      return typeof navigator < "u" ? navigator.appVersion : "";
+    };
+    e.networkInterfaces = e.getNetworkInterfaces = function() {
+      return {};
+    };
+    e.arch = function() {
+      return "javascript";
+    };
+    e.platform = function() {
+      return "browser";
+    };
+    e.tmpdir = e.tmpDir = function() {
+      return "/tmp";
+    };
+    e.EOL = `
+`;
+    e.homedir = function() {
+      return "/";
+    };
+  });
+  u = g(f());
+  E = u.default;
+  ({ endianness: L, hostname: k, loadavg: y, uptime: A, freemem: I, totalmem: N, cpus: b, type: V, release: x, arch: M, platform: O, tmpdir: U, EOL: X, homedir: _, networkInterfaces: j, getNetworkInterfaces: B } = u.default);
+});
 
 // src/Utils/Constants.js
 var MAX_8BIT = 255;
 var RAD2DEG = 180 / Math.PI;
-var UNIT_BOX_VERTEX2 = [
-  Vec3(),
-  Vec3(1, 0, 0),
-  Vec3(1, 1, 0),
-  Vec3(0, 1, 0),
-  Vec3(0, 0, 1),
-  Vec3(1, 0, 1),
-  Vec3(1, 1, 1),
-  Vec3(0, 1, 1)
-];
-var UNIT_BOX_FACES2 = [
-  [0, 1, 2],
-  [2, 3, 0],
-  [4, 5, 6],
-  [6, 7, 4],
-  [0, 1, 4],
-  [4, 5, 1],
-  [2, 3, 6],
-  [6, 7, 3],
-  [0, 3, 7],
-  [7, 4, 0],
-  [1, 2, 6],
-  [6, 5, 1]
-];
+var IS_NODE = typeof window === "undefined";
+var NUMBER_OF_CORES = IS_NODE ? await Promise.resolve().then(() => (init_os(), exports_os)).cpus().length : navigator.hardwareConcurrency;
 
 // src/Color/Color.js
 class Color {
@@ -433,9 +207,9 @@ class Color {
   }
   toGamma(alpha = 0.5) {
     const r = this.red ** alpha;
-    const g = this.green ** alpha;
-    const b = this.blue ** alpha;
-    return Color.ofRGB(r, g, b);
+    const g2 = this.green ** alpha;
+    const b2 = this.blue ** alpha;
+    return Color.ofRGB(r, g2, b2);
   }
   static ofRGB(red = 0, green = 0, blue = 0, alpha = 1) {
     const rgb = [];
@@ -451,10 +225,10 @@ class Color {
     rgb[2] = blue / MAX_8BIT;
     return new Color(rgb, alpha / MAX_8BIT);
   }
-  static ofHSV(hue, s, v) {
-    const h = hue * RAD2DEG;
-    let f = (n, k = (n + h / 60) % 6) => v - v * s * Math.max(Math.min(k, 4 - k, 1), 0);
-    return new Color([f(5), f(3), f(1)]);
+  static ofHSV(hue, s2, v) {
+    const h2 = hue * RAD2DEG;
+    let f2 = (n, k2 = (n + h2 / 60) % 6) => v - v * s2 * Math.max(Math.min(k2, 4 - k2, 1), 0);
+    return new Color([f2(5), f2(3), f2(1)]);
   }
   static random() {
     const r = () => Math.random();
@@ -490,15 +264,15 @@ function measureTimeWithResult(lambda) {
 }
 function groupBy(array, groupFunction) {
   const ans = {};
-  array.forEach((x, i) => {
-    const key = groupFunction(x, i);
+  array.forEach((x2, i) => {
+    const key = groupFunction(x2, i);
     if (!ans[key])
       ans[key] = [];
-    ans[key].push(x);
+    ans[key].push(x2);
   });
   return ans;
 }
-function argmin(array, costFunction = (x) => x) {
+function argmin(array, costFunction = (x2) => x2) {
   let argminIndex = -1;
   let cost = Number.MAX_VALUE;
   for (let i = 0;i < array.length; i++) {
@@ -513,7 +287,7 @@ function argmin(array, costFunction = (x) => x) {
 function memoize(func) {
   const cache = {};
   return (...args) => {
-    const key = JSON.stringify(args.map((x) => typeof x === "object" ? JSON.stringify(x) : x.toString()));
+    const key = JSON.stringify(args.map((x2) => typeof x2 === "object" ? JSON.stringify(x2) : x2.toString()));
     if (key in cache)
       return cache[key];
     const ans = func(...args);
@@ -549,12 +323,383 @@ function loop(lambda) {
 }
 var RANDOM = Array(1000).fill().map(Math.random);
 var i = 0;
-var isNode = typeof window === "undefined";
-var setTimeOut = isNode ? setTimeout : requestAnimationFrame;
+var setTimeOut = IS_NODE ? setTimeout : requestAnimationFrame;
+
+// src/Vector/Vector.js
+function Vec3(x2 = 0, y2 = 0, z = 0) {
+  return new Vector3(x2, y2, z);
+}
+function Vec2(x2 = 0, y2 = 0) {
+  return new Vector2(x2, y2);
+}
+
+class Vec {
+  constructor(array) {
+    this._vec = array;
+    this._n = this._vec.length;
+  }
+  get n() {
+    return this._n;
+  }
+  get dim() {
+    return this._n;
+  }
+  clone() {
+    return new Vec(COPY_VEC(this._vec));
+  }
+  get(i2) {
+    return this._vec[i2];
+  }
+  toArray() {
+    return COPY_VEC(this._vec);
+  }
+  toString() {
+    return "[" + this._vec.join(", ") + "]";
+  }
+  serialize() {
+    return this._vec.join(", ");
+  }
+  add(u2) {
+    return this.op(u2, (a2, b2) => a2 + b2);
+  }
+  sub(u2) {
+    return this.op(u2, (a2, b2) => a2 - b2);
+  }
+  mul(u2) {
+    return this.op(u2, (a2, b2) => a2 * b2);
+  }
+  div(u2) {
+    return this.op(u2, (a2, b2) => a2 / b2);
+  }
+  dot(u2) {
+    let acc = 0;
+    for (let i2 = 0;i2 < this._n; i2++) {
+      acc += this._vec[i2] * u2._vec[i2];
+    }
+    return acc;
+  }
+  squareLength() {
+    return this.dot(this);
+  }
+  length() {
+    return Math.sqrt(this.dot(this));
+  }
+  normalize() {
+    return this.scale(1 / this.length());
+  }
+  scale(r) {
+    return this.map((z) => z * r);
+  }
+  map(lambda) {
+    const ans = BUILD_VEC(this._n);
+    for (let i2 = 0;i2 < this._n; i2++) {
+      ans[i2] = lambda(this._vec[i2], i2);
+    }
+    return new Vec(ans);
+  }
+  op(u2, operation) {
+    const ans = BUILD_VEC(this._n);
+    for (let i2 = 0;i2 < this._n; i2++) {
+      ans[i2] = operation(this._vec[i2], u2._vec[i2]);
+    }
+    return new Vec(ans);
+  }
+  reduce(fold, init = 0) {
+    let acc = init;
+    for (let i2 = 0;i2 < this._n; i2++) {
+      acc = fold(acc, this._vec[i2], i2);
+    }
+    return acc;
+  }
+  fold = this.reduce;
+  foldLeft = this.fold;
+  equals(u2, precision = 0.00001) {
+    if (!(u2 instanceof Vec))
+      return false;
+    return this.sub(u2).length() < precision;
+  }
+  take(n = 0, m2 = this._vec.length) {
+    return Vec.fromArray(this._vec.slice(n, m2));
+  }
+  findIndex(predicate) {
+    for (let i2 = 0;i2 < this._n; i2++) {
+      if (predicate(this._vec[i2]))
+        return i2;
+    }
+    return -1;
+  }
+  static fromArray(array) {
+    if (array.length === 2)
+      return Vector2.fromArray(array);
+    if (array.length === 3)
+      return Vector3.fromArray(array);
+    return new Vec(array);
+  }
+  static of(...values) {
+    if (values.length === 2)
+      return Vector2.of(...values);
+    if (values.length === 3)
+      return Vector3.of(...values);
+    return new Vec(values);
+  }
+  static ZERO = (n) => n === 3 ? new Vector3 : n === 2 ? new Vector2 : new Vec(BUILD_VEC(n));
+  static ONES = (n) => {
+    if (n === 2)
+      return Vector2.ONES;
+    if (n === 3)
+      return Vector3.ONES;
+    return Vec.ZERO(n).map(() => 1);
+  };
+  static e = (n) => (i2) => {
+    if (n === 2)
+      return Vector2.e(i2);
+    if (n === 3)
+      return Vector3.e(i2);
+    const vec = BUILD_VEC(n);
+    if (i2 >= 0 && i2 < n) {
+      vec[i2] = 1;
+    }
+    return new Vec(vec);
+  };
+  static RANDOM = (n) => {
+    if (n === 2)
+      return Vector2.RANDOM();
+    if (n === 3)
+      return Vector3.RANDOM();
+    const v = BUILD_VEC(n);
+    for (let i2 = 0;i2 < n; i2++) {
+      v[i2] = Math.random();
+    }
+    return new Vec(v);
+  };
+}
+var BUILD_VEC = (n) => new Float64Array(n);
+var COPY_VEC = (array) => Float64Array.from(array);
+class Vector3 {
+  constructor(x2 = 0, y2 = 0, z = 0) {
+    this.x = x2;
+    this.y = y2;
+    this.z = z;
+  }
+  get n() {
+    return 3;
+  }
+  get dim() {
+    return 3;
+  }
+  size = () => 3;
+  shape = () => [3];
+  clone() {
+    return new Vector3(this.x, this.y, this.z);
+  }
+  get(i2) {
+    return [this.x, this.y, this.z][i2];
+  }
+  toArray() {
+    return [this.x, this.y, this.z];
+  }
+  toString() {
+    return "[" + this.toArray().join(", ") + "]";
+  }
+  serialize() {
+    return this.toArray().join(", ");
+  }
+  add(u2) {
+    return this.op(u2, (a2, b2) => a2 + b2);
+  }
+  sub(u2) {
+    return this.op(u2, (a2, b2) => a2 - b2);
+  }
+  mul(u2) {
+    return this.op(u2, (a2, b2) => a2 * b2);
+  }
+  div(u2) {
+    return this.op(u2, (a2, b2) => a2 / b2);
+  }
+  dot(u2) {
+    return this.x * u2.x + this.y * u2.y + this.z * u2.z;
+  }
+  squareLength() {
+    return this.dot(this);
+  }
+  length() {
+    return Math.sqrt(this.dot(this));
+  }
+  normalize() {
+    return this.scale(1 / this.length());
+  }
+  scale(r) {
+    return this.map((z) => z * r);
+  }
+  map(lambda) {
+    return new Vector3(lambda(this.x, 0), lambda(this.y, 1), lambda(this.z, 2));
+  }
+  cross(v) {
+    const u2 = this;
+    return Vec3(u2.y * v.z - u2.z * v.y, u2.z * v.x - u2.x * v.z, u2.x * v.y - u2.y * v.x);
+  }
+  op(u2, operation) {
+    return new Vector3(operation(this.x, u2.x), operation(this.y, u2.y), operation(this.z, u2.z));
+  }
+  reduce(fold, init = 0) {
+    let acc = init;
+    acc = fold(acc, this.x);
+    acc = fold(acc, this.y);
+    acc = fold(acc, this.z);
+    return acc;
+  }
+  fold = this.reduce;
+  foldLeft = this.fold;
+  equals(u2, precision = 0.00001) {
+    if (!(u2 instanceof Vector3))
+      return false;
+    return this.sub(u2).length() < precision;
+  }
+  take(n = 0, m2 = 3) {
+    const array = [this.x, this.y, this.z].slice(n, m2);
+    return Vec.fromArray(array);
+  }
+  findIndex(predicate) {
+    if (predicate(this.x))
+      return 0;
+    if (predicate(this.y))
+      return 1;
+    if (predicate(this.z))
+      return 2;
+    return -1;
+  }
+  static fromArray(array) {
+    return new Vector3(...array);
+  }
+  static of(...values) {
+    return new Vector3(...values);
+  }
+  static e = (i2) => {
+    if (i2 === 0)
+      return new Vector3(1, 0, 0);
+    if (i2 === 1)
+      return new Vector3(0, 1, 0);
+    if (i2 === 2)
+      return new Vector3(0, 0, 1);
+    return new Vec3;
+  };
+  static RANDOM = () => {
+    return new Vector3(Math.random(), Math.random(), Math.random());
+  };
+  static ONES = new Vector3(1, 1, 1);
+}
+
+class Vector2 {
+  constructor(x2 = 0, y2 = 0) {
+    this.x = x2;
+    this.y = y2;
+  }
+  get n() {
+    return 2;
+  }
+  get dim() {
+    return 2;
+  }
+  size = () => 2;
+  shape = () => [2];
+  clone() {
+    return new Vector2(this.x, this.y);
+  }
+  get(i2) {
+    return [this.x, this.y][i2];
+  }
+  toArray() {
+    return [this.x, this.y];
+  }
+  toString() {
+    return "[" + this.toArray().join(", ") + "]";
+  }
+  serialize() {
+    return this.toArray().join(", ");
+  }
+  add(u2) {
+    return this.op(u2, (a2, b2) => a2 + b2);
+  }
+  sub(u2) {
+    return this.op(u2, (a2, b2) => a2 - b2);
+  }
+  mul(u2) {
+    return this.op(u2, (a2, b2) => a2 * b2);
+  }
+  div(u2) {
+    return this.op(u2, (a2, b2) => a2 / b2);
+  }
+  dot(u2) {
+    return this.x * u2.x + this.y * u2.y;
+  }
+  squareLength() {
+    return this.dot(this);
+  }
+  length() {
+    return Math.sqrt(this.dot(this));
+  }
+  normalize() {
+    return this.scale(1 / this.length());
+  }
+  scale(r) {
+    return this.map((z) => z * r);
+  }
+  map(lambda) {
+    return new Vector2(lambda(this.x, 0), lambda(this.y, 1));
+  }
+  cross(v) {
+    const u2 = this;
+    return u2.x * v.y - u2.y * v.x;
+  }
+  op(u2, operation) {
+    return new Vector2(operation(this.x, u2.x), operation(this.y, u2.y));
+  }
+  reduce(fold, init = 0) {
+    let acc = init;
+    acc = fold(acc, this.x);
+    acc = fold(acc, this.y);
+    return acc;
+  }
+  fold = this.reduce;
+  foldLeft = this.fold;
+  equals(u2, precision = 0.00001) {
+    if (!(u2 instanceof Vector2))
+      return false;
+    return this.sub(u2).length() < precision;
+  }
+  take(n = 0, m2 = 2) {
+    const array = [this.x, this.y].slice(n, m2);
+    return Vec.fromArray(array);
+  }
+  findIndex(predicate) {
+    if (predicate(this.x))
+      return 0;
+    if (predicate(this.y))
+      return 1;
+    return -1;
+  }
+  static fromArray(array) {
+    return new Vector2(...array);
+  }
+  static of(...values) {
+    return new Vector2(...values);
+  }
+  static e = (i2) => {
+    if (i2 === 0)
+      return new Vector2(1, 0);
+    if (i2 === 1)
+      return new Vector2(0, 1);
+    return new Vector2;
+  };
+  static RANDOM = () => {
+    return new Vector2(Math.random(), Math.random());
+  };
+  static ONES = new Vector2(1, 1);
+}
 
 // src/Geometry/Box.js
-var maxComp = function(u) {
-  return u.fold((e, x) => Math.max(e, x), -Number.MAX_VALUE);
+var maxComp = function(u2) {
+  return u2.fold((e, x2) => Math.max(e, x2), -Number.MAX_VALUE);
 };
 
 class Box {
@@ -572,20 +717,20 @@ class Box {
     return this;
   }
   distanceToPoint(pointVec) {
-    const p = pointVec.sub(this.center);
+    const p2 = pointVec.sub(this.center);
     const r = this.max.sub(this.center);
-    const q = p.map(Math.abs).sub(r);
-    return q.map((x) => Math.max(x, 0)).length() + Math.min(0, maxComp(q));
+    const q = p2.map(Math.abs).sub(r);
+    return q.map((x2) => Math.max(x2, 0)).length() + Math.min(0, maxComp(q));
   }
   normalToPoint(pointVec) {
     const epsilon = 0.001;
     const n = pointVec.dim;
     const grad = [];
-    const d = this.distanceToPoint(pointVec);
+    const d2 = this.distanceToPoint(pointVec);
     for (let i2 = 0;i2 < n; i2++) {
-      grad.push(this.distanceToPoint(pointVec.add(Vec.e(n)(i2).scale(epsilon))) - d);
+      grad.push(this.distanceToPoint(pointVec.add(Vec.e(n)(i2).scale(epsilon))) - d2);
     }
-    return Vec.fromArray(grad).scale(Math.sign(d)).normalize();
+    return Vec.fromArray(grad).scale(Math.sign(d2)).normalize();
   }
   interceptWithRay(ray) {
     const epsilon = 0.001;
@@ -606,7 +751,7 @@ class Box {
     }
     return tmax >= Math.max(tmin, 0) ? [tmin - epsilon, ray.trace(tmin - epsilon), this] : undefined;
   }
-  interceptWithLine(a, b) {
+  interceptWithLine(a2, b2) {
     const epsilon = 0.001;
     let tmin = -Number.MAX_VALUE;
     let tmax = Number.MAX_VALUE;
@@ -614,9 +759,9 @@ class Box {
       return;
     const minArray = this.min.toArray();
     const maxArray = this.max.toArray();
-    const rInit = a.toArray();
-    const dir = b.sub(a).normalize();
-    const dirInv = dir.map((x) => 1 / (x + epsilon)).toArray();
+    const rInit = a2.toArray();
+    const dir = b2.sub(a2).normalize();
+    const dirInv = dir.map((x2) => 1 / (x2 + epsilon)).toArray();
     const dim = this.min?.dim;
     for (let i2 = 0;i2 < dim; ++i2) {
       let t1 = (minArray[i2] - rInit[i2]) * dirInv[i2];
@@ -627,8 +772,8 @@ class Box {
     if (Number.isNaN(tmin) || Number.isNaN(tmax))
       return;
     if (Math.abs(tmin - tmax) < epsilon)
-      return [a.add(dir.scale(tmin - epsilon))];
-    return [a.add(dir.scale(tmin - epsilon)), a.add(dir.scale(tmax - epsilon))];
+      return [a2.add(dir.scale(tmin - epsilon))];
+    return [a2.add(dir.scale(tmin - epsilon)), a2.add(dir.scale(tmax - epsilon))];
   }
   add(box) {
     if (this.isEmpty)
@@ -644,7 +789,7 @@ class Box {
     const newMin = min.op(box.min, Math.max);
     const newMax = max.op(box.max, Math.min);
     const newDiag = newMax.sub(newMin);
-    const isAllPositive = newDiag.fold((e, x) => e && x >= 0, true);
+    const isAllPositive = newDiag.fold((e, x2) => e && x2 >= 0, true);
     return !isAllPositive ? Box.EMPTY : new Box(newMin, newMax);
   }
   intersection = this.sub;
@@ -686,29 +831,33 @@ class Box {
   sample() {
     return this.min.add(Vec.RANDOM(this.dim).mul(this.diagonal));
   }
+  serialize() {
+  }
+  deserialize() {
+  }
   static EMPTY = new Box;
 }
 
 // src/Utils/Math.js
-function smin(a, b, k = 32) {
-  const res = Math.exp(-k * a) + Math.exp(-k * b);
-  return -Math.log(res) / k;
+function smin(a2, b2, k2 = 32) {
+  const res = Math.exp(-k2 * a2) + Math.exp(-k2 * b2);
+  return -Math.log(res) / k2;
 }
-function mod(n, m) {
-  return (n % m + m) % m;
+function mod(n, m2) {
+  return (n % m2 + m2) % m2;
 }
 function clamp(min = 0, max = 1) {
-  return (x) => Math.max(min, Math.min(max, x));
+  return (x2) => Math.max(min, Math.min(max, x2));
 }
-function lerp(a, b) {
-  if (typeof a === "number" && typeof b === "number")
-    return (t) => a + (b - a) * t;
-  return (t) => a.scale(1 - t).add(b.scale(t));
+function lerp(a2, b2) {
+  if (typeof a2 === "number" && typeof b2 === "number")
+    return (t) => a2 + (b2 - a2) * t;
+  return (t) => a2.scale(1 - t).add(b2.scale(t));
 }
 function randomPointInSphere(dim) {
   let randomInSphere;
   while (true) {
-    const random = Vec.RANDOM(dim).map((x) => 2 * x - 1);
+    const random = Vec.RANDOM(dim).map((x2) => 2 * x2 - 1);
     if (random.squareLength() >= 1)
       continue;
     randomInSphere = random.normalize();
@@ -722,8 +871,8 @@ var drawConvexPolygon = function(tela, positions, shader) {
   const { width, height } = tela;
   const canvasBox = tela.box;
   let boundingBox = Box.EMPTY;
-  positions.forEach((x) => {
-    boundingBox = boundingBox.add(new Box(x, x));
+  positions.forEach((x2) => {
+    boundingBox = boundingBox.add(new Box(x2, x2));
   });
   const finalBox = canvasBox.intersection(boundingBox);
   if (finalBox.isEmpty)
@@ -731,15 +880,15 @@ var drawConvexPolygon = function(tela, positions, shader) {
   const [xMin, yMin] = finalBox.min.toArray();
   const [xMax, yMax] = finalBox.max.toArray();
   const isInsideFunc = isInsideConvex(positions);
-  for (let x = xMin;x < xMax; x++) {
-    for (let y = yMin;y < yMax; y++) {
-      if (isInsideFunc(Vec2(x, y))) {
-        const j = x;
-        const i2 = height - 1 - y;
-        const color = shader(x, y);
+  for (let x2 = xMin;x2 < xMax; x2++) {
+    for (let y2 = yMin;y2 < yMax; y2++) {
+      if (isInsideFunc(Vec2(x2, y2))) {
+        const j2 = x2;
+        const i2 = height - 1 - y2;
+        const color = shader(x2, y2);
         if (!color)
           continue;
-        const index = CHANNELS * (i2 * width + j);
+        const index = CHANNELS * (i2 * width + j2);
         tela.image[index] = color.red;
         tela.image[index + 1] = color.green;
         tela.image[index + 2] = color.blue;
@@ -750,19 +899,19 @@ var drawConvexPolygon = function(tela, positions, shader) {
   return tela;
 };
 var isInsideConvex = function(positions) {
-  const m = positions.length;
+  const m2 = positions.length;
   const v = [];
   const n = [];
-  for (let i2 = 0;i2 < m; i2++) {
-    const p1 = positions[(i2 + 1) % m];
+  for (let i2 = 0;i2 < m2; i2++) {
+    const p1 = positions[(i2 + 1) % m2];
     const p0 = positions[i2];
     v[i2] = p1.sub(p0);
     n[i2] = Vec2(-v[i2].y, v[i2].x);
   }
   const orientation = v[0].x * v[1].y - v[0].y * v[1].x >= 0 ? 1 : -1;
-  return (x) => {
-    for (let i2 = 0;i2 < m; i2++) {
-      const r = x.sub(positions[i2]);
+  return (x2) => {
+    for (let i2 = 0;i2 < m2; i2++) {
+      const r = x2.sub(positions[i2]);
       const myDot = r.dot(n[i2]) * orientation;
       if (myDot < 0)
         return false;
@@ -775,11 +924,11 @@ var clipLine = function(p0, p1, box) {
   const inStack = [];
   const outStack = [];
   for (let i2 = 0;i2 < pointStack.length; i2++) {
-    const p = pointStack[i2];
-    if (box.collidesWith(p)) {
-      inStack.push(p);
+    const p2 = pointStack[i2];
+    if (box.collidesWith(p2)) {
+      inStack.push(p2);
     } else {
-      outStack.push(p);
+      outStack.push(p2);
     }
   }
   if (inStack.length >= 2) {
@@ -803,19 +952,19 @@ var lineBoxIntersection = function(start, end, box) {
     [Vec2(0, height), Vec2(0, -height)]
   ];
   const intersectionSolutions = [];
-  boundary.forEach(([s, d]) => {
-    if (d.x === 0) {
-      const solution = solveLowTriMatrix(v, -d.y, s.sub(start));
+  boundary.forEach(([s2, d2]) => {
+    if (d2.x === 0) {
+      const solution = solveLowTriMatrix(v, -d2.y, s2.sub(start));
       solution !== undefined && intersectionSolutions.push(solution);
     } else {
-      const solution = solveUpTriMatrix(v, -d.x, s.sub(start));
+      const solution = solveUpTriMatrix(v, -d2.x, s2.sub(start));
       solution !== undefined && intersectionSolutions.push(solution);
     }
   });
   const validIntersections = [];
   intersectionSolutions.forEach((solution) => {
-    const [x, y] = [solution.x, solution.y];
-    if (0 <= x && x <= 1 && 0 <= y && y <= 1) {
+    const [x2, y2] = [solution.x, solution.y];
+    if (0 <= x2 && x2 <= 1 && 0 <= y2 && y2 <= 1) {
       validIntersections.push(solution);
     }
   });
@@ -828,25 +977,25 @@ var lineBoxIntersection = function(start, end, box) {
   }
   return [start.add(v.scale(validIntersections[0].x))];
 };
-var solveLowTriMatrix = function(v, a, f) {
+var solveLowTriMatrix = function(v, a2, f2) {
   const v1 = v.x;
   const v2 = v.y;
-  const av1 = a * v1;
+  const av1 = a2 * v1;
   if (av1 === 0 || v1 === 0)
     return;
-  const f1 = f.x;
-  const f2 = f.y;
-  return Vec2(f1 / v1, (f2 * v1 - v2 * f1) / av1);
+  const f1 = f2.x;
+  const f22 = f2.y;
+  return Vec2(f1 / v1, (f22 * v1 - v2 * f1) / av1);
 };
-var solveUpTriMatrix = function(v, a, f) {
+var solveUpTriMatrix = function(v, a2, f2) {
   const v1 = v.x;
   const v2 = v.y;
-  const av2 = a * v2;
+  const av2 = a2 * v2;
   if (av2 === 0 || v2 === 0)
     return;
-  const f1 = f.x;
-  const f2 = f.y;
-  return Vec2(f2 / v2, (f1 * v2 - v1 * f2) / av2);
+  const f1 = f2.x;
+  const f22 = f2.y;
+  return Vec2(f22 / v2, (f1 * v2 - v1 * f22) / av2);
 };
 var CHANNELS = 4;
 
@@ -863,19 +1012,19 @@ class Tela {
   map(lambda) {
     const n = this.image.length;
     const w = this.width;
-    const h = this.height;
-    for (let k = 0;k < n; k += CHANNELS) {
-      const i2 = Math.floor(k / (CHANNELS * w));
-      const j = Math.floor(k / CHANNELS % w);
-      const x = j;
-      const y = h - 1 - i2;
-      const color = lambda(x, y);
+    const h2 = this.height;
+    for (let k2 = 0;k2 < n; k2 += CHANNELS) {
+      const i2 = Math.floor(k2 / (CHANNELS * w));
+      const j2 = Math.floor(k2 / CHANNELS % w);
+      const x2 = j2;
+      const y2 = h2 - 1 - i2;
+      const color = lambda(x2, y2);
       if (!color)
         continue;
-      this.image[k] = color.red;
-      this.image[k + 1] = color.green;
-      this.image[k + 2] = color.blue;
-      this.image[k + 3] = color.alpha;
+      this.image[k2] = color.red;
+      this.image[k2 + 1] = color.green;
+      this.image[k2 + 2] = color.blue;
+      this.image[k2 + 3] = color.alpha;
     }
     return this.paint();
   }
@@ -883,27 +1032,27 @@ class Tela {
     if (!color)
       return;
     const n = this.image.length;
-    for (let k = 0;k < n; k += CHANNELS) {
-      this.image[k] = color.red;
-      this.image[k + 1] = color.green;
-      this.image[k + 2] = color.blue;
-      this.image[k + 3] = color.alpha;
+    for (let k2 = 0;k2 < n; k2 += CHANNELS) {
+      this.image[k2] = color.red;
+      this.image[k2 + 1] = color.green;
+      this.image[k2 + 2] = color.blue;
+      this.image[k2 + 3] = color.alpha;
     }
     return this;
   }
-  getPxl(x, y) {
+  getPxl(x2, y2) {
     const w = this.width;
-    const h = this.height;
-    let [i2, j] = this.canvas2grid(x, y);
-    i2 = mod(i2, h);
-    j = mod(j, w);
-    let index = CHANNELS * (w * i2 + j);
+    const h2 = this.height;
+    let [i2, j2] = this.canvas2grid(x2, y2);
+    i2 = mod(i2, h2);
+    j2 = mod(j2, w);
+    let index = CHANNELS * (w * i2 + j2);
     return Color.ofRGB(this.image[index], this.image[index + 1], this.image[index + 2], this.image[index + 3]);
   }
-  setPxl(x, y, color) {
+  setPxl(x2, y2, color) {
     const w = this.width;
-    const [i2, j] = this.canvas2grid(x, y);
-    let index = CHANNELS * (w * i2 + j);
+    const [i2, j2] = this.canvas2grid(x2, y2);
+    let index = CHANNELS * (w * i2 + j2);
     this.image[index] = color.red;
     this.image[index + 1] = color.green;
     this.image[index + 2] = color.blue;
@@ -919,21 +1068,21 @@ class Tela {
   }
   drawLine(p1, p2, shader) {
     const w = this.width;
-    const h = this.height;
+    const h2 = this.height;
     const line = clipLine(p1, p2, this.box);
     if (line.length <= 1)
       return;
     const [pi, pf] = line;
     const v = pf.sub(pi);
-    const n = v.map(Math.abs).fold((e, x) => e + x);
-    for (let k = 0;k < n; k++) {
-      const s = k / n;
-      const lineP = pi.add(v.scale(s)).map(Math.floor);
-      const [x, y] = lineP.toArray();
-      const j = x;
-      const i2 = h - 1 - y;
-      const index = CHANNELS * (i2 * w + j);
-      const color = shader(x, y);
+    const n = v.map(Math.abs).fold((e, x2) => e + x2);
+    for (let k2 = 0;k2 < n; k2++) {
+      const s2 = k2 / n;
+      const lineP = pi.add(v.scale(s2)).map(Math.floor);
+      const [x2, y2] = lineP.toArray();
+      const j2 = x2;
+      const i2 = h2 - 1 - y2;
+      const index = CHANNELS * (i2 * w + j2);
+      const color = shader(x2, y2);
       if (!color)
         continue;
       this.image[index] = color.red;
@@ -946,58 +1095,59 @@ class Tela {
   drawTriangle(x1, x2, x3, shader) {
     return drawConvexPolygon(this, [x1, x2, x3], shader);
   }
-  grid2canvas(i2, j) {
-    const h = this.height;
-    const x = j;
-    const y = h - 1 - i2;
-    return [x, y];
+  grid2canvas(i2, j2) {
+    const h2 = this.height;
+    const x2 = j2;
+    const y2 = h2 - 1 - i2;
+    return [x2, y2];
   }
-  canvas2grid(x, y) {
-    const h = this.height;
-    const j = Math.floor(x);
-    const i2 = Math.floor(h - 1 - y);
-    return [i2, j];
+  canvas2grid(x2, y2) {
+    const h2 = this.height;
+    const j2 = Math.floor(x2);
+    const i2 = Math.floor(h2 - 1 - y2);
+    return [i2, j2];
   }
   exposure(time = Number.MAX_VALUE) {
     let it = 1;
     const ans = {};
-    for (let key of Object.getOwnPropertyNames(Object.getPrototypeOf(this))) {
-      const descriptor = Object.getOwnPropertyDescriptor(Object.getPrototypeOf(this), key);
-      if (descriptor && typeof descriptor.value === "function") {
-        ans[key] = descriptor.value.bind(this);
+    let proto = Object.getPrototypeOf(this);
+    while (proto !== null) {
+      for (let key of Object.getOwnPropertyNames(proto)) {
+        const descriptor = Object.getOwnPropertyDescriptor(proto, key);
+        if (descriptor && typeof descriptor.value === "function") {
+          ans[key] = descriptor.value.bind(this);
+        }
       }
+      proto = Object.getPrototypeOf(proto);
     }
     ans.width = this.width;
     ans.height = this.height;
     ans.map = (lambda) => {
       const n = this.image.length;
       const w = this.width;
-      const h = this.height;
-      for (let k = 0;k < n; k += 4) {
-        const i2 = Math.floor(k / (4 * w));
-        const j = Math.floor(k / 4 % w);
-        const x = j;
-        const y = h - 1 - i2;
-        const color = lambda(x, y);
+      const h2 = this.height;
+      for (let k2 = 0;k2 < n; k2 += 4) {
+        const i2 = Math.floor(k2 / (4 * w));
+        const j2 = Math.floor(k2 / 4 % w);
+        const x2 = j2;
+        const y2 = h2 - 1 - i2;
+        const color = lambda(x2, y2);
         if (!color)
           continue;
-        this.image[k] = this.image[k] + (color.red - this.image[k]) / it;
-        this.image[k + 1] = this.image[k + 1] + (color.green - this.image[k + 1]) / it;
-        this.image[k + 2] = this.image[k + 2] + (color.blue - this.image[k + 2]) / it;
-        this.image[k + 3] = this.image[k + 3] + (color.alpha - this.image[k + 3]) / it;
+        this.image[k2] = this.image[k2] + (color.red - this.image[k2]) / it;
+        this.image[k2 + 1] = this.image[k2 + 1] + (color.green - this.image[k2 + 1]) / it;
+        this.image[k2 + 2] = this.image[k2 + 2] + (color.blue - this.image[k2 + 2]) / it;
+        this.image[k2 + 3] = this.image[k2 + 3] + (color.alpha - this.image[k2 + 3]) / it;
       }
       if (it < time)
         it++;
       return this.paint();
     };
-    ans.fill = (color) => {
-      return this.fill(color);
-    };
     return ans;
   }
   resize(width, height) {
-    this.width = width;
-    this.height = height;
+    this.width = Math.floor(width);
+    this.height = Math.floor(height);
     this.image = new Float32Array(CHANNELS * this.width * this.height);
     this.box = new Box(Vec2(0, 0), Vec2(this.width, this.height));
   }
@@ -1006,13 +1156,13 @@ class Tela {
 // src/Tela/Canvas.js
 var handleMouse = function(canvas, lambda) {
   return (event) => {
-    const h = canvas.height;
+    const h2 = canvas.height;
     const w = canvas.width;
     const rect = canvas.canvas.getBoundingClientRect();
     const mx = (event.clientX - rect.left) / rect.width, my = (event.clientY - rect.top) / rect.height;
-    const x = Math.floor(mx * w);
-    const y = Math.floor(h - 1 - my * h);
-    return lambda(x, y, event);
+    const x2 = Math.floor(mx * w);
+    const y2 = Math.floor(h2 - 1 - my * h2);
+    return lambda(x2, y2, event);
   };
 };
 
@@ -1036,20 +1186,20 @@ class Canvas extends Tela {
     return this;
   }
   mapParallel = memoize((lambda, dependencies = []) => {
-    const N = navigator.hardwareConcurrency;
+    const N2 = navigator.hardwareConcurrency;
     const w = this.width;
-    const h = this.height;
+    const h2 = this.height;
     const fun = ({ _start_row, _end_row, _width_, _height_, _worker_id_, _vars_ }) => {
       const image = new Float32Array(CHANNELS * _width_ * (_end_row - _start_row));
       const startIndex = CHANNELS * _width_ * _start_row;
       const endIndex = CHANNELS * _width_ * _end_row;
       let index = 0;
-      for (let k = startIndex;k < endIndex; k += CHANNELS) {
-        const i2 = Math.floor(k / (CHANNELS * _width_));
-        const j = Math.floor(k / CHANNELS % _width_);
-        const x = j;
-        const y = _height_ - 1 - i2;
-        const color = lambda(x, y, { ..._vars_ });
+      for (let k2 = startIndex;k2 < endIndex; k2 += CHANNELS) {
+        const i2 = Math.floor(k2 / (CHANNELS * _width_));
+        const j2 = Math.floor(k2 / CHANNELS % _width_);
+        const x2 = j2;
+        const y2 = _height_ - 1 - i2;
+        const color = lambda(x2, y2, { ..._vars_ });
         if (!color)
           return;
         image[index] = color.red;
@@ -1060,12 +1210,12 @@ class Canvas extends Tela {
       }
       return { image, _start_row, _end_row, _worker_id_ };
     };
-    const workers = [...Array(N)].map(() => createWorker(fun, lambda, dependencies));
+    const workers = [...Array(N2)].map(() => createWorker(fun, lambda, dependencies));
     return {
       run: (vars = {}) => {
         return new Promise((resolve) => {
-          const allWorkersDone = [...Array(N)].fill(false);
-          workers.forEach((worker, k) => {
+          const allWorkersDone = [...Array(N2)].fill(false);
+          workers.forEach((worker, k2) => {
             worker.onmessage = (event) => {
               const { image, _start_row, _end_row, _worker_id_ } = event.data;
               let index = 0;
@@ -1076,17 +1226,17 @@ class Canvas extends Tela {
                 index++;
               }
               allWorkersDone[_worker_id_] = true;
-              if (allWorkersDone.every((x) => x)) {
+              if (allWorkersDone.every((x2) => x2)) {
                 return resolve(this.paint());
               }
             };
-            const ratio = Math.floor(h / N);
+            const ratio = Math.floor(h2 / N2);
             worker.postMessage({
-              _start_row: k * ratio,
-              _end_row: Math.min(h - 1, (k + 1) * ratio),
+              _start_row: k2 * ratio,
+              _end_row: Math.min(h2 - 1, (k2 + 1) * ratio),
               _width_: w,
-              _height_: h,
-              _worker_id_: k,
+              _height_: h2,
+              _worker_id_: k2,
               _vars_: vars
             });
           });
@@ -1184,7 +1334,7 @@ var createWorker = (main, lambda, dependencies) => {
   const workerFile = `
   const CHANNELS = ${CHANNELS};
   ${Color.toString()}
-  ${dependencies.map((d) => d.toString()).join("\n")}
+  ${dependencies.map((d2) => d2.toString()).join("\n")}
   const lambda = ${lambda.toString()};
   const __main__ = ${main.toString()};
   onmessage = e => {
@@ -1289,7 +1439,7 @@ class DomBuilder {
 var DomBuilder_default = DomBuilder;
 
 // src/Utils/Stream.js
-var ID = (x) => x;
+var ID = (x2) => x2;
 var TRUE = () => true;
 
 class Stream {
@@ -1310,10 +1460,10 @@ class Stream {
     return new Stream(this._tail(state), this._tail, this._pred);
   }
   map(lambda) {
-    return new Stream(this._head, this._tail, { predicate: this._pred, map: (x) => lambda(this._map(x)) });
+    return new Stream(this._head, this._tail, { predicate: this._pred, map: (x2) => lambda(this._map(x2)) });
   }
   filter(predicate = () => true) {
-    return new Stream(this._head, this._tail, { predicate: (x) => this._pred(x) && predicate(x), map: this._map });
+    return new Stream(this._head, this._tail, { predicate: (x2) => this._pred(x2) && predicate(x2), map: this._map });
   }
 }
 
@@ -1323,13 +1473,15 @@ function Ray(init, dir) {
   ans.init = init;
   ans.dir = dir;
   ans.trace = (t) => init.add(dir.scale(t));
-  ans.dirInv = dir.map((x) => 1 / x);
+  ans.dirInv = dir.map((x2) => 1 / x2);
   return ans;
 }
 
 // src/Material/Material.js
 function Diffuse() {
   return {
+    type: MATERIAL_NAMES.Diffuse,
+    args: [],
     scatter(inRay, point, element) {
       let normal = element.normalToPoint(point);
       const randomInSphere = randomPointInSphere(3);
@@ -1341,6 +1493,8 @@ function Diffuse() {
 }
 function Metallic(fuzz = 0) {
   return {
+    type: MATERIAL_NAMES.Metallic,
+    args: [fuzz],
     scatter(inRay, point, element) {
       fuzz = Math.min(1, Math.max(0, fuzz));
       let normal = element.normalToPoint(point);
@@ -1352,7 +1506,10 @@ function Metallic(fuzz = 0) {
   };
 }
 function Alpha(alpha = 1) {
+  alpha = clamp()(alpha);
   return {
+    type: MATERIAL_NAMES.Alpha,
+    args: [alpha],
     scatter(inRay, point, element) {
       if (Math.random() <= alpha)
         return Diffuse().scatter(inRay, point, element);
@@ -1370,15 +1527,17 @@ function Alpha(alpha = 1) {
 }
 function DiElectric(indexOfRefraction = 1) {
   return {
+    type: MATERIAL_NAMES.DiElectric,
+    args: [indexOfRefraction],
     scatter(inRay, point, element) {
-      const p = point.sub(inRay.init);
+      const p2 = point.sub(inRay.init);
       let t = undefined;
       if (inRay.dir.x !== 0)
-        t = p.x / inRay.dir.x;
+        t = p2.x / inRay.dir.x;
       if (inRay.dir.y !== 0)
-        t = p.y / inRay.dir.y;
+        t = p2.y / inRay.dir.y;
       if (inRay.dir.z !== 0)
-        t = p.z / inRay.dir.z;
+        t = p2.z / inRay.dir.z;
       const isInside = element.isInside(point);
       const refractionRatio = isInside ? indexOfRefraction : 1 / indexOfRefraction;
       const vIn = inRay.dir;
@@ -1398,6 +1557,13 @@ function DiElectric(indexOfRefraction = 1) {
     }
   };
 }
+var MATERIALS = {
+  Diffuse,
+  Metallic,
+  Alpha,
+  DiElectric
+};
+var MATERIAL_NAMES = Object.keys(MATERIALS).reduce((e, x2) => ({ [x2]: x2, ...e }), {});
 
 // src/Geometry/Triangle.js
 class Triangle {
@@ -1416,48 +1582,62 @@ class Triangle {
       this.edges.push(this.positions[(i2 + 1) % n].sub(this.positions[i2]));
     }
     this.tangents = [this.edges[0], this.edges.at(-1).scale(-1)];
-    const u = this.tangents[0];
+    const u2 = this.tangents[0];
     const v = this.tangents[1];
-    this.faceNormal = u.cross(v).normalize();
+    this.faceNormal = u2.cross(v).normalize();
   }
   getBoundingBox() {
     if (this.boundingBox)
       return this.boundingBox;
-    this.boundingBox = this.positions.reduce((box, x) => box.add(new Box(x, x)), Box.EMPTY);
+    this.boundingBox = this.positions.reduce((box, x2) => box.add(new Box(x2, x2)), Box.EMPTY);
     return this.boundingBox;
   }
-  distanceToPoint(p) {
+  distanceToPoint(p2) {
     return Number.MAX_VALUE;
   }
-  normalToPoint(p) {
-    const r = p.sub(this.positions[0]);
+  normalToPoint(p2) {
+    const r = p2.sub(this.positions[0]);
     const dot = this.faceNormal.dot(r);
     return dot < 0.001 ? this.faceNormal : this.faceNormal.scale(-1);
   }
   interceptWithRay(ray) {
     const epsilon = 0.000000001;
     const v = ray.dir;
-    const p = ray.init.sub(this.positions[0]);
+    const p2 = ray.init.sub(this.positions[0]);
     const n = this.faceNormal;
-    const t = -n.dot(p) / n.dot(v);
+    const t = -n.dot(p2) / n.dot(v);
     if (t <= epsilon)
       return;
-    const x = ray.trace(t);
+    const x2 = ray.trace(t);
     for (let i2 = 0;i2 < this.positions.length; i2++) {
       const xi = this.positions[i2];
-      const u = x.sub(xi);
+      const u2 = x2.sub(xi);
       const ni = n.cross(this.edges[i2]);
-      const dot = ni.dot(u);
+      const dot = ni.dot(u2);
       if (dot <= epsilon)
         return;
     }
-    return [t - epsilon, x, this];
+    return [t - epsilon, x2, this];
   }
   sample() {
     return this.tangents[0].scale(Math.random()).add(this.tangents[1].scale(Math.random())).add(this.positions[0]);
   }
-  isInside(p) {
-    return this.faceNormal.dot(p.sub(this.positions[0])) >= 0;
+  isInside(p2) {
+    return this.faceNormal.dot(p2.sub(this.positions[0])) >= 0;
+  }
+  serialize() {
+    return {
+      type: Triangle.name,
+      name: this.name,
+      emissive: this.emissive,
+      colors: this.colors.map((x2) => x2.toArray()),
+      positions: this.positions.map((x2) => x2.toArray()),
+      material: { type: this.material.type, args: this.material.args }
+    };
+  }
+  static deserialize(json) {
+    const { type, args } = json.material;
+    return Triangle.builder().name(json.name).positions(...json.positions.map((x2) => Vec.fromArray(x2))).colors(...json.colors.map((x2) => new Color(x2))).emissive(json.emissive).material(MATERIALS[type](...args)).build();
   }
   static builder() {
     return new TriangleBuilder;
@@ -1481,25 +1661,25 @@ class TriangleBuilder {
     return this;
   }
   positions(v1, v2, v3) {
-    if ([v1, v2, v3].some((x) => !x))
+    if ([v1, v2, v3].some((x2) => !x2))
       return this;
     this._positions = [v1, v2, v3];
     return this;
   }
   colors(c1, c2, c3) {
-    if ([c1, c2, c3].some((x) => !x))
+    if ([c1, c2, c3].some((x2) => !x2))
       return this;
     this._colors = [c1, c2, c3];
     return this;
   }
   texCoords(t1, t2, t3) {
-    if ([t1, t2, t3].some((x) => !x))
+    if ([t1, t2, t3].some((x2) => !x2))
       return this;
     this._texCoords = [t1, t2, t3];
     return this;
   }
   normals(n1, n2, n3) {
-    if ([n1, n2, n3].some((x) => !x))
+    if ([n1, n2, n3].some((x2) => !x2))
       return this;
     this._normals = [n1, n2, n3];
     return this;
@@ -1526,7 +1706,7 @@ class TriangleBuilder {
       emissive: this._emissive,
       material: this._material
     };
-    if (Object.values(attrs).some((x) => x === undefined)) {
+    if (Object.values(attrs).some((x2) => x2 === undefined)) {
       throw new Error("Triangle is incomplete");
     }
     return new Triangle({ ...attrs, texture: this._texture });
@@ -1535,7 +1715,7 @@ class TriangleBuilder {
 
 // src/Camera/common.js
 function getDefaultTexColor(texUV) {
-  texUV = texUV.scale(16).map((x) => x % 1);
+  texUV = texUV.scale(16).map((x2) => x2 % 1);
   return texUV.x < 0.5 && texUV.y < 0.5 ? Color.BLACK : texUV.x > 0.5 && texUV.y > 0.5 ? Color.BLACK : Color.PURPLE;
 }
 function getBiLinearTexColor(texUV, texture) {
@@ -1549,10 +1729,10 @@ function getBiLinearTexColor(texUV, texture) {
   const color1 = texture.getPxl(...texInt1.toArray());
   const color2 = texture.getPxl(...texInt2.toArray());
   const color3 = texture.getPxl(...texInt3.toArray());
-  const x = texInt.sub(texInt0);
-  const bottomX = lerp(color0, color1)(x.x);
-  const topX = lerp(color2, color3)(x.x);
-  return lerp(bottomX, topX)(x.y);
+  const x2 = texInt.sub(texInt0);
+  const bottomX = lerp(color0, color1)(x2.x);
+  const topX = lerp(color2, color3)(x2.x);
+  return lerp(bottomX, topX)(x2.y);
 }
 function getTexColor(texUV, texture) {
   return texture.getPxl(texUV.x * texture.width, texUV.y * texture.height);
@@ -1568,31 +1748,31 @@ function rayTrace(scene, params = {}) {
   bilinearTexture = bilinearTexture ?? false;
   const invSamples = bounces / samplesPerPxl;
   const lambda = (ray) => {
-    let c = Color.BLACK;
+    let c2 = Color.BLACK;
     for (let i2 = 0;i2 < samplesPerPxl; i2++) {
       const epsilon = Vec.RANDOM(3).scale(variance);
-      const epsilonOrto = epsilon.sub(ray.dir.scale(epsilon.dot(ray.dir)));
-      const r = Ray(ray.init, ray.dir.add(epsilonOrto).normalize());
-      c = c.add(trace(r, scene, { bounces, bilinearTexture }));
+      const epsilonOrtho = epsilon.sub(ray.dir.scale(epsilon.dot(ray.dir)));
+      const r = Ray(ray.init, ray.dir.add(epsilonOrtho).normalize());
+      c2 = c2.add(trace(r, scene, { bounces, bilinearTexture }));
     }
-    return c.scale(invSamples).toGamma(gamma);
+    return c2.scale(invSamples).toGamma(gamma);
   };
   return lambda;
 }
-var trace = function(ray, scene, options) {
+function trace(ray, scene, options) {
   const { bounces, bilinearTexture } = options;
   if (bounces < 0)
     return Color.BLACK;
   const hit = scene.interceptWithRay(ray);
   if (!hit)
     return Color.BLACK;
-  const [, p, e] = hit;
+  const [, p2, e] = hit;
   const color = getColorFromElement(e, ray, { bilinearTexture });
   const mat = e.material;
-  let r = mat.scatter(ray, p, e);
+  let r = mat.scatter(ray, p2, e);
   let finalC = trace(r, scene, { bounces: bounces - 1, bilinearTexture });
   return e.emissive ? color.add(color.mul(finalC)) : color.mul(finalC);
-};
+}
 var getColorFromElement = function(e, ray, params) {
   if (Triangle.name === e.constructor.name) {
     return getTriangleColor(e, ray, params);
@@ -1601,7 +1781,7 @@ var getColorFromElement = function(e, ray, params) {
 };
 var getTriangleColor = function(triangle, ray, params) {
   const { tangents, positions, texCoords, texture, colors } = triangle;
-  const haveTextures = texture && texCoords && texCoords.length > 0 && !texCoords.some((x) => x === undefined);
+  const haveTextures = texture && texCoords && texCoords.length > 0 && !texCoords.some((x2) => x2 === undefined);
   const v = ray.init.sub(positions[0]);
   const u1 = tangents[0];
   const u2 = tangents[1];
@@ -1635,47 +1815,53 @@ class Line {
     if (this.boundingBox)
       return this.boundingBox;
     const size = Vec3(this.radius, this.radius, this.radius);
-    this.boundingBox = this.positions.reduce((box, x) => box.add(new Box(x.sub(size), x.add(size))), Box.EMPTY);
+    this.boundingBox = this.positions.reduce((box, x2) => box.add(new Box(x2.sub(size), x2.add(size))), Box.EMPTY);
     return this.boundingBox;
   }
-  distanceToPoint(p) {
-    const l = this.edge;
-    const v = p.sub(this.positions[0]);
-    const h = clamp()(l.dot(v) / l.dot(l));
-    return p.sub(this.positions[0].add(l.scale(h))).length() - this.radius;
+  distanceToPoint(p2) {
+    const l2 = this.edge;
+    const v = p2.sub(this.positions[0]);
+    const h2 = clamp()(l2.dot(v) / l2.dot(l2));
+    return p2.sub(this.positions[0].add(l2.scale(h2))).length() - this.radius;
   }
-  normalToPoint(p) {
+  normalToPoint(p2) {
     const epsilon = 0.001;
-    const f = this.distanceToPoint(p);
-    const sign = Math.sign(f);
-    const grad = Vec3(this.distanceToPoint(p.add(Vec3(epsilon, 0, 0))) - f, this.distanceToPoint(p.add(Vec3(0, epsilon, 0))) - f, this.distanceToPoint(p.add(Vec3(0, 0, epsilon))) - f).normalize();
+    const f2 = this.distanceToPoint(p2);
+    const sign = Math.sign(f2);
+    const grad = Vec3(this.distanceToPoint(p2.add(Vec3(epsilon, 0, 0))) - f2, this.distanceToPoint(p2.add(Vec3(0, epsilon, 0))) - f2, this.distanceToPoint(p2.add(Vec3(0, 0, epsilon))) - f2).normalize();
     return grad.scale(sign);
   }
   interceptWithRay(ray) {
     const maxIte = 100;
     const epsilon = 0.001;
-    let p = ray.init;
-    let t = this.distanceToPoint(p);
+    let p2 = ray.init;
+    let t = this.distanceToPoint(p2);
     let minT = t;
     for (let i2 = 0;i2 < maxIte; i2++) {
-      p = ray.trace(t);
-      const d = this.distanceToPoint(p);
-      t += d;
-      if (d < epsilon) {
-        return [t, p, this];
+      p2 = ray.trace(t);
+      const d2 = this.distanceToPoint(p2);
+      t += d2;
+      if (d2 < epsilon) {
+        return [t, p2, this];
       }
-      if (d > minT) {
+      if (d2 > minT) {
         break;
       }
-      minT = d;
+      minT = d2;
     }
     return;
   }
   sample() {
     return this.edge.scale(Math.random());
   }
-  isInside(p) {
-    return this.distanceToPoint(p) < 0;
+  isInside(p2) {
+    return this.distanceToPoint(p2) < 0;
+  }
+  serialize() {
+  }
+  static deserialize(json) {
+    const { type, args } = json.material;
+    return Line.builder().name(json.name).radius(json.radius).positions(...json.positions.map((x2) => Vec.fromArray(x2))).colors(...json.colors.map((x2) => new Color(x2))).emissive(json.emissive).material(MATERIALS[type](...args)).build();
   }
   static builder() {
     return new LineBuilder;
@@ -1700,25 +1886,25 @@ class LineBuilder {
     return this;
   }
   positions(v1, v2) {
-    if ([v1, v2].some((x) => !x))
+    if ([v1, v2].some((x2) => !x2))
       return this;
     this._positions = [v1, v2];
     return this;
   }
   colors(c1, c2) {
-    if ([c1, c2].some((x) => !x))
+    if ([c1, c2].some((x2) => !x2))
       return this;
     this._colors = [c1, c2];
     return this;
   }
   texCoords(t1, t2) {
-    if ([t1, t2].some((x) => !x))
+    if ([t1, t2].some((x2) => !x2))
       return this;
     this._texCoords = [t1, t2];
     return this;
   }
   normals(n1, n2) {
-    if ([n1, n2].some((x) => !x))
+    if ([n1, n2].some((x2) => !x2))
       return this;
     this._normals = [n1, n2];
     return this;
@@ -1750,7 +1936,7 @@ class LineBuilder {
       emissive: this._emissive,
       material: this._material
     };
-    if (Object.values(attrs).some((x) => x === undefined)) {
+    if (Object.values(attrs).some((x2) => x2 === undefined)) {
       throw new Error("Line is incomplete");
     }
     return new Line({ ...attrs, texture: this._texture });
@@ -1761,13 +1947,13 @@ class LineBuilder {
 var sphereInterception = function(point, ray) {
   const { init, dir } = ray;
   const diff = init.sub(point.position);
-  const b = 2 * dir.dot(diff);
-  const c = diff.squareLength() - point.radius * point.radius;
-  const discriminant = b * b - 4 * c;
+  const b2 = 2 * dir.dot(diff);
+  const c2 = diff.squareLength() - point.radius * point.radius;
+  const discriminant = b2 * b2 - 4 * c2;
   if (discriminant < 0)
     return;
   const sqrt = Math.sqrt(discriminant);
-  const [t1, t2] = [(-b - sqrt) / 2, (-b + sqrt) / 2];
+  const [t1, t2] = [(-b2 - sqrt) / 2, (-b2 + sqrt) / 2];
   const t = Math.min(t1, t2);
   const tM = Math.max(t1, t2);
   if (t1 * t2 < 0)
@@ -1794,11 +1980,11 @@ class Sphere {
     this.boundingBox = new Box(this.position.add(Vec.ONES(n).scale(-this.radius)), this.position.add(Vec.ONES(n).scale(this.radius)));
     return this.boundingBox;
   }
-  distanceToPoint(p) {
-    return this.position.sub(p).length() - this.radius;
+  distanceToPoint(p2) {
+    return this.position.sub(p2).length() - this.radius;
   }
-  normalToPoint(p) {
-    const r = p.sub(this.position);
+  normalToPoint(p2) {
+    const r = p2.sub(this.position);
     const length = r.length();
     return length > this.radius ? r.normalize() : r.scale(-1).normalize();
   }
@@ -1810,8 +1996,23 @@ class Sphere {
   sample() {
     return randomPointInSphere(this.position.dim).scale(this.radius).add(this.position);
   }
-  isInside(p) {
-    return p.sub(this.position).length() < this.radius;
+  isInside(p2) {
+    return p2.sub(this.position).length() < this.radius;
+  }
+  serialize() {
+    return {
+      type: Sphere.name,
+      name: this.name,
+      radius: this.radius,
+      emissive: this.emissive,
+      color: this.color.toArray(),
+      position: this.position.toArray(),
+      material: { type: this.material.type, args: this.material.args }
+    };
+  }
+  static deserialize(json) {
+    const { type, args } = json.material;
+    return Sphere.builder().name(json.name).radius(json.radius).position(Vec.fromArray(json.position)).color(new Color(json.color)).emissive(json.emissive).material(MATERIALS[type](...args)).build();
   }
   static builder() {
     return new SphereBuilder;
@@ -1887,7 +2088,7 @@ class SphereBuilder {
       emissive: this._emissive,
       material: this._material
     };
-    if (Object.values(attrs).some((x) => x === undefined)) {
+    if (Object.values(attrs).some((x2) => x2 === undefined)) {
       throw new Error("Sphere is incomplete");
     }
     return new Sphere({ ...attrs, texture: this._texture });
@@ -1918,7 +2119,7 @@ var heapifyBuilder = function(data, comparator) {
 };
 
 class PQueue {
-  constructor(comparator = (a, b) => a - b) {
+  constructor(comparator = (a2, b2) => a2 - b2) {
     this.data = [];
     this.comparator = comparator;
   }
@@ -1990,23 +2191,23 @@ class NaiveScene {
     this.id2ElemMap = {};
     this.sceneElements = [];
   }
-  distanceToPoint(p) {
+  distanceToPoint(p2) {
     const elements = this.sceneElements;
     let distance = Number.MAX_VALUE;
     for (let i2 = 0;i2 < elements.length; i2++) {
-      distance = Math.min(distance, elements[i2].distanceToPoint(p));
+      distance = Math.min(distance, elements[i2].distanceToPoint(p2));
     }
     return distance;
   }
-  normalToPoint(p) {
+  normalToPoint(p2) {
     const epsilon = 0.001;
-    const n = p.dim;
+    const n = p2.dim;
     const grad = [];
-    const d = this.distanceToPoint(p);
+    const d2 = this.distanceToPoint(p2);
     for (let i2 = 0;i2 < n; i2++) {
-      grad.push(this.distanceToPoint(p.add(Vec.e(n)(i2).scale(epsilon))) - d);
+      grad.push(this.distanceToPoint(p2.add(Vec.e(n)(i2).scale(epsilon))) - d2);
     }
-    return Vec.fromArray(grad).scale(Math.sign(d)).normalize();
+    return Vec.fromArray(grad).scale(Math.sign(d2)).normalize();
   }
   interceptWithRay(ray) {
     const elements = this.sceneElements;
@@ -2024,8 +2225,8 @@ class NaiveScene {
   distanceOnRay(ray) {
     return this.distanceToPoint(ray.init);
   }
-  getElementNear(p) {
-    return this.sceneElements[argmin(this.sceneElements, (x) => x.distanceToPoint(p))];
+  getElementNear(p2) {
+    return this.sceneElements[argmin(this.sceneElements, (x2) => x2.distanceToPoint(p2))];
   }
   getElementInBox(box) {
     throw Error("Not Implemented");
@@ -2042,12 +2243,12 @@ class NaiveScene {
 function drawBox({ box, color, debugScene }) {
   if (box.isEmpty)
     return debugScene;
-  const vertices = UNIT_BOX_VERTEX3.map((v) => v.mul(box.diagonal).add(box.min));
-  const lines = UNIT_BOX_FACES3.map(([i2, j]) => Line.builder().name(`debug_box_${i2}_${j}`).positions(vertices[i2], vertices[j]).colors(color, color).build());
+  const vertices = UNIT_BOX_VERTEX.map((v) => v.mul(box.diagonal).add(box.min));
+  const lines = UNIT_BOX_LINES.map(([i2, j2]) => Line.builder().name(`debug_box_${i2}_${j2}`).positions(vertices[i2], vertices[j2]).colors(color, color).build());
   debugScene.addList(lines);
   return debugScene;
 }
-var UNIT_BOX_VERTEX3 = [
+var UNIT_BOX_VERTEX = [
   Vec3(),
   Vec3(1, 0, 0),
   Vec3(1, 1, 0),
@@ -2057,7 +2258,7 @@ var UNIT_BOX_VERTEX3 = [
   Vec3(1, 1, 1),
   Vec3(0, 1, 1)
 ];
-var UNIT_BOX_FACES3 = [
+var UNIT_BOX_LINES = [
   [0, 1],
   [1, 2],
   [2, 3],
@@ -2080,24 +2281,24 @@ var clusterLeafs = function(box, leafs, it = 10) {
     for (let i3 = 0;i3 < clusters.length; i3++) {
       clusterIndexes[i3] = [];
     }
-    for (let j = 0;j < leafs.length; j++) {
-      const leafPosition = leafs[j].box.center;
-      const kIndex = argmin(clusters, (c) => c.sub(leafPosition).squareLength());
-      clusterIndexes[kIndex].push(j);
+    for (let j2 = 0;j2 < leafs.length; j2++) {
+      const leafPosition = leafs[j2].box.center;
+      const kIndex = argmin(clusters, (c2) => c2.sub(leafPosition).squareLength());
+      clusterIndexes[kIndex].push(j2);
     }
-    for (let j = 0;j < clusters.length; j++) {
-      if (clusterIndexes[j].length === 0) {
-        const dataPoints = clusterIndexes[(j + 1) % clusters.length];
-        clusterIndexes[j].push(dataPoints[Math.floor(Math.random() * dataPoints.length)]);
+    for (let j2 = 0;j2 < clusters.length; j2++) {
+      if (clusterIndexes[j2].length === 0) {
+        const dataPoints = clusterIndexes[(j2 + 1) % clusters.length];
+        clusterIndexes[j2].push(dataPoints[Math.floor(Math.random() * dataPoints.length)]);
       }
     }
-    for (let j = 0;j < clusters.length; j++) {
+    for (let j2 = 0;j2 < clusters.length; j2++) {
       let acc = Vec.ZERO(box.dim);
-      for (let k = 0;k < clusterIndexes[j].length; k++) {
-        const leafPosition = leafs[clusterIndexes[j][k]].box.center;
+      for (let k2 = 0;k2 < clusterIndexes[j2].length; k2++) {
+        const leafPosition = leafs[clusterIndexes[j2][k2]].box.center;
         acc = acc.add(leafPosition);
       }
-      clusters[j] = acc.scale(1 / clusterIndexes[j].length);
+      clusters[j2] = acc.scale(1 / clusterIndexes[j2].length);
     }
   }
   return clusterIndexes.map((indxs) => indxs.map((indx3) => leafs[indx3]));
@@ -2114,21 +2315,21 @@ var leafsInterceptWithRay = function(leafs, ray) {
   }
   return closest;
 };
-var distanceFromLeafs = function(leafs, p, combineLeafs) {
-  const elements = leafs.map((x) => x.element);
+var distanceFromLeafs = function(leafs, p2, combineLeafs) {
+  const elements = leafs.map((x2) => x2.element);
   let distance = Number.MAX_VALUE;
   for (let i2 = 0;i2 < elements.length; i2++) {
-    distance = combineLeafs(distance, elements[i2].distanceToPoint(p));
+    distance = combineLeafs(distance, elements[i2].distanceToPoint(p2));
   }
   return distance;
 };
 
 class KScene {
-  constructor(k = 10) {
-    this.k = k;
+  constructor(k2 = 10) {
+    this.k = k2;
     this.id2ElemMap = {};
     this.sceneElements = [];
-    this.boundingBoxScene = new Node(k);
+    this.boundingBoxScene = new Node(k2);
   }
   add(...elements) {
     return this.addList(elements);
@@ -2151,29 +2352,29 @@ class KScene {
     this.sceneElements = [];
     this.boundingBoxScene = new Node(this.k);
   }
-  distanceToPoint(p) {
+  distanceToPoint(p2) {
     if (this.boundingBoxScene.leafs.length > 0) {
       let distance = Number.MAX_VALUE;
       const leafs = this.boundingBoxScene.leafs;
       for (let i2 = 0;i2 < leafs.length; i2++) {
-        distance = Math.min(distance, leafs[i2].element.distanceToPoint(p));
+        distance = Math.min(distance, leafs[i2].element.distanceToPoint(p2));
       }
       return distance;
     }
-    return this.getElementNear(p).distanceToPoint(p);
+    return this.getElementNear(p2).distanceToPoint(p2);
   }
-  normalToPoint(p) {
+  normalToPoint(p2) {
     let normal = Vec3();
     let weight = 0;
     const ones = Vec3(1, 1, 1).scale(1 / (2 * this.k));
-    const box = new Box(p.sub(ones), p.add(ones));
+    const box = new Box(p2.sub(ones), p2.add(ones));
     const elements = this.getElementInBox(box);
     const size = elements.length;
     for (let i2 = 0;i2 < size; i2++) {
-      const n = elements[i2].normalToPoint(p);
-      const d = 1 / elements[i2].distanceToPoint(p);
-      normal = normal.add(n.scale(d));
-      weight += d;
+      const n = elements[i2].normalToPoint(p2);
+      const d2 = 1 / elements[i2].distanceToPoint(p2);
+      normal = normal.add(n.scale(d2));
+      weight += d2;
     }
     return normal.length() > 0 ? normal.scale(1 / weight).normalize() : normal;
   }
@@ -2183,24 +2384,24 @@ class KScene {
   distanceOnRay(ray, combineLeafs = Math.min) {
     return this.boundingBoxScene.distanceOnRay(ray, combineLeafs);
   }
-  getElementNear(p) {
+  getElementNear(p2) {
     if (this.boundingBoxScene.leafs.length > 0) {
-      return this.boundingBoxScene.getElementNear(p);
+      return this.boundingBoxScene.getElementNear(p2);
     }
-    const initial = [this.boundingBoxScene.left, this.boundingBoxScene.right].map((x) => ({ node: x, distance: x.box.distanceToPoint(p) }));
-    let stack = PQueue.ofArray(initial, (a, b) => a.distance - b.distance);
+    const initial = [this.boundingBoxScene.left, this.boundingBoxScene.right].map((x2) => ({ node: x2, distance: x2.box.distanceToPoint(p2) }));
+    let stack = PQueue.ofArray(initial, (a2, b2) => a2.distance - b2.distance);
     while (stack.length) {
       const { leaf, node } = stack.pop();
       if (leaf)
-        return leaf.getElemNear(p);
+        return leaf.getElemNear(p2);
       if (node.leafs.length > 0) {
         for (let i2 = 0;i2 < node.leafs.length; i2++) {
           const leaf2 = node.leafs[i2];
-          stack.push({ leaf: leaf2, distance: leaf2.box.distanceToPoint(p) });
+          stack.push({ leaf: leaf2, distance: leaf2.box.distanceToPoint(p2) });
         }
       }
-      const children = [node.left, node.right].filter((x) => x).map((x) => ({ node: x, distance: x.box.distanceToPoint(p) }));
-      children.forEach((c) => stack.push(c));
+      const children = [node.left, node.right].filter((x2) => x2).map((x2) => ({ node: x2, distance: x2.box.distanceToPoint(p2) }));
+      children.forEach((c2) => stack.push(c2));
     }
   }
   getElementInBox(box) {
@@ -2209,21 +2410,21 @@ class KScene {
   rebuild() {
     if (!this.sceneElements.length)
       return this;
-    let groupsQueue = PQueue.ofArray(clusterLeafs(this.boundingBoxScene.box, this.sceneElements.map((x) => new Leaf(x))), (a, b) => b.length - a.length);
-    while (groupsQueue.data.map((x) => x.length > this.k).some((x) => x)) {
+    let groupsQueue = PQueue.ofArray(clusterLeafs(this.boundingBoxScene.box, this.sceneElements.map((x2) => new Leaf(x2))), (a2, b2) => b2.length - a2.length);
+    while (groupsQueue.data.map((x2) => x2.length > this.k).some((x2) => x2)) {
       if (groupsQueue.peek().length > this.k) {
         const groupOfLeafs = groupsQueue.pop();
-        const box = groupOfLeafs.reduce((e, x) => e.add(x.box), new Box);
+        const box = groupOfLeafs.reduce((e, x2) => e.add(x2.box), new Box);
         const [left, right] = clusterLeafs(box, groupOfLeafs);
         groupsQueue.push(left);
         groupsQueue.push(right);
       }
     }
-    let nodeOrLeafStack = groupsQueue.data.map((group) => group.reduce((e, x) => e.add(x.element), new Node(this.k)));
+    let nodeOrLeafStack = groupsQueue.data.map((group) => group.reduce((e, x2) => e.add(x2.element), new Node(this.k)));
     while (nodeOrLeafStack.length > 1) {
       const nodeOrLeaf = nodeOrLeafStack[0];
       nodeOrLeafStack = nodeOrLeafStack.slice(1);
-      const minIndex = argmin(nodeOrLeafStack, (x) => nodeOrLeaf.box.distanceToBox(x.box));
+      const minIndex = argmin(nodeOrLeafStack, (x2) => nodeOrLeaf.box.distanceToBox(x2.box));
       const newNode = nodeOrLeaf.join(nodeOrLeafStack[minIndex]);
       nodeOrLeafStack.splice(minIndex, 1);
       nodeOrLeafStack.push(newNode);
@@ -2260,8 +2461,8 @@ class KScene {
 class Node {
   isLeaf = false;
   numberOfLeafs = 0;
-  constructor(k) {
-    this.k = k;
+  constructor(k2) {
+    this.k = k2;
     this.box = Box.EMPTY;
     this.leafs = [];
     this.parent = undefined;
@@ -2275,14 +2476,14 @@ class Node {
       if (this.leafs.length <= this.k)
         return this;
       const [lefts, rights] = clusterLeafs(this.box, this.leafs);
-      this.left = new Node(this.k).addList(lefts.map((x) => x.element));
-      this.right = new Node(this.k).addList(rights.map((x) => x.element));
+      this.left = new Node(this.k).addList(lefts.map((x2) => x2.element));
+      this.right = new Node(this.k).addList(rights.map((x2) => x2.element));
       this.left.parent = this;
       this.right.parent = this;
       this.leafs = [];
     } else {
       const children = [this.left, this.right];
-      const index = argmin(children, (x) => element.getBoundingBox().distanceToBox(x.box));
+      const index = argmin(children, (x2) => element.getBoundingBox().distanceToBox(x2.box));
       children[index].add(element);
     }
     return this;
@@ -2310,8 +2511,8 @@ class Node {
     const secondHit = second.interceptWithRay(ray);
     return secondHit && secondHit[0] < (firstHit?.[0] ?? Number.MAX_VALUE) ? secondHit : firstHit;
   }
-  distanceToPoint(p) {
-    return this.getElementNear(p).distanceToPoint(p);
+  distanceToPoint(p2) {
+    return this.getElementNear(p2).distanceToPoint(p2);
   }
   distanceOnRay(ray, combineLeafs) {
     if (this.leafs.length > 0) {
@@ -2331,30 +2532,30 @@ class Node {
     const secondHit = second.distanceOnRay(ray, combineLeafs);
     return secondHit <= firstHit ? secondHit : firstHit;
   }
-  getElementNear(p) {
+  getElementNear(p2) {
     if (this.leafs.length > 0) {
-      const minIndex = argmin(this.leafs, (x) => x.distanceToPoint(p));
+      const minIndex = argmin(this.leafs, (x2) => x2.distanceToPoint(p2));
       return this.leafs[minIndex].element;
     }
     const children = [this.left, this.right];
-    const index = argmin(children, (n) => n.box.center.sub(p).length());
-    return children[index].getElementNear(p);
+    const index = argmin(children, (n) => n.box.center.sub(p2).length());
+    return children[index].getElementNear(p2);
   }
-  getNodeNear(p) {
+  getNodeNear(p2) {
     if (this.leafs.length > 0) {
       return this;
     }
     const children = [this.left, this.right];
-    const index = argmin(children, (n) => n.box.center.sub(p).length());
-    return children[index].getNodeNear(p);
+    const index = argmin(children, (n) => n.box.center.sub(p2).length());
+    return children[index].getNodeNear(p2);
   }
-  getLeafsNear(p) {
+  getLeafsNear(p2) {
     if (this.leafs.length > 0) {
       return this.leafs;
     }
     const children = [this.left, this.right];
-    const index = argmin(children, (n) => n.box.center.sub(p).length());
-    return children[index].getLeafsNear(p);
+    const index = argmin(children, (n) => n.box.center.sub(p2).length());
+    return children[index].getLeafsNear(p2);
   }
   getElemInBox(box) {
     let elements = [];
@@ -2394,8 +2595,8 @@ class Leaf {
     this.element = element;
     this.box = element.getBoundingBox();
   }
-  distanceToPoint(x) {
-    return this.element.distanceToPoint(x);
+  distanceToPoint(x2) {
+    return this.element.distanceToPoint(x2);
   }
   getLeafs() {
     return [this];
@@ -2429,19 +2630,19 @@ var triangulate = function(polygon) {
   }
 };
 var parseFace = function(vertexInfo) {
-  const facesInfo = vertexInfo.flatMap((x) => x.split("/")).map((x) => Number.parseFloat(x));
+  const facesInfo = vertexInfo.flatMap((x2) => x2.split("/")).map((x2) => Number.parseFloat(x2));
   const length = facesInfo.length;
   const lengthDiv3 = Math.floor(length / 3);
-  const group = groupBy(facesInfo, (_, i2) => i2 % lengthDiv3);
+  const group = groupBy(facesInfo, (_2, i2) => i2 % lengthDiv3);
   const face = { vertices: [], textures: [], normals: [] };
-  Object.keys(group).map((k) => {
-    k = Number.parseInt(k);
-    const indices = group[k].map((x) => x - 1);
-    if (k === 0)
+  Object.keys(group).map((k2) => {
+    k2 = Number.parseInt(k2);
+    const indices = group[k2].map((x2) => x2 - 1);
+    if (k2 === 0)
       face.vertices = indices;
-    if (k === 1)
+    if (k2 === 1)
       face.textures = indices;
-    if (k === 2)
+    if (k2 === 2)
       face.normals = indices;
   });
   return face;
@@ -2478,10 +2679,10 @@ class Mesh {
     this.boundingBox = this.meshScene.boundingBoxScene.box;
     return this.boundingBox;
   }
-  distanceToPoint(x) {
-    return this.meshScene.distanceToPoint(x);
+  distanceToPoint(x2) {
+    return this.meshScene.distanceToPoint(x2);
   }
-  normalToPoint(x) {
+  normalToPoint(x2) {
     throw Error("No implementation");
   }
   interceptWithRay(ray) {
@@ -2551,10 +2752,10 @@ class Mesh {
       const texCoordIndexes = this.faces[i2].textures;
       const normalIndexes = this.faces[i2].normals;
       const verticesIndexes = this.faces[i2].vertices;
-      for (let j = 0;j < 3; j++) {
-        const pointName = `${this.name}_${verticesIndexes[j]}`;
+      for (let j2 = 0;j2 < 3; j2++) {
+        const pointName = `${this.name}_${verticesIndexes[j2]}`;
         if (!(pointName in points)) {
-          points[pointName] = Sphere_default.builder().name(pointName).radius(radius).texture(this.texture).color(this.colors[verticesIndexes[j]]).normal(this.normals[normalIndexes[j]]).position(this.vertices[verticesIndexes[j]]).texCoord(this.textureCoords[texCoordIndexes[j]]).build();
+          points[pointName] = Sphere_default.builder().name(pointName).radius(radius).texture(this.texture).color(this.colors[verticesIndexes[j2]]).normal(this.normals[normalIndexes[j2]]).position(this.vertices[verticesIndexes[j2]]).texCoord(this.textureCoords[texCoordIndexes[j2]]).build();
         }
       }
     }
@@ -2564,9 +2765,9 @@ class Mesh {
     const lines = {};
     for (let i2 = 0;i2 < this.faces.length; i2++) {
       const indices = this.faces[i2].vertices;
-      for (let j = 0;j < indices.length; j++) {
-        const vi = indices[j];
-        const vj = indices[(j + 1) % indices.length];
+      for (let j2 = 0;j2 < indices.length; j2++) {
+        const vi = indices[j2];
+        const vj = indices[(j2 + 1) % indices.length];
         const edge_id = [vi, vj].sort().join("_");
         const edge_name = `${this.name}_${edge_id}`;
         lines[edge_id] = Line.builder().name(edge_name).radius(radius).positions(this.vertices[vi], this.vertices[vj]).colors(this.colors[vi], this.colors[vj]).build();
@@ -2583,9 +2784,13 @@ class Mesh {
       const material = this.materials?.[i2] ?? Diffuse();
       const edge_id = verticesIndexes.join("_");
       const edge_name = `${this.name}_${edge_id}`;
-      triangles.push(Triangle.builder().name(edge_name).texture(this.texture).colors(...verticesIndexes.map((j) => this.colors[j])).normals(...normalIndexes.map((j) => this.normals[j])).positions(...verticesIndexes.map((j) => this.vertices[j])).texCoords(...texCoordIndexes.map((j) => this.textureCoords[j])).material(material).build());
+      triangles.push(Triangle.builder().name(edge_name).texture(this.texture).colors(...verticesIndexes.map((j2) => this.colors[j2])).normals(...normalIndexes.map((j2) => this.normals[j2])).positions(...verticesIndexes.map((j2) => this.vertices[j2])).texCoords(...texCoordIndexes.map((j2) => this.textureCoords[j2])).material(material).build());
     }
     return triangles;
+  }
+  serialize() {
+  }
+  deserialize(jsonMesh) {
   }
   static readObj(objFile, name = `Mesh_${MESH_COUNTER++}`) {
     const vertices = [];
@@ -2595,22 +2800,22 @@ class Mesh {
     const lines = objFile.split(/\n|\r/);
     for (let i2 = 0;i2 < lines.length; i2++) {
       const line = lines[i2];
-      const spaces = line.split(" ").filter((x) => x !== "");
+      const spaces = line.split(" ").filter((x2) => x2 !== "");
       const type = spaces[0];
       if (!type)
         continue;
       if (type === "v") {
-        const v = spaces.slice(1, 4).map((x) => Number.parseFloat(x));
+        const v = spaces.slice(1, 4).map((x2) => Number.parseFloat(x2));
         vertices.push(Vec3(...v));
         continue;
       }
       if (type === "vn") {
-        const v = spaces.slice(1, 4).map((x) => Number.parseFloat(x));
+        const v = spaces.slice(1, 4).map((x2) => Number.parseFloat(x2));
         normals.push(Vec3(...v));
         continue;
       }
       if (type === "vt") {
-        const v = spaces.slice(1, 3).map((x) => Number.parseFloat(x));
+        const v = spaces.slice(1, 3).map((x2) => Number.parseFloat(x2));
         textureCoords.push(Vec2(...v));
         continue;
       }
@@ -2625,12 +2830,12 @@ class Mesh {
   }
   static ofBox(box, name) {
     const vertices = UNIT_BOX_VERTEX.map((v) => v.mul(box.diagonal).add(box.min));
-    return new Mesh({ name, vertices, faces: UNIT_BOX_FACES.map((indx3) => ({ vertices: indx3 })) });
+    return new Mesh({ name, vertices, faces: UNIT_BOX_LINES.map((indx3) => ({ vertices: indx3 })) });
   }
 }
 
 // src/Camera/raster.js
-function rasterGraphics(scene, camera, params) {
+function rasterGraphics(scene, camera, params = {}) {
   const type2render = {
     [Sphere_default.name]: rasterSphere,
     [Line.name]: rasterLine,
@@ -2652,15 +2857,15 @@ function rasterGraphics(scene, camera, params) {
   return (canvas) => {
     params.clearScreen && canvas.fill(params.backgroundColor);
     const w = canvas.width;
-    const h = canvas.height;
-    const zBuffer = new Float64Array(w * h).fill(Number.MAX_VALUE);
+    const h2 = canvas.height;
+    const zBuffer = new Float64Array(w * h2).fill(Number.MAX_VALUE);
     const elements = scene.getElements();
     for (let i2 = 0;i2 < elements.length; i2++) {
       const elem = elements[i2];
       if (elem.constructor.name in type2render) {
         type2render[elem.constructor.name]({
           w,
-          h,
+          h: h2,
           elem,
           canvas,
           params,
@@ -2673,7 +2878,7 @@ function rasterGraphics(scene, camera, params) {
     return canvas;
   };
 }
-var rasterSphere = function({ canvas, camera, elem, w, h, zBuffer }) {
+var rasterSphere = function({ canvas, camera, elem, w, h: h2, zBuffer }) {
   const point = elem;
   const { distanceToPlane } = camera;
   const { texCoord, texture, position, color, radius } = point;
@@ -2682,11 +2887,11 @@ var rasterSphere = function({ canvas, camera, elem, w, h, zBuffer }) {
   if (z < distanceToPlane)
     return;
   const projectedPoint = pointInCamCoord.scale(distanceToPlane / z);
-  let x = w / 2 + projectedPoint.x * w;
-  let y = h / 2 + projectedPoint.y * h;
-  x = Math.floor(x);
-  y = Math.floor(y);
-  if (x < 0 || x >= w || y < 0 || y >= h)
+  let x2 = w / 2 + projectedPoint.x * w;
+  let y2 = h2 / 2 + projectedPoint.y * h2;
+  x2 = Math.floor(x2);
+  y2 = Math.floor(y2);
+  if (x2 < 0 || x2 >= w || y2 < 0 || y2 >= h2)
     return;
   const intRadius = Math.ceil(radius * (distanceToPlane / z) * w);
   const intRadiusSquare = intRadius * intRadius;
@@ -2695,15 +2900,15 @@ var rasterSphere = function({ canvas, camera, elem, w, h, zBuffer }) {
     const texColor = getTexColor(texCoord, texture);
     finalColor = finalColor.add(texColor).scale(1 / 2);
   }
-  for (let k = -intRadius;k < intRadius; k++) {
-    for (let l = -intRadius;l < intRadius; l++) {
-      const xl = Math.max(0, Math.min(w - 1, x + k));
-      const yl = Math.floor(y + l);
-      const squareLength = k * k + l * l;
+  for (let k2 = -intRadius;k2 < intRadius; k2++) {
+    for (let l2 = -intRadius;l2 < intRadius; l2++) {
+      const xl = Math.max(0, Math.min(w - 1, x2 + k2));
+      const yl = Math.floor(y2 + l2);
+      const squareLength = k2 * k2 + l2 * l2;
       if (squareLength > intRadiusSquare)
         continue;
-      const [i2, j] = canvas.canvas2grid(xl, yl);
-      const zBufferIndex = Math.floor(w * i2 + j);
+      const [i2, j2] = canvas.canvas2grid(xl, yl);
+      const zBufferIndex = Math.floor(w * i2 + j2);
       if (z < zBuffer[zBufferIndex]) {
         zBuffer[zBufferIndex] = z;
         canvas.setPxl(xl, yl, finalColor);
@@ -2711,15 +2916,15 @@ var rasterSphere = function({ canvas, camera, elem, w, h, zBuffer }) {
     }
   }
 };
-var rasterLine = function({ canvas, camera, elem, w, h, zBuffer, params }) {
+var rasterLine = function({ canvas, camera, elem, w, h: h2, zBuffer, params }) {
   const lineElem = elem;
   const { colors, positions } = lineElem;
   const { distanceToPlane } = camera;
-  const pointsInCamCoord = positions.map((p) => camera.toCameraCoord(p));
+  const pointsInCamCoord = positions.map((p2) => camera.toCameraCoord(p2));
   let inFrustum = [];
   let outFrustum = [];
-  pointsInCamCoord.forEach((p, i2) => {
-    const zCoord = p.z;
+  pointsInCamCoord.forEach((p2, i2) => {
+    const zCoord = p2.z;
     if (zCoord < distanceToPlane) {
       outFrustum.push(i2);
     } else {
@@ -2734,35 +2939,35 @@ var rasterLine = function({ canvas, camera, elem, w, h, zBuffer, params }) {
     const inter = lineCameraPlaneIntersection(pointsInCamCoord[outVertex], pointsInCamCoord[inVertex], camera);
     pointsInCamCoord[outVertex] = inter;
   }
-  const projectedPoints = pointsInCamCoord.map((p) => p.scale(distanceToPlane / p.z));
-  const intPoints = projectedPoints.map((p) => {
-    let x = w / 2 + p.x * w;
-    let y = h / 2 + p.y * h;
-    x = Math.floor(x);
-    y = Math.floor(y);
-    return Vec2(x, y);
+  const projectedPoints = pointsInCamCoord.map((p2) => p2.scale(distanceToPlane / p2.z));
+  const intPoints = projectedPoints.map((p2) => {
+    let x2 = w / 2 + p2.x * w;
+    let y2 = h2 / 2 + p2.y * h2;
+    x2 = Math.floor(x2);
+    y2 = Math.floor(y2);
+    return Vec2(x2, y2);
   });
   const v = intPoints[1].sub(intPoints[0]);
   const vSquared = v.squareLength();
-  const shader = (x, y) => {
-    const p = Vec2(x, y).sub(intPoints[0]);
-    const t = v.dot(p) / vSquared;
+  const shader = (x2, y2) => {
+    const p2 = Vec2(x2, y2).sub(intPoints[0]);
+    const t = v.dot(p2) / vSquared;
     const z = pointsInCamCoord[0].z * (1 - t) + pointsInCamCoord[1].z * t;
-    const c = colors[0].scale(1 - t).add(colors[1].scale(t));
-    const [i2, j] = canvas.canvas2grid(x, y);
-    const zBufferIndex = Math.floor(w * i2 + j);
+    const c2 = colors[0].scale(1 - t).add(colors[1].scale(t));
+    const [i2, j2] = canvas.canvas2grid(x2, y2);
+    const zBufferIndex = Math.floor(w * i2 + j2);
     if (z < zBuffer[zBufferIndex]) {
       zBuffer[zBufferIndex] = z;
-      return c;
+      return c2;
     }
   };
   canvas.drawLine(intPoints[0], intPoints[1], shader);
 };
-var rasterTriangle = function({ canvas, camera, elem, w, h, zBuffer, params }) {
+var rasterTriangle = function({ canvas, camera, elem, w, h: h2, zBuffer, params }) {
   const triangleElem = elem;
   const { distanceToPlane } = camera;
   const { colors, positions, texCoords, texture } = triangleElem;
-  const pointsInCamCoord = positions.map((p) => camera.toCameraCoord(p));
+  const pointsInCamCoord = positions.map((p2) => camera.toCameraCoord(p2));
   if (params.cullBackFaces) {
     const du = pointsInCamCoord[1].sub(pointsInCamCoord[0]);
     const dv = pointsInCamCoord[2].sub(pointsInCamCoord[0]);
@@ -2772,8 +2977,8 @@ var rasterTriangle = function({ canvas, camera, elem, w, h, zBuffer, params }) {
   }
   let inFrustum = [];
   let outFrustum = [];
-  pointsInCamCoord.forEach((p, i2) => {
-    const zCoord = p.z;
+  pointsInCamCoord.forEach((p2, i2) => {
+    const zCoord = p2.z;
     if (zCoord < distanceToPlane) {
       outFrustum.push(i2);
     } else {
@@ -2782,57 +2987,57 @@ var rasterTriangle = function({ canvas, camera, elem, w, h, zBuffer, params }) {
   });
   if (params.clipCameraPlane && outFrustum.length >= 1)
     return;
-  const projectedPoints = pointsInCamCoord.map((p) => p.scale(distanceToPlane / p.z));
-  const intPoints = projectedPoints.map((p) => {
-    let x = w / 2 + p.x * w;
-    let y = h / 2 + p.y * h;
-    x = Math.floor(x);
-    y = Math.floor(y);
-    return Vec2(x, y);
+  const projectedPoints = pointsInCamCoord.map((p2) => p2.scale(distanceToPlane / p2.z));
+  const intPoints = projectedPoints.map((p2) => {
+    let x2 = w / 2 + p2.x * w;
+    let y2 = h2 / 2 + p2.y * h2;
+    x2 = Math.floor(x2);
+    y2 = Math.floor(y2);
+    return Vec2(x2, y2);
   });
-  const u = intPoints[1].sub(intPoints[0]);
+  const u2 = intPoints[1].sub(intPoints[0]);
   const v = intPoints[2].sub(intPoints[0]);
-  const det = u.x * v.y - u.y * v.x;
+  const det = u2.x * v.y - u2.y * v.x;
   if (det === 0)
     return;
   const invDet = 1 / det;
   const c1 = colors[0].toArray();
   const c2 = colors[1].toArray();
   const c3 = colors[2].toArray();
-  const haveTextures = texCoords && texCoords.length > 0 && !texCoords.some((x) => x === undefined);
-  const shader = (x, y) => {
-    const p = Vec2(x, y).sub(intPoints[0]);
-    const alpha = -(v.x * p.y - v.y * p.x) * invDet;
-    const beta = (u.x * p.y - u.y * p.x) * invDet;
+  const haveTextures = texCoords && texCoords.length > 0 && !texCoords.some((x2) => x2 === undefined);
+  const shader = (x2, y2) => {
+    const p2 = Vec2(x2, y2).sub(intPoints[0]);
+    const alpha = -(v.x * p2.y - v.y * p2.x) * invDet;
+    const beta = (u2.x * p2.y - u2.y * p2.x) * invDet;
     const gamma = 1 - alpha - beta;
     const z = pointsInCamCoord[0].z * gamma + pointsInCamCoord[1].z * alpha + pointsInCamCoord[2].z * beta;
-    let c = Color.ofRGB(c1[0] * gamma + c2[0] * alpha + c3[0] * beta, c1[1] * gamma + c2[1] * alpha + c3[1] * beta, c1[2] * gamma + c2[2] * alpha + c3[2] * beta, c1[3] * gamma + c2[3] * alpha + c3[3] * beta);
+    let c4 = Color.ofRGB(c1[0] * gamma + c2[0] * alpha + c3[0] * beta, c1[1] * gamma + c2[1] * alpha + c3[1] * beta, c1[2] * gamma + c2[2] * alpha + c3[2] * beta, c1[3] * gamma + c2[3] * alpha + c3[3] * beta);
     if (haveTextures) {
       const texUV = texCoords[0].scale(gamma).add(texCoords[1].scale(alpha)).add(texCoords[2].scale(beta));
-      const texColor = texture ? params.bilinearTexture ? getBiLinearTexColor(texUV, texture) : getTexColor(texUV, texture) : getDefaultTexColor(texUV);
-      c = texColor;
+      const texColor = texture ? params.bilinearTexture ? getBiLinearTexColor(texUV, texture) : getTexColor(texUV, texture) : c4 ? c4 : getDefaultTexColor(texUV);
+      c4 = texColor;
     }
-    const [i2, j] = canvas.canvas2grid(x, y);
-    const zBufferIndex = Math.floor(w * i2 + j);
+    const [i2, j2] = canvas.canvas2grid(x2, y2);
+    const zBufferIndex = Math.floor(w * i2 + j2);
     if (z < zBuffer[zBufferIndex]) {
       zBuffer[zBufferIndex] = z;
-      return Math.random() < c.alpha ? c : undefined;
+      return Math.random() < c4.alpha ? c4 : undefined;
     }
   };
   canvas.drawTriangle(intPoints[0], intPoints[1], intPoints[2], shader);
 };
-var rasterMesh = function({ canvas, camera, elem, w, h, zBuffer, params }) {
+var rasterMesh = function({ canvas, camera, elem, w, h: h2, zBuffer, params }) {
   const triangles = elem._meshScene.getElements();
   for (let i2 = 0;i2 < triangles.length; i2++) {
-    rasterTriangle({ canvas, camera, elem: triangles[i2], w, h, zBuffer, params });
+    rasterTriangle({ canvas, camera, elem: triangles[i2], w, h: h2, zBuffer, params });
   }
 };
 var lineCameraPlaneIntersection = function(vertexOut, vertexIn, camera) {
   const { distanceToPlane } = camera;
   const v = vertexIn.sub(vertexOut);
   const alpha = (distanceToPlane - vertexOut.z) / v.z;
-  const p = vertexOut.add(v.scale(alpha));
-  return p;
+  const p2 = vertexOut.add(v.scale(alpha));
+  return p2;
 };
 
 // src/Camera/sdf.js
@@ -2840,21 +3045,21 @@ function sdfTrace(scene) {
   return (ray) => {
     const maxIte = 100;
     const epsilon = 0.000001;
-    let p = ray.init;
+    let p2 = ray.init;
     let t = scene.distanceOnRay(ray);
     let minT = t;
     for (let i2 = 0;i2 < maxIte; i2++) {
-      p = ray.trace(t);
-      const d = scene.distanceOnRay(Ray(p, ray.dir));
-      t += d;
-      if (d < epsilon) {
-        const normal = scene.normalToPoint(p);
+      p2 = ray.trace(t);
+      const d2 = scene.distanceOnRay(Ray(p2, ray.dir));
+      t += d2;
+      if (d2 < epsilon) {
+        const normal = scene.normalToPoint(p2);
         return Color.ofRGB((normal.x + 1) / 2, (normal.y + 1) / 2, (normal.z + 1) / 2);
       }
-      if (d > 2 * minT) {
+      if (d2 > 2 * minT) {
         return Color.ofRGB(0, 0, i2 / maxIte);
       }
-      minT = d;
+      minT = d2;
     }
     return Color.BLACK;
   };
@@ -2873,6 +3078,57 @@ function normalTrace(scene) {
   };
 }
 
+// src/Camera/parallel.js
+function parallelWorkers(camera, scene, params, canvas) {
+  if (WORKERS.length === 0)
+    WORKERS = [...Array(NUMBER_OF_CORES)].map(() => new Worker(`/src/Camera/RayTraceWorker.js`, { type: "module" }));
+  const w = canvas.width;
+  const h2 = canvas.height;
+  const readMessage = (resolve) => (message) => {
+    const { image, startRow, endRow } = message;
+    let index = 0;
+    const startIndex = CHANNELS * w * startRow;
+    const endIndex = CHANNELS * w * endRow;
+    for (let i2 = startIndex;i2 < endIndex; i2 += CHANNELS) {
+      canvas.setPxlData(i2, [image[index++], image[index++], image[index++]]);
+      index++;
+    }
+    resolve();
+  };
+  return WORKERS.map((worker, k2) => {
+    return new Promise((resolve) => {
+      if (IS_NODE) {
+        worker.removeAllListeners("message");
+        worker.on("message", readMessage(resolve));
+      } else {
+        worker.onmessage = (message2) => {
+          const { image, startRow, endRow } = message2;
+          let index = 0;
+          const startIndex = CHANNELS * w * startRow;
+          const endIndex = CHANNELS * w * endRow;
+          for (let i2 = startIndex;i2 < endIndex; i2 += CHANNELS) {
+            canvas.setPxlData(i2, [image[index++], image[index++], image[index++]]);
+            index++;
+          }
+          resolve();
+        };
+      }
+      const ratio = Math.floor(h2 / WORKERS.length);
+      const message = {
+        width: w,
+        height: h2,
+        params,
+        startRow: k2 * ratio,
+        endRow: Math.min(h2 - 1, (k2 + 1) * ratio),
+        camera: camera.serialize(),
+        scene: scene ? scene.serialize() : []
+      };
+      worker.postMessage(message);
+    });
+  });
+}
+var WORKERS = [];
+
 // src/Camera/Camera.js
 class Camera {
   constructor(props = {}) {
@@ -2883,13 +3139,6 @@ class Camera {
     this._orientCoords = Vec2();
     this._orbitCoords = Vec3(this.position.length(), 0, 0);
     this.orient();
-  }
-  clone() {
-    return new Camera({
-      lookAt: this.lookAt,
-      position: this.position,
-      distanceToPlane: this.distanceToPlane
-    });
   }
   look(at, up = Vec3(0, 0, 1)) {
     this.lookAt = at;
@@ -2939,26 +3188,26 @@ class Camera {
       to: (canvas) => {
         const w = canvas.width;
         const invW = 1 / w;
-        const h = canvas.height;
-        const invH = 1 / h;
-        const ans = canvas.map((x, y) => {
+        const h2 = canvas.height;
+        const invH = 1 / h2;
+        const ans = canvas.map((x2, y2) => {
           const dirInLocal = [
-            x * invW - 0.5,
-            y * invH - 0.5,
+            x2 * invW - 0.5,
+            y2 * invH - 0.5,
             this.distanceToPlane
           ];
           const dir = Vec3(this.basis[0].x * dirInLocal[0] + this.basis[1].x * dirInLocal[1] + this.basis[2].x * dirInLocal[2], this.basis[0].y * dirInLocal[0] + this.basis[1].y * dirInLocal[1] + this.basis[2].y * dirInLocal[2], this.basis[0].z * dirInLocal[0] + this.basis[1].z * dirInLocal[1] + this.basis[2].z * dirInLocal[2]).normalize();
-          const c = lambdaWithRays(Ray(this.position, dir));
-          return c;
+          const c2 = lambdaWithRays(Ray(this.position, dir));
+          return c2;
         });
         return ans;
       }
     };
   }
-  sceneShot(scene, params = {}) {
+  sceneShot(scene, params) {
     return this.rayMap(rayTrace(scene, params));
   }
-  reverseShot(scene, params = {}) {
+  reverseShot(scene, params) {
     return {
       to: rasterGraphics(scene, this, params)
     };
@@ -2969,32 +3218,57 @@ class Camera {
   normalShot(scene) {
     return this.rayMap(normalTrace(scene));
   }
-  toCameraCoord(x) {
-    let pointInCamCoord = x.sub(this.position);
+  parallelShot(scene, params) {
+    return {
+      to: (canvas) => {
+        return Promise.all(parallelWorkers(this, scene, params, canvas)).then(() => canvas.paint());
+      }
+    };
+  }
+  toCameraCoord(x2) {
+    let pointInCamCoord = x2.sub(this.position);
     pointInCamCoord = Vec3(this.basis[0].dot(pointInCamCoord), this.basis[1].dot(pointInCamCoord), this.basis[2].dot(pointInCamCoord));
     return pointInCamCoord;
   }
   toWorldCoord(camVec) {
-    let x = Vec3();
+    let x2 = Vec3();
     for (let i2 = 0;i2 < this.basis.length; i2++) {
-      x = x.add(this.basis[i2].scale(camVec.get(i2)));
+      x2 = x2.add(this.basis[i2].scale(camVec.get(i2)));
     }
-    return x;
+    return x2;
   }
-  getRaysFromCanvas(canvas) {
-    const w = canvas.width;
+  rayFromImage(width, height) {
+    const w = width;
     const invW = 1 / w;
-    const h = canvas.height;
-    const invH = 1 / h;
-    return (x, y) => {
+    const h2 = height;
+    const invH = 1 / h2;
+    return (x2, y2) => {
       const dirInLocal = [
-        x * invW - 0.5,
-        y * invH - 0.5,
+        x2 * invW - 0.5,
+        y2 * invH - 0.5,
         this.distanceToPlane
       ];
       const dir = Vec3(this.basis[0].x * dirInLocal[0] + this.basis[1].x * dirInLocal[1] + this.basis[2].x * dirInLocal[2], this.basis[0].y * dirInLocal[0] + this.basis[1].y * dirInLocal[1] + this.basis[2].y * dirInLocal[2], this.basis[0].z * dirInLocal[0] + this.basis[1].z * dirInLocal[1] + this.basis[2].z * dirInLocal[2]).normalize();
       return Ray(this.position, dir);
     };
+  }
+  serialize() {
+    return {
+      lookAt: this.lookAt.toArray(),
+      distanceToPlane: this.distanceToPlane,
+      position: this.position.toArray(),
+      orientCoords: this._orientCoords.toArray(),
+      orbitCoords: this._orbitCoords.toArray()
+    };
+  }
+  static deserialize(json) {
+    return new Camera({
+      lookAt: Vec.fromArray(json.lookAt),
+      distanceToPlane: json.distanceToPlane,
+      position: Vec.fromArray(json.position),
+      orientCoords: Vec.fromArray(json.orientCoords),
+      orbitCoords: Vec.fromArray(json.orbitCoords)
+    });
   }
 }
 
@@ -3006,24 +3280,24 @@ var clusterLeafs2 = function(box, leafs, it = 10) {
     for (let i3 = 0;i3 < clusters.length; i3++) {
       clusterIndexes[i3] = [];
     }
-    for (let j = 0;j < leafs.length; j++) {
-      const leafPosition = leafs[j].box.center;
-      const kIndex = argmin(clusters, (c) => c.sub(leafPosition).squareLength());
-      clusterIndexes[kIndex].push(j);
+    for (let j2 = 0;j2 < leafs.length; j2++) {
+      const leafPosition = leafs[j2].box.center;
+      const kIndex = argmin(clusters, (c2) => c2.sub(leafPosition).squareLength());
+      clusterIndexes[kIndex].push(j2);
     }
-    for (let j = 0;j < clusters.length; j++) {
-      if (clusterIndexes[j].length === 0) {
-        const dataPoints = clusterIndexes[(j + 1) % clusters.length];
-        clusterIndexes[j].push(dataPoints[Math.floor(Math.random() * dataPoints.length)]);
+    for (let j2 = 0;j2 < clusters.length; j2++) {
+      if (clusterIndexes[j2].length === 0) {
+        const dataPoints = clusterIndexes[(j2 + 1) % clusters.length];
+        clusterIndexes[j2].push(dataPoints[Math.floor(Math.random() * dataPoints.length)]);
       }
     }
-    for (let j = 0;j < clusters.length; j++) {
+    for (let j2 = 0;j2 < clusters.length; j2++) {
       let acc = Vec.ZERO(box.dim);
-      for (let k = 0;k < clusterIndexes[j].length; k++) {
-        const leafPosition = leafs[clusterIndexes[j][k]].box.center;
+      for (let k2 = 0;k2 < clusterIndexes[j2].length; k2++) {
+        const leafPosition = leafs[clusterIndexes[j2][k2]].box.center;
         acc = acc.add(leafPosition);
       }
-      clusters[j] = acc.scale(1 / clusterIndexes[j].length);
+      clusters[j2] = acc.scale(1 / clusterIndexes[j2].length);
     }
   }
   return clusterIndexes.map((indxs) => indxs.map((indx3) => leafs[indx3]));
@@ -3040,21 +3314,21 @@ var leafsInterceptWithRay2 = function(leafs, ray) {
   }
   return closest;
 };
-var distanceFromLeafs2 = function(leafs, p, combineLeafs) {
-  const elements = leafs.map((x) => x.element);
+var distanceFromLeafs2 = function(leafs, p2, combineLeafs) {
+  const elements = leafs.map((x2) => x2.element);
   let distance = Number.MAX_VALUE;
   for (let i2 = 0;i2 < elements.length; i2++) {
-    distance = combineLeafs(distance, elements[i2].distanceToPoint(p));
+    distance = combineLeafs(distance, elements[i2].distanceToPoint(p2));
   }
   return distance;
 };
 
 class Scene {
-  constructor(k = 10) {
-    this.k = k;
+  constructor(k2 = 10) {
+    this.k = k2;
     this.id2ElemMap = {};
     this.sceneElements = [];
-    this.boundingBoxScene = new Node2(k);
+    this.boundingBoxScene = new Node2(k2);
   }
   add(...elements) {
     return this.addList(elements);
@@ -3077,29 +3351,29 @@ class Scene {
     this.sceneElements = [];
     this.boundingBoxScene = new Node2(this.k);
   }
-  distanceToPoint(p) {
+  distanceToPoint(p2) {
     if (this.boundingBoxScene.leafs.length > 0) {
       let distance = Number.MAX_VALUE;
       const leafs = this.boundingBoxScene.leafs;
       for (let i2 = 0;i2 < leafs.length; i2++) {
-        distance = Math.min(distance, leafs[i2].element.distanceToPoint(p));
+        distance = Math.min(distance, leafs[i2].element.distanceToPoint(p2));
       }
       return distance;
     }
-    return this.getElementNear(p).distanceToPoint(p);
+    return this.getElementNear(p2).distanceToPoint(p2);
   }
-  normalToPoint(p) {
+  normalToPoint(p2) {
     let normal2 = Vec3();
     let weight = 0;
     const ones = Vec3(1, 1, 1).scale(1 / (2 * this.k));
-    const box = new Box(p.sub(ones), p.add(ones));
+    const box = new Box(p2.sub(ones), p2.add(ones));
     const elements = this.getElementInBox(box);
     const size = elements.length;
     for (let i2 = 0;i2 < size; i2++) {
-      const n = elements[i2].normalToPoint(p);
-      const d = 1 / elements[i2].distanceToPoint(p);
-      normal2 = normal2.add(n.scale(d));
-      weight += d;
+      const n = elements[i2].normalToPoint(p2);
+      const d2 = 1 / elements[i2].distanceToPoint(p2);
+      normal2 = normal2.add(n.scale(d2));
+      weight += d2;
     }
     return normal2.length() > 0 ? normal2.scale(1 / weight).normalize() : normal2;
   }
@@ -3109,24 +3383,24 @@ class Scene {
   distanceOnRay(ray, combineLeafs = Math.min) {
     return this.boundingBoxScene.distanceOnRay(ray, combineLeafs);
   }
-  getElementNear(p) {
+  getElementNear(p2) {
     if (this.boundingBoxScene.leafs.length > 0) {
-      return this.boundingBoxScene.getElementNear(p);
+      return this.boundingBoxScene.getElementNear(p2);
     }
-    const initial = [this.boundingBoxScene.left, this.boundingBoxScene.right].map((x) => ({ node: x, distance: x.box.distanceToPoint(p) }));
-    let stack = PQueue.ofArray(initial, (a, b) => a.distance - b.distance);
+    const initial = [this.boundingBoxScene.left, this.boundingBoxScene.right].map((x2) => ({ node: x2, distance: x2.box.distanceToPoint(p2) }));
+    let stack = PQueue.ofArray(initial, (a2, b2) => a2.distance - b2.distance);
     while (stack.length) {
       const { leaf, node } = stack.pop();
       if (leaf)
-        return leaf.getElemNear(p);
+        return leaf.getElemNear(p2);
       if (node.leafs.length > 0) {
         for (let i2 = 0;i2 < node.leafs.length; i2++) {
           const leaf2 = node.leafs[i2];
-          stack.push({ leaf: leaf2, distance: leaf2.box.distanceToPoint(p) });
+          stack.push({ leaf: leaf2, distance: leaf2.box.distanceToPoint(p2) });
         }
       }
-      const children = [node.left, node.right].filter((x) => x).map((x) => ({ node: x, distance: x.box.distanceToPoint(p) }));
-      children.forEach((c) => stack.push(c));
+      const children = [node.left, node.right].filter((x2) => x2).map((x2) => ({ node: x2, distance: x2.box.distanceToPoint(p2) }));
+      children.forEach((c2) => stack.push(c2));
     }
   }
   getElementInBox(box) {
@@ -3135,21 +3409,21 @@ class Scene {
   rebuild() {
     if (!this.sceneElements.length)
       return this;
-    let groupsQueue = PQueue.ofArray(clusterLeafs2(this.boundingBoxScene.box, this.sceneElements.map((x) => new Leaf2(x))), (a, b) => b.length - a.length);
-    while (groupsQueue.data.map((x) => x.length > this.k).some((x) => x)) {
+    let groupsQueue = PQueue.ofArray(clusterLeafs2(this.boundingBoxScene.box, this.sceneElements.map((x2) => new Leaf2(x2))), (a2, b2) => b2.length - a2.length);
+    while (groupsQueue.data.map((x2) => x2.length > this.k).some((x2) => x2)) {
       if (groupsQueue.peek().length > this.k) {
         const groupOfLeafs = groupsQueue.pop();
-        const box = groupOfLeafs.reduce((e, x) => e.add(x.box), new Box);
+        const box = groupOfLeafs.reduce((e, x2) => e.add(x2.box), new Box);
         const [left, right] = clusterLeafs2(box, groupOfLeafs);
         groupsQueue.push(left);
         groupsQueue.push(right);
       }
     }
-    let nodeOrLeafStack = groupsQueue.data.map((group) => group.reduce((e, x) => e.add(x.element), new Node2(this.k)));
+    let nodeOrLeafStack = groupsQueue.data.map((group) => group.reduce((e, x2) => e.add(x2.element), new Node2(this.k)));
     while (nodeOrLeafStack.length > 1) {
       const nodeOrLeaf = nodeOrLeafStack[0];
       nodeOrLeafStack = nodeOrLeafStack.slice(1);
-      const minIndex = argmin(nodeOrLeafStack, (x) => nodeOrLeaf.box.distanceToBox(x.box));
+      const minIndex = argmin(nodeOrLeafStack, (x2) => nodeOrLeaf.box.distanceToBox(x2.box));
       const newNode = nodeOrLeaf.join(nodeOrLeafStack[minIndex]);
       nodeOrLeafStack.splice(minIndex, 1);
       nodeOrLeafStack.push(newNode);
@@ -3181,13 +3455,24 @@ class Scene {
       return camera.reverseShot(debugScene, { clearScreen: false }).to(canvas);
     return canvas;
   }
+  serialize() {
+    return this.getElements().map((x2) => x2.serialize());
+  }
+  static deserialize(serializedScene) {
+    return new Scene().addList(serializedScene.map((x2) => {
+      if (x2.type === Triangle.name)
+        return Triangle.deserialize(x2);
+      if (x2.type === Sphere_default.name)
+        return Sphere_default.deserialize(x2);
+    }));
+  }
 }
 
 class Node2 {
   isLeaf = false;
   numberOfLeafs = 0;
-  constructor(k) {
-    this.k = k;
+  constructor(k2) {
+    this.k = k2;
     this.box = Box.EMPTY;
     this.leafs = [];
     this.parent = undefined;
@@ -3201,14 +3486,14 @@ class Node2 {
       if (this.leafs.length <= this.k)
         return this;
       const [lefts, rights] = clusterLeafs2(this.box, this.leafs);
-      this.left = new Node2(this.k).addList(lefts.map((x) => x.element));
-      this.right = new Node2(this.k).addList(rights.map((x) => x.element));
+      this.left = new Node2(this.k).addList(lefts.map((x2) => x2.element));
+      this.right = new Node2(this.k).addList(rights.map((x2) => x2.element));
       this.left.parent = this;
       this.right.parent = this;
       this.leafs = [];
     } else {
       const children = [this.left, this.right];
-      const index = argmin(children, (x) => element.getBoundingBox().distanceToBox(x.box));
+      const index = argmin(children, (x2) => element.getBoundingBox().distanceToBox(x2.box));
       children[index].add(element);
     }
     return this;
@@ -3236,8 +3521,8 @@ class Node2 {
     const secondHit = second.interceptWithRay(ray);
     return secondHit && secondHit[0] < (firstHit?.[0] ?? Number.MAX_VALUE) ? secondHit : firstHit;
   }
-  distanceToPoint(p) {
-    return this.getElementNear(p).distanceToPoint(p);
+  distanceToPoint(p2) {
+    return this.getElementNear(p2).distanceToPoint(p2);
   }
   distanceOnRay(ray, combineLeafs) {
     if (this.leafs.length > 0) {
@@ -3257,30 +3542,30 @@ class Node2 {
     const secondHit = second.distanceOnRay(ray, combineLeafs);
     return secondHit <= firstHit ? secondHit : firstHit;
   }
-  getElementNear(p) {
+  getElementNear(p2) {
     if (this.leafs.length > 0) {
-      const minIndex = argmin(this.leafs, (x) => x.distanceToPoint(p));
+      const minIndex = argmin(this.leafs, (x2) => x2.distanceToPoint(p2));
       return this.leafs[minIndex].element;
     }
     const children = [this.left, this.right];
-    const index = argmin(children, (n) => n.box.center.sub(p).length());
-    return children[index].getElementNear(p);
+    const index = argmin(children, (n) => n.box.center.sub(p2).length());
+    return children[index].getElementNear(p2);
   }
-  getNodeNear(p) {
+  getNodeNear(p2) {
     if (this.leafs.length > 0) {
       return this;
     }
     const children = [this.left, this.right];
-    const index = argmin(children, (n) => n.box.center.sub(p).length());
-    return children[index].getNodeNear(p);
+    const index = argmin(children, (n) => n.box.center.sub(p2).length());
+    return children[index].getNodeNear(p2);
   }
-  getLeafsNear(p) {
+  getLeafsNear(p2) {
     if (this.leafs.length > 0) {
       return this.leafs;
     }
     const children = [this.left, this.right];
-    const index = argmin(children, (n) => n.box.center.sub(p).length());
-    return children[index].getLeafsNear(p);
+    const index = argmin(children, (n) => n.box.center.sub(p2).length());
+    return children[index].getLeafsNear(p2);
   }
   getElemInBox(box) {
     let elements = [];
@@ -3320,8 +3605,8 @@ class Leaf2 {
     this.element = element;
     this.box = element.getBoundingBox();
   }
-  distanceToPoint(x) {
-    return this.element.distanceToPoint(x);
+  distanceToPoint(x2) {
+    return this.element.distanceToPoint(x2);
   }
   getLeafs() {
     return [this];
@@ -3370,18 +3655,18 @@ class BScene {
     this.sceneElements = [];
     this.boundingBoxScene = new Node3;
   }
-  distanceToPoint(p) {
-    return this.getElementNear(p).distanceToPoint(p);
+  distanceToPoint(p2) {
+    return this.getElementNear(p2).distanceToPoint(p2);
   }
-  normalToPoint(p) {
+  normalToPoint(p2) {
     const epsilon = 0.000000001;
-    const n = p.dim;
+    const n = p2.dim;
     const grad = [];
-    const d = this.distanceToPoint(p);
+    const d2 = this.distanceToPoint(p2);
     for (let i2 = 0;i2 < n; i2++) {
-      grad.push(this.distanceToPoint(p.add(Vec.e(n)(i2).scale(epsilon))) - d);
+      grad.push(this.distanceToPoint(p2.add(Vec.e(n)(i2).scale(epsilon))) - d2);
     }
-    return Vec.fromArray(grad).scale(Math.sign(d)).normalize();
+    return Vec.fromArray(grad).scale(Math.sign(d2)).normalize();
   }
   interceptWithRay(ray, level) {
     if (!this.boundingBoxScene)
@@ -3391,29 +3676,29 @@ class BScene {
   distanceOnRay(ray) {
     return this.boundingBoxScene.distanceOnRay(ray);
   }
-  getElementNear(p) {
+  getElementNear(p2) {
     if (this.boundingBoxScene.numberOfLeafs < 2) {
-      return this.boundingBoxScene.getElementNear(p);
+      return this.boundingBoxScene.getElementNear(p2);
     }
-    const initial = [this.boundingBoxScene.left, this.boundingBoxScene.right].map((x) => ({ node: x, distance: x.box.distanceToPoint(p) }));
-    let stack = PQueue.ofArray(initial, (a, b) => a.distance - b.distance);
+    const initial = [this.boundingBoxScene.left, this.boundingBoxScene.right].map((x2) => ({ node: x2, distance: x2.box.distanceToPoint(p2) }));
+    let stack = PQueue.ofArray(initial, (a2, b2) => a2.distance - b2.distance);
     while (stack.length) {
       const { node } = stack.pop();
       if (node.isLeaf)
-        return node.getElemNear(p);
-      const children = [node.left, node.right].filter((x) => x).map((x) => ({ node: x, distance: x.box.distanceToPoint(p) }));
-      children.forEach((c) => stack.push(c));
+        return node.getElemNear(p2);
+      const children = [node.left, node.right].filter((x2) => x2).map((x2) => ({ node: x2, distance: x2.box.distanceToPoint(p2) }));
+      children.forEach((c2) => stack.push(c2));
     }
   }
   getElementInBox(box) {
     return this.boundingBoxScene.getElemInBox(box);
   }
   rebuild() {
-    let nodeOrLeafStack = this.sceneElements.map((x) => new Leaf3(x));
+    let nodeOrLeafStack = this.sceneElements.map((x2) => new Leaf3(x2));
     while (nodeOrLeafStack.length > 1) {
       const nodeOrLeaf = nodeOrLeafStack[0];
       nodeOrLeafStack = nodeOrLeafStack.slice(1);
-      const minIndex = argmin(nodeOrLeafStack, (x) => nodeOrLeaf.box.distanceToBox(x.box));
+      const minIndex = argmin(nodeOrLeafStack, (x2) => nodeOrLeaf.box.distanceToBox(x2.box));
       const newNode = nodeOrLeaf.join(nodeOrLeafStack[minIndex]);
       nodeOrLeafStack.splice(minIndex, 1);
       nodeOrLeafStack.push(newNode);
@@ -3486,10 +3771,10 @@ class Node3 {
     const secondHit = second.interceptWithRay(ray);
     return secondHit && secondHit[0] < (firstHit?.[0] ?? Number.MAX_VALUE) ? secondHit : firstHit;
   }
-  distanceToPoint(p) {
-    const children = [this.left, this.right].filter((x) => x);
-    const index = argmin(children, (n) => n.box.center.sub(p).length());
-    return children[index].distanceToPoint(p);
+  distanceToPoint(p2) {
+    const children = [this.left, this.right].filter((x2) => x2);
+    const index = argmin(children, (n) => n.box.center.sub(p2).length());
+    return children[index].distanceToPoint(p2);
   }
   distanceOnRay(ray) {
     if (this.left.isLeaf && this.right.isLeaf) {
@@ -3509,14 +3794,14 @@ class Node3 {
     const secondHit = second.distanceOnRay(ray, secondT);
     return secondHit <= firstHit ? secondHit : firstHit;
   }
-  getElementNear(p) {
-    const children = [this.left, this.right].filter((x) => x);
-    const index = argmin(children, (n) => n.box.center.sub(p).length());
-    return children[index].getElemNear(p);
+  getElementNear(p2) {
+    const children = [this.left, this.right].filter((x2) => x2);
+    const index = argmin(children, (n) => n.box.center.sub(p2).length());
+    return children[index].getElemNear(p2);
   }
   getElemInBox(box) {
     let elements = [];
-    const children = [this.left, this.right].filter((x) => x);
+    const children = [this.left, this.right].filter((x2) => x2);
     for (let i2 = 0;i2 < children.length; i2++) {
       if (!children[i2].box.sub(box).isEmpty) {
         elements = elements.concat(children[i2].getElemIn(box));
@@ -3597,8 +3882,8 @@ class Leaf3 {
     this.box = element.getBoundingBox();
     this.numberOfLeafs = 1;
   }
-  distanceToPoint(x) {
-    return this.element.distanceToPoint(x);
+  distanceToPoint(x2) {
+    return this.element.distanceToPoint(x2);
   }
   getLeafs() {
     return [this];
@@ -3632,10 +3917,10 @@ class VoxelScene {
     this.gridMap = {};
     this.gridSpace = gridSpace;
   }
-  hash(p) {
-    const integerCoord = p.map((z) => Math.floor(z / this.gridSpace));
-    const h = integerCoord.x * 92837111 ^ integerCoord.y * 689287499 ^ integerCoord.z * 283923481;
-    return Math.abs(h);
+  hash(p2) {
+    const integerCoord = p2.map((z) => Math.floor(z / this.gridSpace));
+    const h2 = integerCoord.x * 92837111 ^ integerCoord.y * 689287499 ^ integerCoord.z * 283923481;
+    return Math.abs(h2);
   }
   add(...elements) {
     return this.addList(elements);
@@ -3651,18 +3936,18 @@ class VoxelScene {
       this.sceneElements.push(elem);
       const pivot = elem.getBoundingBox().min;
       const points = [];
-      for (let k = 0;k < n; k++) {
-        const i0 = Math.floor(k / powers[0]);
-        const i1 = Math.floor(k / powers[1]) % powers[1];
-        const i22 = k % powers[1];
+      for (let k2 = 0;k2 < n; k2++) {
+        const i0 = Math.floor(k2 / powers[0]);
+        const i1 = Math.floor(k2 / powers[1]) % powers[1];
+        const i22 = k2 % powers[1];
         points.push(pivot.add(Vec3(i0, i1, i22).mul(elem.getBoundingBox().diagonal)));
       }
-      points.forEach((p) => {
-        const h = this.hash(p);
-        if (!(h in this.gridMap)) {
-          this.gridMap[h] = {};
+      points.forEach((p2) => {
+        const h2 = this.hash(p2);
+        if (!(h2 in this.gridMap)) {
+          this.gridMap[h2] = {};
         }
-        let cell = this.gridMap[h];
+        let cell = this.gridMap[h2];
         cell[elem.name] = elem;
       });
     }
@@ -3676,15 +3961,15 @@ class VoxelScene {
     this.sceneElements = [];
     this.gridMap = {};
   }
-  distanceToPoint(p) {
+  distanceToPoint(p2) {
     return Number.MAX_VALUE;
   }
-  normalToPoint(p) {
+  normalToPoint(p2) {
     let normal2 = Vec3();
-    const elements = Object.values(this.gridMap[this.hash(p)] || {});
+    const elements = Object.values(this.gridMap[this.hash(p2)] || {});
     for (let i2 = 0;i2 < elements.length; i2++) {
       const elem = elements[i2];
-      normal2 = normal2.add(elem.normalToPoint(p));
+      normal2 = normal2.add(elem.normalToPoint(p2));
     }
     return normal2.length() > 0 ? normal2.normalize() : normal2;
   }
@@ -3694,8 +3979,8 @@ class VoxelScene {
     let t = 0;
     let elements = [];
     for (let n = 0;n < maxIte; n++) {
-      let p = ray.trace(t);
-      const newElements = Object.values(this.gridMap[this.hash(p)] || {});
+      let p2 = ray.trace(t);
+      const newElements = Object.values(this.gridMap[this.hash(p2)] || {});
       if (newElements?.length) {
         elements = elements.concat(newElements);
       }
@@ -3720,8 +4005,8 @@ class VoxelScene {
     let t = 0;
     let elements = [];
     for (let n = 0;n < maxIte; n++) {
-      let p = ray.trace(t);
-      const newElements = Object.values(this.gridMap[this.hash(p)] || {});
+      let p2 = ray.trace(t);
+      const newElements = Object.values(this.gridMap[this.hash(p2)] || {});
       if (newElements?.length) {
         elements = elements.concat(newElements);
         break;
@@ -3737,16 +4022,16 @@ class VoxelScene {
     }
     return Number.MAX_VALUE;
   }
-  getElementNear(p) {
+  getElementNear(p2) {
     throw Error("Not implemented");
   }
   getElementInBox(box) {
-    const size = box.diagonal.fold((e, x) => e * x, 1);
+    const size = box.diagonal.fold((e, x2) => e * x2, 1);
     const samples = Math.floor(size / this.gridSpace);
     let elements = [];
     for (let i2 = 0;i2 < samples; i2++) {
-      const p = box.sample();
-      elements = elements.concat(Object.values(this.gridMap[this.hash(p)] || {}));
+      const p2 = box.sample();
+      elements = elements.concat(Object.values(this.gridMap[this.hash(p2)] || {}));
     }
     return elements;
   }
@@ -3756,8 +4041,8 @@ class VoxelScene {
   debug(props) {
     const { camera, canvas } = props;
     const debugScene = new NaiveScene;
-    Object.keys(this.gridMap).forEach((k) => {
-      const elemsMap = this.gridMap[k] || {};
+    Object.keys(this.gridMap).forEach((k2) => {
+      const elemsMap = this.gridMap[k2] || {};
       Object.values(elemsMap).forEach((e) => {
         const pivot = e.getBoundingBox().center.map((z) => Math.floor(z / this.gridSpace)).scale(this.gridSpace);
         drawBox({
@@ -3780,24 +4065,24 @@ var clusterLeafs3 = function(box, leafs, it = 10) {
     for (let i3 = 0;i3 < clusters.length; i3++) {
       clusterIndexes[i3] = [];
     }
-    for (let j = 0;j < leafs.length; j++) {
-      const leafPosition = leafs[j].box.center;
-      const kIndex = argmin(clusters, (c) => c.sub(leafPosition).squareLength());
-      clusterIndexes[kIndex].push(j);
+    for (let j2 = 0;j2 < leafs.length; j2++) {
+      const leafPosition = leafs[j2].box.center;
+      const kIndex = argmin(clusters, (c2) => c2.sub(leafPosition).squareLength());
+      clusterIndexes[kIndex].push(j2);
     }
-    for (let j = 0;j < clusters.length; j++) {
-      if (clusterIndexes[j].length === 0) {
-        const dataPoints = clusterIndexes[(j + 1) % clusters.length];
-        clusterIndexes[j].push(dataPoints[Math.floor(Math.random() * dataPoints.length)]);
+    for (let j2 = 0;j2 < clusters.length; j2++) {
+      if (clusterIndexes[j2].length === 0) {
+        const dataPoints = clusterIndexes[(j2 + 1) % clusters.length];
+        clusterIndexes[j2].push(dataPoints[Math.floor(Math.random() * dataPoints.length)]);
       }
     }
-    for (let j = 0;j < clusters.length; j++) {
+    for (let j2 = 0;j2 < clusters.length; j2++) {
       let acc = Vec.ZERO(box.dim);
-      for (let k = 0;k < clusterIndexes[j].length; k++) {
-        const leafPosition = leafs[clusterIndexes[j][k]].box.center;
+      for (let k2 = 0;k2 < clusterIndexes[j2].length; k2++) {
+        const leafPosition = leafs[clusterIndexes[j2][k2]].box.center;
         acc = acc.add(leafPosition);
       }
-      clusters[j] = acc.scale(1 / clusterIndexes[j].length);
+      clusters[j2] = acc.scale(1 / clusterIndexes[j2].length);
     }
   }
   return [...clusterIndexes].map((indxs) => indxs.map((indx3) => leafs[indx3]));
@@ -3822,35 +4107,34 @@ var leafsinterceptWithRay = function(leafs, ray) {
 var rayCache = (gridSize = 0.01, dirGrid = 0.01) => {
   const cache = {};
   cache.table = {};
-  function hash(p) {
-    const integerCoord = p.map((z) => Math.floor(z / gridSize));
-    const h = integerCoord.x * 92837111 ^ integerCoord.y * 689287499 ^ integerCoord.z * 283923481;
-    return Math.abs(h);
+  function hash(p2) {
+    const integerCoord = p2.map((z) => Math.floor(z / gridSize));
+    const h2 = integerCoord.x * 92837111 ^ integerCoord.y * 689287499 ^ integerCoord.z * 283923481;
+    return Math.abs(h2);
   }
-  function dirHash(d) {
-    const sphericalCoords = Vec2(Math.atan2(d.y, d.x), Math.asin(d.z));
-    const integerCoord = sphericalCoords.map((z) => Math.floor(z / dirGrid));
-    const h = integerCoord.x * 92837111 ^ integerCoord.y * 689287499;
-    return Math.abs(h);
+  function dirHash(d2) {
+    const integerCoord = d2.map((z) => Math.floor(z / dirGrid));
+    const h2 = integerCoord.x * 92837111 ^ integerCoord.y * 689287499 ^ integerCoord.z * 283923481;
+    return Math.abs(h2);
   }
   cache.put = (ray, value) => {
     const { init, dir } = ray;
-    let h = hash(init);
-    if (!(h in cache.table)) {
-      cache.table[h] = {};
+    let h2 = hash(init);
+    if (!(h2 in cache.table)) {
+      cache.table[h2] = {};
     }
-    const dirCache = cache.table[h];
-    h = dirHash(dir);
-    dirCache[h] = value;
+    const dirCache = cache.table[h2];
+    h2 = dirHash(dir);
+    dirCache[h2] = value;
     return cache;
   };
   cache.get = (ray) => {
     const { init, dir } = ray;
-    let h = hash(init);
-    const dirCache = cache.table[h];
+    let h2 = hash(init);
+    const dirCache = cache.table[h2];
     if (dirCache) {
-      h = dirHash(dir);
-      return dirCache[h];
+      h2 = dirHash(dir);
+      return dirCache[h2];
     }
     return;
   };
@@ -3859,11 +4143,11 @@ var rayCache = (gridSize = 0.01, dirGrid = 0.01) => {
 var RAY_CACHE = rayCache();
 
 class RandomScene {
-  constructor(k = 10) {
-    this.k = k;
+  constructor(k2 = 10) {
+    this.k = k2;
     this.id2ElemMap = {};
     this.sceneElements = [];
-    this.boundingBoxScene = new Node4(k);
+    this.boundingBoxScene = new Node4(k2);
   }
   add(...elements) {
     return this.addList(elements);
@@ -3889,8 +4173,8 @@ class RandomScene {
   getElementInBox(box) {
     return this.boundingBoxScene.getElemIn(box);
   }
-  getElementNear(p) {
-    return this.boundingBoxScene.getElemNear(p);
+  getElementNear(p2) {
+    return this.boundingBoxScene.getElemNear(p2);
   }
   interceptWithRay(ray, level) {
     const nodeCache = RAY_CACHE.get(ray);
@@ -3899,26 +4183,26 @@ class RandomScene {
     }
     return this.boundingBoxScene.interceptWithRay(ray, level);
   }
-  distanceToPoint(p) {
+  distanceToPoint(p2) {
     if (this.boundingBoxScene.leafs.length > 0) {
       let distance = Number.MAX_VALUE;
       const leafs = this.boundingBoxScene.leafs;
       for (let i2 = 0;i2 < leafs.length; i2++) {
-        distance = Math.min(distance, leafs[i2].element.distanceToPoint(p));
+        distance = Math.min(distance, leafs[i2].element.distanceToPoint(p2));
       }
       return distance;
     }
-    return this.getElementNear(p).distanceToPoint(p);
+    return this.getElementNear(p2).distanceToPoint(p2);
   }
-  normalToPoint(p) {
+  normalToPoint(p2) {
     const epsilon = 0.000000001;
-    const n = p.dim;
+    const n = p2.dim;
     const grad = [];
-    const d = this.distanceToPoint(p);
+    const d2 = this.distanceToPoint(p2);
     for (let i2 = 0;i2 < n; i2++) {
-      grad.push(this.distanceToPoint(p.add(Vec.e(n)(i2).scale(epsilon))) - d);
+      grad.push(this.distanceToPoint(p2.add(Vec.e(n)(i2).scale(epsilon))) - d2);
     }
-    return Vec.fromArray(grad).scale(Math.sign(d)).normalize();
+    return Vec.fromArray(grad).scale(Math.sign(d2)).normalize();
   }
   debug(props) {
     const { camera, canvas } = props;
@@ -3945,21 +4229,21 @@ class RandomScene {
     return canvas;
   }
   rebuild() {
-    let groupsQueue = PQueue.ofArray([...clusterLeafs3(this.boundingBoxScene.box, this.sceneElements.map((x) => new Leaf4(x)))], (a, b) => b.length - a.length);
-    while (groupsQueue.data.map((x) => x.length > this.k).some((x) => x)) {
+    let groupsQueue = PQueue.ofArray([...clusterLeafs3(this.boundingBoxScene.box, this.sceneElements.map((x2) => new Leaf4(x2)))], (a2, b2) => b2.length - a2.length);
+    while (groupsQueue.data.map((x2) => x2.length > this.k).some((x2) => x2)) {
       if (groupsQueue.peek().length > this.k) {
         const groupOfLeafs = groupsQueue.pop();
-        const box = groupOfLeafs.reduce((e, x) => e.add(x.box), new Box);
+        const box = groupOfLeafs.reduce((e, x2) => e.add(x2.box), new Box);
         const [left, right] = clusterLeafs3(box, groupOfLeafs);
         groupsQueue.push(left);
         groupsQueue.push(right);
       }
     }
-    let nodeOrLeafStack = groupsQueue.data.map((group) => group.reduce((e, x) => e.add(x.element), new Node4(this.k)));
+    let nodeOrLeafStack = groupsQueue.data.map((group) => group.reduce((e, x2) => e.add(x2.element), new Node4(this.k)));
     while (nodeOrLeafStack.length > 1) {
       const nodeOrLeaf = nodeOrLeafStack[0];
       nodeOrLeafStack = nodeOrLeafStack.slice(1);
-      const minIndex = argmin(nodeOrLeafStack, (x) => nodeOrLeaf.box.distanceToBox(x.box));
+      const minIndex = argmin(nodeOrLeafStack, (x2) => nodeOrLeaf.box.distanceToBox(x2.box));
       const newNode = nodeOrLeaf.join(nodeOrLeafStack[minIndex]);
       nodeOrLeafStack.splice(minIndex, 1);
       nodeOrLeafStack.push(newNode);
@@ -3972,8 +4256,8 @@ class RandomScene {
 class Node4 {
   isLeaf = false;
   numberOfLeafs = 0;
-  constructor(k) {
-    this.k = k;
+  constructor(k2) {
+    this.k = k2;
     this.box = Box.EMPTY;
     this.leafs = [];
   }
@@ -3986,12 +4270,12 @@ class Node4 {
       if (this.leafs.length < this.k)
         return this;
       const [lefts, rights] = clusterLeafs3(this.box, this.leafs);
-      this.left = new Node4(this.k).addList(lefts.map((x) => x.element));
-      this.right = new Node4(this.k).addList(rights.map((x) => x.element));
+      this.left = new Node4(this.k).addList(lefts.map((x2) => x2.element));
+      this.right = new Node4(this.k).addList(rights.map((x2) => x2.element));
       this.leafs = [];
     } else {
       const children = [this.left, this.right];
-      const index = argmin(children, (x) => element.boundingBox.distanceToBox(x.box));
+      const index = argmin(children, (x2) => element.boundingBox.distanceToBox(x2.box));
       children[index].add(element);
     }
     return this;
@@ -4022,18 +4306,18 @@ class Node4 {
       return;
     return hits[minIndex];
   }
-  distanceToPoint(p) {
-    return this.getElemNear(p).distanceToPoint(p);
+  distanceToPoint(p2) {
+    return this.getElemNear(p2).distanceToPoint(p2);
   }
-  getElemNear(p) {
+  getElemNear(p2) {
     if (this.leafs.length > 0) {
-      const minIndex = argmin(this.leafs, (x) => x.distanceToPoint(p));
+      const minIndex = argmin(this.leafs, (x2) => x2.distanceToPoint(p2));
       return this.leafs[minIndex].element;
     }
     const children = [this.left, this.right];
-    const index = argmin(children, (n) => n.box.center.sub(p).length());
+    const index = argmin(children, (n) => n.box.center.sub(p2).length());
     const coin = RCACHE() < 0.01 ? 1 : 0;
-    return children[(index + coin) % 2].getElemNear(p);
+    return children[(index + coin) % 2].getElemNear(p2);
   }
   getElemIn(box) {
     let elements = [];
@@ -4076,8 +4360,8 @@ class Leaf4 {
     this.element = element;
     this.box = element.getBoundingBox();
   }
-  distanceToPoint(x) {
-    return this.element.distanceToPoint(x);
+  distanceToPoint(x2) {
+    return this.element.distanceToPoint(x2);
   }
   getLeafs() {
     return [this];
@@ -4109,7 +4393,7 @@ class Path {
   getBoundingBox() {
     if (this.boundingBox)
       return this.boundingBox;
-    this.boundingBox = this.positions.reduce((box, x) => box.add(new Box(x, x)), Box.EMPTY);
+    this.boundingBox = this.positions.reduce((box, x2) => box.add(new Box(x2, x2)), Box.EMPTY);
     return this.boundingBox;
   }
   distanceToPoint() {
@@ -4157,7 +4441,7 @@ class PathBuilder {
       colors: this._colors,
       positions: this._positions
     };
-    if (Object.values(attrs).some((x) => x === undefined)) {
+    if (Object.values(attrs).some((x2) => x2 === undefined)) {
       throw new Error("Line is incomplete");
     }
     return new Path({ ...attrs });
@@ -4166,43 +4450,43 @@ class PathBuilder {
 
 // src/Utils/SVG.js
 var tokens = function(charStream) {
-  let s = charStream;
+  let s2 = charStream;
   const tokensList = [];
-  while (!s.isEmpty()) {
-    const maybeToken = parseToken(s);
+  while (!s2.isEmpty()) {
+    const maybeToken = parseToken(s2);
     if (!maybeToken)
       break;
     const { token, nextStream } = maybeToken;
     tokensList.push(token);
-    s = nextStream;
+    s2 = nextStream;
   }
   return stream(tokensList);
 };
 var streamIncludes = function(charStream, string) {
-  let s = charStream;
+  let s2 = charStream;
   let i2 = 0;
-  while (!s.isEmpty() && i2 < string.length) {
-    if (string[i2++] !== s.head())
+  while (!s2.isEmpty() && i2 < string.length) {
+    if (string[i2++] !== s2.head())
       return false;
-    s = s.tail();
+    s2 = s2.tail();
   }
   return true;
 };
 var parseToken = function(charStream) {
-  const TOKENS_PARSER = TOKEN_SYMBOLS.map((s) => () => symbolParser(s)(charStream));
+  const TOKENS_PARSER = TOKEN_SYMBOLS.map((s2) => () => symbolParser(s2)(charStream));
   return or(...TOKENS_PARSER, () => defaultToken(charStream));
 };
 var symbolParser = function(symbol) {
   return (charStream) => {
-    let s = charStream;
+    let s2 = charStream;
     let i2 = 0;
-    while (!s.isEmpty() && i2 < symbol.length) {
-      if (symbol[i2] !== s.head())
+    while (!s2.isEmpty() && i2 < symbol.length) {
+      if (symbol[i2] !== s2.head())
         throw new Error("Fail to parse symbol");
-      s = s.tail();
+      s2 = s2.tail();
       i2++;
     }
-    return { token: { type: symbol, text: symbol }, nextStream: s };
+    return { token: { type: symbol, text: symbol }, nextStream: s2 };
   };
 };
 var parseSVG = function(stream) {
@@ -4355,26 +4639,26 @@ var parseAttrs = function(stream) {
   });
 };
 var eatSpaces = function(stream) {
-  let s = stream;
-  while (!s.isEmpty()) {
-    if (s.head().type !== " ")
+  let s2 = stream;
+  while (!s2.isEmpty()) {
+    if (s2.head().type !== " ")
       break;
-    s = s.tail();
+    s2 = s2.tail();
   }
-  return s;
+  return s2;
 };
 var eatSpacesTabsAndNewLines = function(stream) {
-  let s = stream;
-  while (!s.isEmpty()) {
-    const symbol = s.head().type;
+  let s2 = stream;
+  while (!s2.isEmpty()) {
+    const symbol = s2.head().type;
     if (symbol !== " " && symbol !== "\t" && symbol !== "\n")
       break;
-    s = s.tail();
+    s2 = s2.tail();
   }
-  return s;
+  return s2;
 };
-var pair = function(a, b) {
-  return { left: a, right: b };
+var pair = function(a2, b2) {
+  return { left: a2, right: b2 };
 };
 var or = function(...rules) {
   let accError = null;
@@ -4394,13 +4678,13 @@ var stream = function(stringOrArray) {
     tail: () => stream(array.slice(1)),
     take: (n) => stream(array.slice(n)),
     isEmpty: () => array.length === 0,
-    toString: () => array.map((s) => typeof s === "string" ? s : JSON.stringify(s)).join(""),
+    toString: () => array.map((s2) => typeof s2 === "string" ? s2 : JSON.stringify(s2)).join(""),
     filter: (predicate) => stream(array.filter(predicate)),
     log: () => {
-      let s = stream(array);
-      while (!s.isEmpty()) {
-        console.log(s.head());
-        s = s.tail();
+      let s2 = stream(array);
+      while (!s2.isEmpty()) {
+        console.log(s2.head());
+        s2 = s2.tail();
       }
     }
   };
@@ -4424,27 +4708,27 @@ var TOKEN_SYMBOLS = [
   "'"
 ];
 var defaultToken = (charStream) => {
-  let s = charStream;
+  let s2 = charStream;
   let stringStack = [];
-  while (!s.isEmpty()) {
-    const char = s.head();
-    if (TOKEN_SYMBOLS.some((symbol) => streamIncludes(s, symbol)))
+  while (!s2.isEmpty()) {
+    const char = s2.head();
+    if (TOKEN_SYMBOLS.some((symbol) => streamIncludes(s2, symbol)))
       break;
     stringStack.push(char);
-    s = s.tail();
+    s2 = s2.tail();
   }
   if (stringStack.length)
-    return { token: { type: "text", text: stringStack.join("") }, nextStream: s };
+    return { token: { type: "text", text: stringStack.join("") }, nextStream: s2 };
   throw new Error("Fail to parse default token");
 };
 // src/Utils/Monads.js
-function some(x) {
+function some(x2) {
   const object = {
-    map: (f) => maybe(f(x)),
-    filter: (f) => f(x) ? object : none(),
-    orElse: () => x,
-    forEach: (f) => f(x),
-    flatMap: (f) => f(x),
+    map: (f2) => maybe(f2(x2)),
+    filter: (f2) => f2(x2) ? object : none(),
+    orElse: () => x2,
+    forEach: (f2) => f2(x2),
+    flatMap: (f2) => f2(x2),
     isSome: () => true
   };
   return object;
@@ -4453,8 +4737,8 @@ function none() {
   const object = {
     map: () => object,
     filter: () => object,
-    orElse: (f = () => {
-    }) => f(),
+    orElse: (f2 = () => {
+    }) => f2(),
     forEach: () => {
     },
     flatMap: () => object,
@@ -4462,11 +4746,11 @@ function none() {
   };
   return object;
 }
-function maybe(x) {
-  if (x) {
-    return some(x);
+function maybe(x2) {
+  if (x2) {
+    return some(x2);
   }
-  return none(x);
+  return none(x2);
 }
 export {
   some,
@@ -4490,8 +4774,6 @@ export {
   Vec3,
   Vec2,
   Vec,
-  UNIT_BOX_VERTEX2 as UNIT_BOX_VERTEX,
-  UNIT_BOX_FACES2 as UNIT_BOX_FACES,
   Triangle,
   Stream,
   Sphere_default as Sphere,
@@ -4501,11 +4783,14 @@ export {
   RAD2DEG,
   Path,
   NaiveScene,
+  NUMBER_OF_CORES,
   Metallic,
   Mesh,
   MAX_8BIT,
+  MATERIALS,
   Line,
   KScene,
+  IS_NODE,
   Diffuse,
   DiElectric,
   DomBuilder_default as DOM,

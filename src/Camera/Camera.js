@@ -1,11 +1,10 @@
-import { Vec2, Vec3 } from "../Vector/Vector.js"
+import Vec, { Vec2, Vec3 } from "../Vector/Vector.js"
 import Ray from "../Ray/Ray.js";
 import { rayTrace } from "./raytrace.js";
 import { rasterGraphics } from "./raster.js";
 import { sdfTrace } from "./sdf.js";
 import { normalTrace } from "./normal.js";
-
-
+import { parallelWorkers } from "./parallel.js";
 
 export default class Camera {
   constructor(props = {}) {
@@ -16,14 +15,6 @@ export default class Camera {
     this._orientCoords = Vec2();
     this._orbitCoords = Vec3(this.position.length(), 0, 0);
     this.orient();
-  }
-
-  clone() {
-    return new Camera({
-      lookAt: this.lookAt,
-      position: this.position,
-      distanceToPlane: this.distanceToPlane,
-    })
   }
 
   look(at, up = Vec3(0, 0, 1)) {
@@ -114,11 +105,11 @@ export default class Camera {
     }
   }
 
-  sceneShot(scene, params = {}) {
+  sceneShot(scene, params) {
     return this.rayMap(rayTrace(scene, params));
   }
 
-  reverseShot(scene, params = {}) {
+  reverseShot(scene, params) {
     return {
       to: rasterGraphics(scene, this, params)
     }
@@ -130,6 +121,16 @@ export default class Camera {
 
   normalShot(scene) {
     return this.rayMap(normalTrace(scene));
+  }
+
+  parallelShot(scene, params) {
+    return {
+      to: canvas => {
+        return Promise
+          .all(parallelWorkers(this, scene, params, canvas))
+          .then(() => canvas.paint())
+      }
+    }
   }
 
   toCameraCoord(x) {
@@ -149,11 +150,11 @@ export default class Camera {
     }
     return x;
   }
-
-  getRaysFromCanvas(canvas) {
-    const w = canvas.width;
+  
+  rayFromImage(width, height) {
+    const w = width;
     const invW = 1 / w;
-    const h = canvas.height;
+    const h = height;
     const invH = 1 / h;
     return (x, y) => {
       const dirInLocal = [
@@ -169,5 +170,25 @@ export default class Camera {
         .normalize()
       return Ray(this.position, dir);
     }
+  }
+
+  serialize() {
+    return {
+      lookAt: this.lookAt.toArray(),
+      distanceToPlane: this.distanceToPlane,
+      position: this.position.toArray(),
+      orientCoords: this._orientCoords.toArray(),
+      orbitCoords: this._orbitCoords.toArray(),
+    }
+  }
+
+  static deserialize(json) {
+    return new Camera({
+      lookAt: Vec.fromArray(json.lookAt),
+      distanceToPlane: json.distanceToPlane,
+      position: Vec.fromArray(json.position),
+      orientCoords: Vec.fromArray(json.orientCoords),
+      orbitCoords: Vec.fromArray(json.orbitCoords)
+    })
   }
 }

@@ -1,3 +1,4 @@
+import {createRequire} from "node:module";
 var __defProp = Object.defineProperty;
 var __export = (target, all) => {
   for (var name in all)
@@ -8,406 +9,13 @@ var __export = (target, all) => {
       set: (newValue) => all[name] = () => newValue
     });
 };
-
-// src/Vector/Vector.js
-function Vec3(x = 0, y = 0, z = 0) {
-  return new Vector3(x, y, z);
-}
-function Vec2(x = 0, y = 0) {
-  return new Vector2(x, y);
-}
-
-class Vec {
-  constructor(array) {
-    this._vec = array;
-    this._n = this._vec.length;
-  }
-  get n() {
-    return this._n;
-  }
-  get dim() {
-    return this._n;
-  }
-  clone() {
-    return new Vec(COPY_VEC(this._vec));
-  }
-  get(i) {
-    return this._vec[i];
-  }
-  toArray() {
-    return COPY_VEC(this._vec);
-  }
-  toString() {
-    return "[" + this._vec.join(", ") + "]";
-  }
-  serialize() {
-    return this._vec.join(", ");
-  }
-  add(u) {
-    return this.op(u, (a, b) => a + b);
-  }
-  sub(u) {
-    return this.op(u, (a, b) => a - b);
-  }
-  mul(u) {
-    return this.op(u, (a, b) => a * b);
-  }
-  div(u) {
-    return this.op(u, (a, b) => a / b);
-  }
-  dot(u) {
-    let acc = 0;
-    for (let i = 0;i < this._n; i++) {
-      acc += this._vec[i] * u._vec[i];
-    }
-    return acc;
-  }
-  squareLength() {
-    return this.dot(this);
-  }
-  length() {
-    return Math.sqrt(this.dot(this));
-  }
-  normalize() {
-    return this.scale(1 / this.length());
-  }
-  scale(r) {
-    return this.map((z) => z * r);
-  }
-  map(lambda) {
-    const ans = BUILD_VEC(this._n);
-    for (let i = 0;i < this._n; i++) {
-      ans[i] = lambda(this._vec[i], i);
-    }
-    return new Vec(ans);
-  }
-  op(u, operation) {
-    const ans = BUILD_VEC(this._n);
-    for (let i = 0;i < this._n; i++) {
-      ans[i] = operation(this._vec[i], u._vec[i]);
-    }
-    return new Vec(ans);
-  }
-  reduce(fold, init = 0) {
-    let acc = init;
-    for (let i = 0;i < this._n; i++) {
-      acc = fold(acc, this._vec[i], i);
-    }
-    return acc;
-  }
-  fold = this.reduce;
-  foldLeft = this.fold;
-  equals(u, precision = 0.00001) {
-    if (!(u instanceof Vec))
-      return false;
-    return this.sub(u).length() < precision;
-  }
-  take(n = 0, m = this._vec.length) {
-    return Vec.fromArray(this._vec.slice(n, m));
-  }
-  findIndex(predicate) {
-    for (let i = 0;i < this._n; i++) {
-      if (predicate(this._vec[i]))
-        return i;
-    }
-    return -1;
-  }
-  static fromArray(array) {
-    if (array.length === 2)
-      return Vector2.fromArray(array);
-    if (array.length === 3)
-      return Vector3.fromArray(array);
-    return new Vec(array);
-  }
-  static of(...values) {
-    if (values.length === 2)
-      return Vector2.of(...values);
-    if (values.length === 3)
-      return Vector3.of(...values);
-    return new Vec(values);
-  }
-  static ZERO = (n) => n === 3 ? new Vector3 : n === 2 ? new Vector2 : new Vec(BUILD_VEC(n));
-  static ONES = (n) => {
-    if (n === 2)
-      return Vector2.ONES;
-    if (n === 3)
-      return Vector3.ONES;
-    return Vec.ZERO(n).map(() => 1);
-  };
-  static e = (n) => (i) => {
-    if (n === 2)
-      return Vector2.e(i);
-    if (n === 3)
-      return Vector3.e(i);
-    const vec = BUILD_VEC(n);
-    if (i >= 0 && i < n) {
-      vec[i] = 1;
-    }
-    return new Vec(vec);
-  };
-  static RANDOM = (n) => {
-    if (n === 2)
-      return Vector2.RANDOM();
-    if (n === 3)
-      return Vector3.RANDOM();
-    const v = BUILD_VEC(n);
-    for (let i = 0;i < n; i++) {
-      v[i] = Math.random();
-    }
-    return new Vec(v);
-  };
-}
-var BUILD_VEC = (n) => new Float64Array(n);
-var COPY_VEC = (array) => Float64Array.from(array);
-class Vector3 {
-  constructor(x = 0, y = 0, z = 0) {
-    this.x = x;
-    this.y = y;
-    this.z = z;
-  }
-  get n() {
-    return 3;
-  }
-  get dim() {
-    return 3;
-  }
-  size = () => 3;
-  shape = () => [3];
-  clone() {
-    return new Vector3(this.x, this.y, this.z);
-  }
-  get(i) {
-    return [this.x, this.y, this.z][i];
-  }
-  toArray() {
-    return [this.x, this.y, this.z];
-  }
-  toString() {
-    return "[" + this.toArray().join(", ") + "]";
-  }
-  serialize() {
-    return this.toArray().join(", ");
-  }
-  add(u) {
-    return this.op(u, (a, b) => a + b);
-  }
-  sub(u) {
-    return this.op(u, (a, b) => a - b);
-  }
-  mul(u) {
-    return this.op(u, (a, b) => a * b);
-  }
-  div(u) {
-    return this.op(u, (a, b) => a / b);
-  }
-  dot(u) {
-    return this.x * u.x + this.y * u.y + this.z * u.z;
-  }
-  squareLength() {
-    return this.dot(this);
-  }
-  length() {
-    return Math.sqrt(this.dot(this));
-  }
-  normalize() {
-    return this.scale(1 / this.length());
-  }
-  scale(r) {
-    return this.map((z) => z * r);
-  }
-  map(lambda) {
-    return new Vector3(lambda(this.x, 0), lambda(this.y, 1), lambda(this.z, 2));
-  }
-  cross(v) {
-    const u = this;
-    return Vec3(u.y * v.z - u.z * v.y, u.z * v.x - u.x * v.z, u.x * v.y - u.y * v.x);
-  }
-  op(u, operation) {
-    return new Vector3(operation(this.x, u.x), operation(this.y, u.y), operation(this.z, u.z));
-  }
-  reduce(fold, init = 0) {
-    let acc = init;
-    acc = fold(acc, this.x);
-    acc = fold(acc, this.y);
-    acc = fold(acc, this.z);
-    return acc;
-  }
-  fold = this.reduce;
-  foldLeft = this.fold;
-  equals(u, precision = 0.00001) {
-    if (!(u instanceof Vector3))
-      return false;
-    return this.sub(u).length() < precision;
-  }
-  take(n = 0, m = 3) {
-    const array = [this.x, this.y, this.z].slice(n, m);
-    return Vec.fromArray(array);
-  }
-  findIndex(predicate) {
-    if (predicate(this.x))
-      return 0;
-    if (predicate(this.y))
-      return 1;
-    if (predicate(this.z))
-      return 2;
-    return -1;
-  }
-  static fromArray(array) {
-    return new Vector3(...array);
-  }
-  static of(...values) {
-    return new Vector3(...values);
-  }
-  static e = (i) => {
-    if (i === 0)
-      return new Vector3(1, 0, 0);
-    if (i === 1)
-      return new Vector3(0, 1, 0);
-    if (i === 2)
-      return new Vector3(0, 0, 1);
-    return new Vec3;
-  };
-  static RANDOM = () => {
-    return new Vector3(Math.random(), Math.random(), Math.random());
-  };
-  static ONES = new Vector3(1, 1, 1);
-}
-
-class Vector2 {
-  constructor(x = 0, y = 0) {
-    this.x = x;
-    this.y = y;
-  }
-  get n() {
-    return 2;
-  }
-  get dim() {
-    return 2;
-  }
-  size = () => 2;
-  shape = () => [2];
-  clone() {
-    return new Vector2(this.x, this.y);
-  }
-  get(i) {
-    return [this.x, this.y][i];
-  }
-  toArray() {
-    return [this.x, this.y];
-  }
-  toString() {
-    return "[" + this.toArray().join(", ") + "]";
-  }
-  serialize() {
-    return this.toArray().join(", ");
-  }
-  add(u) {
-    return this.op(u, (a, b) => a + b);
-  }
-  sub(u) {
-    return this.op(u, (a, b) => a - b);
-  }
-  mul(u) {
-    return this.op(u, (a, b) => a * b);
-  }
-  div(u) {
-    return this.op(u, (a, b) => a / b);
-  }
-  dot(u) {
-    return this.x * u.x + this.y * u.y;
-  }
-  squareLength() {
-    return this.dot(this);
-  }
-  length() {
-    return Math.sqrt(this.dot(this));
-  }
-  normalize() {
-    return this.scale(1 / this.length());
-  }
-  scale(r) {
-    return this.map((z) => z * r);
-  }
-  map(lambda) {
-    return new Vector2(lambda(this.x, 0), lambda(this.y, 1));
-  }
-  cross(v) {
-    const u = this;
-    return u.x * v.y - u.y * v.x;
-  }
-  op(u, operation) {
-    return new Vector2(operation(this.x, u.x), operation(this.y, u.y));
-  }
-  reduce(fold, init = 0) {
-    let acc = init;
-    acc = fold(acc, this.x);
-    acc = fold(acc, this.y);
-    return acc;
-  }
-  fold = this.reduce;
-  foldLeft = this.fold;
-  equals(u, precision = 0.00001) {
-    if (!(u instanceof Vector2))
-      return false;
-    return this.sub(u).length() < precision;
-  }
-  take(n = 0, m = 2) {
-    const array = [this.x, this.y].slice(n, m);
-    return Vec.fromArray(array);
-  }
-  findIndex(predicate) {
-    if (predicate(this.x))
-      return 0;
-    if (predicate(this.y))
-      return 1;
-    return -1;
-  }
-  static fromArray(array) {
-    return new Vector2(...array);
-  }
-  static of(...values) {
-    return new Vector2(...values);
-  }
-  static e = (i) => {
-    if (i === 0)
-      return new Vector2(1, 0);
-    if (i === 1)
-      return new Vector2(0, 1);
-    return new Vector2;
-  };
-  static RANDOM = () => {
-    return new Vector2(Math.random(), Math.random());
-  };
-  static ONES = new Vector2(1, 1);
-}
+var __require = createRequire(import.meta.url);
 
 // src/Utils/Constants.js
 var MAX_8BIT = 255;
 var RAD2DEG = 180 / Math.PI;
-var UNIT_BOX_VERTEX2 = [
-  Vec3(),
-  Vec3(1, 0, 0),
-  Vec3(1, 1, 0),
-  Vec3(0, 1, 0),
-  Vec3(0, 0, 1),
-  Vec3(1, 0, 1),
-  Vec3(1, 1, 1),
-  Vec3(0, 1, 1)
-];
-var UNIT_BOX_FACES2 = [
-  [0, 1, 2],
-  [2, 3, 0],
-  [4, 5, 6],
-  [6, 7, 4],
-  [0, 1, 4],
-  [4, 5, 1],
-  [2, 3, 6],
-  [6, 7, 3],
-  [0, 3, 7],
-  [7, 4, 0],
-  [1, 2, 6],
-  [6, 5, 1]
-];
+var IS_NODE = typeof window === "undefined";
+var NUMBER_OF_CORES = IS_NODE ? await import("node:os").cpus().length : navigator.hardwareConcurrency;
 
 // src/Color/Color.js
 class Color {
@@ -560,8 +168,379 @@ function loop(lambda) {
 }
 var RANDOM = Array(1000).fill().map(Math.random);
 var i = 0;
-var isNode = typeof window === "undefined";
-var setTimeOut = isNode ? setTimeout : requestAnimationFrame;
+var setTimeOut = IS_NODE ? setTimeout : requestAnimationFrame;
+
+// src/Vector/Vector.js
+function Vec3(x = 0, y = 0, z = 0) {
+  return new Vector3(x, y, z);
+}
+function Vec2(x = 0, y = 0) {
+  return new Vector2(x, y);
+}
+
+class Vec {
+  constructor(array) {
+    this._vec = array;
+    this._n = this._vec.length;
+  }
+  get n() {
+    return this._n;
+  }
+  get dim() {
+    return this._n;
+  }
+  clone() {
+    return new Vec(COPY_VEC(this._vec));
+  }
+  get(i2) {
+    return this._vec[i2];
+  }
+  toArray() {
+    return COPY_VEC(this._vec);
+  }
+  toString() {
+    return "[" + this._vec.join(", ") + "]";
+  }
+  serialize() {
+    return this._vec.join(", ");
+  }
+  add(u) {
+    return this.op(u, (a, b) => a + b);
+  }
+  sub(u) {
+    return this.op(u, (a, b) => a - b);
+  }
+  mul(u) {
+    return this.op(u, (a, b) => a * b);
+  }
+  div(u) {
+    return this.op(u, (a, b) => a / b);
+  }
+  dot(u) {
+    let acc = 0;
+    for (let i2 = 0;i2 < this._n; i2++) {
+      acc += this._vec[i2] * u._vec[i2];
+    }
+    return acc;
+  }
+  squareLength() {
+    return this.dot(this);
+  }
+  length() {
+    return Math.sqrt(this.dot(this));
+  }
+  normalize() {
+    return this.scale(1 / this.length());
+  }
+  scale(r) {
+    return this.map((z) => z * r);
+  }
+  map(lambda) {
+    const ans = BUILD_VEC(this._n);
+    for (let i2 = 0;i2 < this._n; i2++) {
+      ans[i2] = lambda(this._vec[i2], i2);
+    }
+    return new Vec(ans);
+  }
+  op(u, operation) {
+    const ans = BUILD_VEC(this._n);
+    for (let i2 = 0;i2 < this._n; i2++) {
+      ans[i2] = operation(this._vec[i2], u._vec[i2]);
+    }
+    return new Vec(ans);
+  }
+  reduce(fold, init = 0) {
+    let acc = init;
+    for (let i2 = 0;i2 < this._n; i2++) {
+      acc = fold(acc, this._vec[i2], i2);
+    }
+    return acc;
+  }
+  fold = this.reduce;
+  foldLeft = this.fold;
+  equals(u, precision = 0.00001) {
+    if (!(u instanceof Vec))
+      return false;
+    return this.sub(u).length() < precision;
+  }
+  take(n = 0, m = this._vec.length) {
+    return Vec.fromArray(this._vec.slice(n, m));
+  }
+  findIndex(predicate) {
+    for (let i2 = 0;i2 < this._n; i2++) {
+      if (predicate(this._vec[i2]))
+        return i2;
+    }
+    return -1;
+  }
+  static fromArray(array) {
+    if (array.length === 2)
+      return Vector2.fromArray(array);
+    if (array.length === 3)
+      return Vector3.fromArray(array);
+    return new Vec(array);
+  }
+  static of(...values) {
+    if (values.length === 2)
+      return Vector2.of(...values);
+    if (values.length === 3)
+      return Vector3.of(...values);
+    return new Vec(values);
+  }
+  static ZERO = (n) => n === 3 ? new Vector3 : n === 2 ? new Vector2 : new Vec(BUILD_VEC(n));
+  static ONES = (n) => {
+    if (n === 2)
+      return Vector2.ONES;
+    if (n === 3)
+      return Vector3.ONES;
+    return Vec.ZERO(n).map(() => 1);
+  };
+  static e = (n) => (i2) => {
+    if (n === 2)
+      return Vector2.e(i2);
+    if (n === 3)
+      return Vector3.e(i2);
+    const vec = BUILD_VEC(n);
+    if (i2 >= 0 && i2 < n) {
+      vec[i2] = 1;
+    }
+    return new Vec(vec);
+  };
+  static RANDOM = (n) => {
+    if (n === 2)
+      return Vector2.RANDOM();
+    if (n === 3)
+      return Vector3.RANDOM();
+    const v = BUILD_VEC(n);
+    for (let i2 = 0;i2 < n; i2++) {
+      v[i2] = Math.random();
+    }
+    return new Vec(v);
+  };
+}
+var BUILD_VEC = (n) => new Float64Array(n);
+var COPY_VEC = (array) => Float64Array.from(array);
+class Vector3 {
+  constructor(x = 0, y = 0, z = 0) {
+    this.x = x;
+    this.y = y;
+    this.z = z;
+  }
+  get n() {
+    return 3;
+  }
+  get dim() {
+    return 3;
+  }
+  size = () => 3;
+  shape = () => [3];
+  clone() {
+    return new Vector3(this.x, this.y, this.z);
+  }
+  get(i2) {
+    return [this.x, this.y, this.z][i2];
+  }
+  toArray() {
+    return [this.x, this.y, this.z];
+  }
+  toString() {
+    return "[" + this.toArray().join(", ") + "]";
+  }
+  serialize() {
+    return this.toArray().join(", ");
+  }
+  add(u) {
+    return this.op(u, (a, b) => a + b);
+  }
+  sub(u) {
+    return this.op(u, (a, b) => a - b);
+  }
+  mul(u) {
+    return this.op(u, (a, b) => a * b);
+  }
+  div(u) {
+    return this.op(u, (a, b) => a / b);
+  }
+  dot(u) {
+    return this.x * u.x + this.y * u.y + this.z * u.z;
+  }
+  squareLength() {
+    return this.dot(this);
+  }
+  length() {
+    return Math.sqrt(this.dot(this));
+  }
+  normalize() {
+    return this.scale(1 / this.length());
+  }
+  scale(r) {
+    return this.map((z) => z * r);
+  }
+  map(lambda) {
+    return new Vector3(lambda(this.x, 0), lambda(this.y, 1), lambda(this.z, 2));
+  }
+  cross(v) {
+    const u = this;
+    return Vec3(u.y * v.z - u.z * v.y, u.z * v.x - u.x * v.z, u.x * v.y - u.y * v.x);
+  }
+  op(u, operation) {
+    return new Vector3(operation(this.x, u.x), operation(this.y, u.y), operation(this.z, u.z));
+  }
+  reduce(fold, init = 0) {
+    let acc = init;
+    acc = fold(acc, this.x);
+    acc = fold(acc, this.y);
+    acc = fold(acc, this.z);
+    return acc;
+  }
+  fold = this.reduce;
+  foldLeft = this.fold;
+  equals(u, precision = 0.00001) {
+    if (!(u instanceof Vector3))
+      return false;
+    return this.sub(u).length() < precision;
+  }
+  take(n = 0, m = 3) {
+    const array = [this.x, this.y, this.z].slice(n, m);
+    return Vec.fromArray(array);
+  }
+  findIndex(predicate) {
+    if (predicate(this.x))
+      return 0;
+    if (predicate(this.y))
+      return 1;
+    if (predicate(this.z))
+      return 2;
+    return -1;
+  }
+  static fromArray(array) {
+    return new Vector3(...array);
+  }
+  static of(...values) {
+    return new Vector3(...values);
+  }
+  static e = (i2) => {
+    if (i2 === 0)
+      return new Vector3(1, 0, 0);
+    if (i2 === 1)
+      return new Vector3(0, 1, 0);
+    if (i2 === 2)
+      return new Vector3(0, 0, 1);
+    return new Vec3;
+  };
+  static RANDOM = () => {
+    return new Vector3(Math.random(), Math.random(), Math.random());
+  };
+  static ONES = new Vector3(1, 1, 1);
+}
+
+class Vector2 {
+  constructor(x = 0, y = 0) {
+    this.x = x;
+    this.y = y;
+  }
+  get n() {
+    return 2;
+  }
+  get dim() {
+    return 2;
+  }
+  size = () => 2;
+  shape = () => [2];
+  clone() {
+    return new Vector2(this.x, this.y);
+  }
+  get(i2) {
+    return [this.x, this.y][i2];
+  }
+  toArray() {
+    return [this.x, this.y];
+  }
+  toString() {
+    return "[" + this.toArray().join(", ") + "]";
+  }
+  serialize() {
+    return this.toArray().join(", ");
+  }
+  add(u) {
+    return this.op(u, (a, b) => a + b);
+  }
+  sub(u) {
+    return this.op(u, (a, b) => a - b);
+  }
+  mul(u) {
+    return this.op(u, (a, b) => a * b);
+  }
+  div(u) {
+    return this.op(u, (a, b) => a / b);
+  }
+  dot(u) {
+    return this.x * u.x + this.y * u.y;
+  }
+  squareLength() {
+    return this.dot(this);
+  }
+  length() {
+    return Math.sqrt(this.dot(this));
+  }
+  normalize() {
+    return this.scale(1 / this.length());
+  }
+  scale(r) {
+    return this.map((z) => z * r);
+  }
+  map(lambda) {
+    return new Vector2(lambda(this.x, 0), lambda(this.y, 1));
+  }
+  cross(v) {
+    const u = this;
+    return u.x * v.y - u.y * v.x;
+  }
+  op(u, operation) {
+    return new Vector2(operation(this.x, u.x), operation(this.y, u.y));
+  }
+  reduce(fold, init = 0) {
+    let acc = init;
+    acc = fold(acc, this.x);
+    acc = fold(acc, this.y);
+    return acc;
+  }
+  fold = this.reduce;
+  foldLeft = this.fold;
+  equals(u, precision = 0.00001) {
+    if (!(u instanceof Vector2))
+      return false;
+    return this.sub(u).length() < precision;
+  }
+  take(n = 0, m = 2) {
+    const array = [this.x, this.y].slice(n, m);
+    return Vec.fromArray(array);
+  }
+  findIndex(predicate) {
+    if (predicate(this.x))
+      return 0;
+    if (predicate(this.y))
+      return 1;
+    return -1;
+  }
+  static fromArray(array) {
+    return new Vector2(...array);
+  }
+  static of(...values) {
+    return new Vector2(...values);
+  }
+  static e = (i2) => {
+    if (i2 === 0)
+      return new Vector2(1, 0);
+    if (i2 === 1)
+      return new Vector2(0, 1);
+    return new Vector2;
+  };
+  static RANDOM = () => {
+    return new Vector2(Math.random(), Math.random());
+  };
+  static ONES = new Vector2(1, 1);
+}
 
 // src/Geometry/Box.js
 var maxComp = function(u) {
@@ -696,6 +675,10 @@ class Box {
   }
   sample() {
     return this.min.add(Vec.RANDOM(this.dim).mul(this.diagonal));
+  }
+  serialize() {
+  }
+  deserialize() {
   }
   static EMPTY = new Box;
 }
@@ -972,11 +955,15 @@ class Tela {
   exposure(time = Number.MAX_VALUE) {
     let it = 1;
     const ans = {};
-    for (let key of Object.getOwnPropertyNames(Object.getPrototypeOf(this))) {
-      const descriptor = Object.getOwnPropertyDescriptor(Object.getPrototypeOf(this), key);
-      if (descriptor && typeof descriptor.value === "function") {
-        ans[key] = descriptor.value.bind(this);
+    let proto = Object.getPrototypeOf(this);
+    while (proto !== null) {
+      for (let key of Object.getOwnPropertyNames(proto)) {
+        const descriptor = Object.getOwnPropertyDescriptor(proto, key);
+        if (descriptor && typeof descriptor.value === "function") {
+          ans[key] = descriptor.value.bind(this);
+        }
       }
+      proto = Object.getPrototypeOf(proto);
     }
     ans.width = this.width;
     ans.height = this.height;
@@ -1001,14 +988,11 @@ class Tela {
         it++;
       return this.paint();
     };
-    ans.fill = (color) => {
-      return this.fill(color);
-    };
     return ans;
   }
   resize(width, height) {
-    this.width = width;
-    this.height = height;
+    this.width = Math.floor(width);
+    this.height = Math.floor(height);
     this.image = new Float32Array(CHANNELS * this.width * this.height);
     this.box = new Box(Vec2(0, 0), Vec2(this.width, this.height));
   }
@@ -1341,6 +1325,8 @@ function Ray(init, dir) {
 // src/Material/Material.js
 function Diffuse() {
   return {
+    type: MATERIAL_NAMES.Diffuse,
+    args: [],
     scatter(inRay, point, element) {
       let normal = element.normalToPoint(point);
       const randomInSphere = randomPointInSphere(3);
@@ -1352,6 +1338,8 @@ function Diffuse() {
 }
 function Metallic(fuzz = 0) {
   return {
+    type: MATERIAL_NAMES.Metallic,
+    args: [fuzz],
     scatter(inRay, point, element) {
       fuzz = Math.min(1, Math.max(0, fuzz));
       let normal = element.normalToPoint(point);
@@ -1363,7 +1351,10 @@ function Metallic(fuzz = 0) {
   };
 }
 function Alpha(alpha = 1) {
+  alpha = clamp()(alpha);
   return {
+    type: MATERIAL_NAMES.Alpha,
+    args: [alpha],
     scatter(inRay, point, element) {
       if (Math.random() <= alpha)
         return Diffuse().scatter(inRay, point, element);
@@ -1381,6 +1372,8 @@ function Alpha(alpha = 1) {
 }
 function DiElectric(indexOfRefraction = 1) {
   return {
+    type: MATERIAL_NAMES.DiElectric,
+    args: [indexOfRefraction],
     scatter(inRay, point, element) {
       const p = point.sub(inRay.init);
       let t = undefined;
@@ -1409,6 +1402,13 @@ function DiElectric(indexOfRefraction = 1) {
     }
   };
 }
+var MATERIALS = {
+  Diffuse,
+  Metallic,
+  Alpha,
+  DiElectric
+};
+var MATERIAL_NAMES = Object.keys(MATERIALS).reduce((e, x) => ({ [x]: x, ...e }), {});
 
 // src/Geometry/Triangle.js
 class Triangle {
@@ -1469,6 +1469,20 @@ class Triangle {
   }
   isInside(p) {
     return this.faceNormal.dot(p.sub(this.positions[0])) >= 0;
+  }
+  serialize() {
+    return {
+      type: Triangle.name,
+      name: this.name,
+      emissive: this.emissive,
+      colors: this.colors.map((x) => x.toArray()),
+      positions: this.positions.map((x) => x.toArray()),
+      material: { type: this.material.type, args: this.material.args }
+    };
+  }
+  static deserialize(json) {
+    const { type, args } = json.material;
+    return Triangle.builder().name(json.name).positions(...json.positions.map((x) => Vec.fromArray(x))).colors(...json.colors.map((x) => new Color(x))).emissive(json.emissive).material(MATERIALS[type](...args)).build();
   }
   static builder() {
     return new TriangleBuilder;
@@ -1582,15 +1596,15 @@ function rayTrace(scene, params = {}) {
     let c = Color.BLACK;
     for (let i2 = 0;i2 < samplesPerPxl; i2++) {
       const epsilon = Vec.RANDOM(3).scale(variance);
-      const epsilonOrto = epsilon.sub(ray.dir.scale(epsilon.dot(ray.dir)));
-      const r = Ray(ray.init, ray.dir.add(epsilonOrto).normalize());
+      const epsilonOrtho = epsilon.sub(ray.dir.scale(epsilon.dot(ray.dir)));
+      const r = Ray(ray.init, ray.dir.add(epsilonOrtho).normalize());
       c = c.add(trace(r, scene, { bounces, bilinearTexture }));
     }
     return c.scale(invSamples).toGamma(gamma);
   };
   return lambda;
 }
-var trace = function(ray, scene, options) {
+function trace(ray, scene, options) {
   const { bounces, bilinearTexture } = options;
   if (bounces < 0)
     return Color.BLACK;
@@ -1603,7 +1617,7 @@ var trace = function(ray, scene, options) {
   let r = mat.scatter(ray, p, e);
   let finalC = trace(r, scene, { bounces: bounces - 1, bilinearTexture });
   return e.emissive ? color.add(color.mul(finalC)) : color.mul(finalC);
-};
+}
 var getColorFromElement = function(e, ray, params) {
   if (Triangle.name === e.constructor.name) {
     return getTriangleColor(e, ray, params);
@@ -1687,6 +1701,12 @@ class Line {
   }
   isInside(p) {
     return this.distanceToPoint(p) < 0;
+  }
+  serialize() {
+  }
+  static deserialize(json) {
+    const { type, args } = json.material;
+    return Line.builder().name(json.name).radius(json.radius).positions(...json.positions.map((x) => Vec.fromArray(x))).colors(...json.colors.map((x) => new Color(x))).emissive(json.emissive).material(MATERIALS[type](...args)).build();
   }
   static builder() {
     return new LineBuilder;
@@ -1823,6 +1843,21 @@ class Sphere {
   }
   isInside(p) {
     return p.sub(this.position).length() < this.radius;
+  }
+  serialize() {
+    return {
+      type: Sphere.name,
+      name: this.name,
+      radius: this.radius,
+      emissive: this.emissive,
+      color: this.color.toArray(),
+      position: this.position.toArray(),
+      material: { type: this.material.type, args: this.material.args }
+    };
+  }
+  static deserialize(json) {
+    const { type, args } = json.material;
+    return Sphere.builder().name(json.name).radius(json.radius).position(Vec.fromArray(json.position)).color(new Color(json.color)).emissive(json.emissive).material(MATERIALS[type](...args)).build();
   }
   static builder() {
     return new SphereBuilder;
@@ -2053,12 +2088,12 @@ class NaiveScene {
 function drawBox({ box, color, debugScene }) {
   if (box.isEmpty)
     return debugScene;
-  const vertices = UNIT_BOX_VERTEX3.map((v) => v.mul(box.diagonal).add(box.min));
-  const lines = UNIT_BOX_FACES3.map(([i2, j]) => Line.builder().name(`debug_box_${i2}_${j}`).positions(vertices[i2], vertices[j]).colors(color, color).build());
+  const vertices = UNIT_BOX_VERTEX.map((v) => v.mul(box.diagonal).add(box.min));
+  const lines = UNIT_BOX_LINES.map(([i2, j]) => Line.builder().name(`debug_box_${i2}_${j}`).positions(vertices[i2], vertices[j]).colors(color, color).build());
   debugScene.addList(lines);
   return debugScene;
 }
-var UNIT_BOX_VERTEX3 = [
+var UNIT_BOX_VERTEX = [
   Vec3(),
   Vec3(1, 0, 0),
   Vec3(1, 1, 0),
@@ -2068,7 +2103,7 @@ var UNIT_BOX_VERTEX3 = [
   Vec3(1, 1, 1),
   Vec3(0, 1, 1)
 ];
-var UNIT_BOX_FACES3 = [
+var UNIT_BOX_LINES = [
   [0, 1],
   [1, 2],
   [2, 3],
@@ -2598,6 +2633,10 @@ class Mesh {
     }
     return triangles;
   }
+  serialize() {
+  }
+  deserialize(jsonMesh) {
+  }
   static readObj(objFile, name = `Mesh_${MESH_COUNTER++}`) {
     const vertices = [];
     const normals = [];
@@ -2636,12 +2675,12 @@ class Mesh {
   }
   static ofBox(box, name) {
     const vertices = UNIT_BOX_VERTEX.map((v) => v.mul(box.diagonal).add(box.min));
-    return new Mesh({ name, vertices, faces: UNIT_BOX_FACES.map((indx3) => ({ vertices: indx3 })) });
+    return new Mesh({ name, vertices, faces: UNIT_BOX_LINES.map((indx3) => ({ vertices: indx3 })) });
   }
 }
 
 // src/Camera/raster.js
-function rasterGraphics(scene, camera, params) {
+function rasterGraphics(scene, camera, params = {}) {
   const type2render = {
     [Sphere_default.name]: rasterSphere,
     [Line.name]: rasterLine,
@@ -2820,7 +2859,7 @@ var rasterTriangle = function({ canvas, camera, elem, w, h, zBuffer, params }) {
     let c = Color.ofRGB(c1[0] * gamma + c2[0] * alpha + c3[0] * beta, c1[1] * gamma + c2[1] * alpha + c3[1] * beta, c1[2] * gamma + c2[2] * alpha + c3[2] * beta, c1[3] * gamma + c2[3] * alpha + c3[3] * beta);
     if (haveTextures) {
       const texUV = texCoords[0].scale(gamma).add(texCoords[1].scale(alpha)).add(texCoords[2].scale(beta));
-      const texColor = texture ? params.bilinearTexture ? getBiLinearTexColor(texUV, texture) : getTexColor(texUV, texture) : getDefaultTexColor(texUV);
+      const texColor = texture ? params.bilinearTexture ? getBiLinearTexColor(texUV, texture) : getTexColor(texUV, texture) : c ? c : getDefaultTexColor(texUV);
       c = texColor;
     }
     const [i2, j] = canvas.canvas2grid(x, y);
@@ -2884,6 +2923,57 @@ function normalTrace(scene) {
   };
 }
 
+// src/Camera/parallel.js
+function parallelWorkers(camera, scene, params, canvas) {
+  if (WORKERS.length === 0)
+    WORKERS = [...Array(NUMBER_OF_CORES)].map(() => new Worker(`/src/Camera/RayTraceWorker.js`, { type: "module" }));
+  const w = canvas.width;
+  const h = canvas.height;
+  const readMessage = (resolve) => (message) => {
+    const { image, startRow, endRow } = message;
+    let index = 0;
+    const startIndex = CHANNELS * w * startRow;
+    const endIndex = CHANNELS * w * endRow;
+    for (let i2 = startIndex;i2 < endIndex; i2 += CHANNELS) {
+      canvas.setPxlData(i2, [image[index++], image[index++], image[index++]]);
+      index++;
+    }
+    resolve();
+  };
+  return WORKERS.map((worker, k) => {
+    return new Promise((resolve) => {
+      if (IS_NODE) {
+        worker.removeAllListeners("message");
+        worker.on("message", readMessage(resolve));
+      } else {
+        worker.onmessage = (message2) => {
+          const { image, startRow, endRow } = message2;
+          let index = 0;
+          const startIndex = CHANNELS * w * startRow;
+          const endIndex = CHANNELS * w * endRow;
+          for (let i2 = startIndex;i2 < endIndex; i2 += CHANNELS) {
+            canvas.setPxlData(i2, [image[index++], image[index++], image[index++]]);
+            index++;
+          }
+          resolve();
+        };
+      }
+      const ratio = Math.floor(h / WORKERS.length);
+      const message = {
+        width: w,
+        height: h,
+        params,
+        startRow: k * ratio,
+        endRow: Math.min(h - 1, (k + 1) * ratio),
+        camera: camera.serialize(),
+        scene: scene ? scene.serialize() : []
+      };
+      worker.postMessage(message);
+    });
+  });
+}
+var WORKERS = [];
+
 // src/Camera/Camera.js
 class Camera {
   constructor(props = {}) {
@@ -2894,13 +2984,6 @@ class Camera {
     this._orientCoords = Vec2();
     this._orbitCoords = Vec3(this.position.length(), 0, 0);
     this.orient();
-  }
-  clone() {
-    return new Camera({
-      lookAt: this.lookAt,
-      position: this.position,
-      distanceToPlane: this.distanceToPlane
-    });
   }
   look(at, up = Vec3(0, 0, 1)) {
     this.lookAt = at;
@@ -2966,10 +3049,10 @@ class Camera {
       }
     };
   }
-  sceneShot(scene, params = {}) {
+  sceneShot(scene, params) {
     return this.rayMap(rayTrace(scene, params));
   }
-  reverseShot(scene, params = {}) {
+  reverseShot(scene, params) {
     return {
       to: rasterGraphics(scene, this, params)
     };
@@ -2979,6 +3062,13 @@ class Camera {
   }
   normalShot(scene) {
     return this.rayMap(normalTrace(scene));
+  }
+  parallelShot(scene, params) {
+    return {
+      to: (canvas) => {
+        return Promise.all(parallelWorkers(this, scene, params, canvas)).then(() => canvas.paint());
+      }
+    };
   }
   toCameraCoord(x) {
     let pointInCamCoord = x.sub(this.position);
@@ -2992,10 +3082,10 @@ class Camera {
     }
     return x;
   }
-  getRaysFromCanvas(canvas) {
-    const w = canvas.width;
+  rayFromImage(width, height) {
+    const w = width;
     const invW = 1 / w;
-    const h = canvas.height;
+    const h = height;
     const invH = 1 / h;
     return (x, y) => {
       const dirInLocal = [
@@ -3006,6 +3096,24 @@ class Camera {
       const dir = Vec3(this.basis[0].x * dirInLocal[0] + this.basis[1].x * dirInLocal[1] + this.basis[2].x * dirInLocal[2], this.basis[0].y * dirInLocal[0] + this.basis[1].y * dirInLocal[1] + this.basis[2].y * dirInLocal[2], this.basis[0].z * dirInLocal[0] + this.basis[1].z * dirInLocal[1] + this.basis[2].z * dirInLocal[2]).normalize();
       return Ray(this.position, dir);
     };
+  }
+  serialize() {
+    return {
+      lookAt: this.lookAt.toArray(),
+      distanceToPlane: this.distanceToPlane,
+      position: this.position.toArray(),
+      orientCoords: this._orientCoords.toArray(),
+      orbitCoords: this._orbitCoords.toArray()
+    };
+  }
+  static deserialize(json) {
+    return new Camera({
+      lookAt: Vec.fromArray(json.lookAt),
+      distanceToPlane: json.distanceToPlane,
+      position: Vec.fromArray(json.position),
+      orientCoords: Vec.fromArray(json.orientCoords),
+      orbitCoords: Vec.fromArray(json.orbitCoords)
+    });
   }
 }
 
@@ -3191,6 +3299,17 @@ class Scene {
     if (level === 0)
       return camera.reverseShot(debugScene, { clearScreen: false }).to(canvas);
     return canvas;
+  }
+  serialize() {
+    return this.getElements().map((x) => x.serialize());
+  }
+  static deserialize(serializedScene) {
+    return new Scene().addList(serializedScene.map((x) => {
+      if (x.type === Triangle.name)
+        return Triangle.deserialize(x);
+      if (x.type === Sphere_default.name)
+        return Sphere_default.deserialize(x);
+    }));
   }
 }
 
@@ -3839,9 +3958,8 @@ var rayCache = (gridSize = 0.01, dirGrid = 0.01) => {
     return Math.abs(h);
   }
   function dirHash(d) {
-    const sphericalCoords = Vec2(Math.atan2(d.y, d.x), Math.asin(d.z));
-    const integerCoord = sphericalCoords.map((z) => Math.floor(z / dirGrid));
-    const h = integerCoord.x * 92837111 ^ integerCoord.y * 689287499;
+    const integerCoord = d.map((z) => Math.floor(z / dirGrid));
+    const h = integerCoord.x * 92837111 ^ integerCoord.y * 689287499 ^ integerCoord.z * 283923481;
     return Math.abs(h);
   }
   cache.put = (ray, value) => {
@@ -4635,7 +4753,7 @@ function saveImageStreamToVideo(fileAddress, streamWithImages, { imageGetter = (
   };
 }
 function saveParallelImageStreamToVideo(fileAddress, parallelStreamOfImages, options) {
-  const { fps, isNode: isNode2 = true } = options;
+  const { fps, isNode = true } = options;
   const { fileName, extension } = getFileNameAndExtensionFromAddress(fileAddress);
   const partition = parallelStreamOfImages.getPartition();
   const inputParamsPartitions = Object.values(partition);
@@ -4685,7 +4803,7 @@ function saveParallelImageStreamToVideo(fileAddress, parallelStreamOfImages, opt
             });
         `);
     return new Promise((resolve) => {
-      exec(`${isNode2 ? "node" : "bun"} ${spawnFile}`, () => resolve());
+      exec(`${isNode ? "node" : "bun"} ${spawnFile}`, () => resolve());
     });
   });
   return Promise.all(promises).then(() => {
@@ -4811,8 +4929,6 @@ export {
   Vec3,
   Vec2,
   Vec,
-  UNIT_BOX_VERTEX2 as UNIT_BOX_VERTEX,
-  UNIT_BOX_FACES2 as UNIT_BOX_FACES,
   Triangle,
   Stream,
   Sphere_default as Sphere,
@@ -4823,12 +4939,15 @@ export {
   Path,
   Parallel,
   NaiveScene,
+  NUMBER_OF_CORES,
   Metallic,
   Mesh,
   MAX_8BIT,
+  MATERIALS,
   Line,
   KScene,
   Image,
+  IS_NODE,
   exports_IO as IO,
   Diffuse,
   DiElectric,

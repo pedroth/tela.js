@@ -6,7 +6,7 @@ import Triangle from "../Geometry/Triangle.js";
 import { Vec2 } from "../Vector/Vector.js";
 import { getBiLinearTexColor, getDefaultTexColor, getTexColor } from "./common.js";
 
-export function rasterGraphics(scene, camera, params) {
+export function rasterGraphics(scene, camera, params = {}) {
     const type2render = {
         [Sphere.name]: rasterSphere,
         [Line.name]: rasterLine,
@@ -85,7 +85,7 @@ function rasterSphere({ canvas, camera, elem, w, h, zBuffer }) {
             const xl = Math.max(0, Math.min(w - 1, x + k));
             const yl = Math.floor(y + l);
             const squareLength = k * k + l * l;
-            if(squareLength > intRadiusSquare) continue;
+            if (squareLength > intRadiusSquare) continue;
             const [i, j] = canvas.canvas2grid(xl, yl);
             const zBufferIndex = Math.floor(w * i + j);
             if (z < zBuffer[zBufferIndex]) {
@@ -230,7 +230,7 @@ function rasterTriangle({ canvas, camera, elem, w, h, zBuffer, params }) {
                 params.bilinearTexture ?
                     getBiLinearTexColor(texUV, texture) :
                     getTexColor(texUV, texture) :
-                getDefaultTexColor(texUV);
+                c ? c : getDefaultTexColor(texUV); // TODO: review this
             c = texColor;
         }
         const [i, j] = canvas.canvas2grid(x, y);
