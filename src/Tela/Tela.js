@@ -166,8 +166,8 @@ export default class Tela {
     }
 
     resize(width, height) {
-        this.width = width;
-        this.height = height;
+        this.width = Math.floor(width);
+        this.height = Math.floor(height);
         this.image = new Float32Array(CHANNELS * this.width * this.height);
         this.box = new Box(Vec2(0, 0), Vec2(this.width, this.height));
     }

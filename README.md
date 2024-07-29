@@ -29,10 +29,10 @@ Playground usage:
 
 </body>
 <script type="module">
-    import { Canvas, Animation, Color } from "https://cdn.jsdelivr.net/npm/tela.js/dist/web/index.js";
+    import { Canvas, Color, loop} from "https://cdn.jsdelivr.net/npm/tela.js/dist/web/index.js";
 
     // You can also import from local file
-    // import { Canvas, Animation, Color} from "./node_modules/tela.js/dist/web/index.js";
+    // import { Canvas, Color, loop} from "./node_modules/tela.js/dist/web/index.js";
 
     const width = 640;
     const height = 480;
@@ -57,23 +57,22 @@ Playground usage:
 Install `tela.js` it using `npm install tela.js` / `bun add tela.js`.
 
 ```js
-import { Animation, Color } from "tela.js/dist/node/index.js";
+import { loop, Color } from "tela.js/dist/node/index.js";
 import Window from "tela.js/src/Tela/Window.js";
 
 const width = 640;
 const height = 480;
 const window = Window.ofSize(640, 480);
-Animation
-    .loop(({ time, dt }) => {
-        window.setTitle(`FPS: ${Math.floor(1 / dt)}`);
-        window.map((x, y) => {
-            return Color.ofRGB(
-                ((x * time) / width) % 1,
-                ((y * time) / height) % 1
-            )
-        })
+loop(({ time, dt }) => {
+    window.setTitle(`FPS: ${Math.floor(1 / dt)}`);
+    window.map((x, y) => {
+        return Color.ofRGB(
+            ((x * time) / width) % 1,
+            ((y * time) / height) % 1
+        )
     })
-    .play();
+})
+.play();
 ```
 
 And run it: `node index.mjs` / `bun index.js`
