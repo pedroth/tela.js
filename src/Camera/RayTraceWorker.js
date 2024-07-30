@@ -18,7 +18,7 @@ function main(inputs) {
         scene: serializedScene,
         camera: serializedCamera,
     } = inputs;
-    scene = serializedScene ? Scene.deserialize(serializedScene) : scene;
+    scene = serializedScene ? Scene.deserialize(serializedScene).rebuild() : scene;
     const camera = Camera.deserialize(serializedCamera);
     const rayGen = camera.rayFromImage(width, height);
     const bufferSize = width * (endRow - startRow + 1) * CHANNELS;

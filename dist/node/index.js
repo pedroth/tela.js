@@ -2978,7 +2978,7 @@ function parallelWorkers(camera, scene, canvas, params = {}) {
         height: h,
         params: { samplesPerPxl, bounces, variance, gamma, bilinearTexture },
         startRow: k * ratio,
-        endRow: Math.min(h - 1, (k + 1) * ratio),
+        endRow: Math.min(h, (k + 1) * ratio),
         camera: camera.serialize(),
         scene: isNewScene ? scene.serialize() : undefined
       };
