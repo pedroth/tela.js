@@ -1,4 +1,3 @@
-import { IS_NODE } from "../Utils/Constants.js";
 import Scene from "../Scene/Scene.js"
 import Camera from "./Camera.js";
 import { CHANNELS } from "../Tela/Tela.js";
@@ -7,7 +6,7 @@ import Vec from "../Vector/Vector.js";
 import Ray from "../Ray/Ray.js";
 import { trace } from "./raytrace.js";
 
-const parentPort = IS_NODE ? await import("node:worker_threads").parentPort : {postMessage};
+let scene = undefined;
 
 function main(inputs) {
     const {
@@ -19,7 +18,7 @@ function main(inputs) {
         scene: serializedScene,
         camera: serializedCamera,
     } = inputs;
-    const scene = Scene.deserialize(serializedScene);
+    scene = serializedScene ? Scene.deserialize(serializedScene) : scene;
     const camera = Camera.deserialize(serializedCamera);
     const rayGen = camera.rayFromImage(width, height);
     const bufferSize = width * (endRow - startRow + 1) * CHANNELS;
@@ -52,15 +51,8 @@ function main(inputs) {
     return { image, startRow, endRow };
 }
 
-
-const sendMessage = message => {
-    const input = message;
+onmessage = message => {
+    const input = message.data;
     const output = main(input);
-    parentPort.postMessage(output);
-}
-
-if (IS_NODE) {
-    parentPort.on("message", sendMessage);
-} else {
-    onmessage = sendMessage;
-}
+    postMessage(output);
+};

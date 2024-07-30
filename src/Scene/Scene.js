@@ -1,7 +1,7 @@
 
 import Box from "../Geometry/Box.js";
 import Vec, { Vec3 } from "../Vector/Vector.js";
-import { argmin } from "../Utils/Utils.js";
+import { argmin, hashStr } from "../Utils/Utils.js";
 import PQueue from "../Utils/PQueue.js";
 import NaiveScene from "./NaiveScene.js";
 import Color from "../Color/Color.js";
@@ -15,6 +15,10 @@ export default class Scene {
     this.id2ElemMap = {};
     this.sceneElements = [];
     this.boundingBoxScene = new Node(k);
+  }
+
+  get hash() {
+    return this.getElements().reduce((e, x) => e ^ hashStr(x.name), 0);
   }
 
   add(...elements) {
@@ -172,14 +176,14 @@ export default class Scene {
   }
 
   serialize() {
-    return this.getElements().map(x => x.serialize())
+    return this.getElements().map(x => x.serialize());
   }
 
   static deserialize(serializedScene) {
     return new Scene()
       .addList(serializedScene.map(x => {
-        if(x.type  === Triangle.name) return Triangle.deserialize(x);
-        if(x.type  === Sphere.name) return Sphere.deserialize(x); 
+        if (x.type === Triangle.name) return Triangle.deserialize(x);
+        if (x.type === Sphere.name) return Sphere.deserialize(x);
       }));
   }
 }

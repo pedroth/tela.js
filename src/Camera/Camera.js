@@ -8,13 +8,14 @@ import { parallelWorkers } from "./parallel.js";
 
 export default class Camera {
   constructor(props = {}) {
-    const { lookAt, distanceToPlane, position } = props;
+    const { lookAt, distanceToPlane, position, orientCoords, orbitCoords } = props;
     this.lookAt = lookAt ?? Vec3(0, 0, 0);
     this.distanceToPlane = distanceToPlane ?? 1;
     this.position = position ?? Vec3(3, 0, 0);
-    this._orientCoords = Vec2();
-    this._orbitCoords = Vec3(this.position.length(), 0, 0);
-    this.orient();
+    this._orientCoords = orientCoords ?? Vec2();
+    this._orbitCoords = orbitCoords;
+    if (this._orbitCoords) this.orbit(...this._orbitCoords.toArray());
+    else this.orient(...this._orientCoords.toArray());
   }
 
   look(at, up = Vec3(0, 0, 1)) {
@@ -124,10 +125,11 @@ export default class Camera {
   }
 
   parallelShot(scene, params) {
+    
     return {
       to: canvas => {
         return Promise
-          .all(parallelWorkers(this, scene, params, canvas))
+          .all(parallelWorkers(this, scene, canvas, params))
           .then(() => canvas.paint())
       }
     }

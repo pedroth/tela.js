@@ -6,7 +6,7 @@ async (canvas, logger) => {
     canvas.resize(width, height);
     let exposedCanvas = canvas.exposure();
     // scene
-    const scene = new BScene()
+    const scene = new Scene();
     const camera = new Camera({ lookAt: Vec3(1.5, 1.5, 1.5) }).orbit(3, 0, 0);
     // mouse handling
     let mousedown = false;
@@ -169,8 +169,8 @@ async (canvas, logger) => {
     )
 
     // boilerplate for fps
-    loop(({ dt }) => {
-        camera.sceneShot(scene).to(exposedCanvas);
+    loop(async ({ dt }) => {
+        await camera.parallelShot(scene).to(exposedCanvas);
         logger.print(Math.floor(1 / dt));
     })
         .play();

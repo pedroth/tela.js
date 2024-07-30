@@ -129,16 +129,12 @@ export default class Tela {
     exposure(time = Number.MAX_VALUE) {
         let it = 1;
         const ans = {};
-        let proto = Object.getPrototypeOf(this);
         // chatGPT
-        while (proto !== null) {
-            for (let key of Object.getOwnPropertyNames(proto)) {
-                const descriptor = Object.getOwnPropertyDescriptor(proto, key);
-                if (descriptor && typeof descriptor.value === 'function') {
-                    ans[key] = descriptor.value.bind(this);
-                }
+        for (let key of Object.getOwnPropertyNames(Object.getPrototypeOf(this))) {
+            const descriptor = Object.getOwnPropertyDescriptor(Object.getPrototypeOf(this), key);
+            if (descriptor && typeof descriptor.value === 'function') {
+                ans[key] = descriptor.value.bind(this);
             }
-            proto = Object.getPrototypeOf(proto);
         }
         // end of chatGPT
         ans.width = this.width;
@@ -159,6 +155,30 @@ export default class Tela {
                 this.image[k + 2] = this.image[k + 2] + (color.blue - this.image[k + 2]) / it;
                 this.image[k + 3] = this.image[k + 3] + (color.alpha - this.image[k + 3]) / it;
             }
+            if (it < time) it++
+            return this.paint();
+        }
+
+        ans.setPxl = (x, y, color) => {
+            const w = this.width;
+            const [i, j] = this.canvas2grid(x, y);
+            let index = 4 * (w * i + j);
+            this.image[index] = this.image[index] + (color.red - this.image[index]) / it;
+            this.image[index + 1] = this.image[index + 1] + (color.green - this.image[index + 1]) / it;
+            this.image[index + 2] = this.image[index + 2] + (color.blue - this.image[index + 2]) / it;
+            this.image[index + 3] = this.image[index + 3] + (color.alpha - this.image[index + 3]) / it;
+            return this;
+        }
+
+        ans.setPxlData = (index, color) => {
+            this.image[index] = this.image[index] + (color.red - this.image[index]) / it;
+            this.image[index + 1] = this.image[index + 1] + (color.green - this.image[index + 1]) / it;
+            this.image[index + 2] = this.image[index + 2] + (color.blue - this.image[index + 2]) / it;
+            this.image[index + 3] = this.image[index + 3] + (color.alpha - this.image[index + 3]) / it;
+            return ans;
+        }
+
+        ans.paint = () => {
             if (it < time) it++
             return this.paint();
         }

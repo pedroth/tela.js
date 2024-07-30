@@ -1,4 +1,3 @@
-import {createRequire} from "node:module";
 var __defProp = Object.defineProperty;
 var __export = (target, all) => {
   for (var name in all)
@@ -9,13 +8,11 @@ var __export = (target, all) => {
       set: (newValue) => all[name] = () => newValue
     });
 };
-var __require = createRequire(import.meta.url);
 
 // src/Utils/Constants.js
 var MAX_8BIT = 255;
 var RAD2DEG = 180 / Math.PI;
 var IS_NODE = typeof window === "undefined";
-var NUMBER_OF_CORES = IS_NODE ? await import("node:os").cpus().length : navigator.hardwareConcurrency;
 
 // src/Color/Color.js
 class Color {
@@ -165,6 +162,13 @@ function loop(lambda) {
     play: () => play({ oldT: new Date().getTime(), time: 0 })
   };
   return loopControl;
+}
+function hashStr(string) {
+  let hash = 0;
+  for (let i = 0;i < string.length; i++) {
+    hash = hash * 37 ^ string.charCodeAt(i);
+  }
+  return hash >>> 0;
 }
 var RANDOM = Array(1000).fill().map(Math.random);
 var i = 0;
@@ -955,15 +959,11 @@ class Tela {
   exposure(time = Number.MAX_VALUE) {
     let it = 1;
     const ans = {};
-    let proto = Object.getPrototypeOf(this);
-    while (proto !== null) {
-      for (let key of Object.getOwnPropertyNames(proto)) {
-        const descriptor = Object.getOwnPropertyDescriptor(proto, key);
-        if (descriptor && typeof descriptor.value === "function") {
-          ans[key] = descriptor.value.bind(this);
-        }
+    for (let key of Object.getOwnPropertyNames(Object.getPrototypeOf(this))) {
+      const descriptor = Object.getOwnPropertyDescriptor(Object.getPrototypeOf(this), key);
+      if (descriptor && typeof descriptor.value === "function") {
+        ans[key] = descriptor.value.bind(this);
       }
-      proto = Object.getPrototypeOf(proto);
     }
     ans.width = this.width;
     ans.height = this.height;
@@ -984,6 +984,28 @@ class Tela {
         this.image[k + 2] = this.image[k + 2] + (color.blue - this.image[k + 2]) / it;
         this.image[k + 3] = this.image[k + 3] + (color.alpha - this.image[k + 3]) / it;
       }
+      if (it < time)
+        it++;
+      return this.paint();
+    };
+    ans.setPxl = (x, y, color) => {
+      const w = this.width;
+      const [i2, j] = this.canvas2grid(x, y);
+      let index = 4 * (w * i2 + j);
+      this.image[index] = this.image[index] + (color.red - this.image[index]) / it;
+      this.image[index + 1] = this.image[index + 1] + (color.green - this.image[index + 1]) / it;
+      this.image[index + 2] = this.image[index + 2] + (color.blue - this.image[index + 2]) / it;
+      this.image[index + 3] = this.image[index + 3] + (color.alpha - this.image[index + 3]) / it;
+      return this;
+    };
+    ans.setPxlData = (index, color) => {
+      this.image[index] = this.image[index] + (color.red - this.image[index]) / it;
+      this.image[index + 1] = this.image[index + 1] + (color.green - this.image[index + 1]) / it;
+      this.image[index + 2] = this.image[index + 2] + (color.blue - this.image[index + 2]) / it;
+      this.image[index + 3] = this.image[index + 3] + (color.alpha - this.image[index + 3]) / it;
+      return ans;
+    };
+    ans.paint = () => {
       if (it < time)
         it++;
       return this.paint();
@@ -2924,66 +2946,63 @@ function normalTrace(scene) {
 }
 
 // src/Camera/parallel.js
-function parallelWorkers(camera, scene, params, canvas) {
+function parallelWorkers(camera, scene, canvas, params = {}) {
   if (WORKERS.length === 0)
     WORKERS = [...Array(NUMBER_OF_CORES)].map(() => new Worker(`/src/Camera/RayTraceWorker.js`, { type: "module" }));
   const w = canvas.width;
   const h = canvas.height;
-  const readMessage = (resolve) => (message) => {
-    const { image, startRow, endRow } = message;
-    let index = 0;
-    const startIndex = CHANNELS * w * startRow;
-    const endIndex = CHANNELS * w * endRow;
-    for (let i2 = startIndex;i2 < endIndex; i2 += CHANNELS) {
-      canvas.setPxlData(i2, [image[index++], image[index++], image[index++]]);
-      index++;
-    }
-    resolve();
-  };
+  let { samplesPerPxl, bounces, variance, gamma, bilinearTexture } = params;
+  bounces = bounces ?? 10;
+  variance = variance ?? 0.001;
+  samplesPerPxl = samplesPerPxl ?? 1;
+  gamma = gamma ?? 0.5;
+  bilinearTexture = bilinearTexture ?? false;
+  const isNewScene = prevSceneHash !== scene.hash;
+  if (isNewScene)
+    prevSceneHash = scene.hash;
   return WORKERS.map((worker, k) => {
     return new Promise((resolve) => {
-      if (IS_NODE) {
-        worker.removeAllListeners("message");
-        worker.on("message", readMessage(resolve));
-      } else {
-        worker.onmessage = (message2) => {
-          const { image, startRow, endRow } = message2;
-          let index = 0;
-          const startIndex = CHANNELS * w * startRow;
-          const endIndex = CHANNELS * w * endRow;
-          for (let i2 = startIndex;i2 < endIndex; i2 += CHANNELS) {
-            canvas.setPxlData(i2, [image[index++], image[index++], image[index++]]);
-            index++;
-          }
-          resolve();
-        };
-      }
+      worker.onmessage = (message2) => {
+        const { image, startRow, endRow } = message2.data;
+        let index = 0;
+        const startIndex = CHANNELS * w * startRow;
+        const endIndex = CHANNELS * w * endRow;
+        for (let i2 = startIndex;i2 < endIndex; i2 += CHANNELS) {
+          canvas.setPxlData(i2, Color.ofRGB(image[index++], image[index++], image[index++], image[index++]));
+        }
+        resolve();
+      };
       const ratio = Math.floor(h / WORKERS.length);
       const message = {
         width: w,
         height: h,
-        params,
+        params: { samplesPerPxl, bounces, variance, gamma, bilinearTexture },
         startRow: k * ratio,
         endRow: Math.min(h - 1, (k + 1) * ratio),
         camera: camera.serialize(),
-        scene: scene ? scene.serialize() : []
+        scene: isNewScene ? scene.serialize() : undefined
       };
       worker.postMessage(message);
     });
   });
 }
+var NUMBER_OF_CORES = navigator.hardwareConcurrency;
 var WORKERS = [];
+var prevSceneHash = undefined;
 
 // src/Camera/Camera.js
 class Camera {
   constructor(props = {}) {
-    const { lookAt, distanceToPlane, position } = props;
+    const { lookAt, distanceToPlane, position, orientCoords, orbitCoords } = props;
     this.lookAt = lookAt ?? Vec3(0, 0, 0);
     this.distanceToPlane = distanceToPlane ?? 1;
     this.position = position ?? Vec3(3, 0, 0);
-    this._orientCoords = Vec2();
-    this._orbitCoords = Vec3(this.position.length(), 0, 0);
-    this.orient();
+    this._orientCoords = orientCoords ?? Vec2();
+    this._orbitCoords = orbitCoords;
+    if (this._orbitCoords)
+      this.orbit(...this._orbitCoords.toArray());
+    else
+      this.orient(...this._orientCoords.toArray());
   }
   look(at, up = Vec3(0, 0, 1)) {
     this.lookAt = at;
@@ -3066,7 +3085,7 @@ class Camera {
   parallelShot(scene, params) {
     return {
       to: (canvas) => {
-        return Promise.all(parallelWorkers(this, scene, params, canvas)).then(() => canvas.paint());
+        return Promise.all(parallelWorkers(this, scene, canvas, params)).then(() => canvas.paint());
       }
     };
   }
@@ -3174,6 +3193,9 @@ class Scene {
     this.id2ElemMap = {};
     this.sceneElements = [];
     this.boundingBoxScene = new Node2(k);
+  }
+  get hash() {
+    return this.getElements().reduce((e, x) => e ^ hashStr(x.name), 0);
   }
   add(...elements) {
     return this.addList(elements);
@@ -4921,6 +4943,7 @@ export {
   maybe,
   loop,
   lerp,
+  hashStr,
   groupBy,
   fRandom,
   clamp,
@@ -4939,7 +4962,6 @@ export {
   Path,
   Parallel,
   NaiveScene,
-  NUMBER_OF_CORES,
   Metallic,
   Mesh,
   MAX_8BIT,

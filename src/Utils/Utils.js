@@ -1,4 +1,4 @@
-import { IS_NODE } from "./Constants";
+import { IS_NODE } from "./Constants.js";
 
 export function measureTime(lambda) {
     const t = performance.now();
@@ -85,4 +85,12 @@ export function loop(lambda) {
     };
 
     return loopControl;
+}
+
+export function hashStr(string) {
+    let hash = 0;
+    for (let i = 0; i < string.length; i++) {
+        hash = (hash * 37) ^ string.charCodeAt(i);
+    }
+    return hash >>> 0; // Convert to unsigned 32-bit integer
 }
