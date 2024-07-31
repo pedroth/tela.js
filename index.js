@@ -530,12 +530,12 @@ const examples = [
         path: "/test/web/glass.js"
     },
     {
-        title: "spot spheres test",
-        path: "/test/web/debug_normal_shot_test.js"
-    },
-    {
         title: "image to rgb space",
         path: "/test/web/image2rgb.js"
+    },
+    {
+        title: "spot spheres test",
+        path: "/test/web/debug_normal_shot_test.js"
     },
     {
         title: "debug ray marching",
