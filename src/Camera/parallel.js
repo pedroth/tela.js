@@ -1,12 +1,13 @@
+import { IS_NODE, NUMBER_OF_CORES } from "../Utils/Constants.js";
 import Color from "../Color/Color.js";
 import { CHANNELS } from "../Tela/Tela.js";
+export const __Worker = IS_NODE ? await import("node:worker_threads") : Worker;
 
-const NUMBER_OF_CORES = navigator.hardwareConcurrency;
 let WORKERS = [];
 let prevSceneHash = undefined;
 export function parallelWorkers(camera, scene, canvas, params = {}) {
     // lazy loading workers
-    if (WORKERS.length === 0) WORKERS = [...Array(NUMBER_OF_CORES)].map(() => new Worker(`/src/Camera/RayTraceWorker.js`, { type: 'module' }));
+    if (WORKERS.length === 0) WORKERS = [...Array(NUMBER_OF_CORES)].map(() => new __Worker(`/src/Camera/RayTraceWorker.js`, { type: 'module' }));
     const w = canvas.width;
     const h = canvas.height;
     let { samplesPerPxl, bounces, variance, gamma, bilinearTexture } = params;

@@ -6,7 +6,7 @@ async (canvas, logger) => {
     canvas.resize(width, height);
     let exposedCanvas = canvas.exposure();
     // scene
-    const scene = new KScene();
+    const scene = new Scene();
     const camera = new Camera({ lookAt: Vec3(1.5, 1.5, 1.5) }).orbit(3, 0, 0);
     // mouse handling
     let mousedown = false;
@@ -44,15 +44,16 @@ async (canvas, logger) => {
     const stanfordBunnyObj = await fetch("./assets/bunny_orig.obj").then(x => x.text());
     let bunnyMesh = Mesh.readObj(stanfordBunnyObj, "bunny");
     const bunnyBox = bunnyMesh.getBoundingBox();
+    const maxDiagInv = 2 / bunnyBox.diagonal.fold((e, x) => Math.max(e, x), Number.MIN_VALUE);
     bunnyMesh = bunnyMesh
-        .mapVertices(v => v.sub(bunnyBox.min).div(bunnyBox.diagonal).scale(2).sub(Vec3(1, 1, 1)))
+        .mapVertices(v => v.sub(bunnyBox.center).scale(maxDiagInv))
         .mapVertices(v => v.scale(0.5))
         .mapVertices(v => Vec3(-v.y, v.x, v.z))
         .mapVertices(v => Vec3(v.z, v.y, -v.x))
         .mapVertices(v => v.add(Vec3(1.0, 1.5, 1.0)))
         .mapColors(() => Color.WHITE)
         .mapMaterials(() => DiElectric(1.5))
-    scene.add(bunnyMesh);
+    scene.addList(bunnyMesh.asTriangles());
 
     // cornell box
     scene.add(
@@ -133,8 +134,8 @@ async (canvas, logger) => {
     )
 
     // boilerplate for fps
-    loop(({ dt }) => {
-        camera.sceneShot(scene).to(exposedCanvas);
+    loop(async ({ dt }) => {
+        await camera.parallelShot(scene).to(exposedCanvas);
         logger.print(Math.floor(1 / dt));
     }).play();
 }

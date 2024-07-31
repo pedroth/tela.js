@@ -1,4 +1,4 @@
-import { Camera, Mesh, Vec3, Vec2, Color, DiElectric, Triangle, KScene, BScene, Image, loop, Metallic } from "../../dist/node/index.js";
+import { Camera, Mesh, Vec3, Vec2, Color, DiElectric, Triangle, Scene, Image, loop } from "../../dist/node/index.js";
 import Window from "../../src/Tela/Window.js";
 import { readFileSync } from "fs"
 
@@ -8,7 +8,7 @@ import { readFileSync } from "fs"
     const window = Window.ofSize(width, height);
     let exposedWindow = window.exposure();
     // scene
-    const scene = new KScene();
+    const scene = new Scene();
     const camera = new Camera({ lookAt: Vec3(1.5, 1.5, 1.5) }).orbit(5, 0, 0);
     // mouse handling
     let mousedown = false;
@@ -136,9 +136,9 @@ import { readFileSync } from "fs"
     )
     scene.rebuild();
     // play
-    loop(({ dt }) => {
+    loop(async ({ dt }) => {
         // camera.sceneShot(scene, { bounces: 10, samplesPerPxl: 10, gamma: 0.1 }).to(exposedCanvas);
-        camera.sceneShot(scene).to(exposedWindow);
+        await camera.parallelShot(scene).to(exposedWindow);
         window.setTitle(`FPS: ${Math.floor(1 / dt)}`);
     }).play();
 })()

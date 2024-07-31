@@ -1,3 +1,4 @@
+import {createRequire} from "node:module";
 var __defProp = Object.defineProperty;
 var __export = (target, all) => {
   for (var name in all)
@@ -8,11 +9,13 @@ var __export = (target, all) => {
       set: (newValue) => all[name] = () => newValue
     });
 };
+var __require = createRequire(import.meta.url);
 
 // src/Utils/Constants.js
 var MAX_8BIT = 255;
 var RAD2DEG = 180 / Math.PI;
-var IS_NODE = typeof window === "undefined";
+var IS_NODE = typeof process !== "undefined" && process.versions && process.versions.node;
+var NUMBER_OF_CORES = IS_NODE ? await import("node:os").cpus().length : navigator.hardwareConcurrency;
 
 // src/Color/Color.js
 class Color {
@@ -172,7 +175,7 @@ function hashStr(string) {
 }
 var RANDOM = Array(1000).fill().map(Math.random);
 var i = 0;
-var setTimeOut = IS_NODE ? setTimeout : requestAnimationFrame;
+var setTimeOut = typeof window === "undefined" ? setTimeout : requestAnimationFrame;
 
 // src/Vector/Vector.js
 function Vec3(x = 0, y = 0, z = 0) {
@@ -2533,7 +2536,6 @@ class Mesh {
       return this;
     this._meshScene = new KScene;
     this._meshScene.addList(this.asTriangles());
-    this._meshScene.rebuild();
     return this;
   }
   get meshScene() {
@@ -2948,7 +2950,7 @@ function normalTrace(scene) {
 // src/Camera/parallel.js
 function parallelWorkers(camera, scene, canvas, params = {}) {
   if (WORKERS.length === 0)
-    WORKERS = [...Array(NUMBER_OF_CORES)].map(() => new Worker(`/src/Camera/RayTraceWorker.js`, { type: "module" }));
+    WORKERS = [...Array(NUMBER_OF_CORES)].map(() => new __Worker(`/src/Camera/RayTraceWorker.js`, { type: "module" }));
   const w = canvas.width;
   const h = canvas.height;
   let { samplesPerPxl, bounces, variance, gamma, bilinearTexture } = params;
@@ -2986,7 +2988,7 @@ function parallelWorkers(camera, scene, canvas, params = {}) {
     });
   });
 }
-var NUMBER_OF_CORES = navigator.hardwareConcurrency;
+var __Worker = IS_NODE ? await import("node:worker_threads") : Worker;
 var WORKERS = [];
 var prevSceneHash = undefined;
 
@@ -3003,6 +3005,7 @@ class Camera {
       this.orbit(...this._orbitCoords.toArray());
     else
       this.orient(...this._orientCoords.toArray());
+    this._orbitCoords = this._orbitCoords ?? Vec3(this.position.length());
   }
   look(at, up = Vec3(0, 0, 1)) {
     this.lookAt = at;
@@ -4962,6 +4965,7 @@ export {
   Path,
   Parallel,
   NaiveScene,
+  NUMBER_OF_CORES,
   Metallic,
   Mesh,
   MAX_8BIT,

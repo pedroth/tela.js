@@ -40,21 +40,17 @@ async (canvas, logger) => {
     const stanfordBunnyObj = await fetch("/assets/bunny.obj").then(x => x.text());
     let bunnyMesh = Mesh.readObj(stanfordBunnyObj, "bunny");
     const bunnyBox = bunnyMesh.getBoundingBox();
+    const maxDiagInv = 2 / bunnyBox.diagonal.fold((e, x) => Math.max(e, x), Number.MIN_VALUE);
     bunnyMesh = bunnyMesh
-        .mapVertices(v =>
-            v.sub(bunnyBox.min).div(bunnyBox.diagonal).scale(2).sub(Vec3(1, 1, 1))
-        )
+        .mapVertices(v => v.sub(bunnyBox.center).scale(maxDiagInv))
         .mapVertices(v => Vec3(-v.y, v.x, v.z))
         .mapVertices(v => Vec3(v.z, v.y, -v.x))
-        .mapColors(v =>
-            Color.ofRGB(...v.map(x => Math.max(0, Math.min(1, 0.5 * (x + 1)))).toArray())
-        )
+        .mapColors(v => Color.ofRGB(...v.map(x => Math.max(0, Math.min(1, 0.5 * (x + 1)))).toArray()))
     scene.addList(bunnyMesh.asPoints(0.02));
 
     // boilerplate for fps
     loop(({ dt }) => {
         camera.reverseShot(scene).to(canvas);
         logger.print(Math.floor(1 / dt));
-    })
-        .play();
+    }).play();
 }

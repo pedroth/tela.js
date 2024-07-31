@@ -16,6 +16,7 @@ export default class Camera {
     this._orbitCoords = orbitCoords;
     if (this._orbitCoords) this.orbit(...this._orbitCoords.toArray());
     else this.orient(...this._orientCoords.toArray());
+    this._orbitCoords = this._orbitCoords ?? Vec3(this.position.length());
   }
 
   look(at, up = Vec3(0, 0, 1)) {
