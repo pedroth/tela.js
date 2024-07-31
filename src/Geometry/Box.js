@@ -142,11 +142,11 @@ export default class Box {
     }
 
     serialize() {
-
+        // TODO
     }
 
     deserialize() {
-        
+        // TODO
     }
 
     static EMPTY = new Box();

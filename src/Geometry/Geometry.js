@@ -35,4 +35,20 @@ export default class Geometry {
     interceptWithRay(ray) {
         throw Error("Not implemented");
     }
+
+    sample() {
+        throw Error("Not implemented");
+    }
+
+    equals(obj) {
+        return this === obj;
+    }
+
+    serialize() {
+        throw Error("Not implemented");
+    }
+
+    static deserialize(json) {
+        throw Error("Not implemented");
+    }
 }

@@ -15,14 +15,17 @@ export default class Path {
     }
 
     distanceToPoint() {
+        // TODO
         throw Error("No implementation");
     }
 
     normalToPoint() {
+        // TODO
         throw Error("No implementation");
     }
     
     interceptWithRay(ray) {
+        // TODO
         throw Error("No implementation");
     }
 
