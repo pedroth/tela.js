@@ -2536,6 +2536,7 @@ class Mesh {
       return this;
     this._meshScene = new KScene;
     this._meshScene.addList(this.asTriangles());
+    this._meshScene.rebuild();
     return this;
   }
   get meshScene() {

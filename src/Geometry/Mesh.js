@@ -36,7 +36,7 @@ export default class Mesh {
         if (this._meshScene) return this;
         this._meshScene = new KScene();
         this._meshScene.addList(this.asTriangles());
-        // this._meshScene.rebuild();
+        this._meshScene.rebuild();
         return this;
     }
 
