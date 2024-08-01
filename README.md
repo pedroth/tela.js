@@ -108,7 +108,7 @@ video(
     animation,
     { width, height, FPS }
 )
-    .until(({ time }) => time < maxVideoTime);
+    .while(({ time }) => time < maxVideoTime);
 ```
 
 And run it: `node index.mjs` / `bun index.js`

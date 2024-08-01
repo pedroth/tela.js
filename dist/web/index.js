@@ -177,7 +177,7 @@ var init_os = __esm(() => {
 var MAX_8BIT = 255;
 var RAD2DEG = 180 / Math.PI;
 var IS_NODE = typeof process !== "undefined" && process.versions && process.versions.node;
-var NUMBER_OF_CORES = IS_NODE ? await Promise.resolve().then(() => (init_os(), exports_os)).cpus().length : navigator.hardwareConcurrency;
+var NUMBER_OF_CORES = IS_NODE ? (await Promise.resolve().then(() => (init_os(), exports_os))).cpus().length : navigator.hardwareConcurrency;
 
 // src/Color/Color.js
 class Color {
@@ -254,9 +254,9 @@ class Color {
 }
 
 // src/Utils/Utils.js
-function measureTime(lambda) {
+async function measureTime(lambda) {
   const t = performance.now();
-  lambda();
+  await lambda();
   return 0.001 * (performance.now() - t);
 }
 async function measureTimeWithAsyncResult(lambda) {
@@ -1485,11 +1485,13 @@ class Stream {
     return this._map(this._head);
   }
   get tail() {
-    let state = this.head;
-    while (!this._pred(this._tail(state))) {
-      state = this._tail(state);
-    }
-    return new Stream(this._tail(state), this._tail, this._pred);
+    return (async () => {
+      let state = this.head;
+      while (!this._pred(this._tail(state))) {
+        state = await this._tail(state);
+      }
+      return new Stream(await this._tail(state), this._tail, this._pred);
+    })();
   }
   map(lambda) {
     return new Stream(this._head, this._tail, { predicate: this._pred, map: (x2) => lambda(this._map(x2)) });
@@ -3113,7 +3115,7 @@ function normalTrace(scene) {
 // src/Camera/parallel.js
 function parallelWorkers(camera, scene, canvas, params = {}) {
   if (WORKERS.length === 0)
-    WORKERS = [...Array(NUMBER_OF_CORES)].map(() => new __Worker(`/src/Camera/RayTraceWorker.js`, { type: "module" }));
+    WORKERS = [...Array(NUMBER_OF_CORES)].map(() => new MyWorker(`./src/Camera/RayTraceWorker.js`));
   const w = canvas.width;
   const h2 = canvas.height;
   let { samplesPerPxl, bounces, variance, gamma, bilinearTexture } = params;
@@ -3127,8 +3129,8 @@ function parallelWorkers(camera, scene, canvas, params = {}) {
     prevSceneHash = scene.hash;
   return WORKERS.map((worker, k2) => {
     return new Promise((resolve) => {
-      worker.onmessage = (message2) => {
-        const { image, startRow, endRow } = message2.data;
+      worker.onMessage((message2) => {
+        const { image, startRow, endRow } = message2;
         let index = 0;
         const startIndex = CHANNELS * w * startRow;
         const endIndex = CHANNELS * w * endRow;
@@ -3136,7 +3138,7 @@ function parallelWorkers(camera, scene, canvas, params = {}) {
           canvas.setPxlData(i2, Color.ofRGB(image[index++], image[index++], image[index++], image[index++]));
         }
         resolve();
-      };
+      });
       const ratio = Math.floor(h2 / WORKERS.length);
       const message = {
         width: w,
@@ -3151,7 +3153,25 @@ function parallelWorkers(camera, scene, canvas, params = {}) {
     });
   });
 }
-var __Worker = IS_NODE ? await import("node:worker_threads") : Worker;
+var __Worker = IS_NODE ? (await import("node:worker_threads")).Worker : Worker;
+
+class MyWorker {
+  constructor(path) {
+    this.path = path;
+    this.worker = new __Worker(path, { type: "module" });
+  }
+  onMessage(lambda) {
+    if (IS_NODE) {
+      this.worker.removeAllListeners("message");
+      this.worker.on("message", lambda);
+    } else {
+      this.worker.onmessage = (message) => lambda(message.data);
+    }
+  }
+  postMessage(message) {
+    return this.worker.postMessage(message);
+  }
+}
 var WORKERS = [];
 var prevSceneHash = undefined;
 

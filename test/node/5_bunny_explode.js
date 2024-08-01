@@ -56,12 +56,12 @@ const imageStream = new Stream(
 
 console.log(
     "Video created in: ",
-    measureTime(() => {
-        saveImageStreamToVideo(
+    await measureTime(async () => {
+        await saveImageStreamToVideo(
             "./bunny_explode.mp4",
             imageStream,
             { fps: FPS }
-        ).until(({ time }) => time < maxT);
+        ).while(({ time }) => time < maxT);
     })
 )
 

@@ -112,7 +112,7 @@ const { saveImageStreamToVideo } = IO;
                 // .filter(({ time }) => time % 1 <= dt)
                 ,
                 { fps: FPS }
-            ).until(({ time }) => time < maxT);
+            ).while(({ time }) => time < maxT);
         })
     )
 })()

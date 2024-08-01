@@ -3,7 +3,6 @@ import { execSync, exec } from "child_process";
 import Image from "../Tela/Image.js";
 import Color from "../Color/Color.js";
 import { MAX_8BIT } from "../Utils/Constants.js";
-import { clamp } from "../Utils/Math.js";
 
 export function saveImageToFile(fileAddress, image) {
     const { fileName, extension } = getFileNameAndExtensionFromAddress(fileAddress);
@@ -73,7 +72,7 @@ export function createPPMFromImage(image) {
     const width = image.width;
     const height = image.height;
     const pixelData = image.toArray();
-    const rgbClamp = clamp(0, MAX_8BIT);
+    const rgbClamp = x => Math.min(MAX_8BIT, Math.max(0, x));
     let file = `P3\n${width} ${height}\n${MAX_8BIT}\n`;
     for (let i = 0; i < pixelData.length; i += 4) {
         file += `${rgbClamp(pixelData[i])} ${rgbClamp(pixelData[i + 1])} ${rgbClamp(pixelData[i + 2])}\n`;
@@ -87,7 +86,7 @@ export function saveImageStreamToVideo(fileAddress, streamWithImages, { imageGet
     let time = 0;
     let timeCheck = performance.now();
     return {
-        until: streamStatePredicate => {
+        while: async streamStatePredicate => {
             let s = streamWithImages;
             while (streamStatePredicate(s.head)) {
                 const image = imageGetter(s.head);
@@ -95,7 +94,7 @@ export function saveImageStreamToVideo(fileAddress, streamWithImages, { imageGet
                 const newTimeCheck = performance.now();
                 time += (newTimeCheck - timeCheck) * 1e-3;
                 timeCheck = performance.now();
-                s = s.tail;
+                s = await s.tail;
             }
             if (!fps) fps = ite / time;
             execSync(`ffmpeg -framerate ${fps} -i ${fileName}_%d.ppm ${fileName}.${extension}`);
@@ -119,13 +118,10 @@ export function saveParallelImageStreamToVideo(fileAddress, parallelStreamOfImag
             import fs from "node:fs";
             const {
                 Box,
-                DOM,
                 Vec,
                 Vec2,
                 Vec3,
                 Mesh,
-                loop,
-                clamp,
                 Color,
                 Image,
                 Scene,
@@ -137,10 +133,10 @@ export function saveParallelImageStreamToVideo(fileAddress, parallelStreamOfImag
                 NaiveScene,
             } = _module;
             
-            ${createPPMFromImage.toString().replaceAll("function createPPMFromImage(image)", "function __createPPMFromImage__(image)")}
-            
             ${parallelStreamOfImages.dependencies.map(dependency => dependency.toString()).join("\n")}
-            
+
+            ${createPPMFromImage.toString().replaceAll("function createPPMFromImage(image)", "function __createPPMFromImage__(image)")}
+        
             const __initial_state__ = (${parallelStreamOfImages.lazyInitialState})();
 
             const __gen__ = ${parallelStreamOfImages.stateGenerator.toString()};

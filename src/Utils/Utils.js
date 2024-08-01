@@ -1,6 +1,6 @@
-export function measureTime(lambda) {
+export async function measureTime(lambda) {
     const t = performance.now();
-    lambda()
+    await lambda()
     return 1e-3 * (performance.now() - t);
 }
 

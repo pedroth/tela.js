@@ -15,7 +15,7 @@ var __require = createRequire(import.meta.url);
 var MAX_8BIT = 255;
 var RAD2DEG = 180 / Math.PI;
 var IS_NODE = typeof process !== "undefined" && process.versions && process.versions.node;
-var NUMBER_OF_CORES = IS_NODE ? await import("node:os").cpus().length : navigator.hardwareConcurrency;
+var NUMBER_OF_CORES = IS_NODE ? (await import("node:os")).cpus().length : navigator.hardwareConcurrency;
 
 // src/Color/Color.js
 class Color {
@@ -92,9 +92,9 @@ class Color {
 }
 
 // src/Utils/Utils.js
-function measureTime(lambda) {
+async function measureTime(lambda) {
   const t = performance.now();
-  lambda();
+  await lambda();
   return 0.001 * (performance.now() - t);
 }
 async function measureTimeWithAsyncResult(lambda) {
@@ -1323,11 +1323,13 @@ class Stream {
     return this._map(this._head);
   }
   get tail() {
-    let state = this.head;
-    while (!this._pred(this._tail(state))) {
-      state = this._tail(state);
-    }
-    return new Stream(this._tail(state), this._tail, this._pred);
+    return (async () => {
+      let state = this.head;
+      while (!this._pred(this._tail(state))) {
+        state = await this._tail(state);
+      }
+      return new Stream(await this._tail(state), this._tail, this._pred);
+    })();
   }
   map(lambda) {
     return new Stream(this._head, this._tail, { predicate: this._pred, map: (x) => lambda(this._map(x)) });
@@ -2951,7 +2953,7 @@ function normalTrace(scene) {
 // src/Camera/parallel.js
 function parallelWorkers(camera, scene, canvas, params = {}) {
   if (WORKERS.length === 0)
-    WORKERS = [...Array(NUMBER_OF_CORES)].map(() => new __Worker(`/src/Camera/RayTraceWorker.js`, { type: "module" }));
+    WORKERS = [...Array(NUMBER_OF_CORES)].map(() => new MyWorker(`./src/Camera/RayTraceWorker.js`));
   const w = canvas.width;
   const h = canvas.height;
   let { samplesPerPxl, bounces, variance, gamma, bilinearTexture } = params;
@@ -2965,8 +2967,8 @@ function parallelWorkers(camera, scene, canvas, params = {}) {
     prevSceneHash = scene.hash;
   return WORKERS.map((worker, k) => {
     return new Promise((resolve) => {
-      worker.onmessage = (message2) => {
-        const { image, startRow, endRow } = message2.data;
+      worker.onMessage((message2) => {
+        const { image, startRow, endRow } = message2;
         let index = 0;
         const startIndex = CHANNELS * w * startRow;
         const endIndex = CHANNELS * w * endRow;
@@ -2974,7 +2976,7 @@ function parallelWorkers(camera, scene, canvas, params = {}) {
           canvas.setPxlData(i2, Color.ofRGB(image[index++], image[index++], image[index++], image[index++]));
         }
         resolve();
-      };
+      });
       const ratio = Math.floor(h / WORKERS.length);
       const message = {
         width: w,
@@ -2989,7 +2991,25 @@ function parallelWorkers(camera, scene, canvas, params = {}) {
     });
   });
 }
-var __Worker = IS_NODE ? await import("node:worker_threads") : Worker;
+var __Worker = IS_NODE ? (await import("node:worker_threads")).Worker : Worker;
+
+class MyWorker {
+  constructor(path) {
+    this.path = path;
+    this.worker = new __Worker(path, { type: "module" });
+  }
+  onMessage(lambda) {
+    if (IS_NODE) {
+      this.worker.removeAllListeners("message");
+      this.worker.on("message", lambda);
+    } else {
+      this.worker.onmessage = (message) => lambda(message.data);
+    }
+  }
+  postMessage(message) {
+    return this.worker.postMessage(message);
+  }
+}
 var WORKERS = [];
 var prevSceneHash = undefined;
 
@@ -4656,7 +4676,66 @@ import {writeFileSync, unlinkSync, readFileSync} from "fs";
 import {execSync, exec} from "child_process";
 
 // src/Tela/Image.js
+import {Worker as Worker2} from "node:worker_threads";
+import os from "node:os";
+
 class Image extends Tela {
+  mapParallel = memoize((lambda, dependencies = []) => {
+    const N = os.cpus().length;
+    const w = this.width;
+    const h = this.height;
+    const fun = ({ _start_row, _end_row, _width_, _height_, _worker_id_, _vars_ }) => {
+      const image = new Float32Array(CHANNELS * _width_ * (_end_row - _start_row));
+      const startIndex = CHANNELS * _width_ * _start_row;
+      const endIndex = CHANNELS * _width_ * _end_row;
+      let index = 0;
+      for (let k = startIndex;k < endIndex; k += CHANNELS) {
+        const i2 = Math.floor(k / (CHANNELS * _width_));
+        const j = Math.floor(k / CHANNELS % _width_);
+        const x = j;
+        const y = _height_ - 1 - i2;
+        const color = lambda(x, y, { ..._vars_ });
+        if (!color)
+          continue;
+        image[index] = color.red;
+        image[index + 1] = color.green;
+        image[index + 2] = color.blue;
+        image[index + 3] = 1;
+        index += CHANNELS;
+      }
+      return { image, _start_row, _end_row, _worker_id_ };
+    };
+    const workers = [...Array(N)].map(() => createWorker2(fun, lambda, dependencies));
+    return {
+      run: (vars = {}) => {
+        return Promise.all(workers.map((worker, k) => {
+          return new Promise((resolve) => {
+            worker.removeAllListeners("message");
+            worker.on("message", (message) => {
+              const { image, _start_row, _end_row } = message;
+              let index = 0;
+              const startIndex = CHANNELS * w * _start_row;
+              const endIndex = CHANNELS * w * _end_row;
+              for (let i2 = startIndex;i2 < endIndex; i2++) {
+                this.image[i2] = image[index];
+                index++;
+              }
+              return resolve();
+            });
+            const ratio = Math.floor(h / N);
+            worker.postMessage({
+              _start_row: k * ratio,
+              _end_row: Math.min(h - 1, (k + 1) * ratio),
+              _width_: w,
+              _height_: h,
+              _worker_id_: k,
+              _vars_: vars
+            });
+          });
+        })).then(() => this.paint());
+      }
+    };
+  });
   toArray() {
     const w = this.width;
     const h = this.height;
@@ -4687,6 +4766,21 @@ class Image extends Tela {
     });
   }
 }
+var createWorker2 = (main, lambda, dependencies) => {
+  const workerFile = `
+    const { parentPort } = require("node:worker_threads");
+    const CHANNELS = ${CHANNELS};
+    ${dependencies.concat([Color]).map((d) => d.toString()).join("\n")}
+    const lambda = ${lambda.toString()};
+    const __main__ = ${main.toString()};
+    parentPort.on("message", message => {
+        const output = __main__(message);
+        parentPort.postMessage(output);
+    });
+    `;
+  const worker = new Worker2(workerFile, { eval: true });
+  return worker;
+};
 
 // src/IO/IO.js
 function saveImageToFile(fileAddress, image) {
@@ -4746,7 +4840,7 @@ function createPPMFromImage(image) {
   const width = image.width;
   const height = image.height;
   const pixelData = image.toArray();
-  const rgbClamp = clamp(0, MAX_8BIT);
+  const rgbClamp = (x) => Math.min(MAX_8BIT, Math.max(0, x));
   let file = `P3\n${width} ${height}\n${MAX_8BIT}\n`;
   for (let i2 = 0;i2 < pixelData.length; i2 += 4) {
     file += `${rgbClamp(pixelData[i2])} ${rgbClamp(pixelData[i2 + 1])} ${rgbClamp(pixelData[i2 + 2])}\n`;
@@ -4759,7 +4853,7 @@ function saveImageStreamToVideo(fileAddress, streamWithImages, { imageGetter = (
   let time = 0;
   let timeCheck = performance.now();
   return {
-    until: (streamStatePredicate) => {
+    while: async (streamStatePredicate) => {
       let s = streamWithImages;
       while (streamStatePredicate(s.head)) {
         const image = imageGetter(s.head);
@@ -4767,7 +4861,7 @@ function saveImageStreamToVideo(fileAddress, streamWithImages, { imageGetter = (
         const newTimeCheck = performance.now();
         time += (newTimeCheck - timeCheck) * 0.001;
         timeCheck = performance.now();
-        s = s.tail;
+        s = await s.tail;
       }
       if (!fps)
         fps = ite / time;
@@ -4794,13 +4888,10 @@ function saveParallelImageStreamToVideo(fileAddress, parallelStreamOfImages, opt
             import fs from "node:fs";
             const {
                 Box,
-                DOM,
                 Vec,
                 Vec2,
                 Vec3,
                 Mesh,
-                loop,
-                clamp,
                 Color,
                 Image,
                 Scene,
@@ -4812,10 +4903,10 @@ function saveParallelImageStreamToVideo(fileAddress, parallelStreamOfImages, opt
                 NaiveScene,
             } = _module;
             
-            ${createPPMFromImage.toString().replaceAll("function createPPMFromImage(image)", "function __createPPMFromImage__(image)")}
-            
             ${parallelStreamOfImages.dependencies.map((dependency) => dependency.toString()).join("\n")}
-            
+
+            ${createPPMFromImage.toString().replaceAll("function createPPMFromImage(image)", "function __createPPMFromImage__(image)")}
+        
             const __initial_state__ = (${parallelStreamOfImages.lazyInitialState})();
 
             const __gen__ = ${parallelStreamOfImages.stateGenerator.toString()};

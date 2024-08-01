@@ -1,13 +1,46 @@
 import { IS_NODE, NUMBER_OF_CORES } from "../Utils/Constants.js";
 import Color from "../Color/Color.js";
 import { CHANNELS } from "../Tela/Tela.js";
-export const __Worker = IS_NODE ? await import("node:worker_threads") : Worker;
+
+//========================================================================================
+/*                                                                                      *
+ *                                         UTILS                                        *
+ *                                                                                      */
+//========================================================================================
+
+const __Worker = IS_NODE ? (await import("node:worker_threads")).Worker : Worker;
+class MyWorker {
+    constructor(path) {
+        this.path = path;
+        this.worker = new __Worker(path, { type: 'module' });
+    }
+
+    onMessage(lambda) {
+        if (IS_NODE) {
+            this.worker.removeAllListeners('message');
+            this.worker.on("message", lambda);
+        } else {
+            this.worker.onmessage = message => lambda(message.data);
+        }
+    }
+
+    postMessage(message) {
+        return this.worker.postMessage(message);
+    }
+}
 
 let WORKERS = [];
 let prevSceneHash = undefined;
+
+//========================================================================================
+/*                                                                                      *
+ *                                         MAIN                                         *
+ *                                                                                      */
+//========================================================================================
+
 export function parallelWorkers(camera, scene, canvas, params = {}) {
     // lazy loading workers
-    if (WORKERS.length === 0) WORKERS = [...Array(NUMBER_OF_CORES)].map(() => new __Worker(`/src/Camera/RayTraceWorker.js`, { type: 'module' }));
+    if (WORKERS.length === 0) WORKERS = [...Array(NUMBER_OF_CORES)].map(() => new MyWorker(`./src/Camera/RayTraceWorker.js`));
     const w = canvas.width;
     const h = canvas.height;
     let { samplesPerPxl, bounces, variance, gamma, bilinearTexture } = params;
@@ -20,8 +53,8 @@ export function parallelWorkers(camera, scene, canvas, params = {}) {
     if (isNewScene) prevSceneHash = scene.hash;
     return WORKERS.map((worker, k) => {
         return new Promise((resolve) => {
-            worker.onmessage = message => {
-                const { image, startRow, endRow, } = message.data;
+            worker.onMessage(message => {
+                const { image, startRow, endRow, } = message;
                 let index = 0;
                 const startIndex = CHANNELS * w * startRow;
                 const endIndex = CHANNELS * w * endRow;
@@ -29,7 +62,7 @@ export function parallelWorkers(camera, scene, canvas, params = {}) {
                     canvas.setPxlData(i, Color.ofRGB(image[index++], image[index++], image[index++], image[index++]));
                 }
                 resolve();
-            }
+            })
             const ratio = Math.floor(h / WORKERS.length);
 
             const message = {

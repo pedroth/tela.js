@@ -1,10 +1,13 @@
-import Scene from "../Scene/Scene.js"
+import Ray from "../Ray/Ray.js";
 import Camera from "./Camera.js";
-import { CHANNELS } from "../Tela/Tela.js";
+import Scene from "../Scene/Scene.js"
 import Color from "../Color/Color.js";
 import Vec from "../Vector/Vector.js";
-import Ray from "../Ray/Ray.js";
 import { trace } from "./raytrace.js";
+import { CHANNELS } from "../Tela/Tela.js";
+import { IS_NODE } from "../Utils/Constants.js";
+
+const parentPort = IS_NODE ? (await import("node:worker_threads")).parentPort : undefined;
 
 let scene = undefined;
 
@@ -51,8 +54,17 @@ function main(inputs) {
     return { image, startRow, endRow };
 }
 
-onmessage = message => {
-    const input = message.data;
-    const output = main(input);
-    postMessage(output);
-};
+
+if (IS_NODE) {
+    parentPort.on("message", message => {
+        const input = message;
+        const output = main(input);
+        parentPort.postMessage(output);
+    });
+} else {
+    onmessage = message => {
+        const input = message.data;
+        const output = main(input);
+        postMessage(output);
+    };
+}

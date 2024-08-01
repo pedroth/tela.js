@@ -1,9 +1,10 @@
 import { Color, loop } from "../../dist/node/index.js";
 import Window from "../../src/Tela/Window.js";
 
-const width = 640;
-const height = 480;
+const width = 640/2;
+const height = 480/2;
 const window = Window.ofSize(width, height);
+window.setWindowSize(2 * width, 2 * height);
 function palette(t) {
     let a = [0.5, 0.5, 0.5];
     let b = [0.5, 0.5, 0.5];

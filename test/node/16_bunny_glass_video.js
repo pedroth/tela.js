@@ -92,6 +92,6 @@ console.log(
             "./bunny_glass_stream.mp4",
             imageStream,
             { fps: FPS }
-        ).until(({ time }) => time < maxT);
+        ).while(({ time }) => time < maxT);
     })
 )

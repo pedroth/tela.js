@@ -575,12 +575,6 @@ function execCode(code) {
             script.textContent = `
             import {Path, Ray, Canvas, DOM, Color, Scene, KScene, BScene, Camera, Vec2, Vec3, Vec, Box, Sphere, Mesh, NaiveScene, RandomScene, VoxelScene, Line, Triangle, Diffuse, Metallic, Alpha, DiElectric, clamp, loop} from "${SOURCE}/src/index.js"
             ${toggleFullScreen.toString()}
-            function requestAnimationFrame(lambda) {
-                const id = window.requestAnimationFrame(lambda);
-                window.globalAnimationIds.push(id);
-            }
-            window?.globalAnimationIds?.forEach(id => cancelAnimationFrame(id));
-            window.globalAnimationIds = [];
             const canvasDOM = document.getElementsByTagName("canvas")[0];
             const canvas = Canvas.ofDOM(canvasDOM);
             document.getElementById("expandButton").addEventListener('click', () => {

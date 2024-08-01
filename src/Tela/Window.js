@@ -127,6 +127,11 @@ export default class Window extends Tela {
         return this;
     }
 
+    setWindowSize(w, h) {
+        this.window.setSize(w, h);
+        return this;
+    }
+
     //========================================================================================
     /*                                                                                      *
      *                                    Static Methods                                    *
