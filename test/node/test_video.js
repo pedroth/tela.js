@@ -1,5 +1,4 @@
-import { Color, loop, video } from "../../dist/node/index.js";
-import Window from "../../src/Tela/Window.js";
+import { Color, video } from "../../dist/node/index.js";
 
 const width = 640;
 const height = 480;
