@@ -1,8 +1,8 @@
 import Camera from "./Camera.js";
-import Scene from "../Scene/Scene.js"
-import { rayTrace } from "./raytrace.js";
+import { rayTrace } from "./rayTrace.js";
 import { CHANNELS } from "../Tela/Tela.js";
 import { IS_NODE } from "../Utils/Constants.js";
+import { deserializeScene } from "../Scene/utils.js";
 
 const parentPort = IS_NODE ? (await import("node:worker_threads")).parentPort : undefined;
 
@@ -18,7 +18,7 @@ function main(inputs) {
         scene: serializedScene,
         camera: serializedCamera,
     } = inputs;
-    scene = serializedScene ? Scene.deserialize(serializedScene).rebuild() : scene;
+    scene = serializedScene ? deserializeScene(serializedScene).rebuild() : scene;
     const camera = Camera.deserialize(serializedCamera);
     const rayGen = camera.rayFromImage(width, height);
     const bufferSize = width * (endRow - startRow + 1) * CHANNELS;

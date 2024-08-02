@@ -1,4 +1,4 @@
-import { Camera, Image, Mesh, Scene, Stream, measureTime, IO, Vec3, Color } from "../../dist/node/index.js";
+import { Camera, Image, Mesh, NaiveScene, Stream, measureTime, IO, Vec3 } from "../../dist/node/index.js";
 import { readFileSync } from "fs"
 const { saveImageStreamToVideo } = IO;
 
@@ -9,7 +9,7 @@ const dt = 1 / FPS;
 const maxT = 20;
 const cameraRadius = 3;
 // scene
-const scene = new Scene()
+const scene = new NaiveScene();
 const camera = new Camera().orbit(cameraRadius, Math.PI, 0);
 // scene
 const obj = readFileSync("./assets/megaman.obj", { encoding: "utf-8" });

@@ -6,7 +6,7 @@ async (canvas, logger) => {
     const height = 480;
     canvas.resize(width, height);
     // scene
-    const scene = new Scene();
+    const scene = new KScene();
     const camera = new Camera().orbit(5, 0, 0);
     // mouse handling
     let mousedown = false;

@@ -5,24 +5,12 @@ import NaiveScene from "./NaiveScene.js";
 import Color from "../Color/Color.js";
 import { drawBox } from "../Utils/Utils3D.js";
 
-export default class VoxelScene {
+export default class VoxelScene extends NaiveScene {
     // after some tests, found that gridSpace ~ 4 * E[size of elements];
     constructor(gridSpace = 0.1) {
-        this.id2ElemMap = {};
-        this.sceneElements = [];
+        super();
         this.gridMap = {};
         this.gridSpace = gridSpace;
-    }
-
-    // Hash function from https://www.youtube.com/watch?v=D2M8jTtKi44
-    hash(p) {
-        const integerCoord = p.map(z => Math.floor(z / this.gridSpace));
-        const h = (integerCoord.x * 92837111) ^ (integerCoord.y * 689287499) ^ (integerCoord.z * 283923481);
-        return Math.abs(h);
-    }
-
-    add(...elements) {
-        return this.addList(elements);
     }
 
     addList(elements) {
@@ -43,7 +31,7 @@ export default class VoxelScene {
                 points.push(pivot.add(Vec3(i0, i1, i2).mul(elem.getBoundingBox().diagonal)));
             }
             points.forEach(p => {
-                const h = this.hash(p);
+                const h = hash(p, this.gridSpace);
                 if (!(h in this.gridMap)) {
                     this.gridMap[h] = {};
                 }
@@ -54,24 +42,18 @@ export default class VoxelScene {
         return this;
     }
 
-    getElements() {
-        return this.sceneElements;
-    }
-
     clear() {
-        this.id2ElemMap = {};
-        this.sceneElements = [];
+        super.clear();
         this.gridMap = {};
     }
 
     distanceToPoint(p) {
-        // TODO
-        return Number.MAX_VALUE;
+        throw new Error("Not implemented");
     }
 
     normalToPoint(p) {
         let normal = Vec3();
-        const elements = Object.values(this.gridMap[this.hash(p)] || {});
+        const elements = Object.values(this.gridMap[hash(p, this.gridSpace)] || {});
         for (let i = 0; i < elements.length; i++) {
             const elem = elements[i];
             normal = normal.add(elem.normalToPoint(p));
@@ -86,7 +68,7 @@ export default class VoxelScene {
         let elements = [];
         for (let n = 0; n < maxIte; n++) {
             let p = ray.trace(t);
-            const newElements = Object.values(this.gridMap[this.hash(p)] || {});
+            const newElements = Object.values(this.gridMap[hash(p, this.gridSpace)] || {});
             if (newElements?.length) {
                 elements = elements.concat(newElements);
             }
@@ -113,7 +95,7 @@ export default class VoxelScene {
         let elements = [];
         for (let n = 0; n < maxIte; n++) {
             let p = ray.trace(t);
-            const newElements = Object.values(this.gridMap[this.hash(p)] || {});
+            const newElements = Object.values(this.gridMap[hash(p, this.gridSpace)] || {});
             if (newElements?.length) {
                 elements = elements.concat(newElements);
                 break;
@@ -140,7 +122,7 @@ export default class VoxelScene {
         let elements = [];
         for (let i = 0; i < samples; i++) {
             const p = box.sample();
-            elements = elements.concat(Object.values(this.gridMap[this.hash(p)] || {}));
+            elements = elements.concat(Object.values(this.gridMap[hash(p, this.gridSpace)] || {}));
         }
         return elements;
     }
@@ -176,4 +158,19 @@ export default class VoxelScene {
         camera.reverseShot(debugScene, { clearScreen: false }).to(canvas);
         return canvas;
     }
+
+    serialize() {
+        return {
+            params: [this.gridSpace],
+            type: VoxelScene.name,
+            sceneData: this.getElements().map(x => x.serialize())
+        };
+    }
+}
+
+// Hash function from https://www.youtube.com/watch?v=D2M8jTtKi44
+function hash(p, gridSpace) {
+    const integerCoord = p.map(z => Math.floor(z / gridSpace));
+    const h = (integerCoord.x * 92837111) ^ (integerCoord.y * 689287499) ^ (integerCoord.z * 283923481);
+    return Math.abs(h);
 }

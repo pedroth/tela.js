@@ -1,4 +1,4 @@
-import { Camera, Mesh, Vec3, Vec2, Color, DiElectric, Triangle, Scene, Image, loop, NaiveScene } from "../../dist/node/index.js";
+import { Camera, Mesh, Vec3, Vec2, Color, DiElectric, Triangle, KScene, Image, loop, Metallic } from "../../dist/node/index.js";
 import Window from "../../src/Tela/Window.js";
 import { readFileSync } from "fs"
 
@@ -8,7 +8,7 @@ const window = Window.ofSize(width, height);
 window.setWindowSize(width * 2, height * 2)
 let exposedWindow = window.exposure();
 // scene
-const scene = new Scene();
+const scene = new KScene();
 const camera = new Camera({ lookAt: Vec3(1.5, 1.5, 1.5) }).orbit(5, 0, 0);
 // mouse handling
 let mousedown = false;
@@ -54,7 +54,7 @@ mesh = mesh
     .mapVertices(v => v.add(Vec3(1.5, 1.5, 1.0)))
     .mapColors(() => Color.WHITE)
     .addTexture(await Image.ofUrl("./assets/spot.png"))
-    .mapMaterials(() => DiElectric(1.33333))
+    .mapMaterials(() => Metallic(1.33333))
 scene.addList(mesh.asTriangles());
 
 // cornell box

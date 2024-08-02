@@ -1,4 +1,4 @@
-import { Camera, Mesh, Scene, Vec3, Vec2, Image, loop } from "../../src/index.node.js";
+import { Camera, Mesh, NaiveScene, Vec3, Vec2, Image, loop } from "../../dist/node/index.js";
 import Window from "../../src/Tela/Window.js";
 import { readFileSync } from "fs"
 const width = 640;
@@ -6,7 +6,7 @@ const height = 480;
 const maxRadius = 3;
 const window = Window.ofSize(width, height);
 // scene
-const scene = new Scene()
+const scene = new NaiveScene()
 const camera = new Camera().orbit(maxRadius, Math.PI, 0);
 // scene
 const obj = readFileSync("./assets/megaman.obj", { encoding: "utf-8" });

@@ -1,11 +1,16 @@
 
 import Vec from "../Vector/Vector.js";
-import { argmin } from "../Utils/Utils.js";
+import { argmin, hashStr } from "../Utils/Utils.js";
+import Box from "../Geometry/Box.js";
 
 export default class NaiveScene {
   constructor() {
     this.id2ElemMap = {};
     this.sceneElements = [];
+  }
+
+  get hash() {
+    return this.getElements().reduce((e, x) => e ^ hashStr(x.name), 0);
   }
 
   add(...elements) {
@@ -74,7 +79,7 @@ export default class NaiveScene {
   }
 
   getElementInBox(box) {
-    throw Error("Not Implemented");
+    return this.sceneElements.reduce((e, x) => e.add(x.getBoundingBox().collidesWith(box)), Box.EMPTY);
   }
 
   rebuild() {
@@ -83,5 +88,13 @@ export default class NaiveScene {
 
   debug(params) {
     return params.canvas;
+  }
+
+  serialize() {
+    return {
+      params: [],
+      type: NaiveScene.name,
+      sceneData: this.getElements().map(x => x.serialize())
+    };
   }
 }

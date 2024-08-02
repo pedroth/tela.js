@@ -1,4 +1,4 @@
-import { Color, Image, IO, measureTime, Mesh, Vec3, Camera, Triangle, DiElectric, Scene, Metallic } from "../../dist/node/index.js";
+import { Color, Image, IO, measureTime, Mesh, Vec3, Camera, Triangle, DiElectric, KScene } from "../../dist/node/index.js";
 import { readFileSync } from "fs"
 
 const { saveImageToFile } = IO;
@@ -8,7 +8,7 @@ const width = 640;
 const height = 480;
 
 // scene
-const scene = new Scene();
+const scene = new KScene();
 const camera = new Camera({ lookAt: Vec3(1.5, 1.5, 1.5) }).orbit(5, 0, 0);
 const meshObj = readFileSync("./assets/spot.obj", { encoding: "utf-8" });
 let mesh = Mesh.readObj(meshObj, "mesh").addTexture(Image.ofUrl("./assets/spot.png"));
@@ -16,7 +16,7 @@ mesh = mesh
     .mapVertices(v => Vec3(-v.z, -v.x, v.y))
     .mapVertices(v => v.add(Vec3(1.5, 1.5, 1.0)))
     .mapColors(() => Color.WHITE)
-    .mapMaterials(() => Metallic(1.3333))
+    .mapMaterials(() => DiElectric(1.3333))
 scene.addList(mesh.asTriangles());
 scene.add(
     Triangle
@@ -95,7 +95,7 @@ scene.add(
         .build(),
 )
 
-const shot = async (image) => await camera.parallelShot(scene, { samplesPerPxl: 100, bounces: 10 , gamma: 0.5 }).to(image ?? Image.ofSize(width, height));
+const shot = async (image) => await camera.parallelShot(scene, { samplesPerPxl: 100, bounces: 10, gamma: 0.5 }).to(image ?? Image.ofSize(width, height));
 
 const time = await measureTime(
     async () => saveImageToFile(

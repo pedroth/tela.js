@@ -3,7 +3,6 @@ import Color from "./Color/Color.js"
 import DOM from "./Utils/DomBuilder.js"
 import Stream from "./Utils/Stream.js"
 import Camera from "./Camera/Camera.js"
-import Scene from "./Scene/Scene.js"
 import BScene from "./Scene/BScene.js"
 import KScene from "./Scene/KScene.js"
 import NaiveScene from "./Scene/NaiveScene.js"
@@ -30,7 +29,6 @@ export {
     Vec2,
     Vec3,
     Color,
-    Scene,
     BScene,
     Canvas,
     Camera,

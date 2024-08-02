@@ -40,15 +40,9 @@ let prevSceneHash = undefined;
 
 export function parallelWorkers(camera, scene, canvas, params = {}) {
     // lazy loading workers
-    if (WORKERS.length === 0) WORKERS = [...Array(NUMBER_OF_CORES)].map(() => new MyWorker(`./src/Camera/RayTraceWorker.js`));
+    if (WORKERS.length === 0) WORKERS = [...Array(NUMBER_OF_CORES)].map(() => new MyWorker(`./src/Camera/rayTraceWorker.js`));
     const w = canvas.width;
     const h = canvas.height;
-    let { samplesPerPxl, bounces, variance, gamma, bilinearTexture } = params;
-    bounces = bounces ?? 10;
-    variance = variance ?? 0.001;
-    samplesPerPxl = samplesPerPxl ?? 1;
-    gamma = gamma ?? 0.5;
-    bilinearTexture = bilinearTexture ?? false;
     const isNewScene = prevSceneHash !== scene.hash;
     if (isNewScene) prevSceneHash = scene.hash;
     return WORKERS.map((worker, k) => {
@@ -68,7 +62,7 @@ export function parallelWorkers(camera, scene, canvas, params = {}) {
             const message = {
                 width: w,
                 height: h,
-                params: { samplesPerPxl, bounces, variance, gamma, bilinearTexture },
+                params: params,
                 startRow: k * ratio,
                 endRow: Math.min(h, (k + 1) * ratio),
                 camera: camera.serialize(),

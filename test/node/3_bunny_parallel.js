@@ -1,4 +1,4 @@
-import { Camera, IO, Parallel, Vec3, Mesh, Color, Scene, measureTime } from "../../dist/node/index.js";
+import { Camera, IO, Parallel, Vec3, Mesh, Color, KScene, measureTime } from "../../dist/node/index.js";
 import os from "node:os";
 const { saveParallelImageStreamToVideo } = IO;
 
@@ -21,7 +21,7 @@ const parallelImagesStream =
         .builder()
         .numberOfStreams(numOfFrames)
         .lazyInitialState(() => {
-            const scene = new Scene();
+            const scene = new KScene();
             // eslint-disable-next-line no-undef
             const stanfordBunnyObj = fs.readFileSync("./assets/bunny_orig.obj", { encoding: "utf-8" });
             let bunnyMesh = Mesh.readObj(stanfordBunnyObj, "bunny");

@@ -26,7 +26,7 @@ async (canvas) => {
         mouse = newMouse;
     })
     // scene
-    const scene = new Scene();
+    const scene = new KScene();
     const nscene = new NaiveScene();
     // scene
     const n = 3;

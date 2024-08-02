@@ -29,10 +29,10 @@ Playground usage:
 
 </body>
 <script type="module">
-    import { Canvas, Color, loop} from "https://cdn.jsdelivr.net/npm/tela.js/dist/web/index.js";
+    import { Canvas, Color, loop } from "https://cdn.jsdelivr.net/npm/tela.js/dist/web/index.js";
 
     // You can also import from local file
-    // import { Canvas, Color, loop} from "./node_modules/tela.js/dist/web/index.js";
+    // import { Canvas, Color, loop } from "./node_modules/tela.js/dist/web/index.js";
 
     const width = 640;
     const height = 480;

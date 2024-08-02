@@ -7,16 +7,13 @@ import NaiveScene from "./NaiveScene.js";
 import Color from "../Color/Color.js";
 import { drawBox } from "../Utils/Utils3D.js";
 
-export default class KScene {
+export default class KScene extends NaiveScene {
     constructor(k = 10) {
+        super();
         this.k = k;
         this.id2ElemMap = {};
         this.sceneElements = [];
         this.boundingBoxScene = new Node(k);
-    }
-
-    add(...elements) {
-        return this.addList(elements);
     }
 
     addList(elements) {
@@ -30,13 +27,8 @@ export default class KScene {
         return this;
     }
 
-    getElements() {
-        return this.sceneElements;
-    }
-
     clear() {
-        this.id2ElemMap = {};
-        this.sceneElements = [];
+        super.clear();
         this.boundingBoxScene = new Node(this.k);
     }
 
@@ -167,6 +159,14 @@ export default class KScene {
         }
         if (level === 0) return camera.reverseShot(debugScene, { clearScreen: false }).to(canvas);
         return canvas;
+    }
+
+    serialize() {
+        return {
+            params: [this.k],
+            type: KScene.name,
+            sceneData: this.getElements().map(x => x.serialize())
+        };
     }
 }
 

@@ -1,4 +1,4 @@
-import { Color, Image, Stream, IO, measureTime, measureTimeWithResult, Mesh, Vec3, Camera, Triangle, DiElectric, Scene} from "../../dist/node/index.js";
+import { Color, Image, Stream, IO, measureTime, measureTimeWithResult, Mesh, Vec3, Camera, Triangle, DiElectric, KScene} from "../../dist/node/index.js";
 import { readFileSync } from "fs"
 
 const { saveImageStreamToVideo } = IO;
@@ -11,7 +11,7 @@ const dt = 1 / FPS;
 const maxT = 10;
 
 // scene
-const scene = new Scene();
+const scene = new KScene();
 const camera = new Camera({ lookAt: Vec3(1.5, 1.5, 1.5) }).orbit(5, 0, 0);
 const stanfordBunnyObj = readFileSync("./assets/bunny_orig.obj", { encoding: "utf-8" });
 let bunnyMesh = Mesh.readObj(stanfordBunnyObj, "bunny");

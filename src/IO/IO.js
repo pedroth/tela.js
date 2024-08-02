@@ -124,7 +124,6 @@ export function saveParallelImageStreamToVideo(fileAddress, parallelStreamOfImag
                 Mesh,
                 Color,
                 Image,
-                Scene,
                 BScene,
                 Camera,
                 KScene,
