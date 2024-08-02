@@ -4,25 +4,26 @@ import Ray from "../Ray/Ray.js";
 import Vec from "../Vector/Vector.js";
 import { getBiLinearTexColor, getDefaultTexColor, getTexColor } from "./common.js";
 
-export function rayTrace(scene, params = {}) {
+export function rayTrace(ray, scene, params) {
     let { samplesPerPxl, bounces, variance, gamma, bilinearTexture } = params;
     bounces = bounces ?? 10;
     variance = variance ?? 0.001;
     samplesPerPxl = samplesPerPxl ?? 1;
     gamma = gamma ?? 0.5;
     bilinearTexture = bilinearTexture ?? false;
-
-    const invSamples = bounces / samplesPerPxl;
-    const lambda = ray => {
-        let c = Color.BLACK;
-        for (let i = 0; i < samplesPerPxl; i++) {
-            const epsilon = Vec.RANDOM(3).scale(variance);
-            const epsilonOrtho = epsilon.sub(ray.dir.scale(epsilon.dot(ray.dir)));
-            const r = Ray(ray.init, ray.dir.add(epsilonOrtho).normalize());
-            c = c.add(trace(r, scene, { bounces, bilinearTexture }));
-        }
-        return c.scale(invSamples).toGamma(gamma);
+    const invSamples = (bounces ?? 1) / samplesPerPxl
+    let c = Color.BLACK;
+    for (let i = 0; i < samplesPerPxl; i++) {
+        const epsilon = Vec.RANDOM(3).scale(variance);
+        const epsilonOrtho = epsilon.sub(ray.dir.scale(epsilon.dot(ray.dir)));
+        const r = Ray(ray.init, ray.dir.add(epsilonOrtho).normalize());
+        c = c.add(trace(r, scene, { bounces, bilinearTexture }));
     }
+    return c.scale(invSamples).toGamma(gamma);
+}
+
+export function getRayTracer(scene, params = {}) {
+    const lambda = ray => rayTrace(ray, scene, params);
     return lambda;
 }
 

@@ -1,6 +1,6 @@
 import Vec, { Vec2, Vec3 } from "../Vector/Vector.js"
 import Ray from "../Ray/Ray.js";
-import { rayTrace } from "./raytrace.js";
+import { getRayTracer } from "./raytrace.js";
 import { rasterGraphics } from "./raster.js";
 import { sdfTrace } from "./sdf.js";
 import { normalTrace } from "./normal.js";
@@ -108,7 +108,7 @@ export default class Camera {
   }
 
   sceneShot(scene, params) {
-    return this.rayMap(rayTrace(scene, params));
+    return this.rayMap(getRayTracer(scene, params));
   }
 
   reverseShot(scene, params) {
@@ -126,7 +126,6 @@ export default class Camera {
   }
 
   parallelShot(scene, params) {
-    
     return {
       to: canvas => {
         return Promise

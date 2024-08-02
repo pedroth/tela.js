@@ -259,14 +259,9 @@ async function measureTime(lambda) {
   await lambda();
   return 0.001 * (performance.now() - t);
 }
-async function measureTimeWithAsyncResult(lambda) {
+async function measureTimeWithResult(lambda) {
   const t = performance.now();
   const result = await lambda();
-  return { result, time: 0.001 * (performance.now() - t) };
-}
-function measureTimeWithResult(lambda) {
-  const t = performance.now();
-  const result = lambda();
   return { result, time: 0.001 * (performance.now() - t) };
 }
 function groupBy(array, groupFunction) {
@@ -1773,24 +1768,25 @@ function getTexColor(texUV, texture) {
 }
 
 // src/Camera/raytrace.js
-function rayTrace(scene, params = {}) {
+function rayTrace(ray, scene, params) {
   let { samplesPerPxl, bounces, variance, gamma, bilinearTexture } = params;
   bounces = bounces ?? 10;
   variance = variance ?? 0.001;
   samplesPerPxl = samplesPerPxl ?? 1;
   gamma = gamma ?? 0.5;
   bilinearTexture = bilinearTexture ?? false;
-  const invSamples = bounces / samplesPerPxl;
-  const lambda = (ray) => {
-    let c2 = Color.BLACK;
-    for (let i2 = 0;i2 < samplesPerPxl; i2++) {
-      const epsilon = Vec.RANDOM(3).scale(variance);
-      const epsilonOrtho = epsilon.sub(ray.dir.scale(epsilon.dot(ray.dir)));
-      const r = Ray(ray.init, ray.dir.add(epsilonOrtho).normalize());
-      c2 = c2.add(trace(r, scene, { bounces, bilinearTexture }));
-    }
-    return c2.scale(invSamples).toGamma(gamma);
-  };
+  const invSamples = (bounces ?? 1) / samplesPerPxl;
+  let c2 = Color.BLACK;
+  for (let i2 = 0;i2 < samplesPerPxl; i2++) {
+    const epsilon = Vec.RANDOM(3).scale(variance);
+    const epsilonOrtho = epsilon.sub(ray.dir.scale(epsilon.dot(ray.dir)));
+    const r = Ray(ray.init, ray.dir.add(epsilonOrtho).normalize());
+    c2 = c2.add(trace(r, scene, { bounces, bilinearTexture }));
+  }
+  return c2.scale(invSamples).toGamma(gamma);
+}
+function getRayTracer(scene, params = {}) {
+  const lambda = (ray) => rayTrace(ray, scene, params);
   return lambda;
 }
 function trace(ray, scene, options) {
@@ -3255,7 +3251,7 @@ class Camera {
     };
   }
   sceneShot(scene, params) {
-    return this.rayMap(rayTrace(scene, params));
+    return this.rayMap(getRayTracer(scene, params));
   }
   reverseShot(scene, params) {
     return {
@@ -4814,7 +4810,6 @@ export {
   mod,
   memoize,
   measureTimeWithResult,
-  measureTimeWithAsyncResult,
   measureTime,
   maybe,
   loop,

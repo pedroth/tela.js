@@ -97,14 +97,9 @@ async function measureTime(lambda) {
   await lambda();
   return 0.001 * (performance.now() - t);
 }
-async function measureTimeWithAsyncResult(lambda) {
+async function measureTimeWithResult(lambda) {
   const t = performance.now();
   const result = await lambda();
-  return { result, time: 0.001 * (performance.now() - t) };
-}
-function measureTimeWithResult(lambda) {
-  const t = performance.now();
-  const result = lambda();
   return { result, time: 0.001 * (performance.now() - t) };
 }
 function groupBy(array, groupFunction) {
@@ -1611,24 +1606,25 @@ function getTexColor(texUV, texture) {
 }
 
 // src/Camera/raytrace.js
-function rayTrace(scene, params = {}) {
+function rayTrace(ray, scene, params) {
   let { samplesPerPxl, bounces, variance, gamma, bilinearTexture } = params;
   bounces = bounces ?? 10;
   variance = variance ?? 0.001;
   samplesPerPxl = samplesPerPxl ?? 1;
   gamma = gamma ?? 0.5;
   bilinearTexture = bilinearTexture ?? false;
-  const invSamples = bounces / samplesPerPxl;
-  const lambda = (ray) => {
-    let c = Color.BLACK;
-    for (let i2 = 0;i2 < samplesPerPxl; i2++) {
-      const epsilon = Vec.RANDOM(3).scale(variance);
-      const epsilonOrtho = epsilon.sub(ray.dir.scale(epsilon.dot(ray.dir)));
-      const r = Ray(ray.init, ray.dir.add(epsilonOrtho).normalize());
-      c = c.add(trace(r, scene, { bounces, bilinearTexture }));
-    }
-    return c.scale(invSamples).toGamma(gamma);
-  };
+  const invSamples = (bounces ?? 1) / samplesPerPxl;
+  let c = Color.BLACK;
+  for (let i2 = 0;i2 < samplesPerPxl; i2++) {
+    const epsilon = Vec.RANDOM(3).scale(variance);
+    const epsilonOrtho = epsilon.sub(ray.dir.scale(epsilon.dot(ray.dir)));
+    const r = Ray(ray.init, ray.dir.add(epsilonOrtho).normalize());
+    c = c.add(trace(r, scene, { bounces, bilinearTexture }));
+  }
+  return c.scale(invSamples).toGamma(gamma);
+}
+function getRayTracer(scene, params = {}) {
+  const lambda = (ray) => rayTrace(ray, scene, params);
   return lambda;
 }
 function trace(ray, scene, options) {
@@ -3093,7 +3089,7 @@ class Camera {
     };
   }
   sceneShot(scene, params) {
-    return this.rayMap(rayTrace(scene, params));
+    return this.rayMap(getRayTracer(scene, params));
   }
   reverseShot(scene, params) {
     return {
@@ -4737,20 +4733,7 @@ class Image extends Tela {
     };
   });
   toArray() {
-    const w = this.width;
-    const h = this.height;
-    const imageData = new Uint8Array(this.width * this.height * 4);
-    for (let i2 = 0;i2 < h; i2++) {
-      for (let j = 0;j < w; j++) {
-        let index = w * i2 + j;
-        index <<= 2;
-        imageData[index] = this.image[index] * MAX_8BIT;
-        imageData[index + 1] = this.image[index + 1] * MAX_8BIT;
-        imageData[index + 2] = this.image[index + 2] * MAX_8BIT;
-        imageData[index + 3] = this.image[index + 3] * MAX_8BIT;
-      }
-    }
-    return imageData;
+    return this.image;
   }
   static ofUrl(url) {
     return readImageFrom(url);
@@ -4840,7 +4823,7 @@ function createPPMFromImage(image) {
   const width = image.width;
   const height = image.height;
   const pixelData = image.toArray();
-  const rgbClamp = (x) => Math.min(MAX_8BIT, Math.max(0, x));
+  const rgbClamp = (x) => Math.floor(Math.min(MAX_8BIT, Math.max(0, MAX_8BIT * x)));
   let file = `P3\n${width} ${height}\n${MAX_8BIT}\n`;
   for (let i2 = 0;i2 < pixelData.length; i2 += 4) {
     file += `${rgbClamp(pixelData[i2])} ${rgbClamp(pixelData[i2 + 1])} ${rgbClamp(pixelData[i2 + 2])}\n`;
@@ -5033,7 +5016,6 @@ export {
   mod,
   memoize,
   measureTimeWithResult,
-  measureTimeWithAsyncResult,
   measureTime,
   maybe,
   loop,

@@ -17,9 +17,9 @@ mesh = mesh
 const scenes = [new BScene(), new KScene(), new KScene(100), new VoxelScene(0.2), new NaiveScene()];
 // const triangles = mesh.asPoints(0.05);
 const triangles = mesh.asTriangles();
-scenes.forEach(scene => {
+scenes.forEach(async scene => {
     scene.addList(triangles);
-    const { result, time } = measureTimeWithResult(() => camera.normalShot(scene).to(canvas));
+    const { result, time } = await measureTimeWithResult(() => camera.normalShot(scene).to(canvas));
     console.log(`${scene.constructor.name}: ${time}s`);
     saveImageToFile(`${scene.constructor.name}_${Math.floor(100 * Math.random())}.png`, result);
 })

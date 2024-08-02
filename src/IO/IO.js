@@ -72,7 +72,7 @@ export function createPPMFromImage(image) {
     const width = image.width;
     const height = image.height;
     const pixelData = image.toArray();
-    const rgbClamp = x => Math.min(MAX_8BIT, Math.max(0, x));
+    const rgbClamp = x => Math.floor(Math.min(MAX_8BIT, Math.max(0, MAX_8BIT * x)));
     let file = `P3\n${width} ${height}\n${MAX_8BIT}\n`;
     for (let i = 0; i < pixelData.length; i += 4) {
         file += `${rgbClamp(pixelData[i])} ${rgbClamp(pixelData[i + 1])} ${rgbClamp(pixelData[i + 2])}\n`;
