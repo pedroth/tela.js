@@ -1,6 +1,5 @@
 import Color from "../Color/Color.js";
 import { readImageFrom } from "../IO/IO.js";
-import { MAX_8BIT } from "../Utils/Constants.js";
 import { memoize } from "../Utils/Utils.js";
 import Tela, { CHANNELS } from "./Tela.js";
 import { Worker } from "node:worker_threads";
@@ -67,10 +66,6 @@ export default class Image extends Tela {
         }
     });
 
-    toArray() {
-        return this.image;
-    }
-
     //========================================================================================
     /*                                                                                      *
      *                                    Static Methods                                    *
@@ -79,7 +74,17 @@ export default class Image extends Tela {
 
 
     static ofUrl(url) {
-        return readImageFrom(url);
+        const { width: w, height: h, pixels } = readImageFrom(url);
+        const img = Image.ofSize(w, h);
+        for (let k = 0; k < pixels.length; k++) {
+            const { r, g, b } = pixels[k];
+            const i = Math.floor(k / w);
+            const j = k % w;
+            const x = j;
+            const y = h - 1 - i;
+            img.setPxl(x, y, Color.ofRGBRaw(r, g, b));
+        }
+        return img;
     }
 
     static ofSize(width, height) {

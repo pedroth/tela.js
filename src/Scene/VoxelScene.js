@@ -160,11 +160,10 @@ export default class VoxelScene extends NaiveScene {
     }
 
     serialize() {
-        return {
-            params: [this.gridSpace],
-            type: VoxelScene.name,
-            sceneData: this.getElements().map(x => x.serialize())
-        };
+        const json = super.serialize();
+        json.params = [this.gridSpace];
+        json.type = VoxelScene.name;
+        return json;
     }
 }
 

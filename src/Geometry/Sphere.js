@@ -3,6 +3,7 @@ import Color from "../Color/Color.js";
 import { Diffuse, MATERIALS } from "../Material/Material.js";
 import { randomPointInSphere } from "../Utils/Math.js";
 import Vec, { Vec2, Vec3 } from "../Vector/Vector.js";
+import { deserialize as deserializeImage } from "../Tela/utils.js";
 
 class Sphere {
     constructor({ name, position, color, texCoord, normal, radius, texture, emissive, material }) {
@@ -59,20 +60,24 @@ class Sphere {
             emissive: this.emissive,
             color: this.color.toArray(),
             position: this.position.toArray(),
+            texCoord: this.texCoord.toArray(),
+            texture: this.texture ? this.texture.hash() : undefined,
             material: { type: this.material.type, args: this.material.args }
         }
     }
 
-    static deserialize(json) {
+    static deserialize(json, artifacts) {
         const { type, args } = json.material;
         return Sphere
             .builder()
             .name(json.name)
             .radius(json.radius)
-            .position(Vec.fromArray(json.position))
-            .color(new Color(json.color))
             .emissive(json.emissive)
+            .color(new Color(json.color))
             .material(MATERIALS[type](...args))
+            .texCoord(Vec.fromArray(json.texCoord))
+            .position(Vec.fromArray(json.position))
+            .texture(json.texture ? deserializeImage(artifacts[json.texture]) : undefined)
             .build()
     }
 

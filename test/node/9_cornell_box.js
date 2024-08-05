@@ -1,4 +1,4 @@
-import { Camera, Mesh, Vec3, Vec2, Color, DiElectric, Triangle, Image, loop, KScene } from "../../dist/node/index.js";
+import { Camera, Mesh, Vec3, Vec2, Color, DiElectric, Triangle, Image, loop, KScene, Metallic } from "../../dist/node/index.js";
 import Window from "../../src/Tela/Window.js";
 import { readFileSync } from "fs"
 
@@ -54,7 +54,7 @@ mesh = mesh
     .mapVertices(v => v.add(Vec3(1.5, 1.5, 1.0)))
     .mapColors(() => Color.BLUE)
     .addTexture(await Image.ofUrl("./assets/spot.png"))
-    .mapMaterials(() => DiElectric(1.33333))
+    .mapMaterials(() => Metallic(1.33333))
 scene.add(mesh);
 
 // cornell box

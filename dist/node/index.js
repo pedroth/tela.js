@@ -545,9 +545,9 @@ class Vector2 {
 }
 
 // src/Geometry/Box.js
-var maxComp = function(u) {
+function maxComp(u) {
   return u.fold((e, x) => Math.max(e, x), -Number.MAX_VALUE);
-};
+}
 
 class Box {
   constructor(min, max) {
@@ -714,7 +714,7 @@ function randomPointInSphere(dim) {
 }
 
 // src/Tela/Tela.js
-var drawConvexPolygon = function(tela, positions, shader) {
+function drawConvexPolygon(tela, positions, shader) {
   const { width, height } = tela;
   const canvasBox = tela.box;
   let boundingBox = Box.EMPTY;
@@ -744,8 +744,8 @@ var drawConvexPolygon = function(tela, positions, shader) {
     }
   }
   return tela;
-};
-var isInsideConvex = function(positions) {
+}
+function isInsideConvex(positions) {
   const m = positions.length;
   const v = [];
   const n = [];
@@ -765,8 +765,8 @@ var isInsideConvex = function(positions) {
     }
     return true;
   };
-};
-var clipLine = function(p0, p1, box) {
+}
+function clipLine(p0, p1, box) {
   const pointStack = [p0, p1];
   const inStack = [];
   const outStack = [];
@@ -787,8 +787,8 @@ var clipLine = function(p0, p1, box) {
     return [inPoint, ...lineBoxIntersection(inPoint, outPoint, box)];
   }
   return lineBoxIntersection(...outStack, box);
-};
-var lineBoxIntersection = function(start, end, box) {
+}
+function lineBoxIntersection(start, end, box) {
   const width = box.diagonal.x;
   const height = box.diagonal.y;
   const v = end.sub(start);
@@ -823,8 +823,8 @@ var lineBoxIntersection = function(start, end, box) {
     return [p1, p2];
   }
   return [start.add(v.scale(validIntersections[0].x))];
-};
-var solveLowTriMatrix = function(v, a, f) {
+}
+function solveLowTriMatrix(v, a, f) {
   const v1 = v.x;
   const v2 = v.y;
   const av1 = a * v1;
@@ -833,8 +833,8 @@ var solveLowTriMatrix = function(v, a, f) {
   const f1 = f.x;
   const f2 = f.y;
   return Vec2(f1 / v1, (f2 * v1 - v2 * f1) / av1);
-};
-var solveUpTriMatrix = function(v, a, f) {
+}
+function solveUpTriMatrix(v, a, f) {
   const v1 = v.x;
   const v2 = v.y;
   const av2 = a * v2;
@@ -843,15 +843,27 @@ var solveUpTriMatrix = function(v, a, f) {
   const f1 = f.x;
   const f2 = f.y;
   return Vec2(f2 / v2, (f1 * v2 - v1 * f2) / av2);
-};
+}
 var CHANNELS = 4;
 
 class Tela {
   constructor(width, height) {
+    this.isDirty = false;
     this.width = width;
     this.height = height;
     this.image = new Float32Array(CHANNELS * this.width * this.height);
     this.box = new Box(Vec2(0, 0), Vec2(this.width, this.height));
+  }
+  hash() {
+    if (!this.isDirty && this._hash)
+      return this._hash;
+    let h = 0;
+    for (let i2 = 0;i2 < this.image.length; i2++) {
+      h += h * 37 ^ this.image[i2];
+    }
+    this._hash = h;
+    this.isDirty = false;
+    return h;
   }
   paint() {
     return this;
@@ -873,6 +885,7 @@ class Tela {
       this.image[k + 2] = color.blue;
       this.image[k + 3] = color.alpha;
     }
+    this.isDirty = true;
     return this.paint();
   }
   fill(color) {
@@ -885,6 +898,7 @@ class Tela {
       this.image[k + 2] = color.blue;
       this.image[k + 3] = color.alpha;
     }
+    this.isDirty = true;
     return this;
   }
   getPxl(x, y) {
@@ -904,6 +918,7 @@ class Tela {
     this.image[index + 1] = color.green;
     this.image[index + 2] = color.blue;
     this.image[index + 3] = color.alpha;
+    this.isDirty = true;
     return this;
   }
   setPxlData(index, color) {
@@ -911,6 +926,7 @@ class Tela {
     this.image[index + 1] = color.green;
     this.image[index + 2] = color.blue;
     this.image[index + 3] = color.alpha;
+    this.isDirty = true;
     return this;
   }
   drawLine(p1, p2, shader) {
@@ -937,9 +953,11 @@ class Tela {
       this.image[index + 2] = color.blue;
       this.image[index + 3] = color.alpha;
     }
+    this.isDirty = true;
     return this;
   }
   drawTriangle(x1, x2, x3, shader) {
+    this.isDirty = true;
     return drawConvexPolygon(this, [x1, x2, x3], shader);
   }
   grid2canvas(i2, j) {
@@ -982,6 +1000,7 @@ class Tela {
         this.image[k + 2] = this.image[k + 2] + (color.blue - this.image[k + 2]) / it;
         this.image[k + 3] = this.image[k + 3] + (color.alpha - this.image[k + 3]) / it;
       }
+      ans.isDirty = true;
       if (it < time)
         it++;
       return this.paint();
@@ -994,6 +1013,7 @@ class Tela {
       this.image[index + 1] = this.image[index + 1] + (color.green - this.image[index + 1]) / it;
       this.image[index + 2] = this.image[index + 2] + (color.blue - this.image[index + 2]) / it;
       this.image[index + 3] = this.image[index + 3] + (color.alpha - this.image[index + 3]) / it;
+      ans.isDirty = true;
       return this;
     };
     ans.setPxlData = (index, color) => {
@@ -1001,6 +1021,7 @@ class Tela {
       this.image[index + 1] = this.image[index + 1] + (color.green - this.image[index + 1]) / it;
       this.image[index + 2] = this.image[index + 2] + (color.blue - this.image[index + 2]) / it;
       this.image[index + 3] = this.image[index + 3] + (color.alpha - this.image[index + 3]) / it;
+      ans.isDirty = true;
       return ans;
     };
     ans.paint = () => {
@@ -1016,10 +1037,13 @@ class Tela {
     this.image = new Float32Array(CHANNELS * this.width * this.height);
     this.box = new Box(Vec2(0, 0), Vec2(this.width, this.height));
   }
+  serialize() {
+    return { width: this.width, height: this.height, image: this.image };
+  }
 }
 
 // src/Tela/Canvas.js
-var handleMouse = function(canvas, lambda) {
+function handleMouse(canvas, lambda) {
   return (event) => {
     const h = canvas.height;
     const w = canvas.width;
@@ -1029,7 +1053,7 @@ var handleMouse = function(canvas, lambda) {
     const y = Math.floor(h - 1 - my * h);
     return lambda(x, y, event);
   };
-};
+}
 
 class Canvas extends Tela {
   constructor(canvas) {
@@ -1212,12 +1236,12 @@ var createWorker = (main, lambda, dependencies) => {
 };
 
 // src/Utils/DomBuilder.js
-var isElement = function(o) {
+function isElement(o) {
   return typeof HTMLElement === "object" ? o instanceof HTMLElement : o && typeof o === "object" && o !== null && o.nodeType === 1 && typeof o.nodeName === "string";
-};
-var isPromise = function(o) {
+}
+function isPromise(o) {
   return o instanceof Promise;
-};
+}
 var SVG_URL = "http://www.w3.org/2000/svg";
 var SVG_TAGS = [
   "svg",
@@ -1432,6 +1456,18 @@ var MATERIALS = {
 };
 var MATERIAL_NAMES = Object.keys(MATERIALS).reduce((e, x) => ({ [x]: x, ...e }), {});
 
+// src/Tela/utils.js
+function deserialize(telaJson) {
+  if (!telaJson)
+    return;
+  const { width, height, image } = telaJson;
+  const tela = new Tela(width, height);
+  for (let i2 = 0;i2 < image.length; i2 += CHANNELS) {
+    tela.setPxlData(i2, Color.ofRGB(image[i2], image[i2 + 1], image[i2 + 2], image[i2 + 3]));
+  }
+  return tela;
+}
+
 // src/Geometry/Triangle.js
 class Triangle {
   constructor({ name, positions, colors, texCoords, normals, texture, emissive, material }) {
@@ -1498,13 +1534,15 @@ class Triangle {
       name: this.name,
       emissive: this.emissive,
       colors: this.colors.map((x) => x.toArray()),
+      texCoords: this.texCoords.map((x) => x.toArray()),
       positions: this.positions.map((x) => x.toArray()),
+      texture: this.texture ? this.texture.hash() : undefined,
       material: { type: this.material.type, args: this.material.args }
     };
   }
-  static deserialize(json) {
+  static deserialize(json, artifacts) {
     const { type, args } = json.material;
-    return Triangle.builder().name(json.name).positions(...json.positions.map((x) => Vec.fromArray(x))).colors(...json.colors.map((x) => new Color(x))).emissive(json.emissive).material(MATERIALS[type](...args)).build();
+    return Triangle.builder().name(json.name).emissive(json.emissive).material(MATERIALS[type](...args)).colors(...json.colors.map((x) => new Color(x))).positions(...json.positions.map((x) => Vec.fromArray(x))).texCoords(...json.texCoords.map((x) => Vec.fromArray(x))).texture(json.texture ? deserialize(artifacts[json.texture]) : undefined).build();
   }
   static builder() {
     return new TriangleBuilder;
@@ -1641,13 +1679,13 @@ function trace(ray, scene, options) {
   let finalC = trace(r, scene, { bounces: bounces - 1, bilinearTexture });
   return e.emissive ? color.add(color.mul(finalC)) : color.mul(finalC);
 }
-var getColorFromElement = function(e, ray, params) {
+function getColorFromElement(e, ray, params) {
   if (Triangle.name === e.constructor.name) {
     return getTriangleColor(e, ray, params);
   }
   return e.color ?? e.colors[0];
-};
-var getTriangleColor = function(triangle, ray, params) {
+}
+function getTriangleColor(triangle, ray, params) {
   const { tangents, positions, texCoords, texture, colors } = triangle;
   const haveTextures = texture && texCoords && texCoords.length > 0 && !texCoords.some((x) => x === undefined);
   const v = ray.init.sub(positions[0]);
@@ -1663,7 +1701,7 @@ var getTriangleColor = function(triangle, ray, params) {
     return texColor;
   }
   return colors[0].scale(alpha).add(colors[1].scale(beta)).add(colors[2].scale(1 - alpha - beta));
-};
+}
 
 // src/Geometry/Line.js
 class Line {
@@ -1812,7 +1850,7 @@ class LineBuilder {
 }
 
 // src/Geometry/Sphere.js
-var sphereInterception = function(point, ray) {
+function sphereInterception(point, ray) {
   const { init, dir } = ray;
   const diff = init.sub(point.position);
   const b = 2 * dir.dot(diff);
@@ -1827,7 +1865,7 @@ var sphereInterception = function(point, ray) {
   if (t1 * t2 < 0)
     return tM;
   return t1 >= 0 && t2 >= 0 ? t : undefined;
-};
+}
 
 class Sphere {
   constructor({ name, position, color, texCoord, normal, radius, texture, emissive, material }) {
@@ -1875,12 +1913,14 @@ class Sphere {
       emissive: this.emissive,
       color: this.color.toArray(),
       position: this.position.toArray(),
+      texCoord: this.texCoord.toArray(),
+      texture: this.texture ? this.texture.hash() : undefined,
       material: { type: this.material.type, args: this.material.args }
     };
   }
-  static deserialize(json) {
+  static deserialize(json, artifacts) {
     const { type, args } = json.material;
-    return Sphere.builder().name(json.name).radius(json.radius).position(Vec.fromArray(json.position)).color(new Color(json.color)).emissive(json.emissive).material(MATERIALS[type](...args)).build();
+    return Sphere.builder().name(json.name).radius(json.radius).emissive(json.emissive).color(new Color(json.color)).material(MATERIALS[type](...args)).texCoord(Vec.fromArray(json.texCoord)).position(Vec.fromArray(json.position)).texture(json.texture ? deserialize(artifacts[json.texture]) : undefined).build();
   }
   static builder() {
     return new SphereBuilder;
@@ -1965,7 +2005,7 @@ class SphereBuilder {
 var Sphere_default = Sphere;
 
 // src/Utils/PQueue.js
-var heapifyBuilder = function(data, comparator) {
+function heapifyBuilder(data, comparator) {
   return (rootIndex) => {
     const leftIndex = 2 * rootIndex + 1;
     const rightIndex = 2 * rootIndex + 2;
@@ -1984,7 +2024,7 @@ var heapifyBuilder = function(data, comparator) {
     }
     return data;
   };
-};
+}
 
 class PQueue {
   constructor(comparator = (a, b) => a - b) {
@@ -2109,11 +2149,21 @@ class NaiveScene {
     return params.canvas;
   }
   serialize() {
-    return {
+    const artifacts = {};
+    this.getElements().forEach((e) => {
+      const hash = e?.texture?.hash();
+      if (e.texture && !(hash in artifacts)) {
+        console.log(">>> add texture");
+        artifacts[hash] = e.texture.serialize();
+      }
+    });
+    const json = {
       params: [],
       type: NaiveScene.name,
-      sceneData: this.getElements().map((x) => x.serialize())
+      sceneData: this.getElements().map((x) => x.serialize()),
+      artifacts
     };
+    return json;
   }
 }
 
@@ -2152,7 +2202,7 @@ var UNIT_BOX_LINES = [
 ];
 
 // src/Scene/KScene.js
-var clusterLeafs = function(box, leafs, it = 10) {
+function clusterLeafs(box, leafs, it = 10) {
   const clusters = [box.sample(), box.sample()];
   const clusterIndexes = [];
   for (let i2 = 0;i2 < it; i2++) {
@@ -2180,8 +2230,8 @@ var clusterLeafs = function(box, leafs, it = 10) {
     }
   }
   return clusterIndexes.map((indxs) => indxs.map((indx3) => leafs[indx3]));
-};
-var leafsInterceptWithRay = function(leafs, ray) {
+}
+function leafsInterceptWithRay(leafs, ray) {
   let closestDistance = Number.MAX_VALUE;
   let closest;
   for (let i2 = 0;i2 < leafs.length; i2++) {
@@ -2192,15 +2242,15 @@ var leafsInterceptWithRay = function(leafs, ray) {
     }
   }
   return closest;
-};
-var distanceFromLeafs = function(leafs, p, combineLeafs) {
+}
+function distanceFromLeafs(leafs, p, combineLeafs) {
   const elements = leafs.map((x) => x.element);
   let distance = Number.MAX_VALUE;
   for (let i2 = 0;i2 < elements.length; i2++) {
     distance = combineLeafs(distance, elements[i2].distanceToPoint(p));
   }
   return distance;
-};
+}
 
 class KScene extends NaiveScene {
   constructor(k = 10) {
@@ -2329,11 +2379,10 @@ class KScene extends NaiveScene {
     return canvas;
   }
   serialize() {
-    return {
-      params: [this.k],
-      type: KScene.name,
-      sceneData: this.getElements().map((x) => x.serialize())
-    };
+    const json = super.serialize();
+    json.params = [this.k];
+    json.type = KScene.name;
+    return json;
   }
 }
 
@@ -2497,7 +2546,7 @@ class Leaf {
 }
 
 // src/Geometry/Mesh.js
-var triangulate = function(polygon) {
+function triangulate(polygon) {
   if (polygon.length === 3) {
     return [polygon];
   }
@@ -2507,8 +2556,8 @@ var triangulate = function(polygon) {
       [polygon[2], polygon[3], polygon[0]]
     ];
   }
-};
-var parseFace = function(vertexInfo) {
+}
+function parseFace(vertexInfo) {
   const facesInfo = vertexInfo.flatMap((x) => x.split("/")).map((x) => Number.parseFloat(x));
   const length = facesInfo.length;
   const lengthDiv3 = Math.floor(length / 3);
@@ -2525,7 +2574,7 @@ var parseFace = function(vertexInfo) {
       face.normals = indices;
   });
   return face;
-};
+}
 var MESH_COUNTER = 0;
 var RADIUS = 0.001;
 
@@ -2757,7 +2806,7 @@ function rasterGraphics(scene, camera, params = {}) {
     return canvas;
   };
 }
-var rasterSphere = function({ canvas, camera, elem, w, h, zBuffer }) {
+function rasterSphere({ canvas, camera, elem, w, h, zBuffer }) {
   const point = elem;
   const { distanceToPlane } = camera;
   const { texCoord, texture, position, color, radius } = point;
@@ -2794,8 +2843,8 @@ var rasterSphere = function({ canvas, camera, elem, w, h, zBuffer }) {
       }
     }
   }
-};
-var rasterLine = function({ canvas, camera, elem, w, h, zBuffer, params }) {
+}
+function rasterLine({ canvas, camera, elem, w, h, zBuffer, params }) {
   const lineElem = elem;
   const { colors, positions } = lineElem;
   const { distanceToPlane } = camera;
@@ -2841,8 +2890,8 @@ var rasterLine = function({ canvas, camera, elem, w, h, zBuffer, params }) {
     }
   };
   canvas.drawLine(intPoints[0], intPoints[1], shader);
-};
-var rasterTriangle = function({ canvas, camera, elem, w, h, zBuffer, params }) {
+}
+function rasterTriangle({ canvas, camera, elem, w, h, zBuffer, params }) {
   const triangleElem = elem;
   const { distanceToPlane } = camera;
   const { colors, positions, texCoords, texture } = triangleElem;
@@ -2904,20 +2953,20 @@ var rasterTriangle = function({ canvas, camera, elem, w, h, zBuffer, params }) {
     }
   };
   canvas.drawTriangle(intPoints[0], intPoints[1], intPoints[2], shader);
-};
-var rasterMesh = function({ canvas, camera, elem, w, h, zBuffer, params }) {
+}
+function rasterMesh({ canvas, camera, elem, w, h, zBuffer, params }) {
   const triangles = elem._meshScene.getElements();
   for (let i2 = 0;i2 < triangles.length; i2++) {
     rasterTriangle({ canvas, camera, elem: triangles[i2], w, h, zBuffer, params });
   }
-};
-var lineCameraPlaneIntersection = function(vertexOut, vertexIn, camera) {
+}
+function lineCameraPlaneIntersection(vertexOut, vertexIn, camera) {
   const { distanceToPlane } = camera;
   const v = vertexIn.sub(vertexOut);
   const alpha = (distanceToPlane - vertexOut.z) / v.z;
   const p = vertexOut.add(v.scale(alpha));
   return p;
-};
+}
 
 // src/Camera/sdf.js
 function sdfTrace(scene) {
@@ -2960,7 +3009,7 @@ function normalTrace(scene) {
 // src/Camera/parallel.js
 function parallelWorkers(camera, scene, canvas, params = {}) {
   if (WORKERS.length === 0)
-    WORKERS = [...Array(NUMBER_OF_CORES)].map(() => new MyWorker(`./src/Camera/rayTraceWorker.js`));
+    WORKERS = [...Array(NUMBER_OF_CORES / 2)].map(() => new MyWorker(`./src/Camera/rayTraceWorker.js`));
   const w = canvas.width;
   const h = canvas.height;
   const isNewScene = prevSceneHash !== scene.hash;
@@ -3249,11 +3298,9 @@ class BScene extends NaiveScene {
     return canvas;
   }
   serialize() {
-    return {
-      params: [],
-      type: BScene.name,
-      sceneData: this.getElements().map((x) => x.serialize())
-    };
+    const json = this.super.serialize();
+    json.type = BScene.name;
+    return json;
   }
 }
 
@@ -3435,11 +3482,11 @@ class Leaf2 {
 }
 
 // src/Scene/VoxelScene.js
-var hash = function(p, gridSpace) {
+function hash(p, gridSpace) {
   const integerCoord = p.map((z) => Math.floor(z / gridSpace));
   const h = integerCoord.x * 92837111 ^ integerCoord.y * 689287499 ^ integerCoord.z * 283923481;
   return Math.abs(h);
-};
+}
 
 class VoxelScene extends NaiveScene {
   constructor(gridSpace = 0.1) {
@@ -3574,16 +3621,15 @@ class VoxelScene extends NaiveScene {
     return canvas;
   }
   serialize() {
-    return {
-      params: [this.gridSpace],
-      type: VoxelScene.name,
-      sceneData: this.getElements().map((x) => x.serialize())
-    };
+    const json = super.serialize();
+    json.params = [this.gridSpace];
+    json.type = VoxelScene.name;
+    return json;
   }
 }
 
 // src/Scene/RandomScene.js
-var clusterLeafs2 = function(box, leafs, it = 10) {
+function clusterLeafs2(box, leafs, it = 10) {
   const clusters = [box.sample(), box.sample()];
   const clusterIndexes = [];
   for (let i2 = 0;i2 < it; i2++) {
@@ -3611,13 +3657,13 @@ var clusterLeafs2 = function(box, leafs, it = 10) {
     }
   }
   return [...clusterIndexes].map((indxs) => indxs.map((indx3) => leafs[indx3]));
-};
-var random = function(n) {
+}
+function random(n) {
   let index = 0;
   const numbers = new Float64Array(n).map(() => Math.random());
   return () => numbers[index++ % n];
-};
-var leafsinterceptWithRay = function(leafs, ray) {
+}
+function leafsinterceptWithRay(leafs, ray) {
   let closestDistance = Number.MAX_VALUE;
   let closest;
   for (let i2 = 0;i2 < leafs.length; i2++) {
@@ -3628,7 +3674,7 @@ var leafsinterceptWithRay = function(leafs, ray) {
     }
   }
   return closest;
-};
+}
 var rayCache = (gridSize = 0.01, dirGrid = 0.01) => {
   const cache = {};
   cache.table = {};
@@ -3974,7 +4020,7 @@ class PathBuilder {
 }
 
 // src/Utils/SVG.js
-var tokens = function(charStream) {
+function tokens(charStream) {
   let s = charStream;
   const tokensList = [];
   while (!s.isEmpty()) {
@@ -3986,8 +4032,8 @@ var tokens = function(charStream) {
     s = nextStream;
   }
   return stream(tokensList);
-};
-var streamIncludes = function(charStream, string) {
+}
+function streamIncludes(charStream, string) {
   let s = charStream;
   let i2 = 0;
   while (!s.isEmpty() && i2 < string.length) {
@@ -3996,12 +4042,12 @@ var streamIncludes = function(charStream, string) {
     s = s.tail();
   }
   return true;
-};
-var parseToken = function(charStream) {
+}
+function parseToken(charStream) {
   const TOKENS_PARSER = TOKEN_SYMBOLS.map((s) => () => symbolParser(s)(charStream));
   return or(...TOKENS_PARSER, () => defaultToken(charStream));
-};
-var symbolParser = function(symbol) {
+}
+function symbolParser(symbol) {
   return (charStream) => {
     let s = charStream;
     let i2 = 0;
@@ -4013,8 +4059,8 @@ var symbolParser = function(symbol) {
     }
     return { token: { type: symbol, text: symbol }, nextStream: s };
   };
-};
-var parseSVG = function(stream) {
+}
+function parseSVG(stream) {
   return or(() => {
     const { left: StartTag, right: nextStream1 } = parseStartTag(stream);
     const { left: InnerSVG, right: nextStream2 } = parseInnerSVG(nextStream1);
@@ -4027,12 +4073,12 @@ var parseSVG = function(stream) {
     const { left: CommentTag, right: nextStream } = parseCommentTag(stream);
     return pair({ type: "svg", CommentTag }, nextStream);
   });
-};
-var parseValue = function(stream) {
+}
+function parseValue(stream) {
   const { left: AnyBut, right: nextStream } = parseAnyBut((t) => t.type === "<" || t.type === "</")(eatSpacesTabsAndNewLines(stream));
   return pair({ type: "value", text: AnyBut.text }, nextStream);
-};
-var parseSVGTypes = function(stream) {
+}
+function parseSVGTypes(stream) {
   return or(() => {
     const cleanStream = eatSpacesTabsAndNewLines(stream);
     const { left: SVG, right: nextStream } = parseSVG(cleanStream);
@@ -4043,8 +4089,8 @@ var parseSVGTypes = function(stream) {
       throw Error("Fail to parse SVGType");
     return pair({ type: "svgTypes", Value }, nextStream);
   });
-};
-var parseInnerSVG = function(stream) {
+}
+function parseInnerSVG(stream) {
   return or(() => {
     const { left: SVGTypes, right: nextStream } = parseSVGTypes(stream);
     const { left: InnerSVG, right: nextStream1 } = parseInnerSVG(nextStream);
@@ -4058,8 +4104,8 @@ var parseInnerSVG = function(stream) {
       innerSvgs: []
     }, stream);
   });
-};
-var parseAnyBut = function(tokenPredicate) {
+}
+function parseAnyBut(tokenPredicate) {
   return (stream) => {
     let nextStream = stream;
     const textArray = [];
@@ -4069,8 +4115,8 @@ var parseAnyBut = function(tokenPredicate) {
     }
     return pair({ type: "anyBut", text: textArray.join("") }, nextStream);
   };
-};
-var parseEndTag = function(stream) {
+}
+function parseEndTag(stream) {
   const filteredStream = eatSpacesTabsAndNewLines(stream);
   const token = filteredStream.head();
   if (token.type === "</") {
@@ -4082,8 +4128,8 @@ var parseEndTag = function(stream) {
     }
   }
   throw new Error("Fail to parse End Tag");
-};
-var parseEmptyTag = function(stream) {
+}
+function parseEmptyTag(stream) {
   const token = stream.head();
   if (token.type === "<") {
     const nextStream1 = eatSpaces(stream.tail());
@@ -4096,8 +4142,8 @@ var parseEmptyTag = function(stream) {
     }
   }
   throw new Error("Fail to parse EmptyTag");
-};
-var parseCommentTag = function(stream) {
+}
+function parseCommentTag(stream) {
   if (stream.head().type === "<!--") {
     const nextStream = stream.tail();
     const { left: AnyBut, right: nextStream1 } = parseAnyBut((token) => token.type === "-->")(nextStream);
@@ -4105,8 +4151,8 @@ var parseCommentTag = function(stream) {
       return pair({ type: "commentTag" }, nextStream1.tail());
   }
   throw new Error("Fail to parse CommentTag");
-};
-var parseStartTag = function(stream) {
+}
+function parseStartTag(stream) {
   const token = stream.head();
   if (token.type === "<") {
     const nextStream1 = eatSpaces(stream.tail());
@@ -4119,14 +4165,14 @@ var parseStartTag = function(stream) {
     }
   }
   throw new Error("Fail to parse StartTag");
-};
-var parseAlphaNumName = function(stream) {
+}
+function parseAlphaNumName(stream) {
   const token = stream.head();
   if (token.type === "text")
     return pair({ type: "alphaNumName", text: token.text }, stream.tail());
   throw new Error("Fail to parse AlphaNumName");
-};
-var parseAttr = function(stream) {
+}
+function parseAttr(stream) {
   return or(() => {
     const { left: AlphaNumName, right: nextStream1 } = parseAlphaNumName(stream);
     if (nextStream1.head().type === "=" && (nextStream1.tail().head().type === "\"" || nextStream1.tail().head().type === "'")) {
@@ -4146,8 +4192,8 @@ var parseAttr = function(stream) {
       attributeValue: '"true"'
     }, nextStream1);
   });
-};
-var parseAttrs = function(stream) {
+}
+function parseAttrs(stream) {
   return or(() => {
     const { left: Attr, right: nextStream } = parseAttr(stream);
     const nextStreamNoSpaces = eatSpacesTabsAndNewLines(nextStream);
@@ -4162,8 +4208,8 @@ var parseAttrs = function(stream) {
       attributes: []
     }, stream);
   });
-};
-var eatSpaces = function(stream) {
+}
+function eatSpaces(stream) {
   let s = stream;
   while (!s.isEmpty()) {
     if (s.head().type !== " ")
@@ -4171,8 +4217,8 @@ var eatSpaces = function(stream) {
     s = s.tail();
   }
   return s;
-};
-var eatSpacesTabsAndNewLines = function(stream) {
+}
+function eatSpacesTabsAndNewLines(stream) {
   let s = stream;
   while (!s.isEmpty()) {
     const symbol = s.head().type;
@@ -4181,11 +4227,11 @@ var eatSpacesTabsAndNewLines = function(stream) {
     s = s.tail();
   }
   return s;
-};
-var pair = function(a, b) {
+}
+function pair(a, b) {
   return { left: a, right: b };
-};
-var or = function(...rules) {
+}
+function or(...rules) {
   let accError = null;
   for (let i2 = 0;i2 < rules.length; i2++) {
     try {
@@ -4195,8 +4241,8 @@ var or = function(...rules) {
     }
   }
   throw accError;
-};
-var stream = function(stringOrArray) {
+}
+function stream(stringOrArray) {
   const array = [...stringOrArray];
   return {
     head: () => array[0],
@@ -4213,7 +4259,7 @@ var stream = function(stringOrArray) {
       }
     }
   };
-};
+}
 function parse(text) {
   const { left: SVG } = parseSVG(eatSpacesTabsAndNewLines(tokens(stream(text))));
   return SVG;
@@ -4280,130 +4326,14 @@ function maybe(x) {
 // src/IO/IO.js
 var exports_IO = {};
 __export(exports_IO, {
-  saveParallelImageStreamToVideo: () => {
-    {
-      return saveParallelImageStreamToVideo;
-    }
-  },
-  saveImageToFile: () => {
-    {
-      return saveImageToFile;
-    }
-  },
-  saveImageStreamToVideo: () => {
-    {
-      return saveImageStreamToVideo;
-    }
-  },
-  readImageFrom: () => {
-    {
-      return readImageFrom;
-    }
-  },
-  createPPMFromImage: () => {
-    {
-      return createPPMFromImage;
-    }
-  }
+  saveParallelImageStreamToVideo: () => saveParallelImageStreamToVideo,
+  saveImageToFile: () => saveImageToFile,
+  saveImageStreamToVideo: () => saveImageStreamToVideo,
+  readImageFrom: () => readImageFrom,
+  createPPMFromImage: () => createPPMFromImage
 });
 import {writeFileSync, unlinkSync, readFileSync} from "fs";
 import {execSync, exec} from "child_process";
-
-// src/Tela/Image.js
-import {Worker as Worker2} from "node:worker_threads";
-import os from "node:os";
-
-class Image extends Tela {
-  mapParallel = memoize((lambda, dependencies = []) => {
-    const N = os.cpus().length;
-    const w = this.width;
-    const h = this.height;
-    const fun = ({ _start_row, _end_row, _width_, _height_, _worker_id_, _vars_ }) => {
-      const image = new Float32Array(CHANNELS * _width_ * (_end_row - _start_row));
-      const startIndex = CHANNELS * _width_ * _start_row;
-      const endIndex = CHANNELS * _width_ * _end_row;
-      let index = 0;
-      for (let k = startIndex;k < endIndex; k += CHANNELS) {
-        const i2 = Math.floor(k / (CHANNELS * _width_));
-        const j = Math.floor(k / CHANNELS % _width_);
-        const x = j;
-        const y = _height_ - 1 - i2;
-        const color = lambda(x, y, { ..._vars_ });
-        if (!color)
-          continue;
-        image[index] = color.red;
-        image[index + 1] = color.green;
-        image[index + 2] = color.blue;
-        image[index + 3] = 1;
-        index += CHANNELS;
-      }
-      return { image, _start_row, _end_row, _worker_id_ };
-    };
-    const workers = [...Array(N)].map(() => createWorker2(fun, lambda, dependencies));
-    return {
-      run: (vars = {}) => {
-        return Promise.all(workers.map((worker, k) => {
-          return new Promise((resolve) => {
-            worker.removeAllListeners("message");
-            worker.on("message", (message) => {
-              const { image, _start_row, _end_row } = message;
-              let index = 0;
-              const startIndex = CHANNELS * w * _start_row;
-              const endIndex = CHANNELS * w * _end_row;
-              for (let i2 = startIndex;i2 < endIndex; i2++) {
-                this.image[i2] = image[index];
-                index++;
-              }
-              return resolve();
-            });
-            const ratio = Math.floor(h / N);
-            worker.postMessage({
-              _start_row: k * ratio,
-              _end_row: Math.min(h - 1, (k + 1) * ratio),
-              _width_: w,
-              _height_: h,
-              _worker_id_: k,
-              _vars_: vars
-            });
-          });
-        })).then(() => this.paint());
-      }
-    };
-  });
-  toArray() {
-    return this.image;
-  }
-  static ofUrl(url) {
-    return readImageFrom(url);
-  }
-  static ofSize(width, height) {
-    return new Image(width, height);
-  }
-  static ofImage(image) {
-    const w = image.width;
-    const h = image.height;
-    return Image.ofSize(w, h).map((x, y) => {
-      return image.getPxl(x, y);
-    });
-  }
-}
-var createWorker2 = (main, lambda, dependencies) => {
-  const workerFile = `
-    const { parentPort } = require("node:worker_threads");
-    const CHANNELS = ${CHANNELS};
-    ${dependencies.concat([Color]).map((d) => d.toString()).join("\n")}
-    const lambda = ${lambda.toString()};
-    const __main__ = ${main.toString()};
-    parentPort.on("message", message => {
-        const output = __main__(message);
-        parentPort.postMessage(output);
-    });
-    `;
-  const worker = new Worker2(workerFile, { eval: true });
-  return worker;
-};
-
-// src/IO/IO.js
 function saveImageToFile(fileAddress, image) {
   const { fileName, extension } = getFileNameAndExtensionFromAddress(fileAddress);
   const ppmName = `${fileName}.ppm`;
@@ -4413,13 +4343,13 @@ function saveImageToFile(fileAddress, image) {
     unlinkSync(ppmName);
   }
 }
-var getFileNameAndExtensionFromAddress = function(address) {
+function getFileNameAndExtensionFromAddress(address) {
   const lastDotIndex = address.lastIndexOf(".");
   const fileName = address.slice(0, lastDotIndex);
   const extension = address.slice(lastDotIndex + 1);
   return { fileName, extension };
-};
-var parsePPM = function(data) {
+}
+function parsePPM(data) {
   const NEW_LINE_CHAR = 10;
   let index = 0;
   let headerLines = 3;
@@ -4439,28 +4369,19 @@ var parsePPM = function(data) {
     });
   }
   return { width, height, maxColor, pixels };
-};
+}
 function readImageFrom(src) {
   const { fileName } = getFileNameAndExtensionFromAddress(src);
   execSync(`ffmpeg -i ${src} ${fileName}.ppm`);
   const imageFile = readFileSync(`${fileName}.ppm`);
-  const { width: w, height: h, pixels } = parsePPM(imageFile);
+  const { width, height, pixels } = parsePPM(imageFile);
   unlinkSync(`${fileName}.ppm`);
-  const img = Image.ofSize(w, h);
-  for (let k = 0;k < pixels.length; k++) {
-    const { r, g, b } = pixels[k];
-    const i2 = Math.floor(k / w);
-    const j = k % w;
-    const x = j;
-    const y = h - 1 - i2;
-    img.setPxl(x, y, Color.ofRGBRaw(r, g, b));
-  }
-  return img;
+  return { width, height, pixels };
 }
-function createPPMFromImage(image) {
-  const width = image.width;
-  const height = image.height;
-  const pixelData = image.toArray();
+function createPPMFromImage(telaImage) {
+  const width = telaImage.width;
+  const height = telaImage.height;
+  const pixelData = telaImage.image;
   const rgbClamp = (x) => Math.floor(Math.min(MAX_8BIT, Math.max(0, MAX_8BIT * x)));
   let file = `P3\n${width} ${height}\n${MAX_8BIT}\n`;
   for (let i2 = 0;i2 < pixelData.length; i2 += 4) {
@@ -4628,6 +4549,107 @@ class ParallelBuilder {
     return new Parallel(...attrs);
   }
 }
+
+// src/Tela/Image.js
+import {Worker as Worker2} from "node:worker_threads";
+import os from "node:os";
+
+class Image extends Tela {
+  mapParallel = memoize((lambda, dependencies = []) => {
+    const N = os.cpus().length;
+    const w = this.width;
+    const h = this.height;
+    const fun = ({ _start_row, _end_row, _width_, _height_, _worker_id_, _vars_ }) => {
+      const image = new Float32Array(CHANNELS * _width_ * (_end_row - _start_row));
+      const startIndex = CHANNELS * _width_ * _start_row;
+      const endIndex = CHANNELS * _width_ * _end_row;
+      let index = 0;
+      for (let k = startIndex;k < endIndex; k += CHANNELS) {
+        const i2 = Math.floor(k / (CHANNELS * _width_));
+        const j = Math.floor(k / CHANNELS % _width_);
+        const x = j;
+        const y = _height_ - 1 - i2;
+        const color = lambda(x, y, { ..._vars_ });
+        if (!color)
+          continue;
+        image[index] = color.red;
+        image[index + 1] = color.green;
+        image[index + 2] = color.blue;
+        image[index + 3] = 1;
+        index += CHANNELS;
+      }
+      return { image, _start_row, _end_row, _worker_id_ };
+    };
+    const workers = [...Array(N)].map(() => createWorker2(fun, lambda, dependencies));
+    return {
+      run: (vars = {}) => {
+        return Promise.all(workers.map((worker, k) => {
+          return new Promise((resolve) => {
+            worker.removeAllListeners("message");
+            worker.on("message", (message) => {
+              const { image, _start_row, _end_row } = message;
+              let index = 0;
+              const startIndex = CHANNELS * w * _start_row;
+              const endIndex = CHANNELS * w * _end_row;
+              for (let i2 = startIndex;i2 < endIndex; i2++) {
+                this.image[i2] = image[index];
+                index++;
+              }
+              return resolve();
+            });
+            const ratio = Math.floor(h / N);
+            worker.postMessage({
+              _start_row: k * ratio,
+              _end_row: Math.min(h - 1, (k + 1) * ratio),
+              _width_: w,
+              _height_: h,
+              _worker_id_: k,
+              _vars_: vars
+            });
+          });
+        })).then(() => this.paint());
+      }
+    };
+  });
+  static ofUrl(url) {
+    const { width: w, height: h, pixels } = readImageFrom(url);
+    const img = Image.ofSize(w, h);
+    for (let k = 0;k < pixels.length; k++) {
+      const { r, g, b } = pixels[k];
+      const i2 = Math.floor(k / w);
+      const j = k % w;
+      const x = j;
+      const y = h - 1 - i2;
+      img.setPxl(x, y, Color.ofRGBRaw(r, g, b));
+    }
+    return img;
+  }
+  static ofSize(width, height) {
+    return new Image(width, height);
+  }
+  static ofImage(image) {
+    const w = image.width;
+    const h = image.height;
+    return Image.ofSize(w, h).map((x, y) => {
+      return image.getPxl(x, y);
+    });
+  }
+}
+var createWorker2 = (main, lambda, dependencies) => {
+  const workerFile = `
+    const { parentPort } = require("node:worker_threads");
+    const CHANNELS = ${CHANNELS};
+    ${dependencies.concat([Color]).map((d) => d.toString()).join("\n")}
+    const lambda = ${lambda.toString()};
+    const __main__ = ${main.toString()};
+    parentPort.on("message", message => {
+        const output = __main__(message);
+        parentPort.postMessage(output);
+    });
+    `;
+  const worker = new Worker2(workerFile, { eval: true });
+  return worker;
+};
 
 // src/Utils/Video.js
 function video(file, lambda, { width = 640, height = 480, FPS = 25 }) {

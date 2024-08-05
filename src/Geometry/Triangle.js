@@ -2,6 +2,7 @@ import Box from "../Geometry/Box.js";
 import Color from "../Color/Color.js";
 import { Diffuse, MATERIALS } from "../Material/Material.js";
 import Vec, { Vec2, Vec3 } from "../Vector/Vector.js";
+import { deserialize as deserializeImage } from "../Tela/utils.js";
 
 export default class Triangle {
     constructor({ name, positions, colors, texCoords, normals, texture, emissive, material }) {
@@ -73,20 +74,24 @@ export default class Triangle {
             name: this.name,
             emissive: this.emissive,
             colors: this.colors.map(x => x.toArray()),
+            texCoords: this.texCoords.map(x => x.toArray()),
             positions: this.positions.map(x => x.toArray()),
+            texture: this.texture ? this.texture.hash() : undefined,
             material: { type: this.material.type, args: this.material.args }
         }
     }
 
-    static deserialize(json) {
+    static deserialize(json, artifacts) {
         const { type, args } = json.material;
         return Triangle
             .builder()
             .name(json.name)
-            .positions(...json.positions.map(x => Vec.fromArray(x)))
-            .colors(...json.colors.map(x => new Color(x)))
             .emissive(json.emissive)
             .material(MATERIALS[type](...args))
+            .colors(...json.colors.map(x => new Color(x)))
+            .positions(...json.positions.map(x => Vec.fromArray(x)))
+            .texCoords(...json.texCoords.map(x => Vec.fromArray(x)))
+            .texture(json.texture ? deserializeImage(artifacts[json.texture]) : undefined)
             .build()
     }
 

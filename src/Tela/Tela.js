@@ -8,10 +8,22 @@ export const CHANNELS = 4;
 // Abstract Image
 export default class Tela {
     constructor(width, height) {
+        this.isDirty = false;
         this.width = width;
         this.height = height;
         this.image = new Float32Array(CHANNELS * this.width * this.height);
         this.box = new Box(Vec2(0, 0), Vec2(this.width, this.height));
+    }
+
+    hash() {
+        if (!this.isDirty && this._hash) return this._hash;
+        let h = 0;
+        for (let i = 0; i < this.image.length; i++) {
+            h += (h * 37) ^ this.image[i];
+        }
+        this._hash = h;
+        this.isDirty = false;
+        return h;
     }
 
     // Flush image data
@@ -39,6 +51,7 @@ export default class Tela {
             this.image[k + 2] = color.blue;
             this.image[k + 3] = color.alpha;
         }
+        this.isDirty = true;
         return this.paint();
     }
 
@@ -51,6 +64,7 @@ export default class Tela {
             this.image[k + 2] = color.blue;
             this.image[k + 3] = color.alpha;
         }
+        this.isDirty = true;
         return this;
     }
 
@@ -72,6 +86,7 @@ export default class Tela {
         this.image[index + 1] = color.green;
         this.image[index + 2] = color.blue;
         this.image[index + 3] = color.alpha;
+        this.isDirty = true;
         return this;
     }
 
@@ -80,6 +95,7 @@ export default class Tela {
         this.image[index + 1] = color.green;
         this.image[index + 2] = color.blue;
         this.image[index + 3] = color.alpha;
+        this.isDirty = true;
         return this;
     }
 
@@ -105,10 +121,12 @@ export default class Tela {
             this.image[index + 2] = color.blue;
             this.image[index + 3] = color.alpha;
         }
+        this.isDirty = true;
         return this;
     }
 
     drawTriangle(x1, x2, x3, shader) {
+        this.isDirty = true;
         return drawConvexPolygon(this, [x1, x2, x3], shader);
     }
 
@@ -155,6 +173,7 @@ export default class Tela {
                 this.image[k + 2] = this.image[k + 2] + (color.blue - this.image[k + 2]) / it;
                 this.image[k + 3] = this.image[k + 3] + (color.alpha - this.image[k + 3]) / it;
             }
+            ans.isDirty = true;
             if (it < time) it++
             return this.paint();
         }
@@ -167,6 +186,7 @@ export default class Tela {
             this.image[index + 1] = this.image[index + 1] + (color.green - this.image[index + 1]) / it;
             this.image[index + 2] = this.image[index + 2] + (color.blue - this.image[index + 2]) / it;
             this.image[index + 3] = this.image[index + 3] + (color.alpha - this.image[index + 3]) / it;
+            ans.isDirty=true;
             return this;
         }
 
@@ -175,6 +195,7 @@ export default class Tela {
             this.image[index + 1] = this.image[index + 1] + (color.green - this.image[index + 1]) / it;
             this.image[index + 2] = this.image[index + 2] + (color.blue - this.image[index + 2]) / it;
             this.image[index + 3] = this.image[index + 3] + (color.alpha - this.image[index + 3]) / it;
+            ans.isDirty=true;
             return ans;
         }
 
@@ -190,6 +211,10 @@ export default class Tela {
         this.height = Math.floor(height);
         this.image = new Float32Array(CHANNELS * this.width * this.height);
         this.box = new Box(Vec2(0, 0), Vec2(this.width, this.height));
+    }
+
+    serialize() {
+        return {width: this.width, height: this.height, image: this.image};
     }
 }
 //========================================================================================

@@ -91,10 +91,21 @@ export default class NaiveScene {
   }
 
   serialize() {
-    return {
+    const artifacts = {};
+    this.getElements()
+      .forEach(e => {
+        const hash = e?.texture?.hash();
+        if (e.texture && !(hash in artifacts)) {
+          artifacts[hash] = e.texture.serialize();
+        }
+      });
+    const json = {
       params: [],
       type: NaiveScene.name,
-      sceneData: this.getElements().map(x => x.serialize())
+      sceneData: this.getElements().map(x => x.serialize()),
+      artifacts: artifacts
     };
+
+    return json;
   }
 }

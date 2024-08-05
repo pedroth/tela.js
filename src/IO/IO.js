@@ -1,7 +1,5 @@
 import { writeFileSync, unlinkSync, readFileSync } from "fs";
 import { execSync, exec } from "child_process";
-import Image from "../Tela/Image.js";
-import Color from "../Color/Color.js";
 import { MAX_8BIT } from "../Utils/Constants.js";
 
 export function saveImageToFile(fileAddress, image) {
@@ -54,24 +52,16 @@ export function readImageFrom(src) {
     const { fileName } = getFileNameAndExtensionFromAddress(src);
     execSync(`ffmpeg -i ${src} ${fileName}.ppm`);
     const imageFile = readFileSync(`${fileName}.ppm`);
-    const { width: w, height: h, pixels } = parsePPM(imageFile);
+    const { width, height, pixels } = parsePPM(imageFile);
     unlinkSync(`${fileName}.ppm`);
-    const img = Image.ofSize(w, h);
-    for (let k = 0; k < pixels.length; k++) {
-        const { r, g, b } = pixels[k];
-        const i = Math.floor(k / w);
-        const j = k % w;
-        const x = j;
-        const y = h - 1 - i;
-        img.setPxl(x, y, Color.ofRGBRaw(r, g, b));
-    }
-    return img;
+    return {width, height, pixels};
+    
 }
 
-export function createPPMFromImage(image) {
-    const width = image.width;
-    const height = image.height;
-    const pixelData = image.toArray();
+export function createPPMFromImage(telaImage) {
+    const width = telaImage.width;
+    const height = telaImage.height;
+    const pixelData = telaImage.image;
     const rgbClamp = x => Math.floor(Math.min(MAX_8BIT, Math.max(0, MAX_8BIT * x)));
     let file = `P3\n${width} ${height}\n${MAX_8BIT}\n`;
     for (let i = 0; i < pixelData.length; i += 4) {

@@ -20,93 +20,30 @@ var __require = ((x) => typeof require !== "undefined" ? require : typeof Proxy 
 // node:os
 var exports_os = {};
 __export(exports_os, {
-  uptime: () => {
-    {
-      return A;
-    }
-  },
-  type: () => {
-    {
-      return V;
-    }
-  },
-  totalmem: () => {
-    {
-      return N;
-    }
-  },
-  tmpdir: () => {
-    {
-      return U;
-    }
-  },
-  release: () => {
-    {
-      return x;
-    }
-  },
-  platform: () => {
-    {
-      return O;
-    }
-  },
-  networkInterfaces: () => {
-    {
-      return j;
-    }
-  },
-  loadavg: () => {
-    {
-      return y;
-    }
-  },
-  hostname: () => {
-    {
-      return k;
-    }
-  },
-  homedir: () => {
-    {
-      return _;
-    }
-  },
-  getNetworkInterfaces: () => {
-    {
-      return B;
-    }
-  },
-  freemem: () => {
-    {
-      return I;
-    }
-  },
-  endianness: () => {
-    {
-      return L;
-    }
-  },
-  default: () => {
-    {
-      return E;
-    }
-  },
-  cpus: () => {
-    {
-      return b;
-    }
-  },
-  arch: () => {
-    {
-      return M;
-    }
-  },
-  EOL: () => {
-    {
-      return X;
-    }
-  }
+  uptime: () => A,
+  type: () => V,
+  totalmem: () => N,
+  tmpdir: () => U,
+  release: () => x,
+  platform: () => O,
+  networkInterfaces: () => j,
+  loadavg: () => y,
+  hostname: () => k,
+  homedir: () => _,
+  getNetworkInterfaces: () => B,
+  freemem: () => I,
+  endianness: () => L,
+  default: () => E,
+  cpus: () => b,
+  arch: () => M,
+  EOL: () => X
 });
-var c, a, m, s, p, d, l, h, g, f, u, E, L, k, y, A, I, N, b, V, x, M, O, U, X, _, j, B;
+var c, a, m, s, p, d, l = (r, n) => () => (n || r((n = { exports: {} }).exports, n), n.exports), h = (r, n, t, i) => {
+  if (n && typeof n == "object" || typeof n == "function")
+    for (let o of s(n))
+      !d.call(r, o) && o !== t && a(r, o, { get: () => n[o], enumerable: !(i = m(n, o)) || i.enumerable });
+  return r;
+}, g = (r, n, t) => (t = r != null ? c(p(r)) : {}, h(n || !r || !r.__esModule ? a(t, "default", { value: r, enumerable: true }) : t, r)), f, u, E, L, k, y, A, I, N, b, V, x, M, O, U, X, _, j, B;
 var init_os = __esm(() => {
   c = Object.create;
   a = Object.defineProperty;
@@ -114,14 +51,6 @@ var init_os = __esm(() => {
   s = Object.getOwnPropertyNames;
   p = Object.getPrototypeOf;
   d = Object.prototype.hasOwnProperty;
-  l = (r, n) => () => (n || r((n = { exports: {} }).exports, n), n.exports);
-  h = (r, n, t, i) => {
-    if (n && typeof n == "object" || typeof n == "function")
-      for (let o of s(n))
-        !d.call(r, o) && o !== t && a(r, o, { get: () => n[o], enumerable: !(i = m(n, o)) || i.enumerable });
-    return r;
-  };
-  g = (r, n, t) => (t = r != null ? c(p(r)) : {}, h(n || !r || !r.__esModule ? a(t, "default", { value: r, enumerable: true }) : t, r));
   f = l((e) => {
     e.endianness = function() {
       return "LE";
@@ -707,9 +636,9 @@ class Vector2 {
 }
 
 // src/Geometry/Box.js
-var maxComp = function(u2) {
+function maxComp(u2) {
   return u2.fold((e, x2) => Math.max(e, x2), -Number.MAX_VALUE);
-};
+}
 
 class Box {
   constructor(min, max) {
@@ -876,7 +805,7 @@ function randomPointInSphere(dim) {
 }
 
 // src/Tela/Tela.js
-var drawConvexPolygon = function(tela, positions, shader) {
+function drawConvexPolygon(tela, positions, shader) {
   const { width, height } = tela;
   const canvasBox = tela.box;
   let boundingBox = Box.EMPTY;
@@ -906,8 +835,8 @@ var drawConvexPolygon = function(tela, positions, shader) {
     }
   }
   return tela;
-};
-var isInsideConvex = function(positions) {
+}
+function isInsideConvex(positions) {
   const m2 = positions.length;
   const v = [];
   const n = [];
@@ -927,8 +856,8 @@ var isInsideConvex = function(positions) {
     }
     return true;
   };
-};
-var clipLine = function(p0, p1, box) {
+}
+function clipLine(p0, p1, box) {
   const pointStack = [p0, p1];
   const inStack = [];
   const outStack = [];
@@ -949,8 +878,8 @@ var clipLine = function(p0, p1, box) {
     return [inPoint, ...lineBoxIntersection(inPoint, outPoint, box)];
   }
   return lineBoxIntersection(...outStack, box);
-};
-var lineBoxIntersection = function(start, end, box) {
+}
+function lineBoxIntersection(start, end, box) {
   const width = box.diagonal.x;
   const height = box.diagonal.y;
   const v = end.sub(start);
@@ -985,8 +914,8 @@ var lineBoxIntersection = function(start, end, box) {
     return [p1, p2];
   }
   return [start.add(v.scale(validIntersections[0].x))];
-};
-var solveLowTriMatrix = function(v, a2, f2) {
+}
+function solveLowTriMatrix(v, a2, f2) {
   const v1 = v.x;
   const v2 = v.y;
   const av1 = a2 * v1;
@@ -995,8 +924,8 @@ var solveLowTriMatrix = function(v, a2, f2) {
   const f1 = f2.x;
   const f22 = f2.y;
   return Vec2(f1 / v1, (f22 * v1 - v2 * f1) / av1);
-};
-var solveUpTriMatrix = function(v, a2, f2) {
+}
+function solveUpTriMatrix(v, a2, f2) {
   const v1 = v.x;
   const v2 = v.y;
   const av2 = a2 * v2;
@@ -1005,15 +934,27 @@ var solveUpTriMatrix = function(v, a2, f2) {
   const f1 = f2.x;
   const f22 = f2.y;
   return Vec2(f22 / v2, (f1 * v2 - v1 * f22) / av2);
-};
+}
 var CHANNELS = 4;
 
 class Tela {
   constructor(width, height) {
+    this.isDirty = false;
     this.width = width;
     this.height = height;
     this.image = new Float32Array(CHANNELS * this.width * this.height);
     this.box = new Box(Vec2(0, 0), Vec2(this.width, this.height));
+  }
+  hash() {
+    if (!this.isDirty && this._hash)
+      return this._hash;
+    let h2 = 0;
+    for (let i2 = 0;i2 < this.image.length; i2++) {
+      h2 += h2 * 37 ^ this.image[i2];
+    }
+    this._hash = h2;
+    this.isDirty = false;
+    return h2;
   }
   paint() {
     return this;
@@ -1035,6 +976,7 @@ class Tela {
       this.image[k2 + 2] = color.blue;
       this.image[k2 + 3] = color.alpha;
     }
+    this.isDirty = true;
     return this.paint();
   }
   fill(color) {
@@ -1047,6 +989,7 @@ class Tela {
       this.image[k2 + 2] = color.blue;
       this.image[k2 + 3] = color.alpha;
     }
+    this.isDirty = true;
     return this;
   }
   getPxl(x2, y2) {
@@ -1066,6 +1009,7 @@ class Tela {
     this.image[index + 1] = color.green;
     this.image[index + 2] = color.blue;
     this.image[index + 3] = color.alpha;
+    this.isDirty = true;
     return this;
   }
   setPxlData(index, color) {
@@ -1073,6 +1017,7 @@ class Tela {
     this.image[index + 1] = color.green;
     this.image[index + 2] = color.blue;
     this.image[index + 3] = color.alpha;
+    this.isDirty = true;
     return this;
   }
   drawLine(p1, p2, shader) {
@@ -1099,9 +1044,11 @@ class Tela {
       this.image[index + 2] = color.blue;
       this.image[index + 3] = color.alpha;
     }
+    this.isDirty = true;
     return this;
   }
   drawTriangle(x1, x2, x3, shader) {
+    this.isDirty = true;
     return drawConvexPolygon(this, [x1, x2, x3], shader);
   }
   grid2canvas(i2, j2) {
@@ -1144,6 +1091,7 @@ class Tela {
         this.image[k2 + 2] = this.image[k2 + 2] + (color.blue - this.image[k2 + 2]) / it;
         this.image[k2 + 3] = this.image[k2 + 3] + (color.alpha - this.image[k2 + 3]) / it;
       }
+      ans.isDirty = true;
       if (it < time)
         it++;
       return this.paint();
@@ -1156,6 +1104,7 @@ class Tela {
       this.image[index + 1] = this.image[index + 1] + (color.green - this.image[index + 1]) / it;
       this.image[index + 2] = this.image[index + 2] + (color.blue - this.image[index + 2]) / it;
       this.image[index + 3] = this.image[index + 3] + (color.alpha - this.image[index + 3]) / it;
+      ans.isDirty = true;
       return this;
     };
     ans.setPxlData = (index, color) => {
@@ -1163,6 +1112,7 @@ class Tela {
       this.image[index + 1] = this.image[index + 1] + (color.green - this.image[index + 1]) / it;
       this.image[index + 2] = this.image[index + 2] + (color.blue - this.image[index + 2]) / it;
       this.image[index + 3] = this.image[index + 3] + (color.alpha - this.image[index + 3]) / it;
+      ans.isDirty = true;
       return ans;
     };
     ans.paint = () => {
@@ -1178,10 +1128,13 @@ class Tela {
     this.image = new Float32Array(CHANNELS * this.width * this.height);
     this.box = new Box(Vec2(0, 0), Vec2(this.width, this.height));
   }
+  serialize() {
+    return { width: this.width, height: this.height, image: this.image };
+  }
 }
 
 // src/Tela/Canvas.js
-var handleMouse = function(canvas, lambda) {
+function handleMouse(canvas, lambda) {
   return (event) => {
     const h2 = canvas.height;
     const w = canvas.width;
@@ -1191,7 +1144,7 @@ var handleMouse = function(canvas, lambda) {
     const y2 = Math.floor(h2 - 1 - my * h2);
     return lambda(x2, y2, event);
   };
-};
+}
 
 class Canvas extends Tela {
   constructor(canvas) {
@@ -1374,12 +1327,12 @@ var createWorker = (main, lambda, dependencies) => {
 };
 
 // src/Utils/DomBuilder.js
-var isElement = function(o) {
+function isElement(o) {
   return typeof HTMLElement === "object" ? o instanceof HTMLElement : o && typeof o === "object" && o !== null && o.nodeType === 1 && typeof o.nodeName === "string";
-};
-var isPromise = function(o) {
+}
+function isPromise(o) {
   return o instanceof Promise;
-};
+}
 var SVG_URL = "http://www.w3.org/2000/svg";
 var SVG_TAGS = [
   "svg",
@@ -1594,6 +1547,18 @@ var MATERIALS = {
 };
 var MATERIAL_NAMES = Object.keys(MATERIALS).reduce((e, x2) => ({ [x2]: x2, ...e }), {});
 
+// src/Tela/utils.js
+function deserialize(telaJson) {
+  if (!telaJson)
+    return;
+  const { width, height, image } = telaJson;
+  const tela = new Tela(width, height);
+  for (let i2 = 0;i2 < image.length; i2 += CHANNELS) {
+    tela.setPxlData(i2, Color.ofRGB(image[i2], image[i2 + 1], image[i2 + 2], image[i2 + 3]));
+  }
+  return tela;
+}
+
 // src/Geometry/Triangle.js
 class Triangle {
   constructor({ name, positions, colors, texCoords, normals, texture, emissive, material }) {
@@ -1660,13 +1625,15 @@ class Triangle {
       name: this.name,
       emissive: this.emissive,
       colors: this.colors.map((x2) => x2.toArray()),
+      texCoords: this.texCoords.map((x2) => x2.toArray()),
       positions: this.positions.map((x2) => x2.toArray()),
+      texture: this.texture ? this.texture.hash() : undefined,
       material: { type: this.material.type, args: this.material.args }
     };
   }
-  static deserialize(json) {
+  static deserialize(json, artifacts) {
     const { type, args } = json.material;
-    return Triangle.builder().name(json.name).positions(...json.positions.map((x2) => Vec.fromArray(x2))).colors(...json.colors.map((x2) => new Color(x2))).emissive(json.emissive).material(MATERIALS[type](...args)).build();
+    return Triangle.builder().name(json.name).emissive(json.emissive).material(MATERIALS[type](...args)).colors(...json.colors.map((x2) => new Color(x2))).positions(...json.positions.map((x2) => Vec.fromArray(x2))).texCoords(...json.texCoords.map((x2) => Vec.fromArray(x2))).texture(json.texture ? deserialize(artifacts[json.texture]) : undefined).build();
   }
   static builder() {
     return new TriangleBuilder;
@@ -1803,13 +1770,13 @@ function trace(ray, scene, options) {
   let finalC = trace(r, scene, { bounces: bounces - 1, bilinearTexture });
   return e.emissive ? color.add(color.mul(finalC)) : color.mul(finalC);
 }
-var getColorFromElement = function(e, ray, params) {
+function getColorFromElement(e, ray, params) {
   if (Triangle.name === e.constructor.name) {
     return getTriangleColor(e, ray, params);
   }
   return e.color ?? e.colors[0];
-};
-var getTriangleColor = function(triangle, ray, params) {
+}
+function getTriangleColor(triangle, ray, params) {
   const { tangents, positions, texCoords, texture, colors } = triangle;
   const haveTextures = texture && texCoords && texCoords.length > 0 && !texCoords.some((x2) => x2 === undefined);
   const v = ray.init.sub(positions[0]);
@@ -1825,7 +1792,7 @@ var getTriangleColor = function(triangle, ray, params) {
     return texColor;
   }
   return colors[0].scale(alpha).add(colors[1].scale(beta)).add(colors[2].scale(1 - alpha - beta));
-};
+}
 
 // src/Geometry/Line.js
 class Line {
@@ -1974,7 +1941,7 @@ class LineBuilder {
 }
 
 // src/Geometry/Sphere.js
-var sphereInterception = function(point, ray) {
+function sphereInterception(point, ray) {
   const { init, dir } = ray;
   const diff = init.sub(point.position);
   const b2 = 2 * dir.dot(diff);
@@ -1989,7 +1956,7 @@ var sphereInterception = function(point, ray) {
   if (t1 * t2 < 0)
     return tM;
   return t1 >= 0 && t2 >= 0 ? t : undefined;
-};
+}
 
 class Sphere {
   constructor({ name, position, color, texCoord, normal, radius, texture, emissive, material }) {
@@ -2037,12 +2004,14 @@ class Sphere {
       emissive: this.emissive,
       color: this.color.toArray(),
       position: this.position.toArray(),
+      texCoord: this.texCoord.toArray(),
+      texture: this.texture ? this.texture.hash() : undefined,
       material: { type: this.material.type, args: this.material.args }
     };
   }
-  static deserialize(json) {
+  static deserialize(json, artifacts) {
     const { type, args } = json.material;
-    return Sphere.builder().name(json.name).radius(json.radius).position(Vec.fromArray(json.position)).color(new Color(json.color)).emissive(json.emissive).material(MATERIALS[type](...args)).build();
+    return Sphere.builder().name(json.name).radius(json.radius).emissive(json.emissive).color(new Color(json.color)).material(MATERIALS[type](...args)).texCoord(Vec.fromArray(json.texCoord)).position(Vec.fromArray(json.position)).texture(json.texture ? deserialize(artifacts[json.texture]) : undefined).build();
   }
   static builder() {
     return new SphereBuilder;
@@ -2127,7 +2096,7 @@ class SphereBuilder {
 var Sphere_default = Sphere;
 
 // src/Utils/PQueue.js
-var heapifyBuilder = function(data, comparator) {
+function heapifyBuilder(data, comparator) {
   return (rootIndex) => {
     const leftIndex = 2 * rootIndex + 1;
     const rightIndex = 2 * rootIndex + 2;
@@ -2146,7 +2115,7 @@ var heapifyBuilder = function(data, comparator) {
     }
     return data;
   };
-};
+}
 
 class PQueue {
   constructor(comparator = (a2, b2) => a2 - b2) {
@@ -2271,11 +2240,21 @@ class NaiveScene {
     return params.canvas;
   }
   serialize() {
-    return {
+    const artifacts = {};
+    this.getElements().forEach((e) => {
+      const hash = e?.texture?.hash();
+      if (e.texture && !(hash in artifacts)) {
+        console.log(">>> add texture");
+        artifacts[hash] = e.texture.serialize();
+      }
+    });
+    const json = {
       params: [],
       type: NaiveScene.name,
-      sceneData: this.getElements().map((x2) => x2.serialize())
+      sceneData: this.getElements().map((x2) => x2.serialize()),
+      artifacts
     };
+    return json;
   }
 }
 
@@ -2314,7 +2293,7 @@ var UNIT_BOX_LINES = [
 ];
 
 // src/Scene/KScene.js
-var clusterLeafs = function(box, leafs, it = 10) {
+function clusterLeafs(box, leafs, it = 10) {
   const clusters = [box.sample(), box.sample()];
   const clusterIndexes = [];
   for (let i2 = 0;i2 < it; i2++) {
@@ -2342,8 +2321,8 @@ var clusterLeafs = function(box, leafs, it = 10) {
     }
   }
   return clusterIndexes.map((indxs) => indxs.map((indx3) => leafs[indx3]));
-};
-var leafsInterceptWithRay = function(leafs, ray) {
+}
+function leafsInterceptWithRay(leafs, ray) {
   let closestDistance = Number.MAX_VALUE;
   let closest;
   for (let i2 = 0;i2 < leafs.length; i2++) {
@@ -2354,15 +2333,15 @@ var leafsInterceptWithRay = function(leafs, ray) {
     }
   }
   return closest;
-};
-var distanceFromLeafs = function(leafs, p2, combineLeafs) {
+}
+function distanceFromLeafs(leafs, p2, combineLeafs) {
   const elements = leafs.map((x2) => x2.element);
   let distance = Number.MAX_VALUE;
   for (let i2 = 0;i2 < elements.length; i2++) {
     distance = combineLeafs(distance, elements[i2].distanceToPoint(p2));
   }
   return distance;
-};
+}
 
 class KScene extends NaiveScene {
   constructor(k2 = 10) {
@@ -2491,11 +2470,10 @@ class KScene extends NaiveScene {
     return canvas;
   }
   serialize() {
-    return {
-      params: [this.k],
-      type: KScene.name,
-      sceneData: this.getElements().map((x2) => x2.serialize())
-    };
+    const json = super.serialize();
+    json.params = [this.k];
+    json.type = KScene.name;
+    return json;
   }
 }
 
@@ -2659,7 +2637,7 @@ class Leaf {
 }
 
 // src/Geometry/Mesh.js
-var triangulate = function(polygon) {
+function triangulate(polygon) {
   if (polygon.length === 3) {
     return [polygon];
   }
@@ -2669,8 +2647,8 @@ var triangulate = function(polygon) {
       [polygon[2], polygon[3], polygon[0]]
     ];
   }
-};
-var parseFace = function(vertexInfo) {
+}
+function parseFace(vertexInfo) {
   const facesInfo = vertexInfo.flatMap((x2) => x2.split("/")).map((x2) => Number.parseFloat(x2));
   const length = facesInfo.length;
   const lengthDiv3 = Math.floor(length / 3);
@@ -2687,7 +2665,7 @@ var parseFace = function(vertexInfo) {
       face.normals = indices;
   });
   return face;
-};
+}
 var MESH_COUNTER = 0;
 var RADIUS = 0.001;
 
@@ -2919,7 +2897,7 @@ function rasterGraphics(scene, camera, params = {}) {
     return canvas;
   };
 }
-var rasterSphere = function({ canvas, camera, elem, w, h: h2, zBuffer }) {
+function rasterSphere({ canvas, camera, elem, w, h: h2, zBuffer }) {
   const point = elem;
   const { distanceToPlane } = camera;
   const { texCoord, texture, position, color, radius } = point;
@@ -2956,8 +2934,8 @@ var rasterSphere = function({ canvas, camera, elem, w, h: h2, zBuffer }) {
       }
     }
   }
-};
-var rasterLine = function({ canvas, camera, elem, w, h: h2, zBuffer, params }) {
+}
+function rasterLine({ canvas, camera, elem, w, h: h2, zBuffer, params }) {
   const lineElem = elem;
   const { colors, positions } = lineElem;
   const { distanceToPlane } = camera;
@@ -3003,8 +2981,8 @@ var rasterLine = function({ canvas, camera, elem, w, h: h2, zBuffer, params }) {
     }
   };
   canvas.drawLine(intPoints[0], intPoints[1], shader);
-};
-var rasterTriangle = function({ canvas, camera, elem, w, h: h2, zBuffer, params }) {
+}
+function rasterTriangle({ canvas, camera, elem, w, h: h2, zBuffer, params }) {
   const triangleElem = elem;
   const { distanceToPlane } = camera;
   const { colors, positions, texCoords, texture } = triangleElem;
@@ -3066,20 +3044,20 @@ var rasterTriangle = function({ canvas, camera, elem, w, h: h2, zBuffer, params 
     }
   };
   canvas.drawTriangle(intPoints[0], intPoints[1], intPoints[2], shader);
-};
-var rasterMesh = function({ canvas, camera, elem, w, h: h2, zBuffer, params }) {
+}
+function rasterMesh({ canvas, camera, elem, w, h: h2, zBuffer, params }) {
   const triangles = elem._meshScene.getElements();
   for (let i2 = 0;i2 < triangles.length; i2++) {
     rasterTriangle({ canvas, camera, elem: triangles[i2], w, h: h2, zBuffer, params });
   }
-};
-var lineCameraPlaneIntersection = function(vertexOut, vertexIn, camera) {
+}
+function lineCameraPlaneIntersection(vertexOut, vertexIn, camera) {
   const { distanceToPlane } = camera;
   const v = vertexIn.sub(vertexOut);
   const alpha = (distanceToPlane - vertexOut.z) / v.z;
   const p2 = vertexOut.add(v.scale(alpha));
   return p2;
-};
+}
 
 // src/Camera/sdf.js
 function sdfTrace(scene) {
@@ -3122,7 +3100,7 @@ function normalTrace(scene) {
 // src/Camera/parallel.js
 function parallelWorkers(camera, scene, canvas, params = {}) {
   if (WORKERS.length === 0)
-    WORKERS = [...Array(NUMBER_OF_CORES)].map(() => new MyWorker(`./src/Camera/rayTraceWorker.js`));
+    WORKERS = [...Array(NUMBER_OF_CORES / 2)].map(() => new MyWorker(`./src/Camera/rayTraceWorker.js`));
   const w = canvas.width;
   const h2 = canvas.height;
   const isNewScene = prevSceneHash !== scene.hash;
@@ -3411,11 +3389,9 @@ class BScene extends NaiveScene {
     return canvas;
   }
   serialize() {
-    return {
-      params: [],
-      type: BScene.name,
-      sceneData: this.getElements().map((x2) => x2.serialize())
-    };
+    const json = this.super.serialize();
+    json.type = BScene.name;
+    return json;
   }
 }
 
@@ -3597,11 +3573,11 @@ class Leaf2 {
 }
 
 // src/Scene/VoxelScene.js
-var hash = function(p2, gridSpace) {
+function hash(p2, gridSpace) {
   const integerCoord = p2.map((z) => Math.floor(z / gridSpace));
   const h2 = integerCoord.x * 92837111 ^ integerCoord.y * 689287499 ^ integerCoord.z * 283923481;
   return Math.abs(h2);
-};
+}
 
 class VoxelScene extends NaiveScene {
   constructor(gridSpace = 0.1) {
@@ -3736,16 +3712,15 @@ class VoxelScene extends NaiveScene {
     return canvas;
   }
   serialize() {
-    return {
-      params: [this.gridSpace],
-      type: VoxelScene.name,
-      sceneData: this.getElements().map((x2) => x2.serialize())
-    };
+    const json = super.serialize();
+    json.params = [this.gridSpace];
+    json.type = VoxelScene.name;
+    return json;
   }
 }
 
 // src/Scene/RandomScene.js
-var clusterLeafs2 = function(box, leafs, it = 10) {
+function clusterLeafs2(box, leafs, it = 10) {
   const clusters = [box.sample(), box.sample()];
   const clusterIndexes = [];
   for (let i2 = 0;i2 < it; i2++) {
@@ -3773,13 +3748,13 @@ var clusterLeafs2 = function(box, leafs, it = 10) {
     }
   }
   return [...clusterIndexes].map((indxs) => indxs.map((indx3) => leafs[indx3]));
-};
-var random = function(n) {
+}
+function random(n) {
   let index = 0;
   const numbers = new Float64Array(n).map(() => Math.random());
   return () => numbers[index++ % n];
-};
-var leafsinterceptWithRay = function(leafs, ray) {
+}
+function leafsinterceptWithRay(leafs, ray) {
   let closestDistance = Number.MAX_VALUE;
   let closest;
   for (let i2 = 0;i2 < leafs.length; i2++) {
@@ -3790,7 +3765,7 @@ var leafsinterceptWithRay = function(leafs, ray) {
     }
   }
   return closest;
-};
+}
 var rayCache = (gridSize = 0.01, dirGrid = 0.01) => {
   const cache = {};
   cache.table = {};
@@ -4136,7 +4111,7 @@ class PathBuilder {
 }
 
 // src/Utils/SVG.js
-var tokens = function(charStream) {
+function tokens(charStream) {
   let s2 = charStream;
   const tokensList = [];
   while (!s2.isEmpty()) {
@@ -4148,8 +4123,8 @@ var tokens = function(charStream) {
     s2 = nextStream;
   }
   return stream(tokensList);
-};
-var streamIncludes = function(charStream, string) {
+}
+function streamIncludes(charStream, string) {
   let s2 = charStream;
   let i2 = 0;
   while (!s2.isEmpty() && i2 < string.length) {
@@ -4158,12 +4133,12 @@ var streamIncludes = function(charStream, string) {
     s2 = s2.tail();
   }
   return true;
-};
-var parseToken = function(charStream) {
+}
+function parseToken(charStream) {
   const TOKENS_PARSER = TOKEN_SYMBOLS.map((s2) => () => symbolParser(s2)(charStream));
   return or(...TOKENS_PARSER, () => defaultToken(charStream));
-};
-var symbolParser = function(symbol) {
+}
+function symbolParser(symbol) {
   return (charStream) => {
     let s2 = charStream;
     let i2 = 0;
@@ -4175,8 +4150,8 @@ var symbolParser = function(symbol) {
     }
     return { token: { type: symbol, text: symbol }, nextStream: s2 };
   };
-};
-var parseSVG = function(stream) {
+}
+function parseSVG(stream) {
   return or(() => {
     const { left: StartTag, right: nextStream1 } = parseStartTag(stream);
     const { left: InnerSVG, right: nextStream2 } = parseInnerSVG(nextStream1);
@@ -4189,12 +4164,12 @@ var parseSVG = function(stream) {
     const { left: CommentTag, right: nextStream } = parseCommentTag(stream);
     return pair({ type: "svg", CommentTag }, nextStream);
   });
-};
-var parseValue = function(stream) {
+}
+function parseValue(stream) {
   const { left: AnyBut, right: nextStream } = parseAnyBut((t) => t.type === "<" || t.type === "</")(eatSpacesTabsAndNewLines(stream));
   return pair({ type: "value", text: AnyBut.text }, nextStream);
-};
-var parseSVGTypes = function(stream) {
+}
+function parseSVGTypes(stream) {
   return or(() => {
     const cleanStream = eatSpacesTabsAndNewLines(stream);
     const { left: SVG, right: nextStream } = parseSVG(cleanStream);
@@ -4205,8 +4180,8 @@ var parseSVGTypes = function(stream) {
       throw Error("Fail to parse SVGType");
     return pair({ type: "svgTypes", Value }, nextStream);
   });
-};
-var parseInnerSVG = function(stream) {
+}
+function parseInnerSVG(stream) {
   return or(() => {
     const { left: SVGTypes, right: nextStream } = parseSVGTypes(stream);
     const { left: InnerSVG, right: nextStream1 } = parseInnerSVG(nextStream);
@@ -4220,8 +4195,8 @@ var parseInnerSVG = function(stream) {
       innerSvgs: []
     }, stream);
   });
-};
-var parseAnyBut = function(tokenPredicate) {
+}
+function parseAnyBut(tokenPredicate) {
   return (stream) => {
     let nextStream = stream;
     const textArray = [];
@@ -4231,8 +4206,8 @@ var parseAnyBut = function(tokenPredicate) {
     }
     return pair({ type: "anyBut", text: textArray.join("") }, nextStream);
   };
-};
-var parseEndTag = function(stream) {
+}
+function parseEndTag(stream) {
   const filteredStream = eatSpacesTabsAndNewLines(stream);
   const token = filteredStream.head();
   if (token.type === "</") {
@@ -4244,8 +4219,8 @@ var parseEndTag = function(stream) {
     }
   }
   throw new Error("Fail to parse End Tag");
-};
-var parseEmptyTag = function(stream) {
+}
+function parseEmptyTag(stream) {
   const token = stream.head();
   if (token.type === "<") {
     const nextStream1 = eatSpaces(stream.tail());
@@ -4258,8 +4233,8 @@ var parseEmptyTag = function(stream) {
     }
   }
   throw new Error("Fail to parse EmptyTag");
-};
-var parseCommentTag = function(stream) {
+}
+function parseCommentTag(stream) {
   if (stream.head().type === "<!--") {
     const nextStream = stream.tail();
     const { left: AnyBut, right: nextStream1 } = parseAnyBut((token) => token.type === "-->")(nextStream);
@@ -4267,8 +4242,8 @@ var parseCommentTag = function(stream) {
       return pair({ type: "commentTag" }, nextStream1.tail());
   }
   throw new Error("Fail to parse CommentTag");
-};
-var parseStartTag = function(stream) {
+}
+function parseStartTag(stream) {
   const token = stream.head();
   if (token.type === "<") {
     const nextStream1 = eatSpaces(stream.tail());
@@ -4281,14 +4256,14 @@ var parseStartTag = function(stream) {
     }
   }
   throw new Error("Fail to parse StartTag");
-};
-var parseAlphaNumName = function(stream) {
+}
+function parseAlphaNumName(stream) {
   const token = stream.head();
   if (token.type === "text")
     return pair({ type: "alphaNumName", text: token.text }, stream.tail());
   throw new Error("Fail to parse AlphaNumName");
-};
-var parseAttr = function(stream) {
+}
+function parseAttr(stream) {
   return or(() => {
     const { left: AlphaNumName, right: nextStream1 } = parseAlphaNumName(stream);
     if (nextStream1.head().type === "=" && (nextStream1.tail().head().type === "\"" || nextStream1.tail().head().type === "'")) {
@@ -4308,8 +4283,8 @@ var parseAttr = function(stream) {
       attributeValue: '"true"'
     }, nextStream1);
   });
-};
-var parseAttrs = function(stream) {
+}
+function parseAttrs(stream) {
   return or(() => {
     const { left: Attr, right: nextStream } = parseAttr(stream);
     const nextStreamNoSpaces = eatSpacesTabsAndNewLines(nextStream);
@@ -4324,8 +4299,8 @@ var parseAttrs = function(stream) {
       attributes: []
     }, stream);
   });
-};
-var eatSpaces = function(stream) {
+}
+function eatSpaces(stream) {
   let s2 = stream;
   while (!s2.isEmpty()) {
     if (s2.head().type !== " ")
@@ -4333,8 +4308,8 @@ var eatSpaces = function(stream) {
     s2 = s2.tail();
   }
   return s2;
-};
-var eatSpacesTabsAndNewLines = function(stream) {
+}
+function eatSpacesTabsAndNewLines(stream) {
   let s2 = stream;
   while (!s2.isEmpty()) {
     const symbol = s2.head().type;
@@ -4343,11 +4318,11 @@ var eatSpacesTabsAndNewLines = function(stream) {
     s2 = s2.tail();
   }
   return s2;
-};
-var pair = function(a2, b2) {
+}
+function pair(a2, b2) {
   return { left: a2, right: b2 };
-};
-var or = function(...rules) {
+}
+function or(...rules) {
   let accError = null;
   for (let i2 = 0;i2 < rules.length; i2++) {
     try {
@@ -4357,8 +4332,8 @@ var or = function(...rules) {
     }
   }
   throw accError;
-};
-var stream = function(stringOrArray) {
+}
+function stream(stringOrArray) {
   const array = [...stringOrArray];
   return {
     head: () => array[0],
@@ -4375,7 +4350,7 @@ var stream = function(stringOrArray) {
       }
     }
   };
-};
+}
 function parse(text) {
   const { left: SVG } = parseSVG(eatSpacesTabsAndNewLines(tokens(stream(text))));
   return SVG;

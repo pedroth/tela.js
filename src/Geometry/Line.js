@@ -77,7 +77,7 @@ export default class Line {
     }
 
     serialize() {
-
+        //TODO's
     }
 
     static deserialize(json) {

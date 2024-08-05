@@ -162,11 +162,10 @@ export default class KScene extends NaiveScene {
     }
 
     serialize() {
-        return {
-            params: [this.k],
-            type: KScene.name,
-            sceneData: this.getElements().map(x => x.serialize())
-        };
+        const json = super.serialize();
+        json.params = [this.k];
+        json.type = KScene.name;
+        return json;
     }
 }
 
