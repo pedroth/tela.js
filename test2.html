@@ -26,8 +26,8 @@
         Triangle,
         Metallic,
     } from "../src/index.js";
-    const width = 640;
-    const height = 480;
+    const width = 640/2;
+    const height = 480/2;
 
     const canvas = Canvas.ofSize(width, height);
     let exposedCanvas = canvas.exposure();
@@ -67,7 +67,7 @@
         exposedCanvas = canvas.exposure();
     })
 
-    const objFile = await fetch("../assets/spot.obj").then(x => x.text());
+    const objFile = await fetch("./assets/spot.obj").then(x => x.text());
     let mesh = Mesh.readObj(objFile, "bunny");
     const meshBox = mesh.getBoundingBox();
     const maxDiagInv = 2 / meshBox.diagonal.fold((e, x) => Math.max(e, x), Number.MIN_VALUE);
@@ -77,7 +77,7 @@
         .mapVertices(v => Vec3(-v.z, -v.x, v.y))
         .mapVertices(v => v.add(Vec3(1.5, 1.5, 1.0)))
         .mapColors(() => Color.WHITE)
-        .addTexture(await Canvas.ofUrl("../assets/spot.png"))
+        .addTexture(await Canvas.ofUrl("./assets/spot.png"))
         .mapMaterials(() => Metallic(1.33333))
     scene.addList(mesh.asTriangles());
 
@@ -162,7 +162,7 @@
     // boilerplate for fps
     loop(async ({ dt }) => {
         await camera.parallelShot(scene).to(exposedCanvas);
-        console.log(`FPS ${Math.floor(1 / dt)}`);
+        document.title = `PRay, FPS: ${(1 / dt).toFixed(2)}`;
     }).play();
 
     document.body.appendChild(canvas.DOM);

@@ -590,7 +590,7 @@ function execCode(code) {
                     document.getElementById("logger").innerText +=  \`\${message}\\n\`;
                 }
             };
-            (${code.replaceAll("/assets/", SOURCE + "/assets/")})(canvas, logger)
+            await (${code.replaceAll("/assets/", SOURCE + "/assets/")})(canvas, logger)
             `;
             iframe.element.contentDocument.body.appendChild(script);
         })
