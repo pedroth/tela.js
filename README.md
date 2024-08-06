@@ -142,6 +142,7 @@ You can find more examples of usage in:
 
 # TODOs
 
+- Fix parallel ray trace refresh bug
 - Parallel ray map
 - Serialize meshes not only triangles
 - Optimize data serialization in parallel ray tracer

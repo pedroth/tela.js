@@ -581,7 +581,6 @@ function execCode(code) {
             script.type = "module";
             script.textContent = `
             import {Path, Ray,Canvas,DOM,Color,KScene,BScene,Camera,Vec2, Vec3, Vec, Box, Sphere, Mesh, NaiveScene, RandomScene, VoxelScene, Line, Triangle, Diffuse, Metallic, Alpha, DiElectric, clamp, loop} from "${SOURCE}/src/index.js"
-            console.log("Exec CODE", window.globalAnimationIDs)
             window.globalAnimationIDs.forEach(id => cancelAnimationFrame(id));
             window.globalAnimationIDs = [];
             ${toggleFullScreen.toString()}

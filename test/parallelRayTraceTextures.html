@@ -26,8 +26,8 @@
         Triangle,
         Metallic,
     } from "../src/index.js";
-    const width = 640/2;
-    const height = 480/2;
+    const width = 640 / 2;
+    const height = 480 / 2;
 
     const canvas = Canvas.ofSize(width, height);
     let exposedCanvas = canvas.exposure();
@@ -159,12 +159,10 @@
             .build(),
     )
 
-    // boilerplate for fps
-    loop(async ({ dt }) => {
+    const loopControl = loop(async ({ dt }) => {
         await camera.parallelShot(scene).to(exposedCanvas);
         document.title = `PRay, FPS: ${(1 / dt).toFixed(2)}`;
     }).play();
-
     document.body.appendChild(canvas.DOM);
 </script>
 
