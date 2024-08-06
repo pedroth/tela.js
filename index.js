@@ -547,7 +547,15 @@ const examples = [
     {
         title: "debug voronoi",
         path: "/test/web/debug_voronoi.js"
-    }
+    },
+    {
+        title: "debug unlimited detail",
+        path: "/test/web/debug_unlimited_detail.js"
+    },
+    {
+        title: "debug parallel ray tracer",
+        path: "/test/web/debug_parallel_ray_tracer.js"
+    },
 ];
 
 const AppState = {

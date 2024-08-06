@@ -40,7 +40,7 @@ let prevSceneHash = undefined;
 
 export function parallelWorkers(camera, scene, canvas, params = {}) {
     // lazy loading workers
-    if (WORKERS.length === 0) WORKERS = [...Array(NUMBER_OF_CORES)].map(() => new MyWorker(`./src/Camera/rayTraceWorker.js`));
+    if (WORKERS.length === 0) WORKERS = [...Array(NUMBER_OF_CORES)].map(() => new MyWorker(`/src/Camera/rayTraceWorker.js`));
     const w = canvas.width;
     const h = canvas.height;
     const isNewScene = prevSceneHash !== scene.hash;

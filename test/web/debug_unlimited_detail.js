@@ -1,41 +1,10 @@
-<!DOCTYPE html>
-<html lang="en">
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Unlimited Detail</title>
-</head>
-
-<body>
-
-</body>
-<!-- <script type="module">
-    import { Canvas, Color } from "https://cdn.jsdelivr.net/npm/tela.js/src/index.js";
+/* eslint-disable no-undef */
+async (canvas, logger) => {
+    // resize incoming canvas:Canvas object.
     const width = 640;
     const height = 480;
-    const canvas = Canvas.ofSize(width, height);
-    canvas.map((x, y) => Color.ofRGB(x / width, y / height, 0))
-    document.body.appendChild(canvas.DOM);
-</script> -->
-<script type="module">
-    import {
-        Box,
-        Color,
-        Sphere,
-        Canvas,
-        Camera,
-        Vec,
-        Vec2,
-        Vec3,
-        KScene,
-        Mesh,
-        loop
-    } from "../src/index.js";
-    const width = 640;
-    const height = 480;
-
-    const canvas = Canvas.ofSize(width, height);
+    canvas.resize(width, height);
     // scene
     const scene = new KScene()
     const camera = new Camera();
@@ -100,16 +69,8 @@
         // return Color.ofRGB(...ray.dir.map(x => (x + 1) / 2).toArray());
     }
 
-    const play = (options = {}) => {
-        const { oldT = new Date().getTime(), time = 0 } = options;
-        const newT = new Date().getTime();
-        const dt = (newT - oldT) * 1e-3;
+    loop(({dt}) => {
         camera.rayMap(render).to(canvas);
-        document.title = `UD, FPS: ${(Math.floor(1 / dt))}`;
-        requestAnimationFrame(() => play({ oldT: newT, time: time + dt }))
-    }
-    play();
-    document.body.appendChild(canvas.DOM);
-</script>
-
-</html>
+        logger.print(`UD, FPS: ${(1 / dt).toFixed(2)}`);
+    }).play()
+}

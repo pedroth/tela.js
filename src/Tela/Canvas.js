@@ -224,7 +224,7 @@ const createWorker = (main, lambda, dependencies) => {
   const workerFile = `
   const CHANNELS = ${CHANNELS};
   ${Color.toString()}
-  ${dependencies.map(d => d.toString()).join("\n")}
+  ${dependencies.map(d => d.toString()).join("\n")}N
   const lambda = ${lambda.toString()};
   const __main__ = ${main.toString()};
   onmessage = e => {

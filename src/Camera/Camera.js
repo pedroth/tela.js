@@ -130,7 +130,9 @@ export default class Camera {
       to: canvas => {
         return Promise
           .all(parallelWorkers(this, scene, canvas, params))
-          .then(() => canvas.paint())
+          .then(() => {
+            canvas.paint();
+          })
       }
     }
   }
@@ -152,7 +154,7 @@ export default class Camera {
     }
     return x;
   }
-  
+
   rayFromImage(width, height) {
     const w = width;
     const invW = 1 / w;

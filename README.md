@@ -144,6 +144,7 @@ You can find more examples of usage in:
 
 - Improve textures in parallel ray tracing
 - Parallel ray map
+- Serialize meshes not only triangles
 
 
 [ffmpeg]: https://ffmpeg.org/

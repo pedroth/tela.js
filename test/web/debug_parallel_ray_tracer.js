@@ -1,35 +1,9 @@
-<!DOCTYPE html>
-<html lang="en">
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Parallel Ray Tracing</title>
-</head>
-
-<body>
-
-</body>
-<script type="module">
-    import {
-        Box,
-        Vec,
-        loop,
-        Mesh,
-        Vec2,
-        Vec3,
-        Color,
-        Camera,
-        Canvas,
-        KScene,
-        Sphere,
-        Triangle,
-        Metallic,
-    } from "../src/index.js";
+/* eslint-disable no-undef */
+async (canvas, logger) => {
     const width = 640/2;
     const height = 480/2;
-
-    const canvas = Canvas.ofSize(width, height);
+    canvas.resize(width, height);
     let exposedCanvas = canvas.exposure();
     // scene
     const scene = new KScene();
@@ -67,7 +41,7 @@
         exposedCanvas = canvas.exposure();
     })
 
-    const objFile = await fetch("./assets/spot.obj").then(x => x.text());
+    const objFile = await fetch("/assets/spot.obj").then(x => x.text());
     let mesh = Mesh.readObj(objFile, "bunny");
     const meshBox = mesh.getBoundingBox();
     const maxDiagInv = 2 / meshBox.diagonal.fold((e, x) => Math.max(e, x), Number.MIN_VALUE);
@@ -77,7 +51,7 @@
         .mapVertices(v => Vec3(-v.z, -v.x, v.y))
         .mapVertices(v => v.add(Vec3(1.5, 1.5, 1.0)))
         .mapColors(() => Color.WHITE)
-        .addTexture(await Canvas.ofUrl("./assets/spot.png"))
+        .addTexture(await Canvas.ofUrl("/assets/spot.png"))
         .mapMaterials(() => Metallic(1.33333))
     scene.addList(mesh.asTriangles());
 
@@ -162,10 +136,6 @@
     // boilerplate for fps
     loop(async ({ dt }) => {
         await camera.parallelShot(scene).to(exposedCanvas);
-        document.title = `PRay, FPS: ${(1 / dt).toFixed(2)}`;
+        logger.print(`PRay, FPS: ${(1 / dt).toFixed(2)}`);
     }).play();
-
-    document.body.appendChild(canvas.DOM);
-</script>
-
-</html>
+}
