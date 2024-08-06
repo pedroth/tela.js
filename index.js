@@ -610,7 +610,6 @@ function getURLData() {
         const examplePath = examples.filter(({ title }) => getSelectedExample() === title)[0].path;
         const exampleTxt = getURLData() || TelaLocalStorage.getItem("input") || await getExampleFromPath(examplePath);
         editor.setValue(exampleTxt);
-        // setTimeout(() => execCode(exampleTxt), 1000); // needs this for some unknown reason
         execCode(exampleTxt);
     });
 })()
