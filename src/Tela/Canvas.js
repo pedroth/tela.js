@@ -187,14 +187,14 @@ export default class Canvas extends Tela {
   }
 
   static async ofUrl(url) {
-    const blob = await (await fetch(url, {
-      headers: {
-        "Content-Type": "application/json",
-      }} ).then(response => { console.log("debug", response.headers.get('Content-Type')); return response.blob(); }));
-    const image = await createImageBitmap(blob);
-    const canvas = new OffscreenCanvas(image.width, image.height);
+    const resp = await fetch(url);
+    if (!resp.ok) { throw "Network Error"; }
+    const blob = await resp.blob();
+    const source = await createImageBitmap(blob);
+    const canvas = new OffscreenCanvas(source.width, source.height, { willReadFrequently: true });
     const ctx = canvas.getContext("2d");
-    ctx.drawImage(image, 0, 0)
+    ctx.drawImage(source, 0, 0)
+    source.close();
     const myCanvas = Canvas.ofDOM(canvas);
     myCanvas.url = url;
     return myCanvas;

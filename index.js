@@ -24,7 +24,7 @@ function toggleFullScreen(elem) {
     }
 }
 
-const MAGIC_CODE_LINE_NUMBER_OFFSET = toggleFullScreen.toString().split("\n").length + 21;
+const MAGIC_CODE_LINE_NUMBER_OFFSET = toggleFullScreen.toString().split("\n").length + 18;
 
 async function svg(url) {
     const data = await fetch(SOURCE + url);
@@ -219,7 +219,6 @@ function exampleSelector() {
             const exampleTxt = await getExampleFromPath(examplePath);
             editor.setValue(exampleTxt)
             execCode(exampleTxt);
-
         })
     });
     return DOM.of("div")
@@ -573,7 +572,10 @@ function execCode(code) {
             const script = DOM.of("script").build();
             script.type = "module";
             script.textContent = `
-            import {Path, Ray, Canvas, DOM, Color, KScene, BScene, Camera, Vec2, Vec3, Vec, Box, Sphere, Mesh, NaiveScene, RandomScene, VoxelScene, Line, Triangle, Diffuse, Metallic, Alpha, DiElectric, clamp, loop} from "${SOURCE}/src/index.js"
+            import {Path, Ray,Canvas,DOM,Color,KScene,BScene,Camera,Vec2, Vec3, Vec, Box, Sphere, Mesh, NaiveScene, RandomScene, VoxelScene, Line, Triangle, Diffuse, Metallic, Alpha, DiElectric, clamp, loop} from "${SOURCE}/src/index.js"
+            console.log("Exec CODE", window.globalAnimationIDs)
+            window.globalAnimationIDs.forEach(id => cancelAnimationFrame(id));
+            window.globalAnimationIDs = [];
             ${toggleFullScreen.toString()}
             const canvasDOM = document.getElementsByTagName("canvas")[0];
             const canvas = Canvas.ofDOM(canvasDOM);
@@ -608,6 +610,7 @@ function getURLData() {
         const examplePath = examples.filter(({ title }) => getSelectedExample() === title)[0].path;
         const exampleTxt = getURLData() || TelaLocalStorage.getItem("input") || await getExampleFromPath(examplePath);
         editor.setValue(exampleTxt);
-        setTimeout(() => execCode(exampleTxt), 100); // needs this for some unknown reason
+        // setTimeout(() => execCode(exampleTxt), 1000); // needs this for some unknown reason
+        execCode(exampleTxt);
     });
 })()

@@ -191,6 +191,28 @@ export default class Tela {
         this.image = new Float32Array(CHANNELS * this.width * this.height);
         this.box = new Box(Vec2(0, 0), Vec2(this.width, this.height));
     }
+
+    /**
+     * 
+     * @param {int} width 
+     * @param {int} height 
+     * @param {Uint8Array} data 
+     */
+    static ofData(width, height, data) {
+        const tela = new Tela(width, height);
+        for (let i = 0; i < data.length; i += CHANNELS) {
+            tela.setPxlData(
+                i,
+                Color.ofRGBRaw(
+                    data[i],
+                    data[i + 1],
+                    data[i + 2],
+                    data[i + 3],
+                )
+            )
+        }
+        return tela;
+    }
 }
 //========================================================================================
 /*                                                                                      *

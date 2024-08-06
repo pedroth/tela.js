@@ -35,7 +35,6 @@ export function argmin(array, costFunction = x => x) {
 }
 
 export function memoize(func) {
-    // not working...
     const cache = {}
     return (...args) => {
         const key = JSON.stringify(args.map(x => typeof x === "object" ? JSON.stringify(x) : x.toString()));
@@ -55,6 +54,7 @@ export function fRandom() {
 }
 
 const setTimeOut = typeof window === "undefined" ? setTimeout : requestAnimationFrame;
+if(typeof window !== "undefined") window.globalAnimationIDs = [];
 export function loop(lambda) {
     let isFinished = false;
     const play = async ({ time, oldT }) => {
@@ -64,10 +64,11 @@ export function loop(lambda) {
         await lambda({ time, dt });
 
         if (isFinished) return;
-        setTimeOut(() => play({
+        const id = setTimeOut(() => play({
             oldT: newT,
             time: time + dt,
         }));
+        if(typeof window !== "undefined") window.globalAnimationIDs.push(id);
     }
     const loopControl = {
         stop: () => {
