@@ -142,10 +142,8 @@ You can find more examples of usage in:
 
 # TODOs
 
-- Update Window performance and parallel map
-- Add parallel ray tracing
-- Join canvas, image, window into single interface
-
+- Improve textures in parallel ray tracing
+- Parallel ray map
 
 
 [ffmpeg]: https://ffmpeg.org/
