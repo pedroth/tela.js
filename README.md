@@ -142,9 +142,9 @@ You can find more examples of usage in:
 
 # TODOs
 
-- Improve textures in parallel ray tracing
 - Parallel ray map
 - Serialize meshes not only triangles
+- Optimize data serialization in parallel ray tracer
 
 
 [ffmpeg]: https://ffmpeg.org/
