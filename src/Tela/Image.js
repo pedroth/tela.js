@@ -66,6 +66,10 @@ export default class Image extends Tela {
         }
     });
 
+    serialize() {
+        return { type: Image.name, url: this.url };
+    }
+
     //========================================================================================
     /*                                                                                      *
      *                                    Static Methods                                    *
@@ -84,6 +88,7 @@ export default class Image extends Tela {
             const y = h - 1 - i;
             img.setPxl(x, y, Color.ofRGBRaw(r, g, b));
         }
+        img.url = url;
         return img;
     }
 

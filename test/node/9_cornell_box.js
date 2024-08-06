@@ -1,4 +1,4 @@
-import { Camera, Mesh, Vec3, Vec2, Color, DiElectric, Triangle, Image, loop, KScene, Metallic } from "../../dist/node/index.js";
+import { Camera, Mesh, Vec3, Vec2, Color, DiElectric, Triangle, Image, loop, KScene, Metallic } from "../../src/index.node.js";
 import Window from "../../src/Tela/Window.js";
 import { readFileSync } from "fs"
 

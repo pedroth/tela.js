@@ -1,4 +1,4 @@
-import { Color, video } from "../../dist/node/index.js";
+import { Color, video } from "../../src/index.node.js";
 
 const width = 640;
 const height = 480;

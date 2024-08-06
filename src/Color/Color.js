@@ -12,7 +12,7 @@ export default class Color {
   }
 
   toArray() {
-    return [this.red, this.green, this.blue, this.alpha];
+    return [this.rgb[0], this.rgb[1], this.rgb[2], this.alpha];
   }
 
   get red() {

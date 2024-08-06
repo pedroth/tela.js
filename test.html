@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+
+<body>
+    <canvas id="myCanvas"></canvas>
+</body>
+<script type="module">
+    fetch("/assets/spot.png")
+        .then((file) => {
+            return file.blob();
+        })
+        .then(async blob => {
+            const image = await createImageBitmap(blob);
+            const ctx = document.getElementById("myCanvas").getContext("2d");
+            ctx.drawImage(image, 0, 0)
+        })
+</script>
+
+</html>

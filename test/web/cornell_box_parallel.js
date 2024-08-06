@@ -6,7 +6,7 @@ async (canvas, logger) => {
     canvas.resize(width, height);
     let exposedCanvas = canvas.exposure();
     // scene
-    const scene = new KScene();
+    const scene = new NaiveScene();
     const camera = new Camera({ lookAt: Vec3(1.5, 1.5, 1.5) }).orbit(3, 0, 0);
     // mouse handling
     let mousedown = false;

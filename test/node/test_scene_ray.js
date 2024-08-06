@@ -1,4 +1,4 @@
-import { Image, IO, measureTimeWithResult, Mesh, Vec3, Camera, NaiveScene, BScene, KScene, VoxelScene, Color } from "../../dist/node/index.js";
+import { Image, IO, measureTimeWithResult, Mesh, Vec3, Camera, NaiveScene, BScene, KScene, VoxelScene, Color } from "../../src/index.node.js";
 import { readFileSync } from "fs"
 
 const { saveImageToFile } = IO;

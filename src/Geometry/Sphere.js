@@ -61,13 +61,14 @@ class Sphere {
             color: this.color.toArray(),
             position: this.position.toArray(),
             texCoord: this.texCoord.toArray(),
-            texture: this.texture ? this.texture.hash() : undefined,
+            texture: this.texture ? this.texture.serialize() : undefined,
             material: { type: this.material.type, args: this.material.args }
         }
     }
 
-    static deserialize(json, artifacts) {
+    static async deserialize(json, artifacts) {
         const { type, args } = json.material;
+        const texture = json.texture ? await deserializeImage(json.texture, artifacts) : undefined
         return Sphere
             .builder()
             .name(json.name)
@@ -77,7 +78,7 @@ class Sphere {
             .material(MATERIALS[type](...args))
             .texCoord(Vec.fromArray(json.texCoord))
             .position(Vec.fromArray(json.position))
-            .texture(json.texture ? deserializeImage(artifacts[json.texture]) : undefined)
+            .texture(texture)
             .build()
     }
 

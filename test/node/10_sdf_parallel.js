@@ -1,4 +1,4 @@
-import { Camera, IO, Parallel, Vec3, Mesh, KScene, measureTime } from "../../dist/node/index.js";
+import { Camera, IO, Parallel, Vec3, Mesh, KScene, measureTime } from "../../src/index.node.js";
 import os from "os";
 const { saveParallelImageStreamToVideo } = IO;
 

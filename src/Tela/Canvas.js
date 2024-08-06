@@ -8,7 +8,7 @@ export default class Canvas extends Tela {
   constructor(canvas) {
     super(canvas.width, canvas.height);
     this.canvas = canvas;
-    this.canvas.setAttribute('tabindex', '1'); // for canvas to be focusable
+    if (this.canvas.setAttribute) this.canvas?.setAttribute('tabindex', '1'); // for canvas to be focusable
     this.ctx = this.canvas.getContext("2d", { willReadFrequently: true });
     this.imageData = this.ctx.getImageData(0, 0, this.width, this.height);
   }
@@ -148,6 +148,10 @@ export default class Canvas extends Tela {
     };
   }
 
+  serialize() {
+    return { type: Canvas.name, url: this.url }
+  }
+
   //========================================================================================
   /*                                                                                      *
    *                                    Static Methods                                    *
@@ -182,19 +186,18 @@ export default class Canvas extends Tela {
     return new Canvas(canvas._canvas);
   }
 
-  static ofUrl(url) {
-    return new Promise((resolve) => {
-      const img = document.createElement("img");
-      img.src = url;
-      img.onload = function () {
-        const canvas = document.createElement("canvas");
-        canvas.width = img.width;
-        canvas.height = img.height;
-        const ctx = canvas.getContext("2d");
-        ctx.drawImage(img, 0, 0);
-        resolve(Canvas.ofDOM(canvas));
-      };
-    });
+  static async ofUrl(url) {
+    const blob = await (await fetch(url, {
+      headers: {
+        "Content-Type": "application/json",
+      }} ).then(response => { console.log("debug", response.headers.get('Content-Type')); return response.blob(); }));
+    const image = await createImageBitmap(blob);
+    const canvas = new OffscreenCanvas(image.width, image.height);
+    const ctx = canvas.getContext("2d");
+    ctx.drawImage(image, 0, 0)
+    const myCanvas = Canvas.ofDOM(canvas);
+    myCanvas.url = url;
+    return myCanvas;
   }
 }
 

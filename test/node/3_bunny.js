@@ -1,4 +1,4 @@
-import { Color, Image, Stream, IO, measureTime, measureTimeWithResult, Mesh, Vec3, BScene, Camera, clamp } from "../../dist/node/index.js";
+import { Color, Image, Stream, IO, measureTime, measureTimeWithResult, Mesh, Vec3, BScene, Camera, clamp } from "../../src/index.node.js";
 import { readFileSync } from "fs"
 
 const { saveImageStreamToVideo } = IO;

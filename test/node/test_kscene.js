@@ -1,4 +1,4 @@
-import { Camera, Image, Mesh, measureTimeWithResult, Vec3, KScene } from "../../dist/node/index.js";
+import { Camera, Image, Mesh, measureTimeWithResult, Vec3, KScene } from "../../src/index.node.js";
 import { readFileSync } from "fs"
 
 const width = 640;

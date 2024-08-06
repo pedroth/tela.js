@@ -50,10 +50,11 @@ function parsePPM(data) {
 
 export function readImageFrom(src) {
     const { fileName } = getFileNameAndExtensionFromAddress(src);
-    execSync(`ffmpeg -i ${src} ${fileName}.ppm`);
-    const imageFile = readFileSync(`${fileName}.ppm`);
+    const finalName = `${fileName}_${Math.floor(Math.random() * 1e6)}`;
+    execSync(`ffmpeg -i ${src} ${finalName}.ppm`);
+    const imageFile = readFileSync(`${finalName}.ppm`);
     const { width, height, pixels } = parsePPM(imageFile);
-    unlinkSync(`${fileName}.ppm`);
+    unlinkSync(`${finalName}.ppm`);
     return {width, height, pixels};
     
 }
@@ -104,7 +105,7 @@ export function saveParallelImageStreamToVideo(fileAddress, parallelStreamOfImag
     const promises = inputParamsPartitions.map((inputParams, i) => {
         const spawnFile = "IO_parallel" + i + ".js";
         writeFileSync(spawnFile, `
-            import * as _module from "./dist/node/index.js"
+            import * as _module from "./src/index.node.js"
             import fs from "node:fs";
             const {
                 Box,
@@ -124,7 +125,7 @@ export function saveParallelImageStreamToVideo(fileAddress, parallelStreamOfImag
             
             ${parallelStreamOfImages.dependencies.map(dependency => dependency.toString()).join("\n")}
 
-            ${createPPMFromImage.toString().replaceAll("function createPPMFromImage(image)", "function __createPPMFromImage__(image)")}
+            ${createPPMFromImage.toString().replaceAll("function createPPMFromImage(telaImage)", "function __createPPMFromImage__(telaImage)")}
         
             const __initial_state__ = (${parallelStreamOfImages.lazyInitialState})();
 

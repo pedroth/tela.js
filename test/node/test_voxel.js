@@ -1,4 +1,4 @@
-import { Camera, Image, Mesh, measureTimeWithResult, Vec3, VoxelScene } from "../../dist/node/index.js";
+import { Camera, Image, Mesh, measureTimeWithResult, Vec3, VoxelScene } from "../../src/index.node.js";
 import { readFileSync } from "fs"
 
 const width = 640;

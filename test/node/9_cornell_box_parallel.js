@@ -1,4 +1,4 @@
-import { Camera, Mesh, Vec3, Vec2, Color, DiElectric, Triangle, KScene, Image, loop, Metallic } from "../../dist/node/index.js";
+import { Camera, Mesh, Vec3, Vec2, Color, DiElectric, Triangle, KScene, Image, loop, Metallic } from "../../src/index.node.js";
 import Window from "../../src/Tela/Window.js";
 import { readFileSync } from "fs"
 
@@ -47,10 +47,7 @@ const meshObj = readFileSync("./assets/spot.obj", { encoding: "utf-8" });
 let mesh = Mesh.readObj(meshObj, "mesh");
 mesh = mesh
     .mapVertices(v => v.scale(1))
-    .mapVertices(v => Vec3(-v.y, v.x, v.z))
-    .mapVertices(v => Vec3(v.z, v.y, -v.x))
-    .mapVertices(v => Vec3(-v.y, v.x, v.z))
-    .mapVertices(v => Vec3(-v.y, v.x, v.z))
+    .mapVertices(v => Vec3(-v.z, -v.x, v.y))
     .mapVertices(v => v.add(Vec3(1.5, 1.5, 1.0)))
     .mapColors(() => Color.WHITE)
     .addTexture(await Image.ofUrl("./assets/spot.png"))

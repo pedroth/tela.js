@@ -12,12 +12,16 @@ const SCENE_TYPES = {
     VoxelScene: VoxelScene
 }
 
-export function deserializeScene(sceneJson) {
-    const { type = KScene.name, sceneData, params = [], artifacts } = sceneJson;
+export async function deserializeScene(sceneJson) {
+    const { type = KScene.name, sceneData, params = [] } = sceneJson;
     const SceneClass = SCENE_TYPES[type];
+    const artifacts = {};
+    const sceneElements = [];
+    for (let i = 0; i < sceneData.length; i++) {
+        const serializedElement = sceneData[i];
+        if (serializedElement.type === Triangle.name) sceneElements.push(await Triangle.deserialize(serializedElement, artifacts));
+        if (serializedElement.type === Sphere.name) sceneElements.push(await Sphere.deserialize(serializedElement, artifacts));
+    }
     return new SceneClass(...params)
-        .addList(sceneData.map(x => {
-            if (x.type === Triangle.name) return Triangle.deserialize(x, artifacts);
-            if (x.type === Sphere.name) return Sphere.deserialize(x, artifacts);
-        }));
+        .addList(sceneElements);
 }

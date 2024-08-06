@@ -9,7 +9,7 @@ import {
     Vec3,
     Mesh,
     clamp
-} from "../../dist/node/index.js";
+} from "../../src/index.node.js";
 import { readFileSync } from "fs";
 const { saveImageStreamToVideo } = IO;
 

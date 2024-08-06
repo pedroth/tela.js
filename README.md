@@ -29,10 +29,10 @@ Playground usage:
 
 </body>
 <script type="module">
-    import { Canvas, Color, loop } from "https://cdn.jsdelivr.net/npm/tela.js/dist/web/index.js";
+    import { Canvas, Color, loop } from "https://cdn.jsdelivr.net/npm/tela.js/src/index.js";
 
     // You can also import from local file
-    // import { Canvas, Color, loop } from "./node_modules/tela.js/dist/web/index.js";
+    // import { Canvas, Color, loop } from "./node_modules/tela.js/src/index.js";
 
     const width = 640;
     const height = 480;
@@ -57,7 +57,7 @@ Playground usage:
 Install `tela.js` it using `npm install tela.js` / `bun add tela.js`.
 
 ```js
-import { loop, Color } from "tela.js/dist/node/index.js";
+import { loop, Color } from "tela.js/src/index.node.js";
 import Window from "tela.js/src/Tela/Window.js";
 
 const width = 640;
@@ -87,7 +87,7 @@ Install `tela.js` it using `npm install tela.js` / `bun add tela.js`.
 Create a file:
 ```js
 // index.js
-import { Color, video } from "tela.js/dist/node/index.js";
+import { Color, video } from "tela.js/src/index.node.js";
 
 const width = 640;
 const height = 480;

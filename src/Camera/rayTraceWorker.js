@@ -8,7 +8,7 @@ const parentPort = IS_NODE ? (await import("node:worker_threads")).parentPort : 
 
 let scene = undefined;
 
-function main(inputs) {
+async function main(inputs) {
     const {
         startRow,
         endRow,
@@ -18,7 +18,7 @@ function main(inputs) {
         scene: serializedScene,
         camera: serializedCamera,
     } = inputs;
-    scene = serializedScene ? deserializeScene(serializedScene).rebuild() : scene;
+    scene = serializedScene ? (await deserializeScene(serializedScene)).rebuild() : scene;
     const camera = Camera.deserialize(serializedCamera);
     const rayGen = camera.rayFromImage(width, height);
     const bufferSize = width * (endRow - startRow + 1) * CHANNELS;
@@ -41,15 +41,15 @@ function main(inputs) {
 
 
 if (IS_NODE) {
-    parentPort.on("message", message => {
+    parentPort.on("message", async message => {
         const input = message;
-        const output = main(input);
+        const output = await main(input);
         parentPort.postMessage(output);
     });
 } else {
-    onmessage = message => {
+    onmessage = async message => {
         const input = message.data;
-        const output = main(input);
+        const output = await main(input);
         postMessage(output);
     };
 }

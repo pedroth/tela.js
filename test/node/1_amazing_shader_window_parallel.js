@@ -1,4 +1,4 @@
-import { Color, loop } from "../../dist/node/index.js";
+import { Color, loop } from "../../src/index.node.js";
 import Window from "../../src/Tela/Window.js";
 
 const width = 640;

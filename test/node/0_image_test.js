@@ -1,4 +1,4 @@
-import { Color, Image, IO, measureTime } from "../../dist/node/index.js";
+import { Color, Image, IO, measureTime } from "../../src/index.node.js";
 
 const { saveImageToFile } = IO;
 

@@ -76,13 +76,14 @@ export default class Triangle {
             colors: this.colors.map(x => x.toArray()),
             texCoords: this.texCoords.map(x => x.toArray()),
             positions: this.positions.map(x => x.toArray()),
-            texture: this.texture ? this.texture.hash() : undefined,
+            texture: this.texture ? this.texture.serialize() : undefined,
             material: { type: this.material.type, args: this.material.args }
         }
     }
 
-    static deserialize(json, artifacts) {
+    static async deserialize(json, artifacts) {
         const { type, args } = json.material;
+        const texture = json.texture ? await deserializeImage(json.texture, artifacts) : undefined;
         return Triangle
             .builder()
             .name(json.name)
@@ -91,7 +92,7 @@ export default class Triangle {
             .colors(...json.colors.map(x => new Color(x)))
             .positions(...json.positions.map(x => Vec.fromArray(x)))
             .texCoords(...json.texCoords.map(x => Vec.fromArray(x)))
-            .texture(json.texture ? deserializeImage(artifacts[json.texture]) : undefined)
+            .texture(texture)
             .build()
     }
 

@@ -1,4 +1,4 @@
-import { Image, Stream, IO, measureTime, measureTimeWithResult, Mesh, Vec3, Camera, KScene } from "../../dist/node/index.js";
+import { Image, Stream, IO, measureTime, measureTimeWithResult, Mesh, Vec3, Camera, KScene } from "../../src/index.node.js";
 import { readFileSync } from "fs"
 
 const { saveImageStreamToVideo } = IO;

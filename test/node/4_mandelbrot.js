@@ -1,4 +1,4 @@
-import { Image, Stream, IO, measureTimeWithResult, measureTime, Vec2, Box, Color } from "../../dist/node/index.js";
+import { Image, Stream, IO, measureTimeWithResult, measureTime, Vec2, Box, Color } from "../../src/index.node.js";
 const { saveImageStreamToVideo } = IO;
 
 const width = 640;

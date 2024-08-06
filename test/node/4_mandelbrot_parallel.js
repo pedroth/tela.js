@@ -1,5 +1,5 @@
 import os from "os";
-import { Image, IO, Vec2, Box, Color, Parallel, measureTime } from "../../dist/node/index.js";
+import { Image, IO, Vec2, Box, Color, Parallel, measureTime } from "../../src/index.node.js";
 const { saveParallelImageStreamToVideo } = IO;
 
 const width = 640;
