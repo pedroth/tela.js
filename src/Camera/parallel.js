@@ -35,8 +35,6 @@ class MyWorker {
 
 let WORKERS = [];
 let prevSceneHash = undefined;
-const isGithub = typeof window !== "undefined" && (window.location.host || window.LOCATION_HOST) === "pedroth.github.io";
-const SOURCE = isGithub ? "/tela.js" : ""
 
 //========================================================================================
 /*                                                                                      *
@@ -47,6 +45,9 @@ const SOURCE = isGithub ? "/tela.js" : ""
 export function parallelWorkers(camera, scene, canvas, params = {}) {
     // lazy loading workers
     if (WORKERS.length === 0) {
+        // needs to be here...
+        const isGithub = typeof window !== "undefined" && (window.location.host || window.LOCATION_HOST) === "pedroth.github.io";
+        const SOURCE = isGithub ? "/tela.js" : ""
         WORKERS = [...Array(NUMBER_OF_CORES)]
             .map(() => new MyWorker(`${IS_NODE ? "." : SOURCE}/src/Camera/rayTraceWorker.js`));
     }
