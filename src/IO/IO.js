@@ -78,6 +78,7 @@ export function saveImageStreamToVideo(fileAddress, streamWithImages, { imageGet
     let timeCheck = performance.now();
     return {
         while: async streamStatePredicate => {
+            console.log("Generating video...");
             let s = streamWithImages;
             while (streamStatePredicate(s.head)) {
                 const image = imageGetter(s.head);
