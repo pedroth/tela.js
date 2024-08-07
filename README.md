@@ -28,7 +28,7 @@ Playground usage:
 <script type="module">
     import { Canvas, Color, loop } from "https://cdn.jsdelivr.net/npm/tela.js/src/index.js";
 
-    // You can also import from local file
+    // You can also import from local file, e.g using `npm install tela.js`
     // import { Canvas, Color, loop } from "./node_modules/tela.js/src/index.js";
 
     const width = 640;
@@ -50,10 +50,10 @@ Playground usage:
 ```
 
 ## On the desktop
-Install `tela.js` it using `npm install tela.js` / `bun add tela.js`.
+Install `tela.js` it using `npm install tela.js`.
 
 ```js
-import { loop, Color, Window} from "tela.js/src/index.node.js";
+import { loop, Color, Window } from "tela.js/src/index.node.js";
 
 const width = 640;
 const height = 480;
@@ -77,7 +77,7 @@ And run it: `node index.mjs` / `bun index.js`
 
 ## Generate images and videos
 
-Install `tela.js` it using `npm install tela.js` / `bun add tela.js`.
+Install `tela.js` it using `npm install tela.js`.
 
 Create a file:
 ```js
@@ -108,7 +108,11 @@ video(
 
 And run it: `node index.mjs` / `bun index.js`
 
-### Note generating videos
+### Bun install issue
+
+Bun install is currently not working properly on these project. 
+
+### Note on generating videos
 
 To generate videos and images `tela.js` needs [ffmpeg][ffmpeg] in your system, in a way that it is possible to write on the console:
 ```bash
