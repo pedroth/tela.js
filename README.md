@@ -110,7 +110,7 @@ And run it: `node index.mjs` / `bun index.js`
 
 ### Bun install issue
 
-Bun install is currently not working properly on these project. 
+Bun install is currently not working properly on these project. Although you can run examples with bun.
 
 ### Note on generating videos
 
