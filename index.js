@@ -230,12 +230,37 @@ function exampleSelector() {
         )
 }
 
+function getPermaLink() {
+    return AppState.editor
+        .map(editor => {
+            const url = window.location.href;
+            const baseUrl = url.split("#code=")[0];
+            const encodedCode = encodeURI(editor.getValue());
+            return DOM.of("a")
+                .attr("href", `${baseUrl}#code=${encodedCode}`)
+                .attr("target", "_blank")
+                .inner(`${baseUrl}#code=${encodedCode.slice(0,5)}...`).build().outerHTML;
+        })
+        .orElse(() => window.location.href);
+}
+
+function permalink() {
+    return DOM
+        .of("div")
+        .addClass("icon")
+        .style("margin-left: 1rem; width:1rem; height:auto")
+        .inner(svg("/assets/share.svg"))
+        .attr("title", "Share code")
+        .event("click", () => modalAlert("PermaLink", getPermaLink()))
+}
+
 function headerTools() {
     return DOM.of("div")
         .addClass("flex")
-        .style("margin-bottom: 0.25rem")
+        .style("align-items: center")
         .appendChild(
             exampleSelector(),
+            permalink(),
             execBtn()
         );
 }
@@ -608,7 +633,10 @@ function getSelectedExample() {
 }
 
 function getURLData() {
-
+    const url = window.location.href;
+    const split = url.split("#code=");
+    if (split.length <= 1) return undefined;
+    return decodeURI(split[1]);
 }
 
 (async () => {
