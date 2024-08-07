@@ -1,29 +1,22 @@
-import { Vec2, Vec3 } from "../Vector/Vector.js"
+import Vec, { Vec2, Vec3 } from "../Vector/Vector.js"
 import Ray from "../Ray/Ray.js";
-import { rayTrace } from "./raytrace.js";
+import { getRayTracer } from "./rayTrace.js";
 import { rasterGraphics } from "./raster.js";
 import { sdfTrace } from "./sdf.js";
 import { normalTrace } from "./normal.js";
-
-
+import { parallelWorkers } from "./parallel.js";
 
 export default class Camera {
   constructor(props = {}) {
-    const { lookAt, distanceToPlane, position } = props;
+    const { lookAt, distanceToPlane, position, orientCoords, orbitCoords } = props;
     this.lookAt = lookAt ?? Vec3(0, 0, 0);
     this.distanceToPlane = distanceToPlane ?? 1;
     this.position = position ?? Vec3(3, 0, 0);
-    this._orientCoords = Vec2();
-    this._orbitCoords = Vec3(this.position.length(), 0, 0);
-    this.orient();
-  }
-
-  clone() {
-    return new Camera({
-      lookAt: this.lookAt,
-      position: this.position,
-      distanceToPlane: this.distanceToPlane,
-    })
+    this._orientCoords = orientCoords ?? Vec2();
+    this._orbitCoords = orbitCoords;
+    if (this._orbitCoords) this.orbit(...this._orbitCoords.toArray());
+    else this.orient(...this._orientCoords.toArray());
+    this._orbitCoords = this._orbitCoords ?? Vec3(this.position.length());
   }
 
   look(at, up = Vec3(0, 0, 1)) {
@@ -91,11 +84,13 @@ export default class Camera {
     return {
       to: canvas => {
         const w = canvas.width;
+        const invW = 1 / w;
         const h = canvas.height;
+        const invH = 1 / h;
         const ans = canvas.map((x, y) => {
           const dirInLocal = [
-            (x / w - 0.5),
-            (y / h - 0.5),
+            (x * invW - 0.5),
+            (y * invH - 0.5),
             this.distanceToPlane
           ]
           const dir = Vec3(
@@ -112,11 +107,11 @@ export default class Camera {
     }
   }
 
-  sceneShot(scene, params = {}) {
-    return this.rayMap(rayTrace(scene, params));
+  sceneShot(scene, params) {
+    return this.rayMap(getRayTracer(scene, params));
   }
 
-  reverseShot(scene, params = {}) {
+  reverseShot(scene, params) {
     return {
       to: rasterGraphics(scene, this, params)
     }
@@ -128,6 +123,18 @@ export default class Camera {
 
   normalShot(scene) {
     return this.rayMap(normalTrace(scene));
+  }
+
+  parallelShot(scene, params) {
+    return {
+      to: canvas => {
+        return Promise
+          .all(parallelWorkers(this, scene, canvas, params))
+          .then(() => {
+            canvas.paint();
+          })
+      }
+    }
   }
 
   toCameraCoord(x) {
@@ -148,13 +155,15 @@ export default class Camera {
     return x;
   }
 
-  getRaysFromCanvas(canvas) {
-    const w = canvas.width;
-    const h = canvas.height;
+  rayFromImage(width, height) {
+    const w = width;
+    const invW = 1 / w;
+    const h = height;
+    const invH = 1 / h;
     return (x, y) => {
       const dirInLocal = [
-        (x / w - 0.5),
-        (y / h - 0.5),
+        (x * invW - 0.5),
+        (y * invH - 0.5),
         this.distanceToPlane
       ]
       const dir = Vec3(
@@ -165,5 +174,25 @@ export default class Camera {
         .normalize()
       return Ray(this.position, dir);
     }
+  }
+
+  serialize() {
+    return {
+      lookAt: this.lookAt.toArray(),
+      distanceToPlane: this.distanceToPlane,
+      position: this.position.toArray(),
+      orientCoords: this._orientCoords.toArray(),
+      orbitCoords: this._orbitCoords.toArray(),
+    }
+  }
+
+  static deserialize(json) {
+    return new Camera({
+      lookAt: Vec.fromArray(json.lookAt),
+      distanceToPlane: json.distanceToPlane,
+      position: Vec.fromArray(json.position),
+      orientCoords: Vec.fromArray(json.orientCoords),
+      orbitCoords: Vec.fromArray(json.orbitCoords)
+    })
   }
 }

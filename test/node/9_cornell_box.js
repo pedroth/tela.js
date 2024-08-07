@@ -1,28 +1,63 @@
-import { Color, Image, IO, Utils, Mesh, Vec3, Camera, Triangle, DiElectric, KScene, Point, Metallic, } from "../../dist/node/index.js";
+import { Camera, Mesh, Vec3, Vec2, Color, DiElectric, Triangle, Image, loop, KScene, Metallic } from "../../src/index.node.js";
+import Window from "../../src/Tela/Window.js";
 import { readFileSync } from "fs"
 
-const { measureTime, } = Utils;
-const { saveImageToFile } = IO;
-
-// constants
-const width = 640;
-const height = 480;
-
+const width = 640 / 2;
+const height = 480 / 2;
+const window = Window.ofSize(width, height);
+window.setWindowSize(width * 2, height * 2)
+let exposedWindow = window.exposure();
 // scene
 const scene = new KScene();
 const camera = new Camera({ lookAt: Vec3(1.5, 1.5, 1.5) }).orbit(5, 0, 0);
-const stanfordBunnyObj = readFileSync("./assets/bunny_orig.obj", { encoding: "utf-8" });
-let bunnyMesh = Mesh.readObj(stanfordBunnyObj, "bunny");
-const bunnyBox = bunnyMesh.getBoundingBox();
-bunnyMesh = bunnyMesh
-    .mapVertices(v => v.sub(bunnyBox.min).div(bunnyBox.diagonal).scale(2).sub(Vec3(1, 1, 1)))
+// mouse handling
+let mousedown = false;
+let mouse = Vec2();
+window.onMouseDown((x, y) => {
+    mousedown = true;
+    mouse = Vec2(x, y);
+})
+window.onMouseUp(() => {
+    mousedown = false;
+    mouse = Vec2();
+})
+window.onMouseMove((x, y) => {
+    const newMouse = Vec2(x, y);
+    if (!mousedown || newMouse.equals(mouse)) {
+        return;
+    }
+    const [dx, dy] = newMouse.sub(mouse).toArray();
+    camera.orbit(orbitCoord => orbitCoord.add(
+        Vec3(
+            0,
+            -2 * Math.PI * (dx / window.width),
+            -2 * Math.PI * (dy / window.height)
+        )
+    ));
+    mouse = newMouse;
+    exposedWindow = window.exposure();
+
+})
+window.onMouseWheel(({ dy }) => {
+    camera.orbit(orbitCoord => orbitCoord.add(Vec3(-dy, 0, 0)))
+    exposedWindow = window.exposure();
+})
+
+const meshObj = readFileSync("./assets/spot.obj", { encoding: "utf-8" });
+let mesh = Mesh.readObj(meshObj, "mesh");
+mesh = mesh
     .mapVertices(v => v.scale(1))
     .mapVertices(v => Vec3(-v.y, v.x, v.z))
     .mapVertices(v => Vec3(v.z, v.y, -v.x))
-    .mapVertices(v => v.add(Vec3(1.5, 1.5, 1.5)))
-    .mapColors(() => Color.WHITE)
-    .mapMaterials(() => DiElectric(1.3333))
-scene.add(...bunnyMesh.asTriangles());
+    .mapVertices(v => Vec3(-v.y, v.x, v.z))
+    .mapVertices(v => Vec3(-v.y, v.x, v.z))
+    .mapVertices(v => v.add(Vec3(1.5, 1.5, 1.0)))
+    .mapColors(() => Color.BLUE)
+    .addTexture(await Image.ofUrl("./assets/spot.png"))
+    .mapMaterials(() => Metallic(1.33333))
+scene.add(mesh);
+
+// cornell box
 scene.add(
     Triangle
         .builder()
@@ -98,62 +133,10 @@ scene.add(
         .positions(Vec3(2, 2, 2.9), Vec3(1, 2, 2.9), Vec3(1, 1, 2.9))
         .emissive(true)
         .build(),
-    // Point
-    //     .builder()
-    //     .radius(0.25)
-    //     .name("sphere")
-    //     .color(Color.ofRGB(1, 0, 1))
-    //     .material(Metallic(0.25))
-    //     .position(Vec3(1.5, 0.5, 1.5))
-    //     .build(),
-    // Point
-    //     .builder()
-    //     .radius(0.25)
-    //     .name("metal-sphere")
-    //     .color(Color.WHITE)
-    //     .material(Metallic())
-    //     .position(Vec3(1.5, 2.5, 1.5))
-    //     .build(),
-    // Point
-    //     .builder()
-    //     .radius(0.5)
-    //     .name("glass-sphere")
-    //     .color(Color.ofRGB(1, 1, 1))
-    //     .material(DiElectric(1.5))
-    //     .position(Vec3(1.0, 1.5, 1.0))
-    //     .build(),
 )
-
-const shot = (image) => camera.sceneShot(scene, { samplesPerPxl: 10, bounces: 20 }).to(image ?? Image.ofSize(width, height));
-
-const time = measureTime(
-    () => saveImageToFile(
-        `./bunny_glass.png`,
-        shot(Image.ofSize(width, height))
-    )
-);
-console.log(`Image done in ${time}s`);
-
-
-// let w = width;
-// let h = height;
-// const sizes = [[w, h]];
-// let i = 1;
-// while ((h >> i) % 2 === 0 && (w >> i) % 2 === 0) {
-//     w = w >> i;
-//     h = h >> i;
-//     sizes.push([w, h]);
-//     i++;
-// }
-
-// const sortedSizes = sizes.sort((a, b) => a[0] - b[0]);
-// sortedSizes.forEach(([wi, hi]) => {
-//     console.log(">>>", sizes);
-//     const time = measureTime(
-//         () => saveImageToFile(
-//             `./bunny_glass_${wi}_${hi}.ppm`,
-//             shot(Image.ofSize(wi, hi))
-//         )
-//     );
-//     console.log(`Image done in ${time}s`);
-// })
+scene.rebuild();
+// play
+loop(async ({ dt }) => {
+    camera.sceneShot(scene, { bounces: 10, samplesPerPxl: 1, gamma: 0.5 }).to(exposedWindow);
+    window.setTitle(`FPS: ${Math.floor(1 / dt)}`);
+}).play();

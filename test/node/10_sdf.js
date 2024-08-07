@@ -1,7 +1,6 @@
-import { Image, Stream, IO, Utils, Mesh, Vec3, Camera, KScene } from "../../dist/node/index.js";
+import { Image, Stream, IO, measureTime, measureTimeWithResult, Mesh, Vec3, Camera, KScene } from "../../src/index.node.js";
 import { readFileSync } from "fs"
 
-const { measureTime, measureTimeWithResult } = Utils;
 const { saveImageStreamToVideo } = IO;
 
 // constants
@@ -38,12 +37,12 @@ const imageStream = new Stream(
 
 console.log(
     "Video created in: ",
-    measureTime(() => {
-        saveImageStreamToVideo(
+    await measureTime(async () => {
+        await saveImageStreamToVideo(
             "./sdf.mp4",
             imageStream,
             { fps: FPS }
-        ).until(({ time }) => time < maxT);
+        ).while(({ time }) => time < maxT);
     })
 )
 

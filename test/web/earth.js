@@ -44,18 +44,16 @@ async (canvas, logger) => {
         .mapColors(() => Color.ofRGB(0.25, 0.25, 0.25))
         .addTexture(texture)
     scene.addList(earthMesh.asTriangles());
-    Animation
-        .loop(({ dt }) => {
-            camera.reverseShot(
-                scene,
-                {
-                    cullBackFaces: true,
-                    bilinearTextures: false,
-                    clipCameraPlane: false
-                }
-            )
-                .to(canvas);
-            logger.print(Math.floor(1 / dt));
-        })
-        .play();
+    loop(({ dt }) => {
+        camera.reverseShot(
+            scene,
+            {
+                cullBackFaces: true,
+                bilinearTextures: false,
+                clipCameraPlane: false
+            }
+        )
+            .to(canvas);
+        logger.print(Math.floor(1 / dt));
+    }).play();
 }

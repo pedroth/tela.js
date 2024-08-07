@@ -1,8 +1,7 @@
 const isGithub = window.location.host === "pedroth.github.io";
 const SOURCE = isGithub ? "/tela.js" : ""
 // eslint-disable-next-line no-unused-vars
-const { DOM, Monads } = await import(SOURCE + "/dist/web/index.js")
-const { some, none } = Monads;
+const { DOM, some, none } = await import(SOURCE + "/src/index.js")
 //========================================================================================
 /*                                                                                      *
  *                                         UTILS                                        *
@@ -25,7 +24,7 @@ function toggleFullScreen(elem) {
     }
 }
 
-const MAGIC_CODE_LINE_NUMBER_OFFSET = toggleFullScreen.toString().split("\n").length + 21;
+const MAGIC_CODE_LINE_NUMBER_OFFSET = toggleFullScreen.toString().split("\n").length + 18;
 
 async function svg(url) {
     const data = await fetch(SOURCE + url);
@@ -220,7 +219,6 @@ function exampleSelector() {
             const exampleTxt = await getExampleFromPath(examplePath);
             editor.setValue(exampleTxt)
             execCode(exampleTxt);
-
         })
     });
     return DOM.of("div")
@@ -443,11 +441,15 @@ const examples = [
         path: "/test/web/mandelbrot.js"
     },
     {
+        title: "Parallel mandelbrot set",
+        path: "/test/web/mandelbrot_parallel.js"
+    },
+    {
         title: "Simple animation shader",
         path: "/test/web/simple_animation.js"
     },
     {
-        title: "Rotating grid shader",
+        title: "Rotating grid and video gen",
         path: "/test/web/rotating_grid.js"
     },
     {
@@ -487,7 +489,7 @@ const examples = [
         path: "/test/web/bunny_explode.js"
     },
     {
-        title: "Wire frame spot",
+        title: "Wire frame meshes",
         path: "/test/web/wireframe.js"
     },
     {
@@ -510,21 +512,29 @@ const examples = [
         title: "SDF editor",
         path: "/test/web/sdf_editor.js"
     },
+    // {
+    //     title: "Voxel SDF editor",
+    //     path: "/test/web/sdf_editor_voxel.js"
+    // },
     {
-        title: "Cornell box",
+        title: "Cornell box (SLOW)",
         path: "/test/web/cornell_box.js"
+    },
+    {
+        title: "Cornell box parallel",
+        path: "/test/web/cornell_box_parallel.js"
     },
     {
         title: "Glass bunny",
         path: "/test/web/glass.js"
     },
     {
-        title: "spot spheres test",
-        path: "/test/web/debug_normal_shot_test.js"
-    },
-    {
         title: "image to rgb space",
         path: "/test/web/image2rgb.js"
+    },
+    {
+        title: "spot spheres test",
+        path: "/test/web/debug_normal_shot_test.js"
     },
     {
         title: "debug ray marching",
@@ -537,7 +547,15 @@ const examples = [
     {
         title: "debug voronoi",
         path: "/test/web/debug_voronoi.js"
-    }
+    },
+    {
+        title: "debug unlimited detail",
+        path: "/test/web/debug_unlimited_detail.js"
+    },
+    {
+        title: "debug parallel ray tracer",
+        path: "/test/web/debug_parallel_ray_tracer.js"
+    },
 ];
 
 const AppState = {
@@ -562,14 +580,10 @@ function execCode(code) {
             const script = DOM.of("script").build();
             script.type = "module";
             script.textContent = `
-            import {Path, Ray, Canvas, DOM, Color, Animation, Scene, KScene, BScene, Camera, Vec2, Vec3, Vec, Box, Point, Mesh, NaiveScene, RandomScene, VoxelScene, Line, Triangle, Diffuse, Metallic, Alpha, DiElectric, clamp} from "${SOURCE}/dist/web/index.js"
+            import {Path, Ray,Canvas,DOM,Color,KScene,BScene,Camera,Vec2, Vec3, Vec, Box, Sphere, Mesh, NaiveScene, RandomScene, VoxelScene, Line, Triangle, Diffuse, Metallic, Alpha, DiElectric, clamp, loop} from "${SOURCE}/src/index.js"
+            window.globalAnimationIDs.forEach(id => cancelAnimationFrame(id));
+            window.globalAnimationIDs = [];
             ${toggleFullScreen.toString()}
-            function requestAnimationFrame(lambda) {
-                const id = window.requestAnimationFrame(lambda);
-                window.globalAnimationIds.push(id);
-            }
-            window?.globalAnimationIds?.forEach(id => cancelAnimationFrame(id));
-            window.globalAnimationIds = [];
             const canvasDOM = document.getElementsByTagName("canvas")[0];
             const canvas = Canvas.ofDOM(canvasDOM);
             document.getElementById("expandButton").addEventListener('click', () => {
@@ -583,7 +597,7 @@ function execCode(code) {
                     document.getElementById("logger").innerText +=  \`\${message}\\n\`;
                 }
             };
-            (${code.replaceAll("/assets/", SOURCE + "/assets/")})(canvas, logger)
+            await (${code.replaceAll("/assets/", SOURCE + "/assets/")})(canvas, logger)
             `;
             iframe.element.contentDocument.body.appendChild(script);
         })
@@ -594,15 +608,15 @@ function getSelectedExample() {
 }
 
 function getURLData() {
-    
+
 }
 
 (async () => {
     await renderUI()
     AppState.editor.forEach(async editor => {
         const examplePath = examples.filter(({ title }) => getSelectedExample() === title)[0].path;
-        const exampleTxt = getURLData() ||TelaLocalStorage.getItem("input") || await getExampleFromPath(examplePath);
+        const exampleTxt = getURLData() || TelaLocalStorage.getItem("input") || await getExampleFromPath(examplePath);
         editor.setValue(exampleTxt);
-        setTimeout(() => execCode(exampleTxt), 100); // needs this for some unknown reason
+        execCode(exampleTxt);
     });
 })()

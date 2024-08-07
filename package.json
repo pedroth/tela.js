@@ -1,6 +1,6 @@
 {
   "name": "tela.js",
-  "version": "1.0.5",
+  "version": "1.1.0",
   "author": "Pedroth",
   "repository": {
     "type": "git",
@@ -37,11 +37,9 @@
   ],
   "license": "Apache-2.0",
   "scripts": {
-    "build": "bun run clean; bun i; bun bundle.js",
-    "buildDev": "bun bundle.js --watch",
     "serve": "bunx http-server",
-    "clean": "rm -fr node_modules; rm -fr dist/; rm *.png *.jpeg *.ppm *.webm *.mp4",
-    "pub": "npm version patch; bun run build; npm publish"
+    "clean": "rm -fr node_modules; rm *.png *.jpeg *.ppm *.webm *.mp4",
+    "pub": "npm version patch; npm publish"
   },
   "type": "module"
 }

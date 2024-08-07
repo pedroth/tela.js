@@ -5,7 +5,7 @@ async (canvas, logger) => {
     const height = 480;
     canvas.resize(width, height);
     // scene
-    const scene = new Scene()
+    const scene = new NaiveScene()
     const camera = new Camera().orbit(5, 0, 0);
     // mouse handling
     let mousedown = false;
@@ -39,7 +39,7 @@ async (canvas, logger) => {
     // scene
     scene
         .add(
-            Point
+            Sphere
                 .builder()
                 .position(Vec3(0, -1.5, 0))
                 .name("point")
@@ -62,10 +62,8 @@ async (canvas, logger) => {
         )
 
     // boilerplate for fps
-    Animation
-        .loop(({ dt }) => {
-            camera.normalShot(scene).to(canvas);
-            logger.print(Math.floor(1 / dt));
-        })
-        .play();
+    loop(({ dt }) => {
+        camera.normalShot(scene).to(canvas);
+        logger.print(Math.floor(1 / dt));
+    }).play();
 }

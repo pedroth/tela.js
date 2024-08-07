@@ -39,50 +39,48 @@
     })
 
     // start animation
-    Animation
-        .loop(({ dt }) => {
-            logger.print(`FPS: ${Math.floor(1 / dt)}`);
+    loop(({ dt }) => {
+        logger.print(`FPS: ${Math.floor(1 / dt)}`);
 
-            let maxWave = Number.MIN_VALUE;
-            let minWave = Number.MAX_VALUE;
-            let maxAbsSpeed = Number.MIN_VALUE;
-            // update wave
-            for (let i = 0; i < height; i++) {
-                for (let j = 0; j < width; j++) {
-                    /**
-                     * Sympletic integration
-                     */
-                    // compute acceleration
-                    const laplacian =
-                        wave[i][mod(j + 1, width)] +
-                        wave[i][mod(j - 1, width)] +
-                        wave[mod(i + 1, height)][j] +
-                        wave[mod(i - 1, height)][j] -
-                        4 * wave[i][j];
-                    const acceleration = waveScalarSpeed * laplacian - friction * waveSpeed[i][j];
+        let maxWave = Number.MIN_VALUE;
+        let minWave = Number.MAX_VALUE;
+        let maxAbsSpeed = Number.MIN_VALUE;
+        // update wave
+        for (let i = 0; i < height; i++) {
+            for (let j = 0; j < width; j++) {
+                /**
+                 * Sympletic integration
+                 */
+                // compute acceleration
+                const laplacian =
+                    wave[i][mod(j + 1, width)] +
+                    wave[i][mod(j - 1, width)] +
+                    wave[mod(i + 1, height)][j] +
+                    wave[mod(i - 1, height)][j] -
+                    4 * wave[i][j];
+                const acceleration = waveScalarSpeed * laplacian - friction * waveSpeed[i][j];
 
-                    //update speed
-                    waveSpeed[i][j] = waveSpeed[i][j] + dt * acceleration;
+                //update speed
+                waveSpeed[i][j] = waveSpeed[i][j] + dt * acceleration;
 
-                    // update position
-                    wave[i][j] = wave[i][j] + dt * waveSpeed[i][j];
+                // update position
+                wave[i][j] = wave[i][j] + dt * waveSpeed[i][j];
 
-                    // get max min values of wave
-                    maxWave = maxWave <= wave[i][j] ? wave[i][j] : maxWave;
-                    minWave = minWave > wave[i][j] ? wave[i][j] : minWave;
-                    const absSpeed = Math.abs(waveSpeed[i][j]);
-                    maxAbsSpeed = maxAbsSpeed <= absSpeed ? absSpeed : maxAbsSpeed;
-                }
+                // get max min values of wave
+                maxWave = maxWave <= wave[i][j] ? wave[i][j] : maxWave;
+                minWave = minWave > wave[i][j] ? wave[i][j] : minWave;
+                const absSpeed = Math.abs(waveSpeed[i][j]);
+                maxAbsSpeed = maxAbsSpeed <= absSpeed ? absSpeed : maxAbsSpeed;
             }
+        }
 
-            canvas.map((x, y) => {
-                let xi = x;
-                let yi = y;
-                const redColor = (wave[yi][xi] - minWave) / (maxWave - minWave);
-                const blueColor = 1 - (wave[yi][xi] - minWave) / (maxWave - minWave);
-                const greenColor = Math.abs(waveSpeed[yi][xi]) / maxAbsSpeed;
-                return Color.ofRGB(redColor, greenColor, blueColor);
-            })
+        canvas.map((x, y) => {
+            let xi = x;
+            let yi = y;
+            const redColor = (wave[yi][xi] - minWave) / (maxWave - minWave);
+            const blueColor = 1 - (wave[yi][xi] - minWave) / (maxWave - minWave);
+            const greenColor = Math.abs(waveSpeed[yi][xi]) / maxAbsSpeed;
+            return Color.ofRGB(redColor, greenColor, blueColor);
         })
-        .play();
+    }).play();
 }

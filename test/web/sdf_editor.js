@@ -14,7 +14,7 @@ async (canvas, logger) => {
     // scene
     const scene = new KScene()
     const camera = new Camera().orbit(5, 0, 0);
-    const canvas2Ray = camera.getRaysFromCanvas(canvas);
+    const canvas2Ray = camera.rayFromImage(canvas.width, canvas.height);
     // mouse handling
     let leftMouseDown = false;
     let rightMouseDown = false;
@@ -42,7 +42,7 @@ async (canvas, logger) => {
             const normal = canvas2Ray(width / 2, height / 2).dir;
             const p = ray.trace(-normal.dot(ray.init) / normal.dot(ray.dir));
             scene.add(
-                Point
+                Sphere
                     .builder()
                     .radius(0.25)
                     .position(p)
@@ -97,12 +97,10 @@ async (canvas, logger) => {
         return Color.BLACK;
     }
     // scene
-    Animation
-        .loop(({ dt, time }) => {
-            logger.print(Math.floor(1 / dt));
-            camera.rayMap(render).to(canvas);
-            // scene.debug({ camera, canvas });
-            if (time % 10 < 0.5) scene.rebuild();
-        })
-        .play();
+    loop(({ dt, time }) => {
+        logger.print(Math.floor(1 / dt));
+        camera.rayMap(render).to(canvas);
+        // scene.debug({ camera, canvas });
+        if (time % 10 < 0.5) scene.rebuild();
+    }).play();
 }

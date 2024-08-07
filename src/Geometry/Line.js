@@ -1,8 +1,8 @@
 import Box from "./Box.js";
 import Color from "../Color/Color.js";
-import { Diffuse } from "../Material/Material.js";
+import { Diffuse, MATERIALS } from "../Material/Material.js";
 import { clamp } from "../Utils/Math.js";
-import { Vec2, Vec3 } from "../Vector/Vector.js";
+import Vec, { Vec2, Vec3 } from "../Vector/Vector.js";
 
 export default class Line {
     constructor({ name, positions, colors, texCoords, normals, texture, radius, emissive, material }) {
@@ -74,6 +74,23 @@ export default class Line {
 
     isInside(p) {
         return this.distanceToPoint(p) < 0;
+    }
+
+    serialize() {
+        //TODO's
+    }
+
+    static deserialize(json) {
+        const { type, args } = json.material;
+        return Line
+            .builder()
+            .name(json.name)
+            .radius(json.radius)
+            .positions(...json.positions.map(x => Vec.fromArray(x)))
+            .colors(...json.colors.map(x => new Color(x)))
+            .emissive(json.emissive)
+            .material(MATERIALS[type](...args))
+            .build()
     }
 
     static builder() {

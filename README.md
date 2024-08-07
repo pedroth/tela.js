@@ -29,25 +29,23 @@ Playground usage:
 
 </body>
 <script type="module">
-    import { Canvas, Animation, Color } from "https://cdn.jsdelivr.net/npm/tela.js/dist/web/index.js";
+    import { Canvas, Color, loop } from "https://cdn.jsdelivr.net/npm/tela.js/src/index.js";
 
     // You can also import from local file
-    // import { Canvas, Animation, Color} from "./node_modules/tela.js/dist/web/index.js";
+    // import { Canvas, Color, loop } from "./node_modules/tela.js/src/index.js";
 
     const width = 640;
     const height = 480;
     const canvas = Canvas.ofSize(640, 480);
-    Animation
-        .loop(({ time, dt }) => {
-            document.title = `FPS: ${(Math.floor(1 / dt))}`;
-            canvas.map((x, y) => {
-                return Color.ofRGB(
-                    ((x * time) / width) % 1,
-                    ((y * time) / height) % 1
-                )
-            })
+    loop(({ time, dt }) => {
+        document.title = `FPS: ${(Math.floor(1 / dt))}`;
+        canvas.map((x, y) => {
+            return Color.ofRGB(
+                ((x * time) / width) % 1,
+                ((y * time) / height) % 1
+            )
         })
-        .play();
+    }).play();
     document.body.appendChild(canvas.DOM);
 
 </script>
@@ -59,23 +57,22 @@ Playground usage:
 Install `tela.js` it using `npm install tela.js` / `bun add tela.js`.
 
 ```js
-import { Animation, Color } from "tela.js/dist/node/index.js";
+import { loop, Color } from "tela.js/src/index.node.js";
 import Window from "tela.js/src/Tela/Window.js";
 
 const width = 640;
 const height = 480;
 const window = Window.ofSize(640, 480);
-Animation
-    .loop(({ time, dt }) => {
-        window.setTitle(`FPS: ${Math.floor(1 / dt)}`);
-        window.map((x, y) => {
-            return Color.ofRGB(
-                ((x * time) / width) % 1,
-                ((y * time) / height) % 1
-            )
-        })
+loop(({ time, dt }) => {
+    window.setTitle(`FPS: ${Math.floor(1 / dt)}`);
+    window.map((x, y) => {
+        return Color.ofRGB(
+            ((x * time) / width) % 1,
+            ((y * time) / height) % 1
+        )
     })
-    .play();
+})
+.play();
 ```
 
 And run it: `node index.mjs` / `bun index.js`
@@ -90,7 +87,7 @@ Install `tela.js` it using `npm install tela.js` / `bun add tela.js`.
 Create a file:
 ```js
 // index.js
-import { Color, video } from "tela.js/dist/node/index.js";
+import { Color, video } from "tela.js/src/index.node.js";
 
 const width = 640;
 const height = 480;
@@ -111,7 +108,7 @@ video(
     animation,
     { width, height, FPS }
 )
-    .until(({ time }) => time < maxVideoTime);
+    .while(({ time }) => time < maxVideoTime);
 ```
 
 And run it: `node index.mjs` / `bun index.js`
@@ -145,10 +142,10 @@ You can find more examples of usage in:
 
 # TODOs
 
-- Update Window performance and parallel map
-- Add parallel ray tracing
-- Join canvas, image, window into single interface
-
+- Fix parallel ray trace refresh bug
+- Parallel ray map
+- Serialize meshes not only triangles
+- Optimize data serialization in parallel ray tracer
 
 
 [ffmpeg]: https://ffmpeg.org/

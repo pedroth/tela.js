@@ -47,7 +47,7 @@ async (canvas, logger) => {
             const initial = Vec3(0, x / img.width, y / img.height);
             return {
                 init: initial,
-                point: Point
+                point: Sphere
                     .builder()
                     .name(`pxl_${k}`)
                     .radius(1e-5)
@@ -90,11 +90,9 @@ async (canvas, logger) => {
     })();
 
     // boilerplate for fps
-    Animation
-        .loop(({ time, dt }) => {
-            camera.reverseShot(scene).to(canvas);
-            stateMachine(time)
-            logger.print(Math.floor(1 / dt));
-        })
-        .play();
+    loop(({ time, dt }) => {
+        camera.reverseShot(scene).to(canvas);
+        stateMachine(time)
+        logger.print(Math.floor(1 / dt));
+    }).play();
 }

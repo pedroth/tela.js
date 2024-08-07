@@ -12,11 +12,13 @@ export default class Stream {
     get head() { return this._map(this._head); }
 
     get tail() {
-        let state = this.head;
-        while (!this._pred(this._tail(state))) {
-            state = this._tail(state);
-        }
-        return new Stream(this._tail(state), this._tail, this._pred);
+        return (async () => {
+            let state = this.head;
+            while (!this._pred(this._tail(state))) {
+                state = await this._tail(state);
+            }
+            return new Stream(await this._tail(state), this._tail, this._pred);
+        })();
     }
 
     map(lambda) {

@@ -6,7 +6,7 @@ async (canvas, logger) => {
     const height = 480;
     canvas.resize(width, height);
     // scene
-    const scene = new Scene();
+    const scene = new KScene();
     const camera = new Camera().orbit(5, 0, 0);
     // mouse handling
     let mousedown = false;
@@ -54,7 +54,7 @@ async (canvas, logger) => {
             const x = j;
             const y = i;
             const initial = Vec3(0, x / n, y / n);
-            return Point
+            return Sphere
                 .builder()
                 .name(`pxl_${k}`)
                 .radius(1e-2)
@@ -113,7 +113,7 @@ async (canvas, logger) => {
             let t = scene.distanceToPoint(p);
             const maxDist = t;
             debugScene.add(
-                Point
+                Sphere
                     .builder()
                     .name("init")
                     .position(p)
@@ -125,7 +125,7 @@ async (canvas, logger) => {
             debugScene.add(line(init, ray.trace(t), Color.RED));
             for (let i = 0; i < maxIte; i++) {
                 debugScene.add(
-                    Point
+                    Sphere
                         .builder()
                         .name("init" + i)
                         .position(p)
@@ -140,7 +140,7 @@ async (canvas, logger) => {
                 t += d;
                 if (d < epsilon) {
                     debugScene.add(
-                        Point
+                        Sphere
                             .builder()
                             .name("hit")
                             .position(p)
@@ -157,24 +157,12 @@ async (canvas, logger) => {
     }
 
     // boilerplate for fps
-    Animation
-        .builder()
-        .initialState({ it: 1, time: 0, oldTime: new Date().getTime() })
-        .nextState(({ it, time, oldTime }) => {
-            camera.reverseShot(scene).to(canvas);
-            scene.debug({ camera, canvas })
-            const freq = 0.05;
-            let t = time % 10;
-            debugRay(Ray(Vec3(0, -5, 2), Vec3(0, Math.cos(freq * t), -Math.sin(freq * t))))();
-            const dt = (new Date().getTime() - oldTime) * 1e-3;
-            logger.print(Math.floor(1 / dt));
-            return {
-                it: it + 1,
-                time: time + dt,
-                oldTime: new Date().getTime()
-            };
-        })
-        .while(() => true)
-        .build()
-        .play();
+    loop(({ dt, time }) => {
+        camera.reverseShot(scene).to(canvas);
+        scene.debug({ camera, canvas })
+        const freq = 0.05;
+        let t = time % 10;
+        debugRay(Ray(Vec3(0, -5, 2), Vec3(0, Math.cos(freq * t), -Math.sin(freq * t))))();
+        logger.print(Math.floor(1 / dt));
+    }).play();
 }

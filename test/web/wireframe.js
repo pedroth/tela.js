@@ -38,28 +38,33 @@ async (canvas, logger) => {
         camera.orbit(coords => coords.add(Vec3(deltaY * 0.001, 0, 0)));
     })
     // scene
-    const spotObj = await fetch("/assets/spot.obj")
-        .then(x => x.text());
-    let spotMesh = Mesh.readObj(spotObj, "spot");
-    spotMesh = spotMesh
-        .addTexture(await Canvas.ofUrl("/assets/spot.png"))
+    const obj = await fetch("/assets/spot.obj").then(x => x.text());
+    // const obj = await fetch("/assets/megaman.obj").then(x => x.text());
+    // const obj = await fetch("/assets/spyro.obj").then(x => x.text());
+    const textureImage = await Canvas.ofUrl("/assets/spot.png");
+    // const textureImage = await Canvas.ofUrl("/assets/megaman.png");
+    // const textureImage = await Canvas.ofUrl("/assets/spyro.png");
+    let mesh = Mesh.readObj(obj, "mesh");
+    const meshBox = mesh.getBoundingBox();
+    const maxDiagInv = 2 / meshBox.diagonal.fold((e, x) => Math.max(e, x), Number.MIN_VALUE);
+    mesh = mesh
+        .addTexture(textureImage)
+        .mapVertices(v => v.sub(meshBox.center).scale(maxDiagInv))
         .mapVertices(v => Vec3(-v.y, v.x, v.z))
         .mapVertices(v => Vec3(v.z, v.y, -v.x))
         .mapColors(() => Color.ofRGB(0.25, 0.25, 0.25))
-        .mapVertices(v => v.add(Vec3(0, 0, 0)))
-    scene.addList(spotMesh.asTriangles());
+
+    scene.addList(mesh.asTriangles());
     scene.addList(
-        spotMesh
+        mesh
             .mapVertices(v => v.scale(1.03))
             .mapColors(() => Color.ofRGB(0, 0.5, 0.7))
-            .setName("spot-lines")
+            .setName("lines")
             .asLines()
     )
     // boilerplate for fps
-    Animation
-        .loop(({ dt }) => {
-            camera.reverseShot(scene).to(canvas);
-            logger.print(Math.floor(1 / dt));
-        })
-        .play();
+    loop(({ dt }) => {
+        camera.reverseShot(scene).to(canvas);
+        logger.print(Math.floor(1 / dt));
+    }).play();
 }

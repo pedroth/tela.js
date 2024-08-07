@@ -1,9 +1,6 @@
 import { writeFileSync, unlinkSync, readFileSync } from "fs";
 import { execSync, exec } from "child_process";
-import Image from "../Tela/Image.js";
-import Color from "../Color/Color.js";
 import { MAX_8BIT } from "../Utils/Constants.js";
-import { clamp } from "../Utils/Math.js";
 
 export function saveImageToFile(fileAddress, image) {
     const { fileName, extension } = getFileNameAndExtensionFromAddress(fileAddress);
@@ -53,27 +50,20 @@ function parsePPM(data) {
 
 export function readImageFrom(src) {
     const { fileName } = getFileNameAndExtensionFromAddress(src);
-    execSync(`ffmpeg -i ${src} ${fileName}.ppm`);
-    const imageFile = readFileSync(`${fileName}.ppm`);
-    const { width: w, height: h, pixels } = parsePPM(imageFile);
-    unlinkSync(`${fileName}.ppm`);
-    const img = Image.ofSize(w, h);
-    for (let k = 0; k < pixels.length; k++) {
-        const { r, g, b } = pixels[k];
-        const i = Math.floor(k / w);
-        const j = k % w;
-        const x = j;
-        const y = h - 1 - i;
-        img.setPxl(x, y, Color.ofRGBRaw(r, g, b));
-    }
-    return img;
+    const finalName = `${fileName}_${Math.floor(Math.random() * 1e6)}`;
+    execSync(`ffmpeg -i ${src} ${finalName}.ppm`);
+    const imageFile = readFileSync(`${finalName}.ppm`);
+    const { width, height, pixels } = parsePPM(imageFile);
+    unlinkSync(`${finalName}.ppm`);
+    return {width, height, pixels};
+    
 }
 
-export function createPPMFromImage(image) {
-    const width = image.width;
-    const height = image.height;
-    const pixelData = image.toArray();
-    const rgbClamp = clamp(0, MAX_8BIT);
+export function createPPMFromImage(telaImage) {
+    const width = telaImage.width;
+    const height = telaImage.height;
+    const pixelData = telaImage.image;
+    const rgbClamp = x => Math.floor(Math.min(MAX_8BIT, Math.max(0, MAX_8BIT * x)));
     let file = `P3\n${width} ${height}\n${MAX_8BIT}\n`;
     for (let i = 0; i < pixelData.length; i += 4) {
         file += `${rgbClamp(pixelData[i])} ${rgbClamp(pixelData[i + 1])} ${rgbClamp(pixelData[i + 2])}\n`;
@@ -87,7 +77,7 @@ export function saveImageStreamToVideo(fileAddress, streamWithImages, { imageGet
     let time = 0;
     let timeCheck = performance.now();
     return {
-        until: streamStatePredicate => {
+        while: async streamStatePredicate => {
             let s = streamWithImages;
             while (streamStatePredicate(s.head)) {
                 const image = imageGetter(s.head);
@@ -95,7 +85,7 @@ export function saveImageStreamToVideo(fileAddress, streamWithImages, { imageGet
                 const newTimeCheck = performance.now();
                 time += (newTimeCheck - timeCheck) * 1e-3;
                 timeCheck = performance.now();
-                s = s.tail;
+                s = await s.tail;
             }
             if (!fps) fps = ite / time;
             execSync(`ffmpeg -framerate ${fps} -i ${fileName}_%d.ppm ${fileName}.${extension}`);
@@ -115,33 +105,28 @@ export function saveParallelImageStreamToVideo(fileAddress, parallelStreamOfImag
     const promises = inputParamsPartitions.map((inputParams, i) => {
         const spawnFile = "IO_parallel" + i + ".js";
         writeFileSync(spawnFile, `
-            import * as _module from "./dist/node/index.js"
-            import fs from "fs";
-
+            import * as _module from "./src/index.node.js"
+            import fs from "node:fs";
             const {
                 Box,
-                DOM,
                 Vec,
                 Vec2,
                 Vec3,
                 Mesh,
-                clamp,
                 Color,
                 Image,
-                Point,
-                Scene,
                 BScene,
                 Camera,
                 KScene,
+                Sphere,
                 MAX_8BIT,
-                Animation,
                 NaiveScene,
             } = _module;
             
-            ${createPPMFromImage.toString().replaceAll("function createPPMFromImage(image)", "function __createPPMFromImage__(image)")}
-            
             ${parallelStreamOfImages.dependencies.map(dependency => dependency.toString()).join("\n")}
-            
+
+            ${createPPMFromImage.toString().replaceAll("function createPPMFromImage(telaImage)", "function __createPPMFromImage__(telaImage)")}
+        
             const __initial_state__ = (${parallelStreamOfImages.lazyInitialState})();
 
             const __gen__ = ${parallelStreamOfImages.stateGenerator.toString()};

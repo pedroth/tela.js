@@ -1,10 +1,11 @@
-import Box from "../Geometry/Box.js";
+import Box from "./Box.js";
 import Color from "../Color/Color.js";
-import { Diffuse } from "../Material/Material.js";
+import { Diffuse, MATERIALS } from "../Material/Material.js";
 import { randomPointInSphere } from "../Utils/Math.js";
 import Vec, { Vec2, Vec3 } from "../Vector/Vector.js";
+import { deserialize as deserializeImage } from "../Tela/utils.js";
 
-class Point {
+class Sphere {
     constructor({ name, position, color, texCoord, normal, radius, texture, emissive, material }) {
         this.name = name;
         this.color = color;
@@ -51,12 +52,42 @@ class Point {
         return p.sub(this.position).length() < this.radius;
     }
 
+    serialize() {
+        return {
+            type: Sphere.name,
+            name: this.name,
+            radius: this.radius,
+            emissive: this.emissive,
+            color: this.color.toArray(),
+            position: this.position.toArray(),
+            texCoord: this.texCoord.toArray(),
+            texture: this.texture ? this.texture.serialize() : undefined,
+            material: { type: this.material.type, args: this.material.args }
+        }
+    }
+
+    static async deserialize(json, artifacts) {
+        const { type, args } = json.material;
+        const texture = json.texture ? await deserializeImage(json.texture, artifacts) : undefined
+        return Sphere
+            .builder()
+            .name(json.name)
+            .radius(json.radius)
+            .emissive(json.emissive)
+            .color(new Color(json.color))
+            .material(MATERIALS[type](...args))
+            .texCoord(Vec.fromArray(json.texCoord))
+            .position(Vec.fromArray(json.position))
+            .texture(texture)
+            .build()
+    }
+
     static builder() {
-        return new PointBuilder();
+        return new SphereBuilder();
     }
 }
 
-class PointBuilder {
+class SphereBuilder {
     constructor() {
         this._name;
         this._texture;
@@ -131,9 +162,9 @@ class PointBuilder {
             material: this._material
         }
         if (Object.values(attrs).some((x) => x === undefined)) {
-            throw new Error("Point is incomplete");
+            throw new Error("Sphere is incomplete");
         }
-        return new Point({ ...attrs, texture: this._texture });
+        return new Sphere({ ...attrs, texture: this._texture });
     }
 }
 
@@ -152,4 +183,4 @@ function sphereInterception(point, ray) {
     return t1 >= 0 && t2 >= 0 ? t : undefined;
 }
 
-export default Point;
+export default Sphere;

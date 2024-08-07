@@ -1,7 +1,6 @@
-import { Color, Image, Stream, IO, Utils, Mesh, Vec3, Scene, Camera, clamp } from "../../dist/node/index.js";
-import { readFileSync } from "fs"
+import { Color, Image, Stream, IO, Mesh, Vec3, KScene, Camera, clamp, measureTime, measureTimeWithResult } from "../../src/index.node.js";
+import { readFileSync } from "node:fs"
 
-const { measureTime, measureTimeWithResult } = Utils;
 const { saveImageStreamToVideo } = IO;
 
 // constants
@@ -12,7 +11,7 @@ const dt = 1 / FPS;
 const maxT = 10;
 
 // scene
-const scene = new Scene();
+const scene = new KScene();
 const camera = new Camera().orbit(10, 0, Math.PI / 6);
 const stanfordBunnyObj = readFileSync("./assets/bunny.obj", { encoding: "utf-8" });
 let bunnyMesh = Mesh.readObj(stanfordBunnyObj, "bunny");
@@ -57,12 +56,12 @@ const imageStream = new Stream(
 
 console.log(
     "Video created in: ",
-    measureTime(() => {
-        saveImageStreamToVideo(
+    await measureTime(async () => {
+        await saveImageStreamToVideo(
             "./bunny_explode.mp4",
             imageStream,
             { fps: FPS }
-        ).until(({ time }) => time < maxT);
+        ).while(({ time }) => time < maxT);
     })
 )
 

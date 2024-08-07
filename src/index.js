@@ -1,10 +1,8 @@
-import Animation from "./Utils/Animation.js"
 import Canvas from "./Tela/Canvas.js"
 import Color from "./Color/Color.js"
 import DOM from "./Utils/DomBuilder.js"
 import Stream from "./Utils/Stream.js"
 import Camera from "./Camera/Camera.js"
-import Scene from "./Scene/Scene.js"
 import BScene from "./Scene/BScene.js"
 import KScene from "./Scene/KScene.js"
 import NaiveScene from "./Scene/NaiveScene.js"
@@ -12,7 +10,7 @@ import VoxelScene from "./Scene/VoxelScene.js"
 import RandomScene from "./Scene/RandomScene.js"
 import Vec, { Vec2, Vec3 } from "./Vector/Vector.js"
 import Box from "./Geometry/Box.js"
-import Point from "./Geometry/Point.js"
+import Sphere from "./Geometry/Sphere.js"
 import Line from "./Geometry/Line.js"
 import Path from "./Geometry/Path.js"
 import Triangle from "./Geometry/Triangle.js"
@@ -31,16 +29,14 @@ export {
     Vec2,
     Vec3,
     Color,
-    Point,
-    Scene,
+    BScene,
     Canvas,
     Camera,
-    BScene,
     KScene,
+    Sphere,
     Stream,
     parseSVG,
     Triangle,
-    Animation,
     NaiveScene,
     VoxelScene,
     RandomScene,
@@ -48,6 +44,6 @@ export {
 
 export * from "./Utils/Math.js"
 export * from "./Material/Material.js";
-export * as Utils from "./Utils/Utils.js";
-export * as Monads from "./Utils/Monads.js";
+export * from "./Utils/Utils.js";
+export * from "./Utils/Monads.js";
 export * from "./Utils/Constants.js"

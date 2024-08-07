@@ -40,60 +40,58 @@
     })
 
     // start animation
-    Animation
-        .loop(({ dt }) => {
-            logger.print(`FPS: ${Math.floor(1 / dt)}`);
-            dt = 0.8;
+    loop(({ dt }) => {
+        logger.print(`FPS: ${Math.floor(1 / dt)}`);
+        dt = 0.8;
 
-            let maxU = Number.MIN_VALUE;
-            let minU = Number.MAX_VALUE;
-            let maxV = Number.MIN_VALUE;
-            let minV = Number.MAX_VALUE;
-            // update wave
-            for (let i = 0; i < height; i++) {
-                for (let j = 0; j < width; j++) {
-                    /**
-                     * Sympletic integration
-                     */
-                    // compute acceleration
-                    let uLaplacian =
-                        (
-                            U[i][mod(j + 1, width)] +
-                            U[i][mod(j - 1, width)] +
-                            U[mod(i + 1, height)][j] +
-                            U[mod(i - 1, height)][j]
-                        ) / 4 - U[i][j];
+        let maxU = Number.MIN_VALUE;
+        let minU = Number.MAX_VALUE;
+        let maxV = Number.MIN_VALUE;
+        let minV = Number.MAX_VALUE;
+        // update wave
+        for (let i = 0; i < height; i++) {
+            for (let j = 0; j < width; j++) {
+                /**
+                 * Sympletic integration
+                 */
+                // compute acceleration
+                let uLaplacian =
+                    (
+                        U[i][mod(j + 1, width)] +
+                        U[i][mod(j - 1, width)] +
+                        U[mod(i + 1, height)][j] +
+                        U[mod(i - 1, height)][j]
+                    ) / 4 - U[i][j];
 
-                    let vLaplacian =
-                        (
-                            V[i][mod(j + 1, width)] +
-                            V[i][mod(j - 1, width)] +
-                            V[mod(i + 1, height)][j] +
-                            V[mod(i - 1, height)][j]
-                        ) / 4 - V[i][j];
+                let vLaplacian =
+                    (
+                        V[i][mod(j + 1, width)] +
+                        V[i][mod(j - 1, width)] +
+                        V[mod(i + 1, height)][j] +
+                        V[mod(i - 1, height)][j]
+                    ) / 4 - V[i][j];
 
-                    // update U
-                    U[i][j] = U[i][j] + dt * (dU * uLaplacian - U[i][j] * (V[i][j] * V[i][j]) + F * (1 - U[i][j]));
+                // update U
+                U[i][j] = U[i][j] + dt * (dU * uLaplacian - U[i][j] * (V[i][j] * V[i][j]) + F * (1 - U[i][j]));
 
-                    // update V
-                    V[i][j] = V[i][j] + dt * (dV * vLaplacian + U[i][j] * (V[i][j] * V[i][j]) - (K + F) * V[i][j]);
+                // update V
+                V[i][j] = V[i][j] + dt * (dV * vLaplacian + U[i][j] * (V[i][j] * V[i][j]) - (K + F) * V[i][j]);
 
-                    // get max min values of wave
-                    maxU = maxU <= U[i][j] ? U[i][j] : maxU;
-                    minU = minU > U[i][j] ? U[i][j] : minU;
-                    maxV = maxV <= V[i][j] ? V[i][j] : maxV;
-                    minV = minV > V[i][j] ? V[i][j] : minV;
-                }
+                // get max min values of wave
+                maxU = maxU <= U[i][j] ? U[i][j] : maxU;
+                minU = minU > U[i][j] ? U[i][j] : minU;
+                maxV = maxV <= V[i][j] ? V[i][j] : maxV;
+                minV = minV > V[i][j] ? V[i][j] : minV;
             }
-            canvas.map((x, y) => {
-                let xi = x;
-                let yi = y;
-                let redColor = (U[yi][xi] - minU) / (maxU - minU);
-                let blueColor = (V[yi][xi] - minV) / (maxV - minV);
-                redColor = isNaN(redColor) ? 1 : redColor;
-                blueColor = isNaN(blueColor) ? 1 : blueColor;
-                return Color.ofRGB(redColor, 0, blueColor);
-            })
+        }
+        canvas.map((x, y) => {
+            let xi = x;
+            let yi = y;
+            let redColor = (U[yi][xi] - minU) / (maxU - minU);
+            let blueColor = (V[yi][xi] - minV) / (maxV - minV);
+            redColor = isNaN(redColor) ? 1 : redColor;
+            blueColor = isNaN(blueColor) ? 1 : blueColor;
+            return Color.ofRGB(redColor, 0, blueColor);
         })
-        .play();
+    }).play();
 }

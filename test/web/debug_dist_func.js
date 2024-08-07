@@ -6,7 +6,7 @@ async (canvas, logger) => {
     const height = 480;
     canvas.resize(width, height);
     // scene
-    const scene = new Scene();
+    const scene = new KScene();
     const nscene = new NaiveScene();
     const camera = new Camera().orbit(5, 0, 0);
     // mouse handling
@@ -57,7 +57,7 @@ async (canvas, logger) => {
             const x = j;
             const y = i;
             const initial = Vec3(0, x / n, y / n);
-            return Point
+            return Sphere
                 .builder()
                 .name(`pxl_${k}`)
                 .radius(1e-2)
@@ -111,7 +111,7 @@ async (canvas, logger) => {
         return () => {
             const debugScene = new NaiveScene();
             debugScene.add(
-                Point
+                Sphere
                     .builder()
                     .name("start")
                     .position(p)
@@ -127,24 +127,11 @@ async (canvas, logger) => {
         }
     }
 
-    // boilerplate for fps
-    Animation
-        .builder()
-        .initialState({ it: 1, time: 0, oldTime: new Date().getTime() })
-        .nextState(({ it, time, oldTime }) => {
-            camera.reverseShot(scene).to(canvas);
-            scene.debug({ camera, canvas })
-            let t = time % 10;
-            debugDist(Vec3(0, -1 + 0.25 * t, 0))()
-            const dt = (new Date().getTime() - oldTime) * 1e-3;
-            logger.print(Math.floor(1 / dt));
-            return {
-                it: it + 1,
-                time: time + dt,
-                oldTime: new Date().getTime()
-            };
-        })
-        .while(() => true)
-        .build()
-        .play();
+    loop(({ time, dt }) => {
+        camera.reverseShot(scene).to(canvas);
+        scene.debug({ camera, canvas })
+        let t = time % 10;
+        debugDist(Vec3(0, -1 + 0.25 * t, 0))()
+        logger.print(Math.floor(1 / dt));
+    }).play();
 }

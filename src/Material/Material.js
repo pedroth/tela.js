@@ -1,8 +1,18 @@
 import Ray from "../Ray/Ray.js"
-import { randomPointInSphere } from "../Utils/Math.js";
+import { clamp, randomPointInSphere } from "../Utils/Math.js";
+
+export const MATERIALS = {
+    Diffuse:  Diffuse,
+    Metallic:  Metallic,
+    Alpha:  Alpha,
+    DiElectric: DiElectric
+}
+const MATERIAL_NAMES = Object.keys(MATERIALS).reduce((e,x) => ({[x]: x, ...e}), {});
 
 export function Diffuse() {
     return {
+        type: MATERIAL_NAMES.Diffuse,
+        args: [],
         scatter(inRay, point, element) {
             let normal = element.normalToPoint(point);
             const randomInSphere = randomPointInSphere(3);
@@ -14,6 +24,8 @@ export function Diffuse() {
 
 export function Metallic(fuzz = 0) {
     return {
+        type: MATERIAL_NAMES.Metallic,
+        args: [fuzz],
         scatter(inRay, point, element) {
             fuzz = Math.min(1, Math.max(0, fuzz));
             let normal = element.normalToPoint(point);
@@ -26,7 +38,10 @@ export function Metallic(fuzz = 0) {
 }
 
 export function Alpha(alpha = 1) {
+    alpha = clamp()(alpha);
     return {
+        type: MATERIAL_NAMES.Alpha,
+        args: [alpha],
         scatter(inRay, point, element) {
             if (Math.random() <= alpha) return Diffuse().scatter(inRay, point, element);
             const v = point.sub(inRay.init);
@@ -41,6 +56,8 @@ export function Alpha(alpha = 1) {
 
 export function DiElectric(indexOfRefraction = 1.0) {
     return {
+        type: MATERIAL_NAMES.DiElectric,
+        args: [indexOfRefraction],
         scatter(inRay, point, element) {
             const p = point.sub(inRay.init);
             let t = undefined

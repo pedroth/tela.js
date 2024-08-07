@@ -66,10 +66,8 @@ async (canvas, logger) => {
         camera.orbit(coords => coords.add(Vec3(deltaY * 0.001, 0, 0)));
     })
 
-    Animation
-        .loop(({ dt }) => {
-            camera.rayMap(rayScene).to(canvas);
-            logger.print(`FPS: ${Math.floor(1 / dt)}`);
-        })
-        .play();
+    loop(({ dt }) => {
+        camera.rayMap(rayScene).to(canvas);
+        logger.print(`FPS: ${Math.floor(1 / dt)}`);
+    }).play();
 }

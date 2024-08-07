@@ -58,21 +58,19 @@ async (canvas, logger) => {
         camSpeed = Vec3();
     })
 
-    Animation
-        .loop(({ dt }) => {
-            camera.position = camera.position.add(camera.toWorldCoord(camSpeed).scale(dt));
-            camera.reverseShot(
-                scene,
-                {
-                    cullBackFaces: false,
-                    bilinearTextures: false,
-                    clipCameraPlane: true
-                }
-            )
-                .to(canvas);
-            logger.print(Math.floor(1 / dt));
-        })
-        .play();
+    loop(({ dt }) => {
+        camera.position = camera.position.add(camera.toWorldCoord(camSpeed).scale(dt));
+        camera.reverseShot(
+            scene,
+            {
+                cullBackFaces: false,
+                bilinearTextures: false,
+                clipCameraPlane: true
+            }
+        )
+            .to(canvas);
+        logger.print(Math.floor(1 / dt));
+    }).play();
 
     const audio = new Audio("/assets/summer_forest.mp3");
     audio.loop = true;

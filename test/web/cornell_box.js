@@ -6,7 +6,7 @@ async (canvas, logger) => {
     canvas.resize(width, height);
     let exposedCanvas = canvas.exposure();
     // scene
-    const scene = new BScene()
+    const scene = new NaiveScene();
     const camera = new Camera({ lookAt: Vec3(1.5, 1.5, 1.5) }).orbit(3, 0, 0);
     // mouse handling
     let mousedown = false;
@@ -57,14 +57,12 @@ async (canvas, logger) => {
         Triangle
             .builder()
             .name("right-1")
-            .material(Metallic())
             .colors(Color.GREEN, Color.GREEN, Color.GREEN)
             .positions(Vec3(0, 3, 0), Vec3(3, 3, 0), Vec3(3, 3, 3))
             .build(),
         Triangle
             .builder()
             .name("right-2")
-            .material(Metallic())
             .colors(Color.GREEN, Color.GREEN, Color.GREEN)
             .positions(Vec3(3, 3, 3), Vec3(0, 3, 3), Vec3(0, 3, 0))
             .build(),
@@ -122,7 +120,7 @@ async (canvas, logger) => {
 
     // some objects
     scene.add(
-        Point
+        Sphere
             .builder()
             .radius(0.25)
             .name("sphere")
@@ -130,7 +128,7 @@ async (canvas, logger) => {
             .material(Metallic(0.25))
             .position(Vec3(1.5, 0.5, 1.5))
             .build(),
-        Point
+        Sphere
             .builder()
             .radius(0.25)
             .name("metal-sphere")
@@ -138,7 +136,7 @@ async (canvas, logger) => {
             .material(Metallic())
             .position(Vec3(1.5, 2.5, 1.5))
             .build(),
-        Point
+        Sphere
             .builder()
             .radius(0.5)
             .name("glass-sphere")
@@ -160,7 +158,7 @@ async (canvas, logger) => {
             .material(DiElectric(2))
             .positions(Vec3(3, 1, 1), Vec3(3, 2, 1), Vec3(3, 1.5, 2))
             .build(),
-        Point
+        Sphere
             .builder()
             .radius(0.25)
             .name("alpha-sphere")
@@ -171,10 +169,9 @@ async (canvas, logger) => {
     )
 
     // boilerplate for fps
-    Animation
-        .loop(({ dt }) => {
-            camera.sceneShot(scene).to(exposedCanvas);
-            logger.print(Math.floor(1 / dt));
-        })
+    loop(({ dt }) => {
+        camera.sceneShot(scene).to(exposedCanvas);
+        logger.print(Math.floor(1 / dt));
+    })
         .play();
 }

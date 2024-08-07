@@ -1,8 +1,7 @@
-import { Color, Image, Stream, IO, Utils, Mesh, Vec3, Camera, Triangle, DiElectric, KScene, VoxelScene, BScene, Metallic } from "../../dist/node/index.js";
+import { Color, Image, Stream, IO, measureTime, measureTimeWithResult, Mesh, Vec3, Camera, Triangle, DiElectric, KScene} from "../../src/index.node.js";
 import { readFileSync } from "fs"
 
-const { measureTime, measureTimeWithResult } = Utils;
-const { saveImageStreamToVideo, saveImageToFile } = IO;
+const { saveImageStreamToVideo } = IO;
 
 // constants
 const width = 640;
@@ -13,7 +12,7 @@ const maxT = 10;
 
 // scene
 const scene = new KScene();
-const camera = new Camera({lookAt: Vec3(1.5, 1.5, 1.5)}).orbit(5, 0, 0);
+const camera = new Camera({ lookAt: Vec3(1.5, 1.5, 1.5) }).orbit(5, 0, 0);
 const stanfordBunnyObj = readFileSync("./assets/bunny_orig.obj", { encoding: "utf-8" });
 let bunnyMesh = Mesh.readObj(stanfordBunnyObj, "bunny");
 const bunnyBox = bunnyMesh.getBoundingBox();
@@ -25,10 +24,9 @@ bunnyMesh = bunnyMesh
     .mapVertices(v => v.add(Vec3(1.5, 1.5, 1.5)))
     .mapColors(() => Color.WHITE)
     .mapMaterials(() => DiElectric(1.3))
-scene.add(...bunnyMesh.asTriangles());
+scene.addList(bunnyMesh.asTriangles());
 
 scene.add(
-
     Triangle
         .builder()
         .name("bottom-1")
@@ -70,14 +68,14 @@ scene.add(
         .build(),
 )
 
-const shot = (image) => camera.sceneShot(scene, { samplesPerPxl: 1, bounces: 10 }).to(image ?? Image.ofSize(width, height));
+const shot = async (image) => await camera.parallelShot(scene, { samplesPerPxl: 10, bounces: 10 }).to(image ?? Image.ofSize(width, height));
 
 const imageStream = new Stream(
-    { time: 0, image: shot() },
-    ({ time, image }) => {
+    { time: 0, image: await shot() },
+    async ({ time, image }) => {
         const theta = Math.PI / 4 * time;
         camera.orbit(spherical => Vec3(spherical.x, theta, 0));
-        const { result: newImage, time: t } = measureTimeWithResult(() => shot(image));
+        const { result: newImage, time: t } = await measureTimeWithResult(() =>shot(image));
         console.log(`Image took ${t}s`);
         return {
             time: time + dt,
@@ -88,11 +86,11 @@ const imageStream = new Stream(
 
 console.log(
     "Video created in: ",
-    measureTime(() => {
-        saveImageStreamToVideo(
+    await measureTime(async () => {
+        await saveImageStreamToVideo(
             "./bunny_glass_stream.mp4",
             imageStream,
             { fps: FPS }
-        ).until(({ time }) => time < maxT);
+        ).while(({ time }) => time < maxT);
     })
 )

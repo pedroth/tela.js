@@ -1,21 +1,17 @@
 
 import Box from "../Geometry/Box.js";
-import Vec from "../Vector/Vector.js";
 import { argmin } from "../Utils/Utils.js";
 import Color from "../Color/Color.js";
 import NaiveScene from "./NaiveScene.js";
 import PQueue from "../Utils/PQueue.js";
 import { drawBox } from "../Utils/Utils3D.js";
 
-export default class BScene {
+export default class BScene extends NaiveScene {
   constructor() {
+    super();
     this.id2ElemMap = {};
     this.sceneElements = [];
     this.boundingBoxScene = new Node();
-  }
-
-  add(...elements) {
-    return this.addList(elements);
   }
 
   addList(elements) {
@@ -29,29 +25,13 @@ export default class BScene {
     return this;
   }
 
-  getElements() {
-    return this.sceneElements;
-  }
-
   clear() {
-    this.id2ElemMap = {};
-    this.sceneElements = [];
+    super.clear()
     this.boundingBoxScene = new Node();
   }
 
   distanceToPoint(p) {
     return this.getElementNear(p).distanceToPoint(p);
-  }
-
-  normalToPoint(p) {
-    const epsilon = 1e-9;
-    const n = p.dim;
-    const grad = [];
-    const d = this.distanceToPoint(p);
-    for (let i = 0; i < n; i++) {
-      grad.push(this.distanceToPoint(p.add(Vec.e(n)(i).scale(epsilon))) - d);
-    }
-    return Vec.fromArray(grad).scale(Math.sign(d)).normalize();
   }
 
   interceptWithRay(ray, level) {
@@ -122,6 +102,12 @@ export default class BScene {
     }
     if (level === 0) return camera.reverseShot(debugScene, { clearScreen: false }).to(canvas);
     return canvas;
+  }
+
+  serialize() {
+    const json = this.super.serialize();
+    json.type = BScene.name;
+    return json;
   }
 }
 

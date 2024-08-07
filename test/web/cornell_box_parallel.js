@@ -1,62 +1,45 @@
-import { Camera, Mesh, Vec3, Vec2, Color, DiElectric, Triangle, KScene, BScene, Image } from "../../dist/node/index.js";
-import Window from "../../src/Tela/Window.js";
-import { readFileSync } from "fs"
-
-(async () => {
+/* eslint-disable no-undef */
+async (canvas, logger) => {
+    // resize incoming canvas:Canvas object.
     const width = 640 / 2;
     const height = 480 / 2;
-    const window = Window.ofSize(width, height);
-    let exposedCanvas = window.exposure();
+    canvas.resize(width, height);
+    let exposedCanvas = canvas.exposure();
     // scene
-    const scene = new KScene();
-    const camera = new Camera({ lookAt: Vec3(1.5, 1.5, 1.5) }).orbit(5, 0, 0);
+    const scene = new NaiveScene();
+    const camera = new Camera({ lookAt: Vec3(1.5, 1.5, 1.5) }).orbit(3, 0, 0);
     // mouse handling
     let mousedown = false;
     let mouse = Vec2();
-    window.onMouseDown((x, y) => {
+    canvas.onMouseDown((x, y) => {
         mousedown = true;
         mouse = Vec2(x, y);
     })
-    window.onMouseUp(() => {
+    canvas.onMouseUp(() => {
         mousedown = false;
         mouse = Vec2();
     })
-    window.onMouseMove((x, y) => {
+    canvas.onMouseMove((x, y) => {
         const newMouse = Vec2(x, y);
         if (!mousedown || newMouse.equals(mouse)) {
             return;
         }
         const [dx, dy] = newMouse.sub(mouse).toArray();
-        camera.orbit(orbitCoord => orbitCoord.add(
+        camera.orbit(coords => coords.add(
             Vec3(
                 0,
-                -2 * Math.PI * (dx / window.width),
-                -2 * Math.PI * (dy / window.height)
+                -2 * Math.PI * (dx / canvas.width),
+                -2 * Math.PI * (dy / canvas.height)
             )
         ));
         mouse = newMouse;
-        exposedCanvas = window.exposure();
+        exposedCanvas = canvas.exposure();
 
     })
-    window.onMouseWheel(({ dy }) => {
-        camera.orbit(orbitCoord => orbitCoord.add(Vec3(-dy, 0, 0)))
-        exposedCanvas = window.exposure();
+    canvas.onMouseWheel(({ deltaY }) => {
+        camera.orbit(coords => coords.add(Vec3(deltaY * 0.001, 0, 0)));
+        exposedCanvas = canvas.exposure();
     })
-
-    const meshObj = readFileSync("./assets/spot.obj", { encoding: "utf-8" });
-    let mesh = Mesh.readObj(meshObj, "mesh");
-    mesh = mesh
-        .mapVertices(v => v.scale(1))
-        .mapVertices(v => Vec3(-v.y, v.x, v.z))
-        .mapVertices(v => Vec3(v.z, v.y, -v.x))
-        .mapVertices(v => Vec3(-v.y, v.x, v.z))
-        .mapVertices(v => Vec3(-v.y, v.x, v.z))
-        .mapVertices(v => v.add(Vec3(1.5, 1.5, 1.0)))
-        .mapColors(() => Color.BLUE)
-        .addTexture(await Image.ofUrl("./assets/spot.png"))
-        .mapMaterials(() => DiElectric(1.33333))
-    scene.add(mesh);
-
     // cornell box
     scene.add(
         Triangle
@@ -134,20 +117,61 @@ import { readFileSync } from "fs"
             .emissive(true)
             .build(),
     )
-    scene.rebuild();
 
-    // play
-    const play = async ({ time, oldT }) => {
-        const newT = new Date().getTime();
-        const dt = (new Date().getTime() - oldT) * 1e-3;
-        // camera.sceneShot(scene, { bounces: 10, samplesPerPxl: 10, gamma: 0.1 }).to(exposedCanvas);
-        camera.sceneShot(scene).to(exposedCanvas);
-        window.setTitle(`FPS: ${Math.floor(1 / dt)}`);
+    // some objects
+    scene.add(
+        Sphere
+            .builder()
+            .radius(0.25)
+            .name("sphere")
+            .color(Color.ofRGB(1, 0, 1))
+            .material(Metallic(0.25))
+            .position(Vec3(1.5, 0.5, 1.5))
+            .build(),
+        Sphere
+            .builder()
+            .radius(0.25)
+            .name("metal-sphere")
+            .color(Color.WHITE)
+            .material(Metallic())
+            .position(Vec3(1.5, 2.5, 1.5))
+            .build(),
+        Sphere
+            .builder()
+            .radius(0.5)
+            .name("glass-sphere")
+            .color(Color.ofRGB(1, 1, 1))
+            .material(DiElectric(1.3))
+            .position(Vec3(1.0, 1.5, 1.0))
+            .build(),
+        Triangle
+            .builder()
+            .name("alpha-tri")
+            .colors(Color.ofRGB(1, 1, 0), Color.ofRGB(1, 1, 0), Color.ofRGB(1, 1, 0))
+            .material(Metallic())
+            .positions(Vec3(1, 0, 0), Vec3(0, 1, 0), Vec3(0, 0, 1))
+            .build(),
+        Triangle
+            .builder()
+            .name("alpha-tri-2")
+            .colors(Color.ofRGB(1, 1, 1), Color.ofRGB(1, 1, 1), Color.ofRGB(1, 1, 1))
+            .material(DiElectric(2))
+            .positions(Vec3(3, 1, 1), Vec3(3, 2, 1), Vec3(3, 1.5, 2))
+            .build(),
+        Sphere
+            .builder()
+            .radius(0.25)
+            .name("alpha-sphere")
+            .color(Color.ofRGB(0, 1, 1))
+            .position(Vec3(3, 1.5, 2))
+            .material(Alpha(0.25))
+            .build()
+    )
 
-        setTimeout(() => play({
-            oldT: newT,
-            time: time + dt,
-        }));
-    }
-    setTimeout(() => play({ oldT: new Date().getTime(), time: 0 }))
-})()
+    // boilerplate for fps
+    loop(async ({ dt }) => {
+        await camera.parallelShot(scene).to(exposedCanvas);
+        logger.print(Math.floor(1 / dt));
+    })
+        .play();
+}

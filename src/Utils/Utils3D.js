@@ -1,7 +1,7 @@
 import Line from "../Geometry/Line.js";
 import { Vec3 } from "../Vector/Vector.js";
 
-const UNIT_BOX_VERTEX = [
+export const UNIT_BOX_VERTEX = [
     Vec3(),
     Vec3(1, 0, 0),
     Vec3(1, 1, 0),
@@ -12,7 +12,7 @@ const UNIT_BOX_VERTEX = [
     Vec3(0, 1, 1),
 ]
 
-const UNIT_BOX_FACES = [
+export const UNIT_BOX_LINES = [
     [0, 1],
     [1, 2],
     [2, 3],
@@ -27,10 +27,28 @@ const UNIT_BOX_FACES = [
     [2, 6],
 ]
 
+export const UNIT_BOX_FACES = [
+    // x-y
+    [0, 1, 2],
+    [2, 3, 0],
+    [4, 5, 6],
+    [6, 7, 4],
+    // x-z
+    [0, 1, 4],
+    [4, 5, 1],
+    [2, 3, 6],
+    [6, 7, 3],
+    // y-z
+    [0, 3, 7],
+    [7, 4, 0],
+    [1, 2, 6],
+    [6, 5, 1]
+]
+
 export function drawBox({ box, color, debugScene }) {
     if (box.isEmpty) return debugScene;
     const vertices = UNIT_BOX_VERTEX.map(v => v.mul(box.diagonal).add(box.min))
-    const lines = UNIT_BOX_FACES
+    const lines = UNIT_BOX_LINES
         .map(([i, j]) =>
             Line
                 .builder()

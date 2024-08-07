@@ -20,24 +20,22 @@
     }, T * 1000)
 
     // setting animation
-    const animation = Animation
-        .loop(({ time, dt }) => {
-            logger.print(`FPS: ${Math.floor(1 / dt)}`);
-            canvas
-                .map((x, y) => {
-                    let u = x / (width - 1);
-                    let v = y / (height - 1);
-                    const grid = 10;
-                    u *= grid;
-                    v *= grid;
-                    const t = 0.1 * time;
-                    const u_t = Math.cos(t) * u + Math.sin(t) * v;
-                    const v_t = -Math.sin(t) * u + Math.cos(t) * v;
-                    const color =
-                        (1 - step(0.95)(mod(u_t)(1))) * (1 - step(0.95)(mod(v_t)(1)));
-                    return Color.ofRGB(color, color, color);
-                })
-            if (time > T) animation.stop();
-        })
-        .play()
+    const animation = loop(({ time, dt }) => {
+        logger.print(`FPS: ${Math.floor(1 / dt)}`);
+        canvas
+            .map((x, y) => {
+                let u = x / (width - 1);
+                let v = y / (height - 1);
+                const grid = 10;
+                u *= grid;
+                v *= grid;
+                const t = 0.1 * time;
+                const u_t = Math.cos(t) * u + Math.sin(t) * v;
+                const v_t = -Math.sin(t) * u + Math.cos(t) * v;
+                const color =
+                    (1 - step(0.95)(mod(u_t)(1))) * (1 - step(0.95)(mod(v_t)(1)));
+                return Color.ofRGB(color, color, color);
+            })
+        if (time > T) animation.stop();
+    }).play()
 }

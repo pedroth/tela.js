@@ -1,172 +1,73 @@
-import Box from "../Geometry/Box.js";
 import Color from "../Color/Color.js";
 import { readImageFrom } from "../IO/IO.js";
-import { MAX_8BIT } from "../Utils/Constants.js";
-import { clipLine, isInsideConvex, mod } from "../Utils/Math.js";
-import { Vec2 } from "../Vector/Vector.js";
+import { memoize } from "../Utils/Utils.js";
+import Tela, { CHANNELS } from "./Tela.js";
+import { Worker } from "node:worker_threads";
+import os from "node:os";
 
-export default class Image {
+export default class Image extends Tela {
 
-    constructor(width, height) {
-        this._width = width;
-        this._height = height;
-        this._image = new Array(this._width * this._height)
-            .fill(() => Color.ofRGB());
-        this.box = new Box(Vec2(0, 0), Vec2(this._width, this._height))
-    }
-
-    get width() {
-        return this._width;
-    }
-
-    get height() {
-        return this._height;
-    }
-
-    paint() {
-        // to implement the same interface as canvas
-        return this;
-    }
-
-    /**
-    * lambda: (x: Number, y: Number) => Color 
-    */
-    map(lambda) {
-        const n = this._image.length;
-        const w = this._width;
-        const h = this._height;
-        for (let k = 0; k < n; k++) {
-            const i = Math.floor(k / w);
-            const j = k % w;
-            const x = j;
-            const y = h - 1 - i;
-            this._image[k] = lambda(x, y);
-        }
-        return this;
-    }
-
-    /**
-     * color: Color 
-     */
-    fill(color) {
-        return this.map(() => color);
-    }
-
-    setPxl(x, y, color) {
-        const w = this._width;
-        const [i, j] = this.canvas2grid(x, y);
-        let index = w * i + j;
-        this._image[index] = color;
-        return this;
-    }
-
-    getPxl(x, y) {
-        const w = this._width;
-        const h = this._height;
-        let [i, j] = this.canvas2grid(x, y);
-        i = mod(i, h);
-        j = mod(j, w);
-        let index = w * i + j;
-        return this._image[index];
-    }
-
-    drawLine(p1, p2, shader) {
-        const w = this._width;
-        const h = this._height;
-        const line = clipLine(p1, p2, this.box);
-        if (line.length <= 1) return;
-        const [pi, pf] = line;
-        const v = pf.sub(pi);
-        const n = v.map(Math.abs).fold((e, x) => e + x);
-        for (let k = 0; k < n; k++) {
-            const s = k / n;
-            const lineP = pi.add(v.scale(s)).map(Math.floor);
-            const [x, y] = lineP.toArray();
-            const j = x;
-            const i = h - 1 - y;
-            const index = w * i + j;
-            const color = shader(x, y);
-            if (!color) continue;
-            this._image[index] = color;
-        }
-        return this;
-    }
-
-    drawTriangle(x1, x2, x3, shader) {
-        return drawConvexPolygon(this, [x1, x2, x3], shader);
-    }
-
-
-    //========================================================================================
-    /*                                                                                      *
-     *                                      Image Utils                                     *
-     *                                                                                      */
-    //========================================================================================
-
-    grid2canvas(i, j) {
+    mapParallel = memoize((lambda, dependencies = []) => {
+        const N = os.cpus().length;
+        const w = this.width;
         const h = this.height;
-        const x = j;
-        const y = h - 1 - i;
-        return [x, y]
-    }
-
-    canvas2grid(x, y) {
-        const h = this._height;
-        const j = Math.floor(x);
-        const i = Math.floor(h - 1 - y);
-        return [i, j];
-    }
-
-    exposure(time = Number.MAX_VALUE) {
-        let it = 1;
-        const ans = {};
-        for (let key of Object.getOwnPropertyNames(Object.getPrototypeOf(this))) {
-            const descriptor = Object.getOwnPropertyDescriptor(Object.getPrototypeOf(this), key);
-            if (descriptor && typeof descriptor.value === 'function') {
-                ans[key] = descriptor.value.bind(this);
-            }
-        }
-        ans.width = this.width;
-        ans.height = this.height;
-        ans.map = (lambda) => {
-            const n = this._image.length;
-            const w = this._width;
-            const h = this._height;
-            for (let k = 0; k < n; k += 4) {
-                const i = Math.floor(k / (4 * w));
-                const j = Math.floor((k / 4) % w);
+        const fun = ({ _start_row, _end_row, _width_, _height_, _worker_id_, _vars_ }) => {
+            const image = new Float32Array(CHANNELS * _width_ * (_end_row - _start_row));
+            const startIndex = CHANNELS * _width_ * _start_row;
+            const endIndex = CHANNELS * _width_ * _end_row;
+            let index = 0;
+            for (let k = startIndex; k < endIndex; k += CHANNELS) {
+                const i = Math.floor(k / (CHANNELS * _width_));
+                const j = Math.floor((k / CHANNELS) % _width_);
                 const x = j;
-                const y = h - 1 - i;
-                const color = lambda(x, y);
+                const y = _height_ - 1 - i;
+                const color = lambda(x, y, { ..._vars_ });
                 if (!color) continue;
-                this._image[k] = this._image[k] + (color.red * MAX_8BIT - this._image[k]) / it;
-                this._image[k + 1] = this._image[k + 1] + (color.green * MAX_8BIT - this._image[k + 1]) / it;
-                this._image[k + 2] = this._image[k + 2] + (color.blue * MAX_8BIT - this._image[k + 2]) / it;
-                this._image[k + 3] = MAX_8BIT;
+                image[index] = color.red;
+                image[index + 1] = color.green;
+                image[index + 2] = color.blue;
+                image[index + 3] = 1;
+                index += CHANNELS;
             }
-            if (it < time) it++
-            return this.paint();
+            return { image, _start_row, _end_row, _worker_id_ };
         }
-        return ans;
-    }
-
-    toArray() {
-        const w = this._width;
-        const h = this._height;
-        const imageData = new Uint8Array(this._width * this._height * 4);
-
-        for (let i = 0; i < h; i++) {
-            for (let j = 0; j < w; j++) {
-                let index = w * i + j;
-                const color = this._image[index];
-                index <<= 2; // multiply by 4
-                imageData[index] = color.red * MAX_8BIT;
-                imageData[index + 1] = color.green * MAX_8BIT;
-                imageData[index + 2] = color.blue * MAX_8BIT;
-                imageData[index + 3] = MAX_8BIT;
+        const workers = [...Array(N)].map(() => createWorker(fun, lambda, dependencies));
+        return {
+            run: (vars = {}) => {
+                // in node promise.all is faster than the canvas method
+                return Promise
+                    .all(workers.map((worker, k) => {
+                        return new Promise((resolve) => {
+                            worker.removeAllListeners('message');
+                            worker.on("message", (message) => {
+                                const { image, _start_row, _end_row } = message;
+                                let index = 0;
+                                const startIndex = CHANNELS * w * _start_row;
+                                const endIndex = CHANNELS * w * _end_row;
+                                for (let i = startIndex; i < endIndex; i++) {
+                                    this.image[i] = image[index];
+                                    index++;
+                                }
+                                return resolve();
+                            });
+                            const ratio = Math.floor(h / N);
+                            worker.postMessage({
+                                _start_row: k * ratio,
+                                _end_row: Math.min(h - 1, (k + 1) * ratio),
+                                _width_: w,
+                                _height_: h,
+                                _worker_id_: k,
+                                _vars_: vars
+                            });
+                        })
+                    }))
+                    .then(() => this.paint());
             }
         }
-        return imageData;
+    });
+
+    serialize() {
+        return { type: Image.name, url: this.url };
     }
 
     //========================================================================================
@@ -177,7 +78,18 @@ export default class Image {
 
 
     static ofUrl(url) {
-        return readImageFrom(url);
+        const { width: w, height: h, pixels } = readImageFrom(url);
+        const img = Image.ofSize(w, h);
+        for (let k = 0; k < pixels.length; k++) {
+            const { r, g, b } = pixels[k];
+            const i = Math.floor(k / w);
+            const j = k % w;
+            const x = j;
+            const y = h - 1 - i;
+            img.setPxl(x, y, Color.ofRGBRaw(r, g, b));
+        }
+        img.url = url;
+        return img;
     }
 
     static ofSize(width, height) {
@@ -189,41 +101,30 @@ export default class Image {
         const h = image.height;
         return Image.ofSize(w, h)
             .map((x, y) => {
-                return image.get(x, y);
+                return image.getPxl(x, y);
             })
     }
 }
 
 //========================================================================================
 /*                                                                                      *
- *                                   Private functions                                  *
+ *                                        Private                                       *
  *                                                                                      */
 //========================================================================================
 
-function drawConvexPolygon(canvas, positions, shader) {
-    const { width, height } = canvas;
-    const canvasBox = canvas.box;
-    let boundingBox = Box.EMPTY;
-    positions.forEach((x) => {
-        boundingBox = boundingBox.add(new Box(x, x));
-    });
-    const finalBox = canvasBox.intersection(boundingBox);
-    if (finalBox.isEmpty) return canvas;
-    const [xMin, yMin] = finalBox.min.toArray();
-    const [xMax, yMax] = finalBox.max.toArray();
 
-    const isInsideFunc = isInsideConvex(positions);
-    for (let x = xMin; x < xMax; x++) {
-        for (let y = yMin; y < yMax; y++) {
-            if (isInsideFunc(Vec2(x, y))) {
-                const j = x;
-                const i = height - 1 - y;
-                const color = shader(x, y);
-                if (!color) continue;
-                const index = width * i + j;
-                canvas._image[index] = color;
-            }
-        }
-    }
-    return canvas;
-}
+const createWorker = (main, lambda, dependencies) => {
+    const workerFile = `
+    const { parentPort } = require("node:worker_threads");
+    const CHANNELS = ${CHANNELS};
+    ${dependencies.concat([Color]).map(d => d.toString()).join("\n")}
+    const lambda = ${lambda.toString()};
+    const __main__ = ${main.toString()};
+    parentPort.on("message", message => {
+        const output = __main__(message);
+        parentPort.postMessage(output);
+    });
+    `;
+    const worker = new Worker(workerFile, { eval: true });
+    return worker;
+};
