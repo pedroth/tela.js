@@ -41,18 +41,18 @@ async (canvas, logger) => {
         exposedCanvas = canvas.exposure();
     })
 
-    const stanfordBunnyObj = await fetch("./assets/bunny_orig.obj").then(x => x.text());
+    const stanfordBunnyObj = await fetch("/assets/bunny_orig.obj").then(x => x.text());
     let bunnyMesh = Mesh.readObj(stanfordBunnyObj, "bunny");
     const bunnyBox = bunnyMesh.getBoundingBox();
     const maxDiagInv = 2 / bunnyBox.diagonal.fold((e, x) => Math.max(e, x), Number.MIN_VALUE);
     bunnyMesh = bunnyMesh
         .mapVertices(v => v.sub(bunnyBox.center).scale(maxDiagInv))
-        .mapVertices(v => v.scale(0.5))
+        .mapVertices(v => v.scale(1))
         .mapVertices(v => Vec3(-v.y, v.x, v.z))
         .mapVertices(v => Vec3(v.z, v.y, -v.x))
-        .mapVertices(v => v.add(Vec3(1.0, 1.5, 1.0)))
+        .mapVertices(v => v.add(Vec3(1.0, 1.5, 1.5)))
         .mapColors(() => Color.WHITE)
-        .mapMaterials(() => DiElectric(1.5))
+        .mapMaterials(() => DiElectric(1.333))
     scene.addList(bunnyMesh.asTriangles());
 
     // cornell box

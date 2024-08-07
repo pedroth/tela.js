@@ -1,5 +1,4 @@
-import { Camera, Mesh, Vec3, Vec2, Color, DiElectric, Triangle, KScene, Image, loop, Metallic } from "../../src/index.node.js";
-import Window from "../../src/Tela/Window.js";
+import { Camera, Mesh, Vec3, Vec2, Color, DiElectric, Triangle, KScene, Image, loop, Metallic, Window} from "../../src/index.node.js";
 import { readFileSync } from "fs"
 
 const width = 640 / 2;

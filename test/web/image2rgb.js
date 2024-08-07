@@ -37,7 +37,7 @@ async (canvas, logger) => {
         camera.orbit(coords => coords.add(Vec3(deltaY * 0.001, 0, 0)));
     })
     // scene
-    const img = await Canvas.ofUrl("./assets/kakashi.jpg");
+    const img = await Canvas.ofUrl("/assets/kakashi.jpg");
     const grid = [...Array(img.width * img.height)]
         .map((_, k) => {
             const i = Math.floor(k / img.width);

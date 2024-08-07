@@ -1,5 +1,4 @@
-import { Color, loop } from "../../src/index.node.js";
-import Window from "../../src/Tela/Window.js";
+import { Color, loop, Window } from "../../src/index.node.js";
 
 const width = 640/2;
 const height = 480/2;

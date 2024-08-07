@@ -1,5 +1,4 @@
-import { Camera, Mesh, NaiveScene, Vec3, Vec2, Image, loop } from "../../src/index.node.js";
-import Window from "../../src/Tela/Window.js";
+import { Camera, Mesh, NaiveScene, Vec3, Vec2, Image, loop, Window } from "../../src/index.node.js";
 import { readFileSync } from "fs"
 const width = 640;
 const height = 480;
