@@ -7,6 +7,7 @@ Experimental graphic library from scratch(software-only), with reference impleme
 The purpose of this graphic engine is to be able to generate images in a computational way, with minimal dependencies, such that the readable graphical algorithms shine instead of opaque graphical APIs. The engine should also be capable to create videos and interactive demos or games. 
 
 Playground usage:
+
 [![Playground](/tela_playground.webp)](https://pedroth.github.io/tela.js)
 
 # Table of Contents
