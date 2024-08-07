@@ -21,12 +21,9 @@ Playground usage:
 ```html
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
 </head>
-
 <body>
-
 </body>
 <script type="module">
     import { Canvas, Color, loop } from "https://cdn.jsdelivr.net/npm/tela.js/src/index.js";
@@ -49,7 +46,6 @@ Playground usage:
     document.body.appendChild(canvas.DOM);
 
 </script>
-
 </html>
 ```
 
@@ -57,8 +53,7 @@ Playground usage:
 Install `tela.js` it using `npm install tela.js` / `bun add tela.js`.
 
 ```js
-import { loop, Color } from "tela.js/src/index.node.js";
-import Window from "tela.js/src/Tela/Window.js";
+import { loop, Color, Window} from "tela.js/src/index.node.js";
 
 const width = 640;
 const height = 480;
