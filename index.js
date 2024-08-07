@@ -608,6 +608,7 @@ function execCode(code) {
             import {Path, Ray,Canvas,DOM,Color,KScene,BScene,Camera,Vec2, Vec3, Vec, Box, Sphere, Mesh, NaiveScene, RandomScene, VoxelScene, Line, Triangle, Diffuse, Metallic, Alpha, DiElectric, clamp, loop} from "${SOURCE}/src/index.js"
             window.globalAnimationIDs.forEach(id => cancelAnimationFrame(id));
             window.globalAnimationIDs = [];
+            window.LOCATION_HOST = "${window.location.host}";
             ${toggleFullScreen.toString()}
             const canvasDOM = document.getElementsByTagName("canvas")[0];
             const canvas = Canvas.ofDOM(canvasDOM);
