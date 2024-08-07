@@ -12,7 +12,11 @@ const __Worker = IS_NODE ? (await import("node:worker_threads")).Worker : Worker
 class MyWorker {
     constructor(path) {
         this.path = path;
-        this.worker = new __Worker(path, { type: 'module' });
+        try {
+            this.worker = new __Worker(path, { type: 'module' });
+        } catch (e) {
+            console.log("Caught error while importing worker", e);
+        }
     }
 
     onMessage(lambda) {
@@ -29,9 +33,6 @@ class MyWorker {
     }
 }
 
-const isGithub = typeof window !== "undefined" && window.location.host === "pedroth.github.io";
-const SOURCE = isGithub ? "/tela.js" : ""
-
 let WORKERS = [];
 let prevSceneHash = undefined;
 
@@ -44,6 +45,8 @@ let prevSceneHash = undefined;
 export function parallelWorkers(camera, scene, canvas, params = {}) {
     // lazy loading workers
     if (WORKERS.length === 0) {
+        const isGithub = typeof window !== "undefined" && window.location.host === "pedroth.github.io";
+        const SOURCE = isGithub ? "/tela.js" : ""
         WORKERS = [...Array(NUMBER_OF_CORES)]
             .map(() => new MyWorker(`${IS_NODE ? "." : SOURCE}/src/Camera/rayTraceWorker.js`));
     }
