@@ -2,8 +2,8 @@
 /* eslint-disable no-undef */
 async (canvas, logger) => {
     // resize incoming canvas:Canvas object.
-    const width = 640;
-    const height = 480;
+    const width = 640 / 2;
+    const height = 480 / 2;
     canvas.resize(width, height);
     // scene
     const scene = new KScene()
@@ -69,7 +69,7 @@ async (canvas, logger) => {
         // return Color.ofRGB(...ray.dir.map(x => (x + 1) / 2).toArray());
     }
 
-    loop(({dt}) => {
+    loop(({ dt }) => {
         camera.rayMap(render).to(canvas);
         logger.print(`UD, FPS: ${(1 / dt).toFixed(2)}`);
     }).play()

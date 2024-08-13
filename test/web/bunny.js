@@ -46,7 +46,7 @@ async (canvas, logger) => {
         .mapVertices(v => Vec3(-v.y, v.x, v.z))
         .mapVertices(v => Vec3(v.z, v.y, -v.x))
         .mapColors(v => Color.ofRGB(...v.map(x => Math.max(0, Math.min(1, 0.5 * (x + 1)))).toArray()))
-    scene.addList(bunnyMesh.asPoints(0.02));
+    scene.addList(bunnyMesh.asSpheres(0.02));
 
     // boilerplate for fps
     loop(({ dt }) => {

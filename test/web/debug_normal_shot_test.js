@@ -45,7 +45,7 @@ async (canvas) => {
         .mapColors(v =>
             Color.ofRGB(...v.map(x => Math.max(0, Math.min(1, 0.5 * (x + 1)))).toArray())
         )
-    scene.addList(mesh.asPoints(0.05));
+    scene.addList(mesh.asSpheres(0.05));
     scene.rebuild();
 
     // boilerplate for fps

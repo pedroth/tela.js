@@ -20,7 +20,7 @@ let minTime = Number.MAX_VALUE;
 let minIndex = -1;
 for (let i = 0; i < maxIte; i++) {
     const scene = new VoxelScene((i + 1) * spacing);
-    scene.addList(mesh.asPoints(size));
+    scene.addList(mesh.asSpheres(size));
     const { time } = measureTimeWithResult(() => camera.sceneShot(scene).to(Image.ofSize(width, height)));
     if (time < minTime) {
         minTime = time;

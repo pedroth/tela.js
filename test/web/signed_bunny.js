@@ -12,7 +12,7 @@ async (canvas, logger) => {
     mesh = mesh
         .mapVertices(v => Vec3(-v.y, v.x, v.z))
         .mapVertices(v => Vec3(v.z, v.y, -v.x))
-    scene.addList(mesh.asPoints(0.05));
+    scene.addList(mesh.asSpheres(0.05));
     scene.rebuild();
 
     const rayScene = (ray) => {

@@ -45,8 +45,8 @@ async (canvas, logger) => {
     //     .mapVertices(v => Vec3(-v.y, v.x, v.z))
     //     .mapVertices(v => Vec3(v.z, v.y, -v.x))
     //     .mapColors(v => Color.ofRGB(...v.map(x => (x+1)/2).toArray()))
-    // scene.addList(mesh.asPoints(0.05));
-    // nscene.addList(mesh.asPoints(0.05));
+    // scene.addList(mesh.asSpheres(0.05));
+    // nscene.addList(mesh.asSpheres(0.05));
     // scene.rebuild();
 
     const n = 5;

@@ -130,7 +130,7 @@ export default class Mesh {
         })
     }
 
-    asPoints(radius = RADIUS) {
+    asSpheres(radius = RADIUS) {
         const points = {};
         for (let i = 0; i < this.faces.length; i++) {
             const texCoordIndexes = this
