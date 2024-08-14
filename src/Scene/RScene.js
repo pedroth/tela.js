@@ -1,13 +1,91 @@
 
 import Box from "../Geometry/Box.js";
 import Vec, { Vec3 } from "../Vector/Vector.js";
-import { argmin } from "../Utils/Utils.js";
+import { argmin, arrayEquals } from "../Utils/Utils.js";
 import PQueue from "../Utils/PQueue.js";
 import NaiveScene from "./NaiveScene.js";
 import Color from "../Color/Color.js";
 import { drawBox } from "../Utils/Utils3D.js";
 
-export default class KScene extends NaiveScene {
+const distanceCache = (gridSize = 0.01) => {
+    const cache = {};
+    cache.table = {};
+    function hash(p) {
+        const integerCoord = p.map(z => Math.floor(z / gridSize));
+        const h = (integerCoord.x * 92837111) ^ (integerCoord.y * 689287499) ^ (integerCoord.z * 283923481);
+        return Math.abs(h);
+    }
+    cache.put = (p, value) => {
+        let h = hash(p);
+        if (!(h in cache.table)) {
+            cache.table[h] = { n: 1, value: 0 };
+        }
+        const prev = cache.table[h];
+        cache.table[h] = { n: prev.n + 1, value: prev.value + (value - prev.value) / prev.n }
+        return cache;
+    }
+    cache.get = (p) => {
+        let h = hash(p);
+        const cachedDistance = cache.table[h];
+        if (cachedDistance) {
+            return cachedDistance.value;
+        }
+        return;
+    }
+
+    return cache;
+}
+
+const DISTANCE_CACHE = distanceCache();
+
+const rayCache = (gridSize = 0.01, dirGrid = 0.01) => {
+    const cache = {};
+    cache.table = {};
+    function hash(p) {
+        const integerCoord = p.map(z => Math.floor(z / gridSize));
+        const h = (integerCoord.x * 92837111) ^ (integerCoord.y * 689287499) ^ (integerCoord.z * 283923481);
+        return Math.abs(h);
+    }
+    function dirHash(d) {
+        const integerCoord = d.map(z => Math.floor(z / dirGrid));
+        const h = (integerCoord.x * 92837111) ^ (integerCoord.y * 689287499) ^ (integerCoord.z * 283923481);
+        return Math.abs(h);
+    }
+    cache.put = (ray, value) => {
+        const { init, dir } = ray;
+        let h = hash(init);
+        if (!(h in cache.table)) {
+            cache.table[h] = {};
+        }
+        const dirCache = cache.table[h];
+        h = dirHash(dir);
+        if (!(h in dirCache)) {
+            dirCache[h] = { n: 1, value: 0 };
+        }
+        const prev = dirCache[h];
+        dirCache[h] = { n: prev.n + 1, value: prev.value + (value - prev.value) / prev.n }
+        return cache;
+    }
+    cache.get = (ray) => {
+        const { init, dir } = ray;
+        let h = hash(init);
+        const dirCache = cache.table[h];
+        if (dirCache) {
+            h = dirHash(dir);
+            if (dirCache[h]) {
+                return dirCache[h].value;
+            }
+        }
+        return;
+    }
+
+    return cache;
+}
+
+const RAY_CACHE = rayCache();
+
+
+export default class RScene extends NaiveScene {
     constructor(k = 10) {
         super();
         this.k = k;
@@ -31,15 +109,20 @@ export default class KScene extends NaiveScene {
     }
 
     distanceToPoint(p) {
+        const distanceCache = DISTANCE_CACHE.get(p);
+        if (distanceCache) return distanceCache;
         if (this.boundingBoxScene.leafs.length > 0) {
             let distance = Number.MAX_VALUE;
             const leafs = this.boundingBoxScene.leafs
             for (let i = 0; i < leafs.length; i++) {
                 distance = Math.min(distance, leafs[i].element.distanceToPoint(p));
             }
+            DISTANCE_CACHE.put(p, distance);
             return distance;
         }
-        return this.getElementNear(p).distanceToPoint(p);
+        const distance = this.getElementNear(p).distanceToPoint(p);
+        DISTANCE_CACHE.put(p, distance);
+        return distance;
     }
 
     normalToPoint(p) {
@@ -63,17 +146,22 @@ export default class KScene extends NaiveScene {
     }
 
     distanceOnRay(ray, combineLeafs = Math.min) {
-        return this.boundingBoxScene.distanceOnRay(ray, combineLeafs);
+        const cachedDistance = RAY_CACHE.get(ray);
+        if (cachedDistance) return cachedDistance;
+        const distance = this.boundingBoxScene.distanceOnRay(ray, combineLeafs);
+        RAY_CACHE.put(ray, distance);
+        return distance;
     }
 
-    getElementNear(p) {
+    getElementNear(p, maxDepth = 15) {
         if (this.boundingBoxScene.leafs.length > 0) {
             return this.boundingBoxScene.getElementNear(p);
         }
         const initial = [this.boundingBoxScene.left, this.boundingBoxScene.right]
             .map(x => ({ node: x, distance: x.box.distanceToPoint(p) }));
         let stack = PQueue.ofArray(initial, (a, b) => a.distance - b.distance);
-        while (stack.length) {
+        let depth = maxDepth;
+        while (stack.length && depth-- > 0) {
             const { leaf, node } = stack.pop();
             if (leaf) return leaf.getElemNear(p);
             if (node.leafs.length > 0) {
@@ -87,6 +175,8 @@ export default class KScene extends NaiveScene {
                 .map(x => ({ node: x, distance: x.box.distanceToPoint(p) }));
             children.forEach(c => stack.push(c));
         }
+        const pop = stack.pop();
+        return (pop.node || pop.leaf).getRandomLeaf();
     }
 
     getElementInBox(box) {
@@ -143,26 +233,27 @@ export default class KScene extends NaiveScene {
         if (level === 0) {
             let maxLevels = Math.round(Math.log2(node.numberOfLeafs / this.k)) + 1;
             maxLevels = maxLevels === 0 ? 1 : maxLevels;
-            for (let i = 0; i <= maxLevels; i++)
+            for (let i = 0; i <= maxLevels; i++) {
                 level2colors.push(
-                    Color.RED.scale(1 - i / maxLevels).add(Color.BLUE.scale(i / maxLevels))
+                    Color.RED.scale(1 - i / maxLevels).add(Color.BLUE.scale(i / maxLevels).add(Color.GREEN))
                 );
+            }
         }
-        debugScene = drawBox({ box: node.box, color: level2colors[level], debugScene });
+        if (level < 7) debugScene = drawBox({ box: node.box, color: level2colors[level], debugScene });
         if (!node.isLeaf && node.left) {
             this.debug({ canvas, camera, node: node.left, level: level + 1, level2colors, debugScene })
         }
         if (!node.isLeaf && node.right) {
             this.debug({ canvas, camera, node: node.right, level: level + 1, level2colors, debugScene })
         }
-        if (level === 0) return camera.reverseShot(debugScene, { clearScreen: false }).to(canvas);
+        if (level === 0) return camera.reverseShot(debugScene, { clearScreen: true }).to(canvas);
         return canvas;
     }
 
     serialize() {
         const json = super.serialize();
         json.params = [this.k];
-        json.type = KScene.name;
+        json.type = RScene.name;
         return json;
     }
 }
@@ -226,7 +317,8 @@ class Node {
         return this.getElementNear(p).distanceToPoint(p);
     }
 
-    distanceOnRay(ray, combineLeafs) {
+    distanceOnRay(ray, combineLeafs, depth = 0) {
+        if (depth > 10) return this.getRandomLeaf().element.distanceToPoint(ray.init);
         if (this.leafs.length > 0) {
             return distanceFromLeafs(this.leafs, ray.init, combineLeafs);
         }
@@ -237,9 +329,9 @@ class Node {
         const second = leftT > rightT ? this.left : this.right;
         const firstT = Math.min(leftT, rightT);
         const secondT = Math.max(leftT, rightT);
-        const firstHit = first.distanceOnRay(ray, combineLeafs);
+        const firstHit = first.distanceOnRay(ray, combineLeafs, depth + 1);
         if (firstHit < secondT) return firstHit;
-        const secondHit = second.distanceOnRay(ray, combineLeafs);
+        const secondHit = second.distanceOnRay(ray, combineLeafs, depth + 1);
         return secondHit <= firstHit ? secondHit : firstHit;
     }
 
@@ -290,8 +382,12 @@ class Node {
     }
 
     getRandomLeaf() {
-        const index = Math.floor(Math.random() * this.children.length);
-        return this.children[index].isLeaf ? this.children[index] : this.children[index].getRandomLeaf();
+        if (this.leafs.length > 0) {
+            return this.leafs[Math.floor(Math.random() * this.leafs.length)].getRandomLeaf();
+        }
+        const children = [this.left, this.right];
+        const index = Math.floor(Math.random() * children.length);
+        return children[index].getRandomLeaf();
     }
 
     join(nodeOrLeaf) {
@@ -341,11 +437,16 @@ class Leaf {
     }
 }
 
-function clusterLeafs(box, leafs, it = 10) {
+function clusterLeafs(box, leafs, it = 100) {
     // initialization
     const clusters = [box.sample(), box.sample()];
     const clusterIndexes = [];
-    for (let i = 0; i < it; i++) {
+    let prevIndexes = [];
+    let isFirstIte = true;
+    let i = it;
+    while (arrayEquals(prevIndexes, clusterIndexes) || isFirstIte || i-- > 0) {
+        isFirstIte = false;
+        prevIndexes = [...clusterIndexes];
         for (let i = 0; i < clusters.length; i++) {
             clusterIndexes[i] = [];
         }

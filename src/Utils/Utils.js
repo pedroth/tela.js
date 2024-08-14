@@ -45,6 +45,13 @@ export function memoize(func) {
     }
 }
 
+export function arrayEquals(a, b) {
+    if (a.length !== b.length) return false;
+    for (let i = 0; i < a.length; i++)
+        if (a[i] !== b[i]) return false;
+    return true;
+}
+
 
 const RANDOM = Array(1000).fill().map(Math.random);
 let i = 0;
@@ -54,7 +61,7 @@ export function fRandom() {
 }
 
 const setTimeOut = typeof window === "undefined" ? setTimeout : requestAnimationFrame;
-if(typeof window !== "undefined") window.globalAnimationIDs = [];
+if (typeof window !== "undefined") window.globalAnimationIDs = [];
 export function loop(lambda) {
     let isFinished = false;
     const play = async ({ time, oldT }) => {
@@ -68,7 +75,7 @@ export function loop(lambda) {
             oldT: newT,
             time: time + dt,
         }));
-        if(typeof window !== "undefined") window.globalAnimationIDs.push(id);
+        if (typeof window !== "undefined") window.globalAnimationIDs.push(id);
     }
     const loopControl = {
         stop: () => {

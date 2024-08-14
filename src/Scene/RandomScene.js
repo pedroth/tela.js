@@ -1,6 +1,6 @@
 
 import Box from "../Geometry/Box.js";
-import Vec from "../Vector/Vector.js";
+import Vec, { Vec3 } from "../Vector/Vector.js";
 import { argmin } from "../Utils/Utils.js";
 import NaiveScene from "./NaiveScene.js";
 import Color from "../Color/Color.js";
@@ -91,21 +91,25 @@ export default class RandomScene {
     interceptWithRay(ray, level) {
         const nodeCache = RAY_CACHE.get(ray);
         if (nodeCache) {
-            return leafsinterceptWithRay(nodeCache.leafs, ray);
+            return leafsInterceptWithRay(nodeCache.leafs, ray);
         }
         return this.boundingBoxScene.interceptWithRay(ray, level);
     }
 
     distanceToPoint(p) {
-        if (this.boundingBoxScene.leafs.length > 0) {
-            let distance = Number.MAX_VALUE;
-            const leafs = this.boundingBoxScene.leafs
-            for (let i = 0; i < leafs.length; i++) {
-                distance = Math.min(distance, leafs[i].element.distanceToPoint(p));
-            }
-            return distance;
+        const ones = Vec3(1, 1, 1).scale(1 / (2 * this.k));
+        const box = new Box(p.sub(ones), p.add(ones));
+        const elements = this.getElementInBox(box);
+        const size = elements.length;
+        let distance = Number.MAX_VALUE;
+        for (let i = 0; i < size; i++) {
+            distance = Math.min(distance, elements[i].distanceToPoint(p));
         }
-        return this.getElementNear(p).distanceToPoint(p);
+        return distance;
+    }
+
+    distanceOnRay(ray, combineLeafs = Math.min) {
+        return this.boundingBoxScene.distanceOnRay(ray, combineLeafs);
     }
 
     normalToPoint(p) {
@@ -226,7 +230,7 @@ class Node {
         if (!boxHit) return;
         if (this.leafs.length > 0) {
             RAY_CACHE.put(ray, this);
-            return leafsinterceptWithRay(this.leafs, ray);
+            return leafsInterceptWithRay(this.leafs, ray);
         }
         const children = [this.left, this.right];
         const hits = [];
@@ -241,6 +245,23 @@ class Node {
 
     distanceToPoint(p) {
         return this.getElemNear(p).distanceToPoint(p);
+    }
+
+    distanceOnRay(ray, combineLeafs) {
+        if (this.leafs.length > 0) {
+            return distanceFromLeafs(this.leafs, ray.init, combineLeafs);
+        }
+        const leftT = this.left?.box?.interceptWithRay(ray)?.[0] ?? Number.MAX_VALUE;
+        const rightT = this.right?.box?.interceptWithRay(ray)?.[0] ?? Number.MAX_VALUE;
+        if (leftT === Number.MAX_VALUE && rightT === Number.MAX_VALUE) return Number.MAX_VALUE;
+        const first = leftT <= rightT ? this.left : this.right;
+        const second = leftT > rightT ? this.left : this.right;
+        const firstT = Math.min(leftT, rightT);
+        const secondT = Math.max(leftT, rightT);
+        const firstHit = first.distanceOnRay(ray, combineLeafs);
+        if (firstHit < secondT) return firstHit;
+        const secondHit = second.distanceOnRay(ray, combineLeafs);
+        return secondHit <= firstHit ? secondHit : firstHit;
     }
 
     getElemNear(p) {
@@ -329,7 +350,7 @@ class Leaf {
 }
 
 
-function clusterLeafs(box, leafs, it = 10) {
+function clusterLeafs(box, leafs, it = 100) {
     // initialization
     const clusters = [box.sample(), box.sample()];
     const clusterIndexes = [];
@@ -370,7 +391,7 @@ function random(n) {
 
 const RCACHE = random(100);
 
-function leafsinterceptWithRay(leafs, ray) {
+function leafsInterceptWithRay(leafs, ray) {
     let closestDistance = Number.MAX_VALUE;
     let closest;
     for (let i = 0; i < leafs.length; i++) {
@@ -381,4 +402,13 @@ function leafsinterceptWithRay(leafs, ray) {
         }
     }
     return closest;
+}
+
+function distanceFromLeafs(leafs, p, combineLeafs) {
+    const elements = leafs.map(x => x.element);
+    let distance = Number.MAX_VALUE;
+    for (let i = 0; i < elements.length; i++) {
+        distance = combineLeafs(distance, elements[i].distanceToPoint(p));
+    }
+    return distance;
 }

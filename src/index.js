@@ -8,6 +8,7 @@ import KScene from "./Scene/KScene.js"
 import NaiveScene from "./Scene/NaiveScene.js"
 import VoxelScene from "./Scene/VoxelScene.js"
 import RandomScene from "./Scene/RandomScene.js"
+import RScene from "./Scene/RScene.js"
 import Vec, { Vec2, Vec3 } from "./Vector/Vector.js"
 import Box from "./Geometry/Box.js"
 import Sphere from "./Geometry/Sphere.js"
@@ -33,6 +34,7 @@ export {
     Canvas,
     Camera,
     KScene,
+    RScene,
     Sphere,
     Stream,
     parseSVG,

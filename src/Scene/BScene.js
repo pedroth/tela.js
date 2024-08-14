@@ -9,8 +9,6 @@ import { drawBox } from "../Utils/Utils3D.js";
 export default class BScene extends NaiveScene {
   constructor() {
     super();
-    this.id2ElemMap = {};
-    this.sceneElements = [];
     this.boundingBoxScene = new Node();
   }
 
