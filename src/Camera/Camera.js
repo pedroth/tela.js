@@ -131,7 +131,7 @@ export default class Camera {
         return Promise
           .all(parallelWorkers(this, scene, canvas, params))
           .then(() => {
-            canvas.paint();
+            return canvas.paint();
           })
       }
     }
