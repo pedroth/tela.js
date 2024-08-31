@@ -16,6 +16,7 @@ export default function parse(text) {
     return SVG;
 }
 
+
 //========================================================================================
 /*                                                                                      *
  *                                       TOKENIZER                                      *
@@ -300,6 +301,137 @@ function eatSpacesTabsAndNewLines(stream) {
     while (!s.isEmpty()) {
         const symbol = s.head().type;
         if (symbol !== " " && symbol !== "\t" && symbol !== "\n") break;
+        s = s.tail();
+    }
+    return s;
+}
+
+//========================================================================================
+/*                                                                                      *
+ *                                    PARSE SVG PATH                                    *
+ *                                                                                      */
+//========================================================================================
+
+
+/**
+ * 
+ * path -> action path/ ε
+ * action -> (" "* | "\n"* )letter(" "* | "\n"*)numbers / letter
+ * letter -> [a...zA...Z]
+ * numbers -> number(" "* | "\n"*  | ",")numbers / ε
+ * number -> -D.D / D.D / -D / D
+ * D -> [0-9]D / ε
+ */
+export function parseSvgPath(svgPath) {
+    const { left: path, } = parsePath(stream(svgPath));
+    return path;
+}
+
+function parsePath(iStream) {
+    return or(
+        () => {
+            const { left: action, right: nStream } = parseAction(iStream);
+            const { left: path, right: nStream2 } = parsePath(nStream);
+            return pair({ type: "path", actions: [{ ...action }, ...path.actions] }, nStream2);
+        },
+        () => {
+            return pair({ type: "path", actions: [] }, iStream)
+        }
+    )
+}
+
+function parseAction(iStream) {
+    const nStream0 = eatWhile(iStream, p => p === " " || p === "\n");
+    const { left: letter, right: nStream } = parseLetter(nStream0);
+    const nStream1 = eatWhile(nStream, p => p === " " || p === "\n");
+    const { left: numbers, right: nStream2 } = parseNumbers(nStream1);
+    return pair({ type: "action", letter: letter.letter, numbers: numbers.numbers }, nStream2);
+}
+
+
+function parseLetter(iStream) {
+    const char = iStream.head();
+    if (/^[a-zA-Z]$/.test(char)) {
+        return pair({ type: "letter", letter: char }, iStream.tail())
+    }
+    throw new Error("Caught exception in parsing letter");
+}
+
+function parseNumbers(iStream) {
+    return or(
+        () => {
+            const { left: number, right: nStream } = parseNumber(iStream);
+            const nStream2 = eatWhile(nStream, p => p === " " || p === "\n" || p === ",");
+            const { left: numbers, right: nStream3 } = parseNumbers(nStream2);
+            return pair({ type: "numbers", numbers: [number.number, ...numbers.numbers] }, nStream3);
+        },
+        () => {
+            return pair({ type: "numbers", numbers: [] }, iStream);
+        }
+    )
+
+}
+
+function parseNumber(iStream) {
+    return or(
+        () => {
+            let nStream = iStream;
+            if (nStream.head() === "-") {
+                nStream = nStream.tail();
+                const { left: D, right: nStream2 } = parseD(nStream);
+                if (nStream2.head() === ".") {
+                    const { left: D2, right: nStream3 } = parseD(nStream2.tail()); // remove .
+                    return pair({ type: "number", number: Number.parseFloat(`-${D.d}.${D2.d}`) }, nStream3);
+                }
+            }
+            throw new Error("fail to parse -D.D");
+        },
+        () => {
+            const { left: D, right: nStream } = parseD(iStream);
+            if (nStream.head() === ".") {
+                const { left: D2, right: nStream2 } = parseD(nStream.tail()); // remove .
+                return pair({ type: "number", number: Number.parseFloat(`${D.d}.${D2.d}`) }, nStream2);
+            }
+            throw new Error("fail to parse D.D");
+        },
+        () => {
+            let nStream = iStream;
+            if (nStream.head() === "-") {
+                nStream = nStream.tail();
+                const { left: D, right: nStream2 } = parseD(nStream);
+                return pair({ type: "number", number: Number.parseFloat(`-${D.d}`) }, nStream2);
+            }
+            throw new Error("fail to parse -D");
+        },
+        () => {
+            const { left: D, right: nStream } = parseD(iStream);
+            if (D.d === "") throw new Error("fail to parse D");
+            return pair({ type: "number", number: Number.parseFloat(`${D.d}`) }, nStream)
+        }
+    )
+}
+
+function parseD(iStream) {
+    return or(
+        () => {
+            const char = iStream.head();
+            if (/^[0-9]$/.test(char)) {
+                const nStream = iStream.tail();
+                const { left: D, right: nStream2 } = parseD(nStream);
+                return pair({ type: "D", d: `${char}${D.d}` }, nStream2);
+            }
+            throw new Error("Caught exception in parsing D");
+        },
+        () => {
+            return pair({ type: "D", d: "" }, iStream);
+        }
+    )
+
+}
+
+function eatWhile(iStream, predicate) {
+    let s = iStream;
+    while (!s.isEmpty() && predicate(s.head())) {
         s = s.tail();
     }
     return s;
