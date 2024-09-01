@@ -1,18 +1,9 @@
-/*
- SVG -> StartTag InnerSVG EndTag / EmptyTag / CommentTag
- InnerSVG -> SVGTypes InnerSVG / ε
- SVGTypes -> SVG / Value
- Value -> AnyBut(<)
- StartTag ->  < (" ")* AlphaNumName (" " || "\n")* Attrs (" " || "\n")*>
- EmptyTag -> <(" ")* AlphaNumName (" " || "\n")* Attrs (" " || "\n")* />
- Attrs -> Attr (" " || "\n")* Attrs / ε
- Attr -> AlphaNumName="AnyBut(")" / AlphaNumName='AnyBut(')'
- EndTag -> </(" ")*AlphaNumName(" ")*>
- AlphaNumName -> [a-zA-z][a-zA-Z0-9]*
-*/
+
 export default function parse(text) {
-    const { left: SVG } = parseSVG(eatSpacesTabsAndNewLines(tokens(stream(text))));
+    const tokensStream = tokens(stream(text));
+    const { left: SVG } = parseSVG(eatSpacesTabsAndNewLines(tokensStream));
     // TODO create triangulation
+    console.log("$$$", SVG);
     return SVG;
 }
 
@@ -28,6 +19,8 @@ const TOKEN_SYMBOLS = [
     "\n",
     "\t",
     " ",
+    "<?",
+    "?>",
     "</",
     "/>",
     "<",
@@ -98,7 +91,20 @@ function symbolParser(symbol) {
  *                                                                                      */
 //========================================================================================
 
-
+/*
+ SVG -> StartTag InnerSVG EndTag / EmptyTag / CommentTag / XMLTag SVG
+ InnerSVG -> SVGTypes InnerSVG / ε
+ SVGTypes -> SVG / Value
+ Value -> AnyBut(<)
+ StartTag ->  < (" ")* AlphaNumName (" " || "\n")* Attrs (" " || "\n")*>
+ EmptyTag -> <(" ")* AlphaNumName (" " || "\n")* Attrs (" " || "\n")* />
+ Attrs -> Attr (" " || "\n")* Attrs / ε
+ Attr -> AlphaNumName="AnyBut(")" / AlphaNumName='AnyBut(')'
+ EndTag -> </(" ")*AlphaNumName(" ")*>
+ AlphaNumName -> [a-zA-z][a-zA-Z0-9]*
+ CommentTag -> <!--AnyBut("-->")-->
+ XMLTag -> <?AnyBut("?>")?>
+*/
 function parseSVG(stream) {
     return or(
         () => {
@@ -114,6 +120,11 @@ function parseSVG(stream) {
         () => {
             const { left: CommentTag, right: nextStream } = parseCommentTag(stream);
             return pair({ type: "svg", CommentTag }, nextStream);
+        },
+        () => {
+            const { right: nextStream } = parseXMLTag(stream);
+            const { left: SVG, right: nextStream1 } = parseSVG(nextStream);
+            return pair({ type: "svg", ...SVG }, nextStream1);
         }
     );
 }
@@ -208,6 +219,15 @@ function parseCommentTag(stream) {
         if (AnyBut.text !== "") return pair({ type: "commentTag" }, nextStream1.tail());
     }
     throw new Error("Fail to parse CommentTag")
+}
+
+function parseXMLTag(stream) {
+    if ("<?" === stream.head().type) {
+        const nextStream = stream.tail();
+        const { right: nextStream1 } = parseAnyBut(token => '?>' === token.type)(nextStream);
+        return pair({ type: "xmlTag" }, eatSpacesTabsAndNewLines(nextStream1.tail()));
+    }
+    throw new Error("Fail to parse XMLTag")
 }
 
 function parseStartTag(stream) {
@@ -480,3 +500,10 @@ function stream(stringOrArray) {
         }
     };
 }
+
+
+//========================================================================================
+/*                                                                                      *
+ *                                        RENDER                                        *
+ *                                                                                      */
+//========================================================================================
