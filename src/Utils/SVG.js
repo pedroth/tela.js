@@ -1,10 +1,11 @@
+import { Vec2 } from "../Vector/Vector.js";
+import { cBezier, qBezier } from "./Math.js";
 
 export default function parse(text) {
     const tokensStream = tokens(stream(text));
-    const { left: SVG } = parseSVG(eatSpacesTabsAndNewLines(tokensStream));
-    // TODO create triangulation
-    console.log("$$$", SVG);
-    return SVG;
+    const { left: SVG } = parseSVG(eatAllSpacesChars(tokensStream));
+    // return SVG;
+    return readSVGNode(SVG);
 }
 
 
@@ -17,6 +18,7 @@ const TOKEN_SYMBOLS = [
     "<!--",
     "-->",
     "\n",
+    "\r",
     "\t",
     " ",
     "<?",
@@ -92,7 +94,7 @@ function symbolParser(symbol) {
 //========================================================================================
 
 /*
- SVG -> StartTag InnerSVG EndTag / EmptyTag / CommentTag / XMLTag SVG
+ SVG -> StartTag InnerSVG EndTag / EmptyTag / CommentTag (" " || "\n")* SVG / XMLTag (" " || "\n")* SVG
  InnerSVG -> SVGTypes InnerSVG / ε
  SVGTypes -> SVG / Value
  Value -> AnyBut(<)
@@ -110,7 +112,7 @@ function parseSVG(stream) {
         () => {
             const { left: StartTag, right: nextStream1 } = parseStartTag(stream);
             const { left: InnerSVG, right: nextStream2 } = parseInnerSVG(nextStream1);
-            const { left: EndTag, right: nextStream3 } = parseEndTag(eatSpacesTabsAndNewLines(nextStream2));
+            const { left: EndTag, right: nextStream3 } = parseEndTag(eatAllSpacesChars(nextStream2));
             return pair({ type: "svg", StartTag, InnerSVG, EndTag }, nextStream3);
         },
         () => {
@@ -118,26 +120,27 @@ function parseSVG(stream) {
             return pair({ type: "svg", EmptyTag }, nextStream);
         },
         () => {
-            const { left: CommentTag, right: nextStream } = parseCommentTag(stream);
-            return pair({ type: "svg", CommentTag }, nextStream);
+            const { right: nextStream } = parseCommentTag(stream);
+            const { left: SVG, right: nextStream1 } = parseSVG(eatAllSpacesChars(nextStream));
+            return pair({ type: "svg", ...SVG }, nextStream1);
         },
         () => {
             const { right: nextStream } = parseXMLTag(stream);
-            const { left: SVG, right: nextStream1 } = parseSVG(nextStream);
+            const { left: SVG, right: nextStream1 } = parseSVG(eatAllSpacesChars(nextStream));
             return pair({ type: "svg", ...SVG }, nextStream1);
         }
     );
 }
 
 function parseValue(stream) {
-    const { left: AnyBut, right: nextStream } = parseAnyBut(t => t.type === "<" || t.type === "</")(eatSpacesTabsAndNewLines(stream));
+    const { left: AnyBut, right: nextStream } = parseAnyBut(t => t.type === "<" || t.type === "</")(eatAllSpacesChars(stream));
     return pair({ type: "value", text: AnyBut.text }, nextStream);
 }
 
 function parseSVGTypes(stream) {
     return or(
         () => {
-            const cleanStream = eatSpacesTabsAndNewLines(stream);
+            const cleanStream = eatAllSpacesChars(stream);
             const { left: SVG, right: nextStream } = parseSVG(cleanStream);
             return pair({ type: "svgTypes", SVG }, nextStream);
         },
@@ -184,7 +187,7 @@ function parseAnyBut(tokenPredicate) {
 }
 
 function parseEndTag(stream) {
-    const filteredStream = eatSpacesTabsAndNewLines(stream);
+    const filteredStream = eatAllSpacesChars(stream);
     const token = filteredStream.head();
     if ("</" === token.type) {
         const nextStream1 = eatSpaces(filteredStream.tail());
@@ -202,9 +205,9 @@ function parseEmptyTag(stream) {
     if ("<" === token.type) {
         const nextStream1 = eatSpaces(stream.tail());
         const { left: tagName, right: nextStream2 } = parseAlphaNumName(nextStream1)
-        const nextStream3 = eatSpacesTabsAndNewLines(nextStream2);
+        const nextStream3 = eatAllSpacesChars(nextStream2);
         const { left: Attrs, right: nextStream4 } = parseAttrs(nextStream3);
-        const nextStream5 = eatSpacesTabsAndNewLines(nextStream4);
+        const nextStream5 = eatAllSpacesChars(nextStream4);
         if ("/>" === nextStream5.head().type) {
             return pair({ type: "emptyTag", tag: tagName.text, Attrs }, nextStream5.tail());
         }
@@ -225,7 +228,7 @@ function parseXMLTag(stream) {
     if ("<?" === stream.head().type) {
         const nextStream = stream.tail();
         const { right: nextStream1 } = parseAnyBut(token => '?>' === token.type)(nextStream);
-        return pair({ type: "xmlTag" }, eatSpacesTabsAndNewLines(nextStream1.tail()));
+        return pair({ type: "xmlTag" }, eatAllSpacesChars(nextStream1.tail()));
     }
     throw new Error("Fail to parse XMLTag")
 }
@@ -235,9 +238,9 @@ function parseStartTag(stream) {
     if ("<" === token.type) {
         const nextStream1 = eatSpaces(stream.tail());
         const { left: tagName, right: nextStream2 } = parseAlphaNumName(nextStream1)
-        const nextStream3 = eatSpacesTabsAndNewLines(nextStream2);
+        const nextStream3 = eatAllSpacesChars(nextStream2);
         const { left: Attrs, right: nextStream4 } = parseAttrs(nextStream3);
-        const nextStream5 = eatSpacesTabsAndNewLines(nextStream4);
+        const nextStream5 = eatAllSpacesChars(nextStream4);
         if (">" === nextStream5.head().type) {
             return pair({ type: "startTag", tag: tagName.text, Attrs }, nextStream5.tail());
         }
@@ -292,7 +295,7 @@ function parseAttrs(stream) {
     return or(
         () => {
             const { left: Attr, right: nextStream } = parseAttr(stream);
-            const nextStreamNoSpaces = eatSpacesTabsAndNewLines(nextStream);
+            const nextStreamNoSpaces = eatAllSpacesChars(nextStream);
             const { left: Attrs, right: nextStream1 } = parseAttrs(nextStreamNoSpaces);
             return pair({
                 type: "attrs",
@@ -308,23 +311,8 @@ function parseAttrs(stream) {
     )
 }
 
-function eatSpaces(stream) {
-    let s = stream;
-    while (!s.isEmpty()) {
-        if (s.head().type !== " ") break;
-        s = s.tail();
-    }
-    return s;
-}
-function eatSpacesTabsAndNewLines(stream) {
-    let s = stream;
-    while (!s.isEmpty()) {
-        const symbol = s.head().type;
-        if (symbol !== " " && symbol !== "\t" && symbol !== "\n") break;
-        s = s.tail();
-    }
-    return s;
-}
+const eatSpaces = eatWhile(p => p.type === " ");
+const eatAllSpacesChars = eatWhile(p => p.type === " " || p.type === "\t" || p.type === "\r" || p.type === "\n")
 
 //========================================================================================
 /*                                                                                      *
@@ -361,9 +349,9 @@ function parsePath(iStream) {
 }
 
 function parseAction(iStream) {
-    const nStream0 = eatWhile(iStream, p => p === " " || p === "\n");
+    const nStream0 = eatWhile(p => p === " " || p === "\n")(iStream);
     const { left: letter, right: nStream } = parseLetter(nStream0);
-    const nStream1 = eatWhile(nStream, p => p === " " || p === "\n");
+    const nStream1 = eatWhile(p => p === " " || p === "\n")(nStream);
     const { left: numbers, right: nStream2 } = parseNumbers(nStream1);
     return pair({ type: "action", letter: letter.letter, numbers: numbers.numbers }, nStream2);
 }
@@ -381,7 +369,7 @@ function parseNumbers(iStream) {
     return or(
         () => {
             const { left: number, right: nStream } = parseNumber(iStream);
-            const nStream2 = eatWhile(nStream, p => p === " " || p === "\n" || p === ",");
+            const nStream2 = eatWhile(p => p === " " || p === "\n" || p === ",")(nStream);
             const { left: numbers, right: nStream3 } = parseNumbers(nStream2);
             return pair({ type: "numbers", numbers: [number.number, ...numbers.numbers] }, nStream3);
         },
@@ -449,13 +437,287 @@ function parseD(iStream) {
 
 }
 
-function eatWhile(iStream, predicate) {
-    let s = iStream;
-    while (!s.isEmpty() && predicate(s.head())) {
-        s = s.tail();
+function eatWhile(predicate) {
+    return iStream => {
+        let s = iStream;
+        while (!s.isEmpty() && predicate(s.head())) {
+            s = s.tail();
+        }
+        return s;
     }
-    return s;
 }
+
+//========================================================================================
+/*                                                                                      *
+ *                                      SVG READER                                      *
+ *                                                                                      */
+//========================================================================================
+
+function addFirstPointIfNeeded(currentPos, path, keyPointPath) {
+    if (keyPointPath.length === 0) {
+        path.push(currentPos);
+        keyPointPath.push(currentPos);
+    }
+}
+
+
+function readSVGNode(svgNode) {
+    const svg = {
+        width: undefined,
+        height: undefined,
+        viewBox: {},
+        paths: {},
+        keyPointPaths: {}
+    }
+    const nodeStack = [svgNode];
+    while (nodeStack.length > 0) {
+        const currentNode = nodeStack.shift(); // dequeue
+        const tag = currentNode?.StartTag?.tag ?? currentNode?.EmptyTag?.tag;
+        if (tag === "svg") {
+            currentNode
+                .StartTag
+                .Attrs
+                .attributes
+                .forEach(attr => {
+                    if (attr.attributeName === "viewBox") {
+                        const vb = attr.attributeValue;
+                        const [x, y, w, h] = vb.split(" ").map(x => Number.parseFloat(x));
+                        svg.viewBox.min = Vec2(x, y);
+                        svg.viewBox.max = Vec2(x + w, y + h);
+                    }
+                    if (attr.attributeName === "width") {
+                        svg.width = Number.parseInt(attr.attributeValue);
+                    }
+                    if (attr.attributeName === "height") {
+                        svg.height = Number.parseInt(attr.attributeValue);
+                    }
+                })
+        }
+        if (tag === "path") {
+            let path = [];
+            let keyPointPath = [];
+            const samples = 25;
+            let currentPos = Vec2();
+            const tagNode = currentNode.EmptyTag ?? currentNode.StartTag;
+            const [svgPath] = tagNode.Attrs.attributes.filter(a => a.attributeName === "d");
+            const [idObj] = tagNode.Attrs.attributes.filter(a => a.attributeName === "id");
+            const id = idObj?.attributeValue ?? generateUniqueID(5);
+            const letter2action = {
+                "M": (vecs) => {
+                    const [p] = vecs;
+                    currentPos = p;
+                },
+                "m": (vecs) => {
+                    const [p] = vecs;
+                    currentPos = currentPos.add(p);
+                },
+                "L": (vecs) => {
+                    addFirstPointIfNeeded(currentPos, path, keyPointPath);
+                    for (let j = 0; j < vecs.length; j += 1) {
+                        path.push(vecs[j]);
+                        keyPointPath.push(vecs[j]);
+                        currentPos = path.at(-1);
+                    }
+                },
+                "l": (vecs) => {
+                    addFirstPointIfNeeded(currentPos, path, keyPointPath);
+                    for (let j = 0; j < vecs.length; j += 1) {
+                        path.push(currentPos.add(vecs[j]));
+                        keyPointPath.push(currentPos.add(vecs[j]));
+                        currentPos = path.at(-1);
+                    }
+                },
+                "V": (vecs) => {
+                    addFirstPointIfNeeded(currentPos, path, keyPointPath);
+                    for (let j = 0; j < vecs.length; j += 1) {
+                        const newP = Vec2(currentPos.x, vecs[j].y);
+                        path.push(newP);
+                        keyPointPath.push(newP);
+                        currentPos = path.at(-1);
+                    }
+                },
+                "v": (vecs) => {
+                    addFirstPointIfNeeded(currentPos, path, keyPointPath);
+                    for (let j = 0; j < vecs.length; j += 1) {
+                        path.push(currentPos.add(vecs[j]));
+                        keyPointPath.push(currentPos.add(vecs[j]));
+                        currentPos = path.at(-1);
+                    }
+                },
+                "H": (vecs) => {
+                    addFirstPointIfNeeded(currentPos, path, keyPointPath);
+                    for (let j = 0; j < vecs.length; j += 1) {
+                        const newP = Vec2(vecs[j].x, currentPos.y);
+                        path.push(newP);
+                        keyPointPath.push(newP);
+                        currentPos = path.at(-1);
+                    }
+                },
+                "h": (vecs) => {
+                    addFirstPointIfNeeded(currentPos, path, keyPointPath);
+                    for (let j = 0; j < vecs.length; j += 1) {
+                        path.push(currentPos.add(vecs[j]));
+                        keyPointPath.push(currentPos.add(vecs[j]));
+                        currentPos = path.at(-1);
+                    }
+                },
+                "Q": (vecs) => {
+                    addFirstPointIfNeeded(currentPos, path, keyPointPath);
+                    for (let j = 0; j < vecs.length; j += 2) {
+                        const qb = qBezier(currentPos, vecs[j], vecs[j + 1]);
+                        for (let i = 0; i < samples; i++) {
+                            path.push(qb(i / (samples - 1)));
+                        }
+                        keyPointPath.push(currentPos, vecs[j], vecs[j + 1]);
+                        currentPos = path.at(-1);
+                    }
+                },
+                "q": (vecs) => {
+                    addFirstPointIfNeeded(currentPos, path, keyPointPath);
+                    for (let j = 0; j < vecs.length; j += 2) {
+                        const qb = qBezier(currentPos, currentPos.add(vecs[j]), currentPos.add(vecs[j + 1]));
+                        for (let i = 0; i < samples; i++) {
+                            path.push(qb(i / (samples - 1)));
+                        }
+                        keyPointPath.push(currentPos, currentPos.add(vecs[j]), currentPos.add(vecs[j + 1]));
+                        currentPos = path.at(-1);
+                    }
+                },
+                "T": (vecs) => {
+                    addFirstPointIfNeeded(currentPos, path, keyPointPath);
+                    const [end] = vecs;
+                    const prevKeyPoint = keyPointPath.at(-2) ? keyPointPath.at(-2) : keyPointPath.at(-1);
+                    const control = currentPos.scale(2).sub(prevKeyPoint); // reflection bla bla
+                    const qb = qBezier(currentPos, control, end);
+                    for (let i = 0; i < samples; i++) {
+                        path.push(qb(i / (samples - 1)));
+                    }
+                    keyPointPath.push(
+                        currentPos,
+                        control,
+                        end
+                    )
+                    currentPos = path.at(-1);
+                },
+                "t": (vecs) => {
+                    addFirstPointIfNeeded(currentPos, path, keyPointPath);
+                    const [end] = vecs;
+                    const prevKeyPoint = keyPointPath.at(-2) ? keyPointPath.at(-2) : keyPointPath.at(-1);
+                    const control = currentPos.scale(2).sub(prevKeyPoint); // reflection bla bla
+                    const qb = qBezier(currentPos, control, currentPos.add(end));
+                    for (let i = 0; i < samples; i++) {
+                        path.push(qb(i / (samples - 1)));
+                    }
+                    keyPointPath.push(
+                        currentPos,
+                        control,
+                        currentPos.add(end)
+                    )
+                    currentPos = path.at(-1);
+                },
+                "C": (vecs) => {
+                    addFirstPointIfNeeded(currentPos, path, keyPointPath);
+                    for (let j = 0; j < vecs.length; j += 3) {
+                        const cb = cBezier(
+                            currentPos,
+                            vecs[j],
+                            vecs[j + 1],
+                            vecs[j + 2]
+                        );
+                        for (let i = 0; i < samples; i++) {
+                            path.push(cb(i / (samples - 1)));
+                        }
+                        keyPointPath.push(
+                            currentPos,
+                            vecs[j],
+                            vecs[j + 1],
+                            vecs[j + 2]
+                        )
+                        currentPos = path.at(-1);
+                    }
+                },
+                "c": (vecs) => {
+                    addFirstPointIfNeeded(currentPos, path, keyPointPath);
+                    for (let j = 0; j < vecs.length; j += 3) {
+                        const cb = cBezier(
+                            currentPos,
+                            currentPos.add(vecs[j]),
+                            currentPos.add(vecs[j + 1]),
+                            currentPos.add(vecs[j + 2])
+                        );
+                        for (let i = 0; i < samples; i++) {
+                            path.push(cb(i / (samples - 1)));
+                        }
+                        keyPointPath.push(
+                            currentPos,
+                            currentPos.add(vecs[j]),
+                            currentPos.add(vecs[j + 1]),
+                            currentPos.add(vecs[j + 2])
+                        )
+                        currentPos = path.at(-1);
+                    }
+                },
+                "Z": () => {
+                    if (keyPointPath.length === 0) return;
+                    path.push(keyPointPath[0]);
+                    keyPointPath.push(keyPointPath[0]);
+                    if(!svg.paths[id]) {
+                        svg.paths[id] = [];
+                        svg.keyPointPaths[id] = [];
+                    }
+                    svg.paths[id].push(path);
+                    svg.keyPointPaths[id].push(keyPointPath);
+                    path = [];
+                    keyPointPath = [];
+                },
+                "z": () => {
+                    if (keyPointPath.length === 0) return;
+                    path.push(keyPointPath[0]);
+                    keyPointPath.push(keyPointPath[0]);
+                    if(!svg.paths[id]) {
+                        svg.paths[id] = [];
+                        svg.keyPointPaths[id] = [];
+                    }
+                    svg.paths[id].push(path);
+                    svg.keyPointPaths[id].push(keyPointPath);
+                    path = [];
+                    keyPointPath = [];
+                }
+            }
+            const { actions } = parseSvgPath(svgPath.attributeValue);
+            const vectorizedActions = actions
+                .map(({ letter, numbers }) => {
+                    const vectors = [];
+                    const l = letter.toLowerCase();
+                    if (l === "v" || l === "h") {
+                        for (let i = 0; i < numbers.length; i += 1) {
+                            if (l === "v") vectors.push(Vec2(0, numbers[i]));
+                            if (l === "h") vectors.push(Vec2(numbers[i], 0));
+                        }
+                    } else {
+                        for (let i = 0; i < numbers.length; i += 2) {
+                            vectors.push(Vec2(numbers[i], numbers[i + 1]));
+                        }
+                    }
+                    return { letter, vectors };
+                })
+            vectorizedActions.forEach(({ letter, vectors }) => {
+                return (letter2action?.[letter] ?? (() => { }))(vectors);
+            });
+            if (path.length > 0) {
+                if(!svg.paths[id]) {
+                    svg.paths[id] = [];
+                    svg.keyPointPaths[id] = [];
+                }
+                svg.paths[id].push(path);
+                svg.keyPointPaths[id].push(keyPointPath);
+            }
+        }
+        nodeStack.push(...(currentNode?.InnerSVG?.innerSvgs?.map(x => x.SVG) ?? []));
+    }
+    return svg;
+}
+
 
 //========================================================================================
 /*                                                                                      *
@@ -501,9 +763,15 @@ function stream(stringOrArray) {
     };
 }
 
+function generateUniqueID(length) {
+    const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+    const charactersLength = characters.length;
 
-//========================================================================================
-/*                                                                                      *
- *                                        RENDER                                        *
- *                                                                                      */
-//========================================================================================
+    let randomID = '';
+
+    for (let i = 0; i < length; i++) {
+        randomID += characters[Math.floor(Math.random() * charactersLength)];
+    }
+
+    return randomID;
+}
