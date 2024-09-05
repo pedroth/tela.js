@@ -30,74 +30,28 @@ const boxes = paths.map(path => {
     return box;
 });
 
-
-// const isInsideCurve = path => x => {
-//     const epsilon = 1e-6;
-//     let theta = 0;
-//     for (let j = 0; j < path.length - 1; j++) {
-//         const u = x.sub(path[j]);
-//         const v = x.sub(path[j + 1]);
-//         const thetaI = Math.atan2(u.y, u.x);
-//         const thetaJ = Math.atan2(v.y, v.x);
-//         let dTheta = thetaJ - thetaI;
-//         dTheta = Math.atan2(Math.sin(dTheta), Math.cos(dTheta));
-//         theta += dTheta;
-//     }
-//     const finalTheta = theta / (2 * Math.PI);
-//     return finalTheta < -1 + epsilon;
-// }
 const isInsideCurve = x => {
-    const epsilon = 1e-3;
-    const pointsX = [];
-    const pointsXMinus = [];
-    const pointsY = [];
-
+    let count = 0;
     const indices = boxes
         .map((b, i) => ({ box: b, index: i }))
         .filter((obj) => obj.box.collidesWith(x))
         .map((obj) => obj.index);
     for (let i = 0; i < indices.length; i++) {
         const path = paths[indices[i]];
+        let theta = 0;
         for (let j = 0; j < path.length - 1; j++) {
-            const a = path[j];
-            const b = path[j + 1];
-            const v = b.sub(a);
-            if (v.y === 0) {
-                continue;
-            }
-            const r = x.sub(a);
-            
-            let mu = r.y / v.y;
-            let t = v.x * mu - r.x;
-            if (mu >= 0 && mu <= 1 && t > 0) {
-                const point = x.add(Vec2(t, 0));
-                if (!pointsX.some(p => p.sub(point).length() <= epsilon)) {
-                    pointsX.push(point);
-                }
-            }
-
-            t = -t;
-            if (mu >= 0 && mu <= 1 && t > 0) {
-                const point = x.add(Vec2(t, 0));
-                if (!pointsXMinus.some(p => p.sub(point).length() <= epsilon)) {
-                    pointsXMinus.push(point);
-                }
-            }
-
-            mu = r.x / v.x;
-            t = v.y * mu - r.y;
-            if (mu >= 0 && mu <= 1 && t > 0) {
-                const point = x.add(Vec2(t, 0));
-                if (!pointsY.some(p => p.sub(point).length() <= epsilon)) {
-                    pointsY.push(point);
-                }
-            }
+            const u = x.sub(path[j]);
+            const v = x.sub(path[j + 1]);
+            const thetaI = Math.atan2(u.y, u.x);
+            const thetaJ = Math.atan2(v.y, v.x);
+            let dTheta = thetaJ - thetaI;
+            dTheta = Math.atan2(Math.sin(dTheta), Math.cos(dTheta));
+            theta += dTheta;
         }
+        const winding = theta / (2 * Math.PI);
+        count += Math.round(winding);
     }
-    const A = pointsX.length % 2 === 1;
-    const B = pointsXMinus.length % 2 === 1;
-    const C = pointsY.length % 2 === 1
-    return  (A && B) || (A && C) || (B && C);
+    return count < 0;
 }
 
 function drawSVGData() {

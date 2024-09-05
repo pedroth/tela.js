@@ -1,3 +1,4 @@
+import { count } from "console";
 import { Color, Vec2, Window, parseSVG, loop, Box } from "../src/index.node.js";
 import { readFileSync } from "fs";
 
@@ -46,14 +47,40 @@ function getIntersectionPoints(x) {
 
             if (mu >= 0 && mu <= 1 && t > 0) {
                 const point = x.add(Vec2(t, 0));
-                // if (!points.some(p => p.sub(point).length() <= epsilon)) {
+                if (!points.some(p => p.sub(point).length() <= epsilon)) {
                     points.push(point);
-                // }
+                }
             }
         }
     }
     return points;
 }
+
+function getWinding(x) {
+    const epsilon = 1e-6;
+    let count = 0;
+    const indices = boxes
+        .map((b, i) => ({ box: b, index: i }))
+        .filter((obj) => obj.box.collidesWith(x))
+        .map((obj) => obj.index);
+    for (let i = 0; i < indices.length; i++) {
+        const path = paths[indices[i]];
+        let theta = 0;
+        for (let j = 0; j < path.length - 1; j++) {
+            const u = x.sub(path[j]);
+            const v = x.sub(path[j + 1]);
+            const thetaI = Math.atan2(u.y, u.x);
+            const thetaJ = Math.atan2(v.y, v.x);
+            let dTheta = thetaJ - thetaI;
+            dTheta = Math.atan2(Math.sin(dTheta), Math.cos(dTheta));
+            theta += dTheta;
+        }
+        const winding = theta / (2 * Math.PI);
+        count += Math.round(winding);
+    }
+    return count;
+}
+
 const window = new Window(width, height).onResizeWindow(() => window.paint());
 let p = Vec2();
 window.onMouseMove((x, y) => {
@@ -67,22 +94,23 @@ loop(() => {
             window.drawLine(path[j], path[j + 1], () => Color.RED);
         }
     }
-    window.drawLine(p, p.add(Vec2(width, 0)), () => Color.BLUE);
-    const intersectingPoints = getIntersectionPoints(p);
-    intersectingPoints.forEach(x => {
-        const size = 2;
-        for (let i = -size; i < size; i++) {
-            for (let j = -size; j < size; j++) {
-                window.setPxl(x.x + i, x.y + j, Color.GREEN);
-            }
-        }
-    })
+    // window.drawLine(p, p.add(Vec2(width, 0)), () => Color.BLUE);
+    // const intersectingPoints = getIntersectionPoints(p);
+    // intersectingPoints.forEach(x => {
+    //     const size = 2;
+    //     for (let i = -size; i < size; i++) {
+    //         for (let j = -size; j < size; j++) {
+    //             window.setPxl(x.x + i, x.y + j, Color.GREEN);
+    //         }
+    //     }
+    // })
+    const winding = getWinding(p);
     const size = 5;
     for (let i = -size; i < size; i++) {
         for (let j = -size; j < size; j++) {
-            window.setPxl(p.x + i, p.y + j, intersectingPoints.length % 2 === 1 ? Color.YELLOW : Color.PURPLE);
+            window.setPxl(p.x + i, p.y + j, winding < 0 ? Color.YELLOW : Color.PURPLE);
         }
     }
-    console.log(`points : ${intersectingPoints.length}`);
+    console.log(`winding : ${winding}`);
     window.paint();
 }).play()

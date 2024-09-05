@@ -45,9 +45,9 @@ const isInsideCurve = x => {
             theta += dTheta;
         }
         const winding = theta / (2 * Math.PI);
-        count += Math.abs(winding + 1) < epsilon && winding < 0;
+        count += Math.round(winding);
     }
-    return count % 2 === 1;
+    return count < 0;
 }
 const drawFrame = (time) => {
     for (let i = 0; i < paths.length; i++) {
