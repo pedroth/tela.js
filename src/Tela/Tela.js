@@ -42,6 +42,19 @@ export default class Tela {
         return this.paint();
     }
 
+    mapBox = (lambda, box) => {
+        const init = box.min;
+        const end = box.max;
+        for (let x = init.x; x < end.x; x++) {
+            for (let y = init.y; y < end.y; y++) {
+                const color = lambda(x - init.x, y - init.y);
+                if (!color) continue;
+                this.setPxl(x, y, color);
+            }
+        }
+        return this;
+    }
+
     fill(color) {
         if (!color) return;
         const n = this.image.length;

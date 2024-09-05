@@ -7,7 +7,7 @@ export function saveImageToFile(fileAddress, image) {
     const ppmName = `${fileName}.ppm`;
     writeFileSync(ppmName, createPPMFromImage(image));
     if (extension !== "ppm") {
-        execSync(`ffmpeg -i ${ppmName} ${fileName}.${extension}`);
+        execSync(`ffmpeg -i ${ppmName} -y ${fileName}.${extension}`);
         unlinkSync(ppmName)
     }
 }
@@ -89,7 +89,7 @@ export function saveImageStreamToVideo(fileAddress, streamWithImages, { imageGet
                 s = await s.tail;
             }
             if (!fps) fps = ite / time;
-            execSync(`ffmpeg -framerate ${fps} -i ${fileName}_%d.ppm ${fileName}.${extension}`);
+            execSync(`ffmpeg -framerate ${fps} -i ${fileName}_%d.ppm -y ${fileName}.${extension}`);
             for (let i = 0; i < ite; i++) {
                 unlinkSync(`${fileName}_${i}.ppm`);
             }
