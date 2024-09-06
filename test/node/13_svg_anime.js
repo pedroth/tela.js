@@ -26,7 +26,6 @@ const boxes = paths.map(path => {
     return box;
 });
 const isInsideCurve = x => {
-    const epsilon = 1e-6;
     let count = 0;
     const indices = boxes
         .map((b, i) => ({ box: b, index: i }))
