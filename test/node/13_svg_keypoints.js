@@ -154,8 +154,6 @@ const isInsideCurve3 = x => {
     // compute intersections in e1 and e2 directions
     const epsilon = 1e-3;
     const pointsX = [];
-    const pointsXMinus = [];
-    const pointsY = [];
     const indices = boxes
         .map((b, i) => ({ box: b, index: i }))
         .filter((obj) => obj.box.collidesWith(x))

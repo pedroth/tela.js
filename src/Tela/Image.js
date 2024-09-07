@@ -117,7 +117,7 @@ export default class Image extends Tela {
 const createWorker = (main, lambda, dependencies) => {
     const workerFile = `
     const { parentPort } = require("node:worker_threads");
-    const _module = import("./src/index.js").then(_module => {
+    import("./src/index.js").then(_module => {
         const {
             Box,
             Vec,
@@ -130,9 +130,9 @@ const createWorker = (main, lambda, dependencies) => {
             Camera,
             KScene,
             Sphere,
+            CHANNELS
             MAX_8BIT,
             NaiveScene,
-            CHANNELS
         } = _module;
         ${dependencies.map(d => d.toString()).join("\n")}
         const lambda = ${lambda.toString()};

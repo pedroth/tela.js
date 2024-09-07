@@ -229,7 +229,6 @@ const createWorker = (main, lambda, dependencies) => {
   const __main__ = ${main.toString()};
   onmessage = e => {
       const input = e.data;
-      console.log(">>>")
       const output = __main__(input);
       self.postMessage(output);
   };
