@@ -18,16 +18,16 @@ let mesh = Mesh.readObj(obj, "mesh");
 mesh = mesh
     .mapVertices(v => Vec3(-v.y, v.x, v.z))
     .mapVertices(v => Vec3(v.z, v.y, -v.x))
-scene.addList(mesh.asPoints(0.05));
+scene.addList(mesh.asSpheres(0.05));
 
 const canvas = Image.ofSize(width, height);
 const imageStream = new Stream(
     { time: 0, image: camera.sdfShot(scene).to(canvas) },
-    ({ time, image }) => {
-        const theta = Math.PI / 4 * time;
+    async ({ time, image }) => {
+        const theta = (Math.PI / 4) * time;
         camera.orbit(coords => Vec3(coords.x, theta, 0));
-        const { result: newImage, time: t } = measureTimeWithResult(() => camera.sdfShot(scene).to(image));
-        console.log(`Image took ${t}s`);
+        const { result: newImage, time: t } = await measureTimeWithResult(() => camera.sdfShot(scene).to(image));
+        console.log(`Image took ${t}s`, newImage);
         return {
             time: time + dt,
             image: newImage

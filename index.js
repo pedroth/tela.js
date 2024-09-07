@@ -558,6 +558,10 @@ const examples = [
         path: "/test/web/image2rgb.js"
     },
     {
+        title: "rendering svg",
+        path: "/test/web/svg.js"
+    },
+    {
         title: "spot spheres test",
         path: "/test/web/debug_normal_shot_test.js"
     },
@@ -605,7 +609,7 @@ function execCode(code) {
             const script = DOM.of("script").build();
             script.type = "module";
             script.textContent = `
-            import {Path, Ray,Canvas,DOM,Color,KScene,BScene,Camera,Vec2, Vec3, Vec, Box, Sphere, Mesh, NaiveScene, RandomScene, VoxelScene, Line, Triangle, Diffuse, Metallic, Alpha, DiElectric, clamp, loop} from "${SOURCE}/src/index.js"
+            import {Path, Ray, Canvas, DOM, Color, KScene, BScene, Camera, Vec2, Vec3, Vec, Box, Sphere, Mesh, NaiveScene, RandomScene, VoxelScene, Line, Triangle, Diffuse, Metallic, Alpha, DiElectric, clamp, loop, parseSVG} from "${SOURCE}/src/index.js"
             window.globalAnimationIDs.forEach(id => cancelAnimationFrame(id));
             window.globalAnimationIDs = [];
             window.LOCATION_HOST = "${window.location.host}";

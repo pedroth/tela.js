@@ -1,6 +1,5 @@
-import { IS_NODE, NUMBER_OF_CORES } from "../Utils/Constants.js";
+import { CHANNELS, IS_NODE, NUMBER_OF_CORES } from "../Utils/Constants.js";
 import Color from "../Color/Color.js";
-import { CHANNELS } from "../Tela/Tela.js";
 
 //========================================================================================
 /*                                                                                      *

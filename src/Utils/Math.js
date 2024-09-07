@@ -19,6 +19,23 @@ export function lerp(a, b) {
     return t => a.scale(1 - t).add(b.scale(t));
 }
 
+export function qBezier(p1, p2, p3) {
+    const q1 = lerp(p1, p2);
+    const q2 = lerp(p2, p3);
+    return t => lerp(q1(t), q2(t))(t);
+}
+
+export function cBezier(p1, p2, p3, p4) {
+    const b1 = lerp(p1, p2);
+    const b2 = lerp(p2, p3);
+    const b3 = lerp(p3, p4);
+    return t => {
+        const c1 = lerp(b1(t), b2(t));
+        const c2 = lerp(b2(t), b3(t));
+        return lerp(c1(t), c2(t))(t);
+    }
+}
+
 export function randomPointInSphere(dim) {
     let randomInSphere;
     while (true) {

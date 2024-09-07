@@ -57,26 +57,27 @@ const setTimeOut = typeof window === "undefined" ? setTimeout : requestAnimation
 if(typeof window !== "undefined") window.globalAnimationIDs = [];
 export function loop(lambda) {
     let isFinished = false;
-    const play = async ({ time, oldT }) => {
-        const newT = new Date().getTime();
-        const dt = (newT - oldT) * 1e-3;
-
-        await lambda({ time, dt });
-
-        if (isFinished) return;
-        const id = setTimeOut(() => play({
-            oldT: newT,
-            time: time + dt,
-        }));
-        if(typeof window !== "undefined") window.globalAnimationIDs.push(id);
-    }
     const loopControl = {
         stop: () => {
             isFinished = true;
         },
         play: () => play({ oldT: new Date().getTime(), time: 0 })
     };
+    const play = async ({ time, oldT }) => {
+        const newT = new Date().getTime();
+        const dt = (newT - oldT) * 1e-3;
 
+        await lambda({ time, dt });
+
+        if (isFinished) return loopControl;
+        const id = setTimeOut(() => play({
+            oldT: newT,
+            time: time + dt,
+        }));
+        if(typeof window !== "undefined") window.globalAnimationIDs.push(id);
+
+        return loopControl;
+    }
     return loopControl;
 }
 

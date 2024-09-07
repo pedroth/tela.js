@@ -1,11 +1,11 @@
 import { memoize } from "../Utils/Utils.js";
 import Color from "../Color/Color.js";
-import { MAX_8BIT } from "../Utils/Constants.js";
+import { CHANNELS, MAX_8BIT } from "../Utils/Constants.js";
 import { clamp } from "../Utils/Math.js";
 import sdl from "@kmamal/sdl";
 import os from 'node:os';
 import { Worker } from "node:worker_threads";
-import Tela, { CHANNELS } from "./Tela.js";
+import Tela from "./Tela.js";
 import { Buffer } from "node:buffer";
 
 
@@ -124,6 +124,11 @@ export default class Window extends Tela {
 
     onKeyUp(lambda) {
         this.window.on("keyDown", lambda);
+        return this;
+    }
+
+    onResizeWindow(lambda) {
+        this.window.on("resize", (e) => lambda(e));
         return this;
     }
 

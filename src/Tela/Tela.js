@@ -1,9 +1,8 @@
 import Color from "../Color/Color.js";
 import Box from "../Geometry/Box.js";
+import { CHANNELS } from "../Utils/Constants.js";
 import { mod } from "../Utils/Math.js";
 import { Vec2 } from "../Vector/Vector.js";
-
-export const CHANNELS = 4;
 
 // Abstract Image
 export default class Tela {
@@ -40,6 +39,19 @@ export default class Tela {
             this.image[k + 3] = color.alpha;
         }
         return this.paint();
+    }
+
+    mapBox = (lambda, box) => {
+        const init = box.min;
+        const end = box.max;
+        for (let x = init.x; x < end.x; x++) {
+            for (let y = init.y; y < end.y; y++) {
+                const color = lambda(x - init.x, y - init.y);
+                if (!color) continue;
+                this.setPxl(x, y, color);
+            }
+        }
+        return this;
     }
 
     fill(color) {
