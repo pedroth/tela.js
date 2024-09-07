@@ -1,7 +1,6 @@
 import Camera from "./Camera.js";
 import { rayTrace } from "./rayTrace.js";
-import { CHANNELS } from "../Tela/Tela.js";
-import { IS_NODE } from "../Utils/Constants.js";
+import { CHANNELS, IS_NODE } from "../Utils/Constants.js";
 import { deserializeScene } from "../Scene/utils.js";
 import Color from "../Color/Color.js";
 

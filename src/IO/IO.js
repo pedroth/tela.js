@@ -106,8 +106,8 @@ export function saveParallelImageStreamToVideo(fileAddress, parallelStreamOfImag
     const promises = inputParamsPartitions.map((inputParams, i) => {
         const spawnFile = "IO_parallel" + i + ".js";
         writeFileSync(spawnFile, `
-            import * as _module from "./src/index.node.js"
             import fs from "node:fs";
+            import * as _module from "./src/index.node.js"
             const {
                 Box,
                 Vec,

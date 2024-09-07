@@ -40,7 +40,7 @@ const isInsideCurve = x => {
             const thetaI = Math.atan2(u.y, u.x);
             const thetaJ = Math.atan2(v.y, v.x);
             let dTheta = thetaJ - thetaI;
-            dTheta = Math.atan2(Math.sin(dTheta), Math.cos(dTheta));
+            dTheta = dTheta - 2 * Math.PI * Math.round(dTheta / (2 * Math.PI));
             theta += dTheta;
         }
         const winding = theta / (2 * Math.PI);
@@ -63,7 +63,6 @@ const drawFrame = (time) => {
         for (let j = 0; j < Math.min(path.length - 1, Math.floor(2 * n * (path.length - 1))); j++) {
             image.drawLine(path[j], path[j + 1], () => Color.WHITE);
         }
-
     }
     return image.paint();
 }

@@ -1,7 +1,8 @@
+import Tela from "./Tela.js";
 import Color from "../Color/Color.js";
 import { readImageFrom } from "../IO/IO.js";
 import { memoize } from "../Utils/Utils.js";
-import Tela, { CHANNELS } from "./Tela.js";
+import { CHANNELS } from "../Utils/Constants.js";
 import { Worker } from "node:worker_threads";
 import os from "node:os";
 
@@ -116,14 +117,31 @@ export default class Image extends Tela {
 const createWorker = (main, lambda, dependencies) => {
     const workerFile = `
     const { parentPort } = require("node:worker_threads");
-    const CHANNELS = ${CHANNELS};
-    ${dependencies.concat([Color]).map(d => d.toString()).join("\n")}
-    const lambda = ${lambda.toString()};
-    const __main__ = ${main.toString()};
-    parentPort.on("message", message => {
-        const output = __main__(message);
-        parentPort.postMessage(output);
-    });
+    const _module = import("./src/index.js").then(_module => {
+        const {
+            Box,
+            Vec,
+            Vec2,
+            Vec3,
+            Mesh,
+            Color,
+            Image,
+            BScene,
+            Camera,
+            KScene,
+            Sphere,
+            MAX_8BIT,
+            NaiveScene,
+            CHANNELS
+        } = _module;
+        ${dependencies.map(d => d.toString()).join("\n")}
+        const lambda = ${lambda.toString()};
+        const __main__ = ${main.toString()};
+        parentPort.on("message", message => {
+            const output = __main__(message);
+            parentPort.postMessage(output);
+        });
+    })
     `;
     const worker = new Worker(workerFile, { eval: true });
     return worker;

@@ -1,7 +1,7 @@
 import Color from "../Color/Color.js";
-import { MAX_8BIT } from "../Utils/Constants.js";
+import { CHANNELS, MAX_8BIT } from "../Utils/Constants.js";
 import { memoize } from "../Utils/Utils.js";
-import Tela, { CHANNELS } from "./Tela.js";
+import Tela from "./Tela.js";
 
 export default class Canvas extends Tela {
 
@@ -228,10 +228,11 @@ const createWorker = (main, lambda, dependencies) => {
   const lambda = ${lambda.toString()};
   const __main__ = ${main.toString()};
   onmessage = e => {
-      const input = e.data
+      const input = e.data;
+      console.log(">>>")
       const output = __main__(input);
       self.postMessage(output);
   };
   `;
-  return new Worker(URL.createObjectURL(new Blob([workerFile])));
+  return new Worker(URL.createObjectURL(new Blob([workerFile], { type: 'application/javascript' })), { type: "module" });
 };

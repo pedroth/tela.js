@@ -1,9 +1,8 @@
 import Color from "../Color/Color.js";
 import Box from "../Geometry/Box.js";
+import { CHANNELS } from "../Utils/Constants.js";
 import { mod } from "../Utils/Math.js";
 import { Vec2 } from "../Vector/Vector.js";
-
-export const CHANNELS = 4;
 
 // Abstract Image
 export default class Tela {
