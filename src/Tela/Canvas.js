@@ -1,6 +1,5 @@
 import Color from "../Color/Color.js";
 import { CHANNELS, MAX_8BIT } from "../Utils/Constants.js";
-import { memoize } from "../Utils/Utils.js";
 import Tela from "./Tela.js";
 
 export default class Canvas extends Tela {
@@ -25,66 +24,6 @@ export default class Canvas extends Tela {
     this.ctx.putImageData(this.imageData, 0, 0);
     return this;
   }
-
-  mapParallel = memoize((lambda, dependencies = []) => {
-    const N = navigator.hardwareConcurrency;
-    const w = this.width;
-    const h = this.height;
-    const fun = ({ _start_row, _end_row, _width_, _height_, _worker_id_, _vars_ }) => {
-      const image = new Float32Array(CHANNELS * _width_ * (_end_row - _start_row));
-      const startIndex = CHANNELS * _width_ * _start_row;
-      const endIndex = CHANNELS * _width_ * _end_row;
-      let index = 0;
-      for (let k = startIndex; k < endIndex; k += CHANNELS) {
-        const i = Math.floor(k / (CHANNELS * _width_));
-        const j = Math.floor((k / CHANNELS) % _width_);
-        const x = j;
-        const y = _height_ - 1 - i;
-        const color = lambda(x, y, { ..._vars_ });
-        if (!color) return;
-        image[index] = color.red;
-        image[index + 1] = color.green;
-        image[index + 2] = color.blue;
-        image[index + 3] = color.alpha;
-        index += CHANNELS;
-      }
-      return { image, _start_row, _end_row, _worker_id_ };
-    }
-    const workers = [...Array(N)].map(() => createWorker(fun, lambda, dependencies));
-    return {
-      run: (vars = {}) => {
-        // works better than Promise.all solution
-        return new Promise((resolve) => {
-          const allWorkersDone = [...Array(N)].fill(false);
-          workers.forEach((worker, k) => {
-            worker.onmessage = (event) => {
-              const { image, _start_row, _end_row, _worker_id_ } = event.data;
-              let index = 0;
-              const startIndex = CHANNELS * w * _start_row;
-              const endIndex = CHANNELS * w * _end_row;
-              for (let i = startIndex; i < endIndex; i++) {
-                this.image[i] = image[index];
-                index++;
-              }
-              allWorkersDone[_worker_id_] = true;
-              if (allWorkersDone.every(x => x)) {
-                return resolve(this.paint());
-              }
-            };
-            const ratio = Math.floor(h / N);
-            worker.postMessage({
-              _start_row: k * ratio,
-              _end_row: Math.min(h - 1, (k + 1) * ratio),
-              _width_: w,
-              _height_: h,
-              _worker_id_: k,
-              _vars_: vars
-            });
-          })
-        })
-      }
-    }
-  });
 
   onMouseDown(lambda) {
     this.canvas.addEventListener("mousedown", handleMouse(this, lambda), false);
@@ -219,19 +158,3 @@ function handleMouse(canvas, lambda) {
     return lambda(x, y, event);
   }
 }
-
-const createWorker = (main, lambda, dependencies) => {
-  const workerFile = `
-  const CHANNELS = ${CHANNELS};
-  ${Color.toString()}
-  ${dependencies.map(d => d.toString()).join("\n")}
-  const lambda = ${lambda.toString()};
-  const __main__ = ${main.toString()};
-  onmessage = e => {
-      const input = e.data;
-      const output = __main__(input);
-      self.postMessage(output);
-  };
-  `;
-  return new Worker(URL.createObjectURL(new Blob([workerFile], { type: 'application/javascript' })), { type: "module" });
-};

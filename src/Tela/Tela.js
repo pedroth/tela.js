@@ -3,6 +3,7 @@ import Box from "../Geometry/Box.js";
 import { CHANNELS } from "../Utils/Constants.js";
 import { mod } from "../Utils/Math.js";
 import { Vec2 } from "../Vector/Vector.js";
+import { parallelWorkers } from "./parallel.js";
 
 // Abstract Image
 export default class Tela {
@@ -41,7 +42,7 @@ export default class Tela {
         return this.paint();
     }
 
-    mapBox = (lambda, box) => {
+    mapBox(lambda, box) {
         const init = box.min;
         const end = box.max;
         for (let x = init.x; x < end.x; x++) {
@@ -52,6 +53,18 @@ export default class Tela {
             }
         }
         return this;
+    }
+
+    mapParallel(lambda, dependencies = []) {
+        return {
+            run: (vars = {}) => {
+                return Promise
+                    .allSettled(parallelWorkers(this, lambda, dependencies, vars))
+                    .then(() => {
+                        return this.paint();
+                    })
+            }
+        }
     }
 
     fill(color) {
