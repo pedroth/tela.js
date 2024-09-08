@@ -139,7 +139,7 @@ You can find more examples of usage in:
 - [`ffmpeg`][ffmpeg]
 - [`node-sdl`][sdl]
 
-[Node][node] is preferred when running the demos (it is faster, [opened a bug in bun](https://github.com/oven-sh/bun/issues/9218)), [bun][bun] is needed to build the library.
+[Node][node] is preferred when running the demos (it is faster, [opened a bug in bun](https://github.com/oven-sh/bun/issues/9218)).
 
 
 # TODOs
