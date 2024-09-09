@@ -16,6 +16,8 @@ Playground usage:
 
 - [Quick start](#quick-start)
 - [Dependencies](#dependencies)
+- [Acknowledgements](#acknowledgements)
+- [TODOs](#todos)
 
 # Quick start
 
@@ -141,6 +143,12 @@ You can find more examples of usage in:
 
 [Node][node] is preferred when running the demos (it is faster, [opened a bug in bun](https://github.com/oven-sh/bun/issues/9218)).
 
+
+# Acknowledgements
+
+- [Keenan's 3D Model Repository](https://www.cs.cmu.edu/~kmcrane/Projects/ModelRepository/)
+- [The models resource](https://www.models-resource.com/)
+- [otaviogood fonts](https://github.com/otaviogood/shader_fontgen)
 
 # TODOs
 

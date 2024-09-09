@@ -23,7 +23,11 @@ class MyWorker {
             this.worker.removeAllListeners('message');
             this.worker.on("message", lambda);
         } else {
-            this.worker.onmessage = message => lambda(message.data);
+            if (this.__lambda) {
+                this.worker.removeEventListener('message', this.__lambda);
+            }
+            this.__lambda = message => lambda(message.data);
+            this.worker.addEventListener("message", this.__lambda);
         }
     }
 

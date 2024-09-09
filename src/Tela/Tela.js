@@ -58,8 +58,9 @@ export default class Tela {
     mapParallel(lambda, dependencies = []) {
         return {
             run: (vars = {}) => {
+                const workersPromises = parallelWorkers(this, lambda, dependencies, vars);
                 return Promise
-                    .allSettled(parallelWorkers(this, lambda, dependencies, vars))
+                    .allSettled(workersPromises)
                     .then(() => {
                         return this.paint();
                     })
