@@ -537,6 +537,10 @@ const examples = [
         title: "SDF editor",
         path: "/test/web/sdf_editor.js"
     },
+    {
+        title: "SDF editor parallel",
+        path: "/test/web/sdf_editor_parallel.js"
+    },
     // {
     //     title: "Voxel SDF editor",
     //     path: "/test/web/sdf_editor_voxel.js"
@@ -560,6 +564,10 @@ const examples = [
     {
         title: "rendering svg",
         path: "/test/web/svg.js"
+    },
+    {
+        title: "parallel volumetric rendering",
+        path: "/test/web/volumetric_parallel.js"
     },
     {
         title: "spot spheres test",

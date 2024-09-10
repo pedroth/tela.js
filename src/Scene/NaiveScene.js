@@ -9,7 +9,7 @@ export default class NaiveScene {
     this.sceneElements = [];
   }
 
-  get hash() {
+  getHash() {
     return this.getElements().reduce((e, x) => e ^ hashStr(x.name), 0);
   }
 

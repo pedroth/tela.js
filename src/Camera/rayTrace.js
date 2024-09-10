@@ -4,7 +4,7 @@ import Ray from "../Ray/Ray.js";
 import Vec from "../Vector/Vector.js";
 import { getBiLinearTexColor, getDefaultTexColor, getTexColor } from "./common.js";
 
-export function rayTrace(ray, scene, params) {
+export function rayTrace(ray, scene, params = {}) {
     let { samplesPerPxl, bounces, variance, gamma, bilinearTexture } = params;
     bounces = bounces ?? 10;
     variance = variance ?? 0.001;

@@ -36,7 +36,8 @@ class MyWorker {
     }
 }
 
-let WORKERS = [];
+let RAY_TRACE_WORKERS = [];
+let RAY_MAP_WORKERS = [];
 let prevSceneHash = undefined;
 
 //========================================================================================
@@ -45,20 +46,21 @@ let prevSceneHash = undefined;
  *                                                                                      */
 //========================================================================================
 
-export function parallelWorkers(camera, scene, canvas, params = {}) {
+export function rayTraceWorkers(camera, scene, canvas, params = {}) {
     // lazy loading workers
-    if (WORKERS.length === 0) {
+    if (RAY_TRACE_WORKERS.length === 0) {
         // needs to be here...
         const isGithub = typeof window !== "undefined" && (window.location.host || window.LOCATION_HOST) === "pedroth.github.io";
         const SOURCE = isGithub ? "/tela.js" : ""
-        WORKERS = [...Array(NUMBER_OF_CORES)]
+        RAY_TRACE_WORKERS = [...Array(NUMBER_OF_CORES)]
             .map(() => new MyWorker(`${IS_NODE ? "." : SOURCE}/src/Camera/rayTraceWorker.js`));
     }
     const w = canvas.width;
     const h = canvas.height;
-    const isNewScene = prevSceneHash !== scene.hash;
-    if (isNewScene) prevSceneHash = scene.hash;
-    return WORKERS.map((worker, k) => {
+    const newHash = scene?.getHash();
+    const isNewScene = prevSceneHash !== newHash;
+    if (isNewScene) prevSceneHash = newHash;
+    return RAY_TRACE_WORKERS.map((worker, k) => {
         return new Promise((resolve) => {
             worker.onMessage(message => {
                 const { image, startRow, endRow, } = message;
@@ -70,15 +72,60 @@ export function parallelWorkers(camera, scene, canvas, params = {}) {
                 }
                 resolve();
             })
-            const ratio = Math.floor(h / WORKERS.length);
+            const ratio = Math.floor(h / RAY_TRACE_WORKERS.length);
 
             const message = {
                 width: w,
                 height: h,
-                params: params,
+                vars: params,
                 startRow: k * ratio,
                 endRow: Math.min(h, (k + 1) * ratio),
                 camera: camera.serialize(),
+                scene: isNewScene ? scene.serialize() : undefined
+            };
+            worker.postMessage(message);
+        });
+    })
+}
+
+export function rayMapWorkers(camera, scene, canvas, lambda, vars, dependencies) {
+    // lazy loading workers
+    if (RAY_MAP_WORKERS.length === 0) {
+        // needs to be here...
+        const isGithub = typeof window !== "undefined" && (window.location.host || window.LOCATION_HOST) === "pedroth.github.io";
+        const SOURCE = isGithub ? "/tela.js" : ""
+        RAY_MAP_WORKERS = [...Array(NUMBER_OF_CORES)]
+            .map(() => new MyWorker(`${IS_NODE ? "." : SOURCE}/src/Camera/rayMapWorker.js`));
+    }
+    const w = canvas.width;
+    const h = canvas.height;
+    const newHash = scene?.getHash();
+    const isNewScene = prevSceneHash !== newHash;
+    if (isNewScene) prevSceneHash = newHash;
+    return RAY_MAP_WORKERS.map((worker, k) => {
+        return new Promise((resolve) => {
+            worker.onMessage(message => {
+                const { image, startRow, endRow, } = message;
+                console.log(`$$$`)
+                let index = 0;
+                const startIndex = CHANNELS * w * startRow;
+                const endIndex = CHANNELS * w * endRow;
+                for (let i = startIndex; i < endIndex; i += CHANNELS) {
+                    canvas.setPxlData(i, Color.ofRGB(image[index++], image[index++], image[index++], image[index++]));
+                }
+                resolve();
+            })
+            const ratio = Math.floor(h / RAY_MAP_WORKERS.length);
+
+            const message = {
+                width: w,
+                height: h,
+                vars: vars,
+                lambda: lambda.toString(),
+                startRow: k * ratio,
+                endRow: Math.min(h, (k + 1) * ratio),
+                camera: camera.serialize(),
+                dependencies: dependencies.map(d => d.toString()),
                 scene: isNewScene ? scene.serialize() : undefined
             };
             worker.postMessage(message);
