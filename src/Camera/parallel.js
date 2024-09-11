@@ -22,12 +22,14 @@ class MyWorker {
         if (IS_NODE) {
             this.worker.removeAllListeners('message');
             this.worker.on("message", lambda);
+            this.worker.on("error", e => console.log("Caught error on worker", e))
         } else {
             if (this.__lambda) {
                 this.worker.removeEventListener('message', this.__lambda);
             }
             this.__lambda = message => lambda(message.data);
             this.worker.addEventListener("message", this.__lambda);
+            this.worker.addEventListener("error", e => console.log("Caught error on worker", e));
         }
     }
 
@@ -39,7 +41,9 @@ class MyWorker {
 let RAY_TRACE_WORKERS = [];
 let RAY_MAP_WORKERS = [];
 let prevSceneHash = undefined;
+let isFirstTimeCounter = NUMBER_OF_CORES;
 
+const MAGIC_SETUP_TIME = 400;
 //========================================================================================
 /*                                                                                      *
  *                                         MAIN                                         *
@@ -83,12 +87,18 @@ export function rayTraceWorkers(camera, scene, canvas, params = {}) {
                 camera: camera.serialize(),
                 scene: isNewScene ? scene.serialize() : undefined
             };
-            worker.postMessage(message);
+            if (isFirstTimeCounter > 0 && !IS_NODE) {
+                // hack to work in the browser, don't know why it works
+                isFirstTimeCounter--;
+                setTimeout(() => worker.postMessage(message), MAGIC_SETUP_TIME);
+            } else {
+                worker.postMessage(message)
+            }
         });
     })
 }
 
-export function rayMapWorkers(camera, scene, canvas, lambda, vars, dependencies) {
+export function rayMapWorkers(camera, scene, canvas, lambda, vars = [], dependencies = []) {
     // lazy loading workers
     if (RAY_MAP_WORKERS.length === 0) {
         // needs to be here...
@@ -106,7 +116,6 @@ export function rayMapWorkers(camera, scene, canvas, lambda, vars, dependencies)
         return new Promise((resolve) => {
             worker.onMessage(message => {
                 const { image, startRow, endRow, } = message;
-                console.log(`$$$`)
                 let index = 0;
                 const startIndex = CHANNELS * w * startRow;
                 const endIndex = CHANNELS * w * endRow;
@@ -116,7 +125,7 @@ export function rayMapWorkers(camera, scene, canvas, lambda, vars, dependencies)
                 resolve();
             })
             const ratio = Math.floor(h / RAY_MAP_WORKERS.length);
-
+            
             const message = {
                 width: w,
                 height: h,
@@ -128,7 +137,14 @@ export function rayMapWorkers(camera, scene, canvas, lambda, vars, dependencies)
                 dependencies: dependencies.map(d => d.toString()),
                 scene: isNewScene ? scene.serialize() : undefined
             };
-            worker.postMessage(message);
+            if (isFirstTimeCounter > 0 && !IS_NODE) {
+                // hack to work in the browser, don't know why it works
+                isFirstTimeCounter--;
+                setTimeout(() => worker.postMessage(message), MAGIC_SETUP_TIME);
+            } else {
+                worker.postMessage(message)
+            }
+            
         });
     })
 }

@@ -37,13 +37,15 @@ class MyWorker {
 }
 
 let WORKERS = [];
+let isFirstTimeCounter = NUMBER_OF_CORES;
+const MAGIC_SETUP_TIME = 400;
 //========================================================================================
 /*                                                                                      *
  *                                         MAIN                                         *
  *                                                                                      */
 //========================================================================================
 
-export function parallelWorkers(tela, lambda, dependencies, vars) {
+export function parallelWorkers(tela, lambda, dependencies = [], vars = []) {
     // lazy loading workers
     if (WORKERS.length === 0) {
         // needs to be here...
@@ -76,7 +78,13 @@ export function parallelWorkers(tela, lambda, dependencies, vars) {
                 __endRow: Math.min(h, (k + 1) * ratio),
                 __dependencies: dependencies.map(d => d.toString()),
             };
-            worker.postMessage(message);
+            if (isFirstTimeCounter > 0 && !IS_NODE) {
+                // hack to work in the browser, don't know why it works
+                isFirstTimeCounter--;
+                setTimeout(() => worker.postMessage(message), MAGIC_SETUP_TIME);
+            } else {
+                worker.postMessage(message)
+            }
         });
     })
 }

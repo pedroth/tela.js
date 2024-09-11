@@ -55,4 +55,6 @@ if (IS_NODE) {
         const output = await main(input);
         postMessage(output);
     };
+
+    onerror = e => console.log("Caught error on rayTrace worker", e);
 }

@@ -27,6 +27,7 @@ async function main(inputs) {
         scene: serializedScene,
         camera: serializedCamera,
     } = inputs;
+
     scene = serializedScene ? await getScene(serializedScene) : scene;
     const camera = Camera.deserialize(serializedCamera);
     const rayGen = camera.rayFromImage(width, height);
@@ -38,7 +39,7 @@ async function main(inputs) {
     for (let y = startRow; y < endRow; y++) {
         for (let x = 0; x < width; x++) {
             const ray = rayGen(x, height - 1 - y);
-            const color = __lambda(ray, {...vars, scene});
+            const color = __lambda(ray, { ...vars, scene });
             image[index++] = color.red;
             image[index++] = color.green;
             image[index++] = color.blue;
@@ -53,7 +54,8 @@ const getLambda = memoize((lambda, dependencies) => {
         ${dependencies.map(d => d.toString()).join("\n")}
         const __lambda = ${lambda};
         __lambda;
-    `)
+        `)
+    console.log("$$$", __lambda.toString())
     return __lambda;
 });
 
@@ -65,9 +67,15 @@ if (IS_NODE) {
         parentPort.postMessage(output);
     });
 } else {
-    onmessage = async message => {
+    self.onmessage = async message => {
         const input = message.data;
         const output = await main(input);
         postMessage(output);
     };
+
+    self.onerror = e => {
+        console.log(`Caught error inside ray map worker ${e}`)
+    };
+
+
 }
