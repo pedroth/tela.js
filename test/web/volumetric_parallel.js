@@ -1,8 +1,8 @@
 /* eslint-disable no-undef */
 async (canvas, logger) => {
     // resize incoming canvas:Canvas object.
-    const width = 640 / 2;
-    const height = 480 / 2;
+    const width = 640 / 3;
+    const height = 480 / 3;
     canvas.resize(width, height);
     // scene
     const camera = new Camera();
@@ -91,9 +91,10 @@ async (canvas, logger) => {
     range.setAttribute("step", 0.01);
     range.setAttribute("value", 1);
     range.addEventListener("input", () => {
-        alpha = range.value;
-        label.innerText = `&alpha; = ${alpha.toFixed(2)}`;
+        alpha = Number(range.value);
+        label.innerHTML = `&alpha; = ${alpha.toFixed(2)}`;
     });
+    label.innerHTML = `&alpha; = ${alpha.toFixed(2)}`;
     document.body.appendChild(range);
     document.body.appendChild(label);
 }

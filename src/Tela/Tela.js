@@ -8,6 +8,8 @@ import { parallelWorkers } from "./parallel.js";
 // Abstract Image
 export default class Tela {
     constructor(width, height) {
+        width = Math.floor(width);
+        height = Math.floor(height);
         this.width = width;
         this.height = height;
         this.image = new Float32Array(CHANNELS * this.width * this.height);

@@ -28,7 +28,7 @@ async function main(inputs) {
         camera: serializedCamera,
     } = inputs;
 
-    scene = serializedScene ? await getScene(serializedScene) : scene;
+    scene = serializedScene ? (await getScene(serializedScene)).rebuild() : scene;
     const camera = Camera.deserialize(serializedCamera);
     const rayGen = camera.rayFromImage(width, height);
     const __lambda = getLambda(lambda, dependencies);
@@ -40,6 +40,7 @@ async function main(inputs) {
         for (let x = 0; x < width; x++) {
             const ray = rayGen(x, height - 1 - y);
             const color = __lambda(ray, { ...vars, scene });
+            if(!color) continue;
             image[index++] = color.red;
             image[index++] = color.green;
             image[index++] = color.blue;
@@ -55,7 +56,6 @@ const getLambda = memoize((lambda, dependencies) => {
         const __lambda = ${lambda};
         __lambda;
         `)
-    console.log("$$$", __lambda.toString())
     return __lambda;
 });
 

@@ -38,7 +38,7 @@ class MyWorker {
 
 let WORKERS = [];
 let isFirstTimeCounter = NUMBER_OF_CORES;
-const MAGIC_SETUP_TIME = 400;
+const MAGIC_SETUP_TIME = 700;
 //========================================================================================
 /*                                                                                      *
  *                                         MAIN                                         *

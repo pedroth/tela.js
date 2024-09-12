@@ -1,16 +1,13 @@
 import { Color, Vec2, Window, loop, Camera, Vec3, Vec } from "../../src/index.node.js";
 
-const width = 640;
-const height = 480;
+const width = 640/3;
+const height = 480/3;
 const window = new Window(width, height).onResizeWindow(() => window.paint());
 // scene
 const camera = new Camera();
-
-
+// utils
 function distanceFunction(p) { return p.length() - 1 }
-function noise(p, time = 0) {
-    const coeffs = [...Array(10)].map(() => Vec.RANDOM(3).scale(2).sub(Vec3(1, 1, 1)).normalize());
-    const phases = coeffs.map(() => 2 * Math.PI * Math.random());
+function noise(p, coeffs, phases, time = 0) {
     let acc = 0;
     let halves = 0.7;
     for (let i = 0; i < coeffs.length; i++) {
@@ -49,12 +46,13 @@ function pallete(density) {
     ]
     return Color.ofRGB(t * color[0], t * color[1], t * color[2]);
 }
-const rayScene = (ray, { time }) => {
+const rayScene = (ray, { time, serialCoeffs, phases }) => {
     const alpha = 0.01;
     const maxDist = 10;
     const epsilon = 1e-3;
     const MARCH_STEP = 0.01;
     const MAX_STEPS = 1 / MARCH_STEP;
+    const coeffs = serialCoeffs.map(c => Vec.fromArray(c));
 
     const { init } = ray;
     let p = init;
@@ -65,7 +63,7 @@ const rayScene = (ray, { time }) => {
         const d = distanceFunction(p);
         t += d;
         if (d < epsilon) {
-            break;
+            continue;
         }
         if (d > maxDist) {
             return Color.BLACK;
@@ -77,7 +75,7 @@ const rayScene = (ray, { time }) => {
         p = ray.trace(t);
         const d = distanceFunction(p);
         if (d < 0) {
-            density += Math.exp(-(t - t0) * alpha) * MARCH_STEP * noise(p, time);
+            density += Math.exp(-(t - t0) * alpha) * MARCH_STEP * noise(p, coeffs, phases, time);
         }
     }
     // return Color.ofRGB(density, density, density);
@@ -112,7 +110,10 @@ window.onMouseMove((x, y) => {
 window.onMouseWheel(({ deltaY }) => {
     camera.orbit(coords => coords.add(Vec3(deltaY * 0.001, 0, 0)));
 })
-loop(({ dt, time }) => {
-    camera.rayMapParallel(rayScene, [noise, distanceFunction, pallete]).to(window, { time });
+//main
+const coeffs = [...Array(10)].map(() => Vec.RANDOM(3).scale(2).sub(Vec3(1, 1, 1)).normalize());
+const phases = coeffs.map(() => 2 * Math.PI * Math.random());
+loop(async ({ dt, time }) => {
+    await camera.rayMapParallel(rayScene, [noise, distanceFunction, pallete]).to(window, { time, serialCoeffs: coeffs.map(x => x.toArray()), phases });
     window.setTitle(`FPS: ${(1 / dt).toFixed(2)}`);
 }).play();

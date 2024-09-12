@@ -42,8 +42,9 @@ let RAY_TRACE_WORKERS = [];
 let RAY_MAP_WORKERS = [];
 let prevSceneHash = undefined;
 let isFirstTimeCounter = NUMBER_OF_CORES;
+let serializedScene = undefined;
 
-const MAGIC_SETUP_TIME = 400;
+const MAGIC_SETUP_TIME = 800;
 //========================================================================================
 /*                                                                                      *
  *                                         MAIN                                         *
@@ -63,7 +64,12 @@ export function rayTraceWorkers(camera, scene, canvas, params = {}) {
     const h = canvas.height;
     const newHash = scene?.getHash();
     const isNewScene = prevSceneHash !== newHash;
-    if (isNewScene) prevSceneHash = newHash;
+    if (isNewScene) {
+        prevSceneHash = newHash;
+        serializedScene = scene.serialize()
+    } else {
+        serializedScene = undefined;
+    }
     return RAY_TRACE_WORKERS.map((worker, k) => {
         return new Promise((resolve) => {
             worker.onMessage(message => {
@@ -85,7 +91,7 @@ export function rayTraceWorkers(camera, scene, canvas, params = {}) {
                 startRow: k * ratio,
                 endRow: Math.min(h, (k + 1) * ratio),
                 camera: camera.serialize(),
-                scene: isNewScene ? scene.serialize() : undefined
+                scene: serializedScene
             };
             if (isFirstTimeCounter > 0 && !IS_NODE) {
                 // hack to work in the browser, don't know why it works
@@ -111,7 +117,12 @@ export function rayMapWorkers(camera, scene, canvas, lambda, vars = [], dependen
     const h = canvas.height;
     const newHash = scene?.getHash();
     const isNewScene = prevSceneHash !== newHash;
-    if (isNewScene) prevSceneHash = newHash;
+    if (isNewScene) {
+        prevSceneHash = newHash;
+        serializedScene = scene.serialize()
+    } else {
+        serializedScene = undefined;
+    }
     return RAY_MAP_WORKERS.map((worker, k) => {
         return new Promise((resolve) => {
             worker.onMessage(message => {
@@ -135,7 +146,7 @@ export function rayMapWorkers(camera, scene, canvas, lambda, vars = [], dependen
                 endRow: Math.min(h, (k + 1) * ratio),
                 camera: camera.serialize(),
                 dependencies: dependencies.map(d => d.toString()),
-                scene: isNewScene ? scene.serialize() : undefined
+                scene: serializedScene
             };
             if (isFirstTimeCounter > 0 && !IS_NODE) {
                 // hack to work in the browser, don't know why it works
