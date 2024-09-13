@@ -15,7 +15,7 @@ async (canvas, logger) => {
     scene.addList(mesh.asSpheres(0.05));
     scene.rebuild();
 
-    const rayScene = (ray) => {
+    const rayScene = (ray, {scene}) => {
         const maxIte = 100;
         const maxDist = 10;
         const epsilon = 1e-3;
@@ -66,8 +66,8 @@ async (canvas, logger) => {
         camera.orbit(coords => coords.add(Vec3(deltaY * 0.001, 0, 0)));
     })
 
-    loop(({ dt }) => {
-        camera.rayMap(rayScene).to(canvas);
+    loop(async ({ dt }) => {
+        await camera.rayMapParallel(rayScene).to(canvas, {scene});
         logger.print(`FPS: ${Math.floor(1 / dt)}`);
     }).play();
 }

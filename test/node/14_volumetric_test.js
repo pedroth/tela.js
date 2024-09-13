@@ -1,8 +1,9 @@
 import { Color, Vec2, Window, loop, Camera, Vec3, Vec } from "../../src/index.node.js";
 
-const width = 640/3;
-const height = 480/3;
+const width = 640 / 3;
+const height = 480 / 3;
 const window = new Window(width, height).onResizeWindow(() => window.paint());
+window.setWindowSize(1024, 720);
 // scene
 const camera = new Camera();
 // utils
@@ -107,8 +108,8 @@ window.onMouseMove((x, y) => {
     ));
     mouse = newMouse;
 })
-window.onMouseWheel(({ deltaY }) => {
-    camera.orbit(coords => coords.add(Vec3(deltaY * 0.001, 0, 0)));
+window.onMouseWheel(({ dy }) => {
+    camera.orbit(coords => coords.add(Vec3(-dy * 0.1, 0, 0)));
 })
 //main
 const coeffs = [...Array(10)].map(() => Vec.RANDOM(3).scale(2).sub(Vec3(1, 1, 1)).normalize());
