@@ -14,10 +14,11 @@ export default class Stream {
     get tail() {
         return (async () => {
             let state = this.head;
-            while (!this._pred(this._tail(state))) {
-                state = await this._tail(state);
+            let nextState;
+            while (!this._pred((nextState = await this._tail(state)))) {
+                state = nextState;
             }
-            return new Stream(await this._tail(state), this._tail, this._pred);
+            return new Stream(nextState, this._tail, this._pred);
         })();
     }
 

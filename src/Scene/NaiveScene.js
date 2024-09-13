@@ -9,8 +9,15 @@ export default class NaiveScene {
     this.sceneElements = [];
   }
 
-  get hash() {
-    return this.getElements().reduce((e, x) => e ^ hashStr(x.name), 0);
+  getHash() {
+    const elements = this.getElements();
+    let combinedHash = 0;
+    const prime = 31;  // A prime number, typically used in hash functions
+    for (let i = 0; i < elements.length; i++) {
+      const hash = hashStr(elements[i].name);
+      combinedHash = (combinedHash * prime) ^ hash;
+    }
+    return combinedHash >>> 0; // unsigned shift operator, converts combinedHash to unsigned number
   }
 
   add(...elements) {

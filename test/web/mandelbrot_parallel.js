@@ -1,7 +1,7 @@
 (canvas, logger) => {
     // resize incoming canvas:Canvas object.
-    const width = 640/2;
-    const height = 480/2;
+    const width = 640;
+    const height = 480;
     canvas.resize(width, height);
     // utils
     const size = Vec2(width, height);
@@ -27,21 +27,15 @@
         const v = Vec2(dx, dy).scale(-1).div(size).mul(box.diagonal);
         box = box.move(v);
         mouse = newMouse;
-        update();
     })
     canvas.onMouseWheel(({ deltaY }) => {
         const scale = Math.sign(deltaY) * 1e-1;
         box = box.scale(1 + scale);
-        update();
     })
-
-    function Vec2(x = 0, y = 0) {
-        return new Vec([x, y]);
-    }
-
+    
     async function update() {
         await canvas.mapParallel((x, y, { width, height, min, max }) => {
-            const ite = 100;
+            const ite = 200;
             const diagonal = [max[0] - min[0], max[1] - min[1]];
             let p = [x / width, y / height];
             p = p.map(z => 2 * z - 1);
@@ -66,5 +60,7 @@
                 max: box.max.toArray()
             })
     }
-    update();
+    loop(async () => {
+        await update();
+    }).play();
 }

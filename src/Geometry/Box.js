@@ -142,11 +142,15 @@ export default class Box {
     }
 
     serialize() {
-        // TODO
+        return {
+            type: Box.name,
+            min: this.min.toArray(),
+            max: this.max.toArray()
+        }
     }
 
-    deserialize() {
-        // TODO
+    static async deserialize(json) {
+        return new Box(Vec.fromArray(json.min), Vec.fromArray(json.max));
     }
 
     static EMPTY = new Box();

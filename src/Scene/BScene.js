@@ -105,7 +105,7 @@ export default class BScene extends NaiveScene {
   }
 
   serialize() {
-    const json = this.super.serialize();
+    const json = super.serialize();
     json.type = BScene.name;
     return json;
   }

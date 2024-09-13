@@ -4,7 +4,7 @@ import { getRayTracer } from "./rayTrace.js";
 import { rasterGraphics } from "./raster.js";
 import { sdfTrace } from "./sdf.js";
 import { normalTrace } from "./normal.js";
-import { parallelWorkers } from "./parallel.js";
+import { rayMapWorkers, rayTraceWorkers } from "./parallel.js";
 
 export default class Camera {
   constructor(props = {}) {
@@ -107,6 +107,18 @@ export default class Camera {
     }
   }
 
+  rayMapParallel(lambdaWithRays, dependencies) {
+    return {
+      to: (canvas, { scene, ...vars }) => {
+        return Promise
+          .allSettled(rayMapWorkers(this, scene, canvas, lambdaWithRays, vars, dependencies))
+          .then(() => {
+            return canvas.paint();
+          })
+      }
+    }
+  }
+
   sceneShot(scene, params) {
     return this.rayMap(getRayTracer(scene, params));
   }
@@ -129,7 +141,7 @@ export default class Camera {
     return {
       to: canvas => {
         return Promise
-          .all(parallelWorkers(this, scene, canvas, params))
+          .allSettled(rayTraceWorkers(this, scene, canvas, params))
           .then(() => {
             return canvas.paint();
           })

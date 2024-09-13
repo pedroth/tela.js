@@ -54,7 +54,7 @@ export function fRandom() {
 }
 
 const setTimeOut = typeof window === "undefined" ? setTimeout : requestAnimationFrame;
-if(typeof window !== "undefined") window.globalAnimationIDs = [];
+if (typeof window !== "undefined") window.globalAnimationIDs = [];
 export function loop(lambda) {
     let isFinished = false;
     const loopControl = {
@@ -74,7 +74,7 @@ export function loop(lambda) {
             oldT: newT,
             time: time + dt,
         }));
-        if(typeof window !== "undefined") window.globalAnimationIDs.push(id);
+        if (typeof window !== "undefined") window.globalAnimationIDs.push(id);
 
         return loopControl;
     }

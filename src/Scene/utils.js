@@ -1,3 +1,4 @@
+import Line from "../Geometry/Line.js";
 import Sphere from "../Geometry/Sphere.js";
 import Triangle from "../Geometry/Triangle.js";
 import BScene from "./BScene.js";
@@ -21,6 +22,7 @@ export async function deserializeScene(sceneJson) {
         const serializedElement = sceneData[i];
         if (serializedElement.type === Triangle.name) sceneElements.push(await Triangle.deserialize(serializedElement, artifacts));
         if (serializedElement.type === Sphere.name) sceneElements.push(await Sphere.deserialize(serializedElement, artifacts));
+        if (serializedElement.type === Line.name) sceneElements.push(await Line.deserialize(serializedElement, artifacts));
     }
     return new SceneClass(...params)
         .addList(sceneElements);

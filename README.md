@@ -16,6 +16,8 @@ Playground usage:
 
 - [Quick start](#quick-start)
 - [Dependencies](#dependencies)
+- [Acknowledgements](#acknowledgements)
+- [TODOs](#todos)
 
 # Quick start
 
@@ -36,7 +38,7 @@ Playground usage:
 
     const width = 640;
     const height = 480;
-    const canvas = Canvas.ofSize(640, 480);
+    const canvas = Canvas.ofSize(width, height);
     loop(({ time, dt }) => {
         document.title = `FPS: ${(Math.floor(1 / dt))}`;
         canvas.map((x, y) => {
@@ -60,7 +62,7 @@ import { loop, Color, Window } from "tela.js/src/index.node.js";
 
 const width = 640;
 const height = 480;
-const window = Window.ofSize(640, 480);
+const window = Window.ofSize(width, height);
 loop(({ time, dt }) => {
     window.setTitle(`FPS: ${Math.floor(1 / dt)}`);
     window.map((x, y) => {
@@ -111,9 +113,6 @@ video(
 
 And run it: `node index.mjs` / `bun index.js`
 
-### Bun install issue
-
-Bun install is currently not working properly on these project. Although you can run examples with bun.
 
 ### Note on generating videos
 
@@ -141,6 +140,12 @@ You can find more examples of usage in:
 
 [Node][node] is preferred when running the demos (it is faster, [opened a bug in bun](https://github.com/oven-sh/bun/issues/9218)).
 
+
+# Acknowledgements
+
+- [Keenan's 3D Model Repository](https://www.cs.cmu.edu/~kmcrane/Projects/ModelRepository/)
+- [The models resource](https://www.models-resource.com/)
+- [otaviogood fonts](https://github.com/otaviogood/shader_fontgen)
 
 # TODOs
 
