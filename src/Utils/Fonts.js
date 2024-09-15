@@ -4,8 +4,6 @@ import Image from "../Tela/Image.js";
 import { Vec2 } from "../Vector/Vector.js";
 import { IS_NODE } from "./Constants.js";
 
-
-
 const gridX = 16;
 const gridY = 16;
 // octaviogood fonts documentation: https://www.shadertoy.com/view/llcXRl
