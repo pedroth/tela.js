@@ -12,7 +12,8 @@
     "dist/"
   ],
   "dependencies": {
-    "@kmamal/sdl": "^0.10.2"
+    "@kmamal/sdl": "^0.10.2",
+    "pngjs": "^7.0.0"
   },
   "devDependencies": {
     "bun-types": "latest",
@@ -30,6 +31,7 @@
   "keywords": [
     "javascript",
     "computer graphics",
+    "computer science",
     "algorithms",
     "mathematics",
     "minimal dependencies"

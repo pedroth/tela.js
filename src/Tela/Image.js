@@ -1,11 +1,15 @@
 import Tela from "./Tela.js";
 import Color from "../Color/Color.js";
-import { readImageFrom } from "../IO/IO.js";
+import { readImageFrom, saveImageToFile } from "../IO/IO.js";
 
 export default class Image extends Tela {
 
     serialize() {
         return { type: Image.name, url: this.url };
+    }
+
+    toFile(fileName) {
+        return saveImageToFile(fileName, this);
     }
 
     //========================================================================================
@@ -19,12 +23,12 @@ export default class Image extends Tela {
         const { width: w, height: h, pixels } = readImageFrom(url);
         const img = Image.ofSize(w, h);
         for (let k = 0; k < pixels.length; k++) {
-            const { r, g, b } = pixels[k];
+            const { r, g, b, a } = pixels[k];
             const i = Math.floor(k / w);
             const j = k % w;
             const x = j;
             const y = h - 1 - i;
-            img.setPxl(x, y, Color.ofRGBRaw(r, g, b));
+            img.setPxl(x, y, Color.ofRGBRaw(r, g, b, a));
         }
         img.url = url;
         return img;
