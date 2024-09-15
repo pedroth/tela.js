@@ -58,7 +58,8 @@ window.onKeyDown((e) => {
                 chars.pop();
                 charsCursor--;
             }
-        }
+        },
+        "escape": () => window.close()
     }
     if (Object.keys(key2action).includes(key)) {
         key2action[key](key);
