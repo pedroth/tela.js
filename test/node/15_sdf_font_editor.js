@@ -1,5 +1,7 @@
-import { Vec2, Window, loop, Vec3, Box, Color } from "../../src/index.node.js";
+import { Vec2, Window, loop, Box, Color } from "../../src/index.node.js";
 import { imageFromString } from "../../src/Utils/Fonts.js";
+
+// TODO: add Shift key symbols.
 
 const width = 1024;
 const height = 720;
@@ -7,14 +9,12 @@ const charSizeX = 25;
 const charSizeY = 25;
 const margin = 3;
 const rowSize = Math.floor(width / charSizeX);
-const colSize = Math.floor(height / charSizeY);
 let chars = []
-let viewBox = new Box(Vec2(), Vec2(rowSize, colSize));
 let charsCursor = 0;
 let windowCursor = 0;
 
 const mod = (x, n) => ((x % n) + n) % n;
-const window = new Window(width, height).onResizeWindow(() => window.paint());
+const window = new Window(width, height).onResizeWindow(() => window.paint()).maximize();
 window.onKeyDown((e) => {
     const { key, shift, ctrl } = e;
     const defaultAction = k => {
@@ -65,9 +65,6 @@ window.onKeyDown((e) => {
     } else {
         defaultAction(key);
     }
-});
-window.onMouseWheel(({ dy }) => {
-    console.log(`Message scroll: ${dy}`)
 });
 function str2window(index) {
     const i = index % (rowSize);
