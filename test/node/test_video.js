@@ -6,6 +6,8 @@ const FPS = 25;
 const maxVideoTime = 10; // time in seconds
 
 function animation({ time, image }) {
+    // time_k = time_{k-1} + dt
+    // dt = 1 / FPS
     return image.map((x, y) => {
         return Color.ofRGB(
             ((x * time) / width) % 1,

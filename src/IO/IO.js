@@ -1,6 +1,7 @@
 import { writeFileSync, unlinkSync, readFileSync } from "fs";
 import { execSync, exec } from "child_process";
-import { MAX_8BIT } from "../Utils/Constants.js";
+import { CHANNELS, MAX_8BIT } from "../Utils/Constants.js";
+import { PNG } from "pngjs";
 
 export function saveImageToFile(fileAddress, image) {
     const { fileName, extension } = getFileNameAndExtensionFromAddress(fileAddress);
@@ -35,7 +36,6 @@ function parsePPM(data) {
         .join("")
         .match(/\d+/g)
         .map(Number);
-
     const pixelStart = index;
     const pixels = [];
     for (let i = pixelStart; i < data.length; i += 3) {
@@ -49,14 +49,15 @@ function parsePPM(data) {
 }
 
 export function readImageFrom(src) {
-    const { fileName } = getFileNameAndExtensionFromAddress(src);
+    const { fileName, extension } = getFileNameAndExtensionFromAddress(src);
+    if ("ppm" === extension.toLowerCase()) return parsePPM(readFileSync(src));
+    if ("png" === extension.toLowerCase()) return parsePNG(readFileSync(src));
     const finalName = `${fileName}_${Math.floor(Math.random() * 1e6)}`;
     execSync(`ffmpeg -i ${src} ${finalName}.ppm`);
     const imageFile = readFileSync(`${finalName}.ppm`);
     const { width, height, pixels } = parsePPM(imageFile);
     unlinkSync(`${finalName}.ppm`);
-    return {width, height, pixels};
-    
+    return { width, height, pixels };
 }
 
 export function createPPMFromImage(telaImage) {
@@ -155,4 +156,21 @@ export function saveParallelImageStreamToVideo(fileAddress, parallelStreamOfImag
                 unlinkSync(spawnFile);
             }
         })
+}
+
+export function parsePNG(fileBuffer) {
+    const png = PNG.sync.read(fileBuffer);
+    const width = png.width;
+    const height = png.height;
+    const data = png.data;
+    const pixels = [];
+    for (let i = 0; i < data.length; i += CHANNELS) {
+        pixels.push({
+            r: data[i],
+            g: data[i + 1],
+            b: data[i + 2],
+            a: data[i + 3],
+        });
+    }
+    return { width, height, pixels };
 }

@@ -69,6 +69,10 @@ export default class Color {
     return Color.ofRGB(r, g, b);
   }
 
+  invert() {
+    return Color.ofRGB(1 - this.red, 1 - this.green, 1 - this.blue);
+  }
+
   static ofRGB(red = 0, green = 0, blue = 0, alpha = 1) {
     const rgb = [];
     rgb[0] = red;

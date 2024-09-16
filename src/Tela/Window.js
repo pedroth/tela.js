@@ -74,6 +74,11 @@ export default class Window extends Tela {
         return this;
     }
 
+    maximize() {
+        this.window.maximize();
+        return this;
+    }
+
     //========================================================================================
     /*                                                                                      *
      *                                    Static Methods                                    *

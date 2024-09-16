@@ -390,7 +390,7 @@ function onResize(container, input, output) {
     const style = container.build().style;
     if (window.innerWidth >= window.innerHeight) {
         style["flex-direction"] = "row";
-        input.style(`width:${window.innerWidth / 2}px; height:${window.innerHeight * 0.79}px`);
+        input.style(`width:${window.innerWidth / 2}px; height:${window.innerHeight * 0.75}px`);
         output.style(`width:${window.innerWidth / 2}px; height:${window.innerHeight * 0.79}px`);
     } else {
         style["flex-direction"] = "column";
