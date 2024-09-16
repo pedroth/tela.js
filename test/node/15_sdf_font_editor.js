@@ -16,7 +16,7 @@ let windowCursor = 0;
 const mod = (x, n) => ((x % n) + n) % n;
 const window = new Window(width, height).onResizeWindow(() => window.paint()).maximize();
 window.onKeyDown((e) => {
-    const { key, shift, ctrl } = e;
+    const { key, shift } = e;
     const defaultAction = k => {
         const nextChar = shift ? k.toUpperCase() : k;
         if (charsCursor < chars.length) {
@@ -121,5 +121,4 @@ function blinkCursor(time) {
         if (distance < cursorBlinkThreshold) return Color.WHITE;
         return Color.BLACK;
     }, charBox);
-
 }
