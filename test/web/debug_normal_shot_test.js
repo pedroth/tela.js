@@ -5,7 +5,7 @@ async (canvas) => {
     const height = 480;
     canvas.resize(width, height);
     // scene
-    const scene = new BScene()
+    const scene = new KScene()
     const camera = new Camera().orbit(5,0,0);
     // mouse handling
     let mousedown = false;
@@ -48,15 +48,24 @@ async (canvas) => {
     scene.addList(mesh.asSpheres(0.05));
     scene.rebuild();
 
-    // boilerplate for fps
-    const play = (options = {}) => {
-        const { oldT = new Date().getTime(), time = 0 } = options;
-        const newT = new Date().getTime();
-        const dt = (newT - oldT) * 1e-3;
-        camera.normalShot(scene).to(canvas);
-        // testDistance();
-        logger.print(`FPS: ${(Math.floor(1 / dt))}`);
-        requestAnimationFrame(() => play({ oldT: newT, time: time + dt }))
+    const render = (ray, {scene}) => {
+        const hit = scene.interceptWithRay(ray);
+        if (hit) {
+            const [, point, element] = hit;
+            const normal = element.normalToPoint(point);
+            return Color.ofRGB(
+                (normal.get(0) + 1) / 2,
+                (normal.get(1) + 1) / 2,
+                (normal.get(2) + 1) / 2
+            )
+        }
+        return Color.BLACK;
     }
-    play();
+
+    loop(async ({ dt }) => {
+        await camera.rayMapParallel(render).to(canvas, {scene}); // parallel
+        // camera.normalShot(scene).to(canvas); // single core
+        logger.print(`UD, FPS: ${(1 / dt).toFixed(2)}`);
+    }).play()
 }
+

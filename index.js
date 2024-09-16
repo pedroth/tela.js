@@ -571,7 +571,7 @@ const examples = [
         path: "/test/web/volumetric_parallel.js"
     },
     {
-        title: "spot spheres test",
+        title: "debug mesh spheres test",
         path: "/test/web/debug_normal_shot_test.js"
     },
     {
