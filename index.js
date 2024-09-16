@@ -194,7 +194,7 @@ const getIframeDefaultBody = () => `
 function execBtn() {
     return DOM
         .of("button")
-        .style("margin-left: auto")
+        .style("font-size: large; margin-left: auto;")
         .inner("Run code")
         .event("click", () => AppState.editor.forEach(e => execCode(e.getValue())))
 }
@@ -202,6 +202,7 @@ function execBtn() {
 function exampleSelector() {
     const select = DOM.of("select")
         .attr("title", "Examples")
+        .style("font-size: large;")
         .appendChild(...examples.map(({ title, path }) => {
             const option = DOM.of("option")
                 .attr("value", path)
@@ -224,7 +225,7 @@ function exampleSelector() {
     return DOM.of("div")
         .appendChild(
             DOM.of("span")
-                .style("margin-right: 0.5rem")
+                .style("font-size: larger; margin-right: 0.5rem")
                 .inner("Example:"),
             select
         )
@@ -239,7 +240,7 @@ function getPermaLink() {
             return DOM.of("a")
                 .attr("href", `${baseUrl}#code=${encodedCode}`)
                 .attr("target", "_blank")
-                .inner(`${baseUrl}#code=${encodedCode.slice(0,5)}...`).build().outerHTML;
+                .inner(`${baseUrl}#code=${encodedCode.slice(0, 5)}...`).build().outerHTML;
         })
         .orElse(() => window.location.href);
 }
@@ -248,7 +249,7 @@ function permalink() {
     return DOM
         .of("div")
         .addClass("icon")
-        .style("margin-left: 1rem; width:1rem; height:auto")
+        .style("margin-left: 1rem; width:1.5rem; height:auto")
         .inner(svg("/assets/share.svg"))
         .attr("title", "Share code")
         .event("click", () => modalAlert("PermaLink", getPermaLink()))
@@ -290,7 +291,7 @@ async function input() {
             // eslint-disable-next-line no-undef
             re(monaco.editor.create(container.build(), {
                 value: "",
-                fontSize: "16",
+                fontSize: "22",
                 theme: "vs-dark",
                 lineNumbers: "on",
                 insertSpaces: false,
