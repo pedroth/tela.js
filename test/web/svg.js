@@ -5,7 +5,7 @@ async (canvas) => {
     canvas.resize(width, height);
     
     const svgPath = ["cross.svg", "euler.svg", "stokes.svg"][1];
-    const svg = parseSVG(await fetch(`./assets/${svgPath}`).then(x => x.text()));
+    const svg = parseSVG(await fetch(`/assets/${svgPath}`).then(x => x.text()));
 
     const coordTransform = (x) => {
         const { min, max } = svg.viewBox;

@@ -87,7 +87,7 @@ export function rayTraceWorkers(camera, scene, canvas, params = {}) {
             const message = {
                 width: w,
                 height: h,
-                vars: params,
+                params: params,
                 startRow: k * ratio,
                 endRow: Math.min(h, (k + 1) * ratio),
                 camera: camera.serialize(),

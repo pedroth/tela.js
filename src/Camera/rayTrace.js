@@ -1,7 +1,7 @@
 import Color from "../Color/Color.js";
 import Triangle from "../Geometry/Triangle.js";
 import Ray from "../Ray/Ray.js";
-import Vec from "../Vector/Vector.js";
+import { randomPointInSphere } from "../Utils/Math.js";
 import { getBiLinearTexColor, getDefaultTexColor, getTexColor } from "./common.js";
 
 export function rayTrace(ray, scene, params = {}) {
@@ -14,7 +14,7 @@ export function rayTrace(ray, scene, params = {}) {
     const invSamples = (bounces ?? 1) / samplesPerPxl
     let c = Color.BLACK;
     for (let i = 0; i < samplesPerPxl; i++) {
-        const epsilon = Vec.RANDOM(3).scale(variance);
+        const epsilon = randomPointInSphere(3).scale(variance);
         const epsilonOrtho = epsilon.sub(ray.dir.scale(epsilon.dot(ray.dir)));
         const r = Ray(ray.init, ray.dir.add(epsilonOrtho).normalize());
         c = c.add(trace(r, scene, { bounces, bilinearTexture }));
