@@ -1,3 +1,4 @@
+// Port from https://www.shadertoy.com/view/mtyGWy
 (canvas, logger) => {
     // resize incoming canvas:Canvas object.
     const width = 640;
