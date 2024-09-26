@@ -1,13 +1,12 @@
 import Box from "../Geometry/Box.js";
-import Canvas from "../Tela/Canvas.js";
-import Image from "../Tela/Image.js";
 import { Vec2 } from "../Vector/Vector.js";
 import { IS_NODE } from "./Constants.js";
 
 const gridX = 16;
 const gridY = 16;
 // octaviogood fonts documentation: https://www.shadertoy.com/view/llcXRl
-const fontImage = IS_NODE ? Image.ofUrl("./assets/sdf_font.ppm") : Canvas.ofUrl("./assets/sdf_font.ppm");
+const TELA = await import(IS_NODE ? "../Tela/Image.js" : "../Tela/Canvas.js").then(def => def.default)
+const fontImage = await TELA.ofUrl(`./assets/sdf_font.${IS_NODE ? "ppm" : "png"}`);
 const fontImageWidth = fontImage.width;
 const fontImageHeight = fontImage.height;
 const deltaX = fontImageWidth / gridX;

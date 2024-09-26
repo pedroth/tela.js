@@ -48,3 +48,4 @@ export * from "./Material/Material.js";
 export * from "./Utils/Utils.js";
 export * from "./Utils/Monads.js";
 export * from "./Utils/Constants.js"
+export * from "./Utils/Fonts.js"
