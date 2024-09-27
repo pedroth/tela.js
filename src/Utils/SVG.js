@@ -457,11 +457,26 @@ function eatWhile(predicate) {
  *                                                                                      */
 //========================================================================================
 
+
 function addFirstPointIfNeeded(currentPos, path, keyPointPath) {
     if (keyPointPath.length === 0) {
         path.push(currentPos);
         keyPointPath.push(currentPos);
     }
+}
+
+function finishPath(keyPointPath, svg, id, path) {
+    if (keyPointPath.length > 0) {
+        if (!svg.defPaths[id]) {
+            svg.defPaths[id] = [];
+            svg.defKeyPointPaths[id] = [];
+        }
+        svg.defPaths[id].push(path);
+        svg.defKeyPointPaths[id].push(keyPointPath);
+        path = [];
+        keyPointPath = [];
+    }
+    return { path, keyPointPath }
 }
 
 function readPath(svg, tagNode) {
@@ -474,15 +489,22 @@ function readPath(svg, tagNode) {
     const id = idObj?.attributeValue ?? generateUniqueID(5);
     const letter2action = {
         "M": (vecs) => {
+            const { path: newPath, keyPointPath: newKeyPath } = finishPath(keyPointPath, svg, id, path);
+            path = newPath;
+            keyPointPath = newKeyPath;
             const [p] = vecs;
             currentPos = p;
+            addFirstPointIfNeeded(currentPos, path, keyPointPath);
         },
         "m": (vecs) => {
+            const { path: newPath, keyPointPath: newKeyPath } = finishPath(keyPointPath, svg, id, path);
+            path = newPath;
+            keyPointPath = newKeyPath;
             const [p] = vecs;
             currentPos = currentPos.add(p);
+            addFirstPointIfNeeded(currentPos, path, keyPointPath);
         },
         "L": (vecs) => {
-            addFirstPointIfNeeded(currentPos, path, keyPointPath);
             for (let j = 0; j < vecs.length; j += 1) {
                 path.push(vecs[j]);
                 keyPointPath.push(vecs[j]);
@@ -490,7 +512,6 @@ function readPath(svg, tagNode) {
             }
         },
         "l": (vecs) => {
-            addFirstPointIfNeeded(currentPos, path, keyPointPath);
             for (let j = 0; j < vecs.length; j += 1) {
                 path.push(currentPos.add(vecs[j]));
                 keyPointPath.push(currentPos.add(vecs[j]));
@@ -498,7 +519,6 @@ function readPath(svg, tagNode) {
             }
         },
         "V": (vecs) => {
-            addFirstPointIfNeeded(currentPos, path, keyPointPath);
             for (let j = 0; j < vecs.length; j += 1) {
                 const newP = Vec2(currentPos.x, vecs[j].y);
                 path.push(newP);
@@ -507,7 +527,6 @@ function readPath(svg, tagNode) {
             }
         },
         "v": (vecs) => {
-            addFirstPointIfNeeded(currentPos, path, keyPointPath);
             for (let j = 0; j < vecs.length; j += 1) {
                 path.push(currentPos.add(vecs[j]));
                 keyPointPath.push(currentPos.add(vecs[j]));
@@ -515,7 +534,6 @@ function readPath(svg, tagNode) {
             }
         },
         "H": (vecs) => {
-            addFirstPointIfNeeded(currentPos, path, keyPointPath);
             for (let j = 0; j < vecs.length; j += 1) {
                 const newP = Vec2(vecs[j].x, currentPos.y);
                 path.push(newP);
@@ -524,7 +542,6 @@ function readPath(svg, tagNode) {
             }
         },
         "h": (vecs) => {
-            addFirstPointIfNeeded(currentPos, path, keyPointPath);
             for (let j = 0; j < vecs.length; j += 1) {
                 path.push(currentPos.add(vecs[j]));
                 keyPointPath.push(currentPos.add(vecs[j]));
@@ -532,7 +549,6 @@ function readPath(svg, tagNode) {
             }
         },
         "Q": (vecs) => {
-            addFirstPointIfNeeded(currentPos, path, keyPointPath);
             for (let j = 0; j < vecs.length; j += 2) {
                 const qb = qBezier(currentPos, vecs[j], vecs[j + 1]);
                 for (let i = 0; i < samples; i++) {
@@ -543,7 +559,6 @@ function readPath(svg, tagNode) {
             }
         },
         "q": (vecs) => {
-            addFirstPointIfNeeded(currentPos, path, keyPointPath);
             for (let j = 0; j < vecs.length; j += 2) {
                 const qb = qBezier(currentPos, currentPos.add(vecs[j]), currentPos.add(vecs[j + 1]));
                 for (let i = 0; i < samples; i++) {
@@ -554,39 +569,40 @@ function readPath(svg, tagNode) {
             }
         },
         "T": (vecs) => {
-            addFirstPointIfNeeded(currentPos, path, keyPointPath);
-            const [end] = vecs;
-            const prevKeyPoint = keyPointPath.at(-2) ? keyPointPath.at(-2) : keyPointPath.at(-1);
-            const control = currentPos.scale(2).sub(prevKeyPoint); // reflection bla bla
-            const qb = qBezier(currentPos, control, end);
-            for (let i = 0; i < samples; i++) {
-                path.push(qb(i / (samples - 1)));
+            for (let j = 0; j < vecs.length; j++) {
+                const end = vecs[j];
+                const prevKeyPoint = keyPointPath.at(-2) ? keyPointPath.at(-2) : keyPointPath.at(-1);
+                const control = currentPos.scale(2).sub(prevKeyPoint); // reflection bla bla
+                const qb = qBezier(currentPos, control, end);
+                for (let i = 0; i < samples; i++) {
+                    path.push(qb(i / (samples - 1)));
+                }
+                keyPointPath.push(
+                    currentPos,
+                    control,
+                    end
+                )
+                currentPos = path.at(-1);
             }
-            keyPointPath.push(
-                currentPos,
-                control,
-                end
-            )
-            currentPos = path.at(-1);
         },
         "t": (vecs) => {
-            addFirstPointIfNeeded(currentPos, path, keyPointPath);
-            const [end] = vecs;
-            const prevKeyPoint = keyPointPath.at(-2) ? keyPointPath.at(-2) : keyPointPath.at(-1);
-            const control = currentPos.scale(2).sub(prevKeyPoint); // reflection bla bla
-            const qb = qBezier(currentPos, control, currentPos.add(end));
-            for (let i = 0; i < samples; i++) {
-                path.push(qb(i / (samples - 1)));
+            for (let j = 0; j < vecs.length; j++) {
+                const end = vecs[j];
+                const prevKeyPoint = keyPointPath.at(-2) ? keyPointPath.at(-2) : keyPointPath.at(-1);
+                const control = currentPos.scale(2).sub(prevKeyPoint); // reflection bla bla
+                const qb = qBezier(currentPos, control, currentPos.add(end));
+                for (let i = 0; i < samples; i++) {
+                    path.push(qb(i / (samples - 1)));
+                }
+                keyPointPath.push(
+                    currentPos,
+                    control,
+                    currentPos.add(end)
+                )
+                currentPos = path.at(-1);
             }
-            keyPointPath.push(
-                currentPos,
-                control,
-                currentPos.add(end)
-            )
-            currentPos = path.at(-1);
         },
         "C": (vecs) => {
-            addFirstPointIfNeeded(currentPos, path, keyPointPath);
             for (let j = 0; j < vecs.length; j += 3) {
                 const cb = cBezier(
                     currentPos,
@@ -607,7 +623,6 @@ function readPath(svg, tagNode) {
             }
         },
         "c": (vecs) => {
-            addFirstPointIfNeeded(currentPos, path, keyPointPath);
             for (let j = 0; j < vecs.length; j += 3) {
                 const cb = cBezier(
                     currentPos,
@@ -627,31 +642,65 @@ function readPath(svg, tagNode) {
                 currentPos = path.at(-1);
             }
         },
+        "S": (vecs) => {
+            const prevKeyPoint = keyPointPath.at(-2) ? keyPointPath.at(-2) : keyPointPath.at(-1);
+            const control = currentPos.scale(2).sub(prevKeyPoint); // reflection bla bla
+            for (let j = 0; j < vecs.length; j += 3) {
+                const cb = cBezier(
+                    currentPos,
+                    control,
+                    vecs[j],
+                    vecs[j + 1],
+                );
+                for (let i = 0; i < samples; i++) {
+                    path.push(cb(i / (samples - 1)));
+                }
+                keyPointPath.push(
+                    currentPos,
+                    control,
+                    vecs[j],
+                    vecs[j + 1],
+                )
+                currentPos = path.at(-1);
+            }
+        },
+        "s": (vecs) => {
+            const prevKeyPoint = keyPointPath.at(-2) ? keyPointPath.at(-2) : keyPointPath.at(-1);
+            const control = currentPos.scale(2).sub(prevKeyPoint); // reflection bla bla
+            for (let j = 0; j < vecs.length; j += 3) {
+                const cb = cBezier(
+                    currentPos,
+                    control,
+                    currentPos.add(vecs[j]),
+                    currentPos.add(vecs[j + 1])
+                );
+                for (let i = 0; i < samples; i++) {
+                    path.push(cb(i / (samples - 1)));
+                }
+                keyPointPath.push(
+                    currentPos,
+                    control,
+                    currentPos.add(vecs[j]),
+                    currentPos.add(vecs[j + 1])
+                )
+                currentPos = path.at(-1);
+            }
+        },
         "Z": () => {
             if (keyPointPath.length === 0) return;
             path.push(keyPointPath[0]);
             keyPointPath.push(keyPointPath[0]);
-            if (!svg.defPaths[id]) {
-                svg.defPaths[id] = [];
-                svg.defKeyPointPaths[id] = [];
-            }
-            svg.defPaths[id].push(path);
-            svg.defKeyPointPaths[id].push(keyPointPath);
-            path = [];
-            keyPointPath = [];
+            const { path: newPath, keyPointPath: newKeyPath } = finishPath(keyPointPath, svg, id, path);
+            path = newPath;
+            keyPointPath = newKeyPath;
         },
         "z": () => {
             if (keyPointPath.length === 0) return;
             path.push(keyPointPath[0]);
             keyPointPath.push(keyPointPath[0]);
-            if (!svg.defPaths[id]) {
-                svg.defPaths[id] = [];
-                svg.defKeyPointPaths[id] = [];
-            }
-            svg.defPaths[id].push(path);
-            svg.defKeyPointPaths[id].push(keyPointPath);
-            path = [];
-            keyPointPath = [];
+            const { path: newPath, keyPointPath: newKeyPath } = finishPath(keyPointPath, svg, id, path);
+            path = newPath;
+            keyPointPath = newKeyPath;
         }
     }
     const { actions } = parseSvgPath(svgPath.attributeValue);
@@ -701,7 +750,7 @@ function readTransform(svg, transformNode, transform = transformBuilder()) {
                 transform = dot(transform, transformBuilder(1, 0, 0, 1, ...params))
             }
             if (attributeValue.includes("scale")) {
-                transform = dot(transform, transformBuilder(params[0], 0, params[1], 0, 0, 0))
+                transform = dot(transform, transformBuilder(params[0], 0, 0, params[1] ?? params[0], 0, 0))
             }
         })
     const nodeStack = [...(transformNode?.InnerSVG?.innerSvgs?.map(x => x.SVG) ?? [])];
@@ -724,8 +773,14 @@ function readTransform(svg, transformNode, transform = transformBuilder()) {
                 }
                 if (attributeName === "transform") {
                     const params = attributeValue.match(/-?\d+\.?\d*/g).map(Number);
+                    if (attributeValue.includes("matrix")) {
+                        useParams.transform = dot(useParams.transform, transformBuilder(...params));
+                    }
+                    if (attributeValue.includes("translate")) {
+                        useParams.transform = dot(useParams.transform, transformBuilder(1, 0, 0, 1, ...params))
+                    }
                     if (attributeValue.includes("scale")) {
-                        useParams.transform = dot(useParams.transform, transformBuilder(params[0], 0, 0, params[0], 0, 0));
+                        useParams.transform = dot(useParams.transform, transformBuilder(params[0], 0, 0, params[1] ?? params[0], 0, 0))
                     }
                 }
                 if (attributeName === "x") {
@@ -782,7 +837,7 @@ function readSVGNode(svgNode) {
         if (tag === "defs") {
             const defNodes = (currentNode?.InnerSVG?.innerSvgs?.map(x => x.SVG) ?? []);
             defNodes.forEach(defNode => {
-                const defTag = defNode?.StartTag?.tag ?? currentNode?.EmptyTag?.tag;
+                const defTag = defNode?.StartTag?.tag ?? defNode?.EmptyTag?.tag;
                 if (defTag !== "path") return;
                 readPath(svg, defNode.EmptyTag ?? defNode.StartTag);
             })
@@ -797,7 +852,7 @@ function readSVGNode(svgNode) {
         }
         nodeStack.push(...(currentNode?.InnerSVG?.innerSvgs?.map(x => x.SVG) ?? []));
     }
-    if(svg.paths.length === 0) {
+    if (svg.paths.length === 0) {
         Object.values(svg.defPaths).forEach(paths => svg.paths.push(paths));
         Object.values(svg.defKeyPointPaths).forEach(paths => svg.keyPointPaths.push(paths));
     }
