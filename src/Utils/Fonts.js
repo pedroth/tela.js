@@ -71,7 +71,6 @@ async function or(...lambdas) {
     let error;
     for (let i = 0; i < lambdas.length; i++) {
         try {
-            console.log(">>>", lambdas[i].toString());
             const ans = await lambdas[i]();
             return ans;
         }
