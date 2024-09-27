@@ -4,13 +4,26 @@ import { IS_NODE } from "./Constants.js";
 
 const gridX = 16;
 const gridY = 16;
-// octaviogood fonts documentation: https://www.shadertoy.com/view/llcXRl
-const TELA = await import(IS_NODE ? "../Tela/Image.js" : "../Tela/Canvas.js").then(def => def.default)
-const fontImage = await TELA.ofUrl(`./assets/sdf_font.${IS_NODE ? "ppm" : "png"}`);
-const fontImageWidth = fontImage.width;
-const fontImageHeight = fontImage.height;
-const deltaX = fontImageWidth / gridX;
-const deltaY = fontImageHeight / gridY;
+let fontImageWidth;
+let fontImageHeight;
+let deltaX;
+let deltaY;
+let fontImage;
+
+try {
+    const TELA = await import(IS_NODE ? "../Tela/Image.js" : "../Tela/Canvas.js").then(def => def.default)
+    // octaviogood fonts documentation: https://www.shadertoy.com/view/llcXRl
+    fontImage = await or(
+        () => TELA.ofUrl(`./src/Utils/sdf_font.png`),
+        () => TELA.ofUrl(`./node_modules/tela.js/src/Utils/sdf_font.png`)
+    );
+    fontImageWidth = fontImage.width;
+    fontImageHeight = fontImage.height;
+    deltaX = fontImageWidth / gridX;
+    deltaY = fontImageHeight / gridY;
+} catch (e) {
+    console.log("Caught error initializing Fonts.js", e);
+}
 
 export const imageFromString = (string) => {
     const chars = [...string];
@@ -21,6 +34,10 @@ export const imageFromString = (string) => {
      * @returns Color
      */
     ans.getPxl = (x, y) => {
+        if (!fontImage) {
+            console.log("Error initializing Fonts.js");
+            return 0;
+        }
         const charIndex = Math.floor((x * chars.length)) % chars.length;
         const char = chars[charIndex];
         if (char === " ") return;
@@ -38,8 +55,29 @@ export const imageFromString = (string) => {
         const px = x * chars.length - charIndex;
         const py = y;
         const color = fontImage.getPxl(boxImage.min.x + boxImage.diagonal.x * px, boxImage.min.y + boxImage.diagonal.y * py);
-        return color.red; // distance stored in red || green || blue and normalized [0,1]
-
+        return color.alpha; // distance stored in red || green || blue and normalized [0,1]
     }
     return ans;
+}
+
+
+//========================================================================================
+/*                                                                                      *
+ *                                         UTILS                                        *
+ *                                                                                      */
+//========================================================================================
+
+async function or(...lambdas) {
+    let error;
+    for (let i = 0; i < lambdas.length; i++) {
+        try {
+            console.log(">>>", lambdas[i].toString());
+            const ans = await lambdas[i]();
+            return ans;
+        }
+        catch (e) {
+            error = e;
+        }
+    }
+    throw error;
 }
