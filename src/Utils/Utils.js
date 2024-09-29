@@ -1,3 +1,5 @@
+import { IS_NODE, SOURCE } from "./Constants.js";
+
 export async function measureTime(lambda) {
     const t = performance.now();
     await lambda()
@@ -87,4 +89,38 @@ export function hashStr(string) {
         hash = (hash * 37) ^ string.charCodeAt(i);
     }
     return hash >>> 0; // Convert to unsigned 32-bit integer
+}
+
+const __Worker = IS_NODE ? (await import("node:worker_threads")).Worker : Worker;
+export class MyWorker {
+    constructor(path) {
+        try {
+            if (IS_NODE) {
+                const workerPath = "/" + (import.meta.dirname).split('/').slice(1, -1).join('/');
+                this.worker = new __Worker(`${workerPath}/${path}`, { type: "module" });
+            } else {
+                let workerPath = `${SOURCE}/src/${path}`;
+                this.worker = new __Worker(`${workerPath}`, { type: "module" });
+            }
+        } catch (e) {
+            console.log("Caught error while importing worker", e);
+        }
+    }
+
+    onMessage(lambda) {
+        if (IS_NODE) {
+            this.worker.removeAllListeners('message');
+            this.worker.on("message", lambda);
+        } else {
+            if (this.__lambda) {
+                this.worker.removeEventListener('message', this.__lambda);
+            }
+            this.__lambda = message => lambda(message.data);
+            this.worker.addEventListener("message", this.__lambda);
+        }
+    }
+
+    postMessage(message) {
+        return this.worker.postMessage(message);
+    }
 }

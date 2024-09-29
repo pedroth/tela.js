@@ -134,5 +134,5 @@ scene.rebuild();
 // play
 loop(async ({ dt }) => {
     await camera.parallelShot(scene, { bounces: 10, samplesPerPxl: 1, gamma: 0.5 }).to(exposedWindow);
-    window.setTitle(`FPS: ${Math.floor(1 / dt)}`);
+    window.setTitle(`FPS: ${(1 / dt).toFixed(2)}`);
 }).play();

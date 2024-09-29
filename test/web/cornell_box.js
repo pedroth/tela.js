@@ -171,7 +171,7 @@ async (canvas, logger) => {
     // boilerplate for fps
     loop(({ dt }) => {
         camera.sceneShot(scene).to(exposedCanvas);
-        logger.print(Math.floor(1 / dt));
+        logger.print(`FPS: ${(1 / dt).toFixed(2)}`);
     })
         .play();
 }

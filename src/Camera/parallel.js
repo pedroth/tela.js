@@ -1,42 +1,12 @@
 import { CHANNELS, IS_NODE, NUMBER_OF_CORES } from "../Utils/Constants.js";
 import Color from "../Color/Color.js";
+import { MyWorker } from "../Utils/Utils.js";
 
 //========================================================================================
 /*                                                                                      *
  *                                         UTILS                                        *
  *                                                                                      */
 //========================================================================================
-
-const __Worker = IS_NODE ? (await import("node:worker_threads")).Worker : Worker;
-class MyWorker {
-    constructor(path) {
-        this.path = path;
-        try {
-            this.worker = new __Worker(path, { type: 'module' });
-        } catch (e) {
-            console.log("Caught error while importing worker", e);
-        }
-    }
-
-    onMessage(lambda) {
-        if (IS_NODE) {
-            this.worker.removeAllListeners('message');
-            this.worker.on("message", lambda);
-            this.worker.on("error", e => console.log("Caught error on worker", e))
-        } else {
-            if (this.__lambda) {
-                this.worker.removeEventListener('message', this.__lambda);
-            }
-            this.__lambda = message => lambda(message.data);
-            this.worker.addEventListener("message", this.__lambda);
-            this.worker.addEventListener("error", e => console.log("Caught error on worker", e));
-        }
-    }
-
-    postMessage(message) {
-        return this.worker.postMessage(message);
-    }
-}
 
 let RAY_TRACE_WORKERS = [];
 let RAY_MAP_WORKERS = [];
@@ -54,11 +24,8 @@ const MAGIC_SETUP_TIME = 800;
 export function rayTraceWorkers(camera, scene, canvas, params = {}) {
     // lazy loading workers
     if (RAY_TRACE_WORKERS.length === 0) {
-        // needs to be here...
-        const isGithub = typeof window !== "undefined" && (window.location.host || window.LOCATION_HOST) === "pedroth.github.io";
-        const SOURCE = isGithub ? "/tela.js" : ""
         RAY_TRACE_WORKERS = [...Array(NUMBER_OF_CORES)]
-            .map(() => new MyWorker(`${IS_NODE ? "." : SOURCE}/src/Camera/rayTraceWorker.js`));
+            .map(() => new MyWorker(`Camera/rayTraceWorker.js`));
     }
     const w = canvas.width;
     const h = canvas.height;
@@ -107,11 +74,8 @@ export function rayTraceWorkers(camera, scene, canvas, params = {}) {
 export function rayMapWorkers(camera, scene, canvas, lambda, vars = [], dependencies = []) {
     // lazy loading workers
     if (RAY_MAP_WORKERS.length === 0) {
-        // needs to be here...
-        const isGithub = typeof window !== "undefined" && (window.location.host || window.LOCATION_HOST) === "pedroth.github.io";
-        const SOURCE = isGithub ? "/tela.js" : ""
         RAY_MAP_WORKERS = [...Array(NUMBER_OF_CORES)]
-            .map(() => new MyWorker(`${IS_NODE ? "." : SOURCE}/src/Camera/rayMapWorker.js`));
+            .map(() => new MyWorker(`Camera/rayMapWorker.js`));
     }
     const w = canvas.width;
     const h = canvas.height;
@@ -136,7 +100,7 @@ export function rayMapWorkers(camera, scene, canvas, lambda, vars = [], dependen
                 resolve();
             })
             const ratio = Math.floor(h / RAY_MAP_WORKERS.length);
-            
+
             const message = {
                 width: w,
                 height: h,
@@ -155,7 +119,7 @@ export function rayMapWorkers(camera, scene, canvas, lambda, vars = [], dependen
             } else {
                 worker.postMessage(message)
             }
-            
+
         });
     })
 }
