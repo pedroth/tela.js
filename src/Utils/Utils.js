@@ -96,10 +96,11 @@ export class MyWorker {
     constructor(path) {
         try {
             if (IS_NODE) {
-                const workerPath = "/" + (import.meta.dirname).split('/').slice(1, -1).join('/');
+                let workerPath = "/" + (import.meta.dirname).split('/').slice(1, -1).join('/');
+                if (workerPath === "/") workerPath = "\\" + (import.meta.dirname).split('\\').slice(1, -1).join('\\')
                 this.worker = new __Worker(`${workerPath}/${path}`, { type: "module" });
             } else {
-                let workerPath = `${SOURCE}/src/${path}`;
+                const workerPath = `${SOURCE}/src/${path}`;
                 this.worker = new __Worker(`${workerPath}`, { type: "module" });
             }
         } catch (e) {
