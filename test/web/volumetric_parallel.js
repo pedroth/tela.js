@@ -4,6 +4,7 @@ async (canvas, logger) => {
     const width = 640 / 3;
     const height = 480 / 3;
     canvas.resize(width, height);
+
     // scene
     const camera = new Camera();
 
@@ -27,6 +28,7 @@ async (canvas, logger) => {
         let p = init;
         let t = distanceFunction(p);
         let density = 0;
+
         for (let i = 0; i < maxDist; i++) {
             p = ray.trace(t);
             const d = distanceFunction(p);
@@ -38,6 +40,7 @@ async (canvas, logger) => {
                 return Color.BLACK;
             }
         }
+
         const t0 = t;
         for (let i = 0; i < MAX_STEPS; i++) {
             t += MARCH_STEP;
@@ -47,43 +50,52 @@ async (canvas, logger) => {
                 density += Math.exp(-(t - t0) * alpha) * noise(p) * MARCH_STEP;
             }
         }
+
         return Color.ofRGB(density, density, density);
-    }
+    };
+
     // mouse handling
     let mousedown = false;
     let mouse = Vec2();
+
     canvas.onMouseDown((x, y) => {
         mousedown = true;
         mouse = Vec2(x, y);
-    })
+    });
+
     canvas.onMouseUp(() => {
         mousedown = false;
         mouse = Vec2();
-    })
+    });
+
     canvas.onMouseMove((x, y) => {
         const newMouse = Vec2(x, y);
         if (!mousedown || newMouse.equals(mouse)) {
             return;
         }
         const [dx, dy] = newMouse.sub(mouse).toArray();
-        camera.orbit(coords => coords.add(
-            Vec3(
-                0,
-                -2 * Math.PI * (dx / canvas.width),
-                -2 * Math.PI * (dy / canvas.height)
+        camera.orbit(coords =>
+            coords.add(
+                Vec3(
+                    0,
+                    -2 * Math.PI * (dx / canvas.width),
+                    -2 * Math.PI * (dy / canvas.height)
+                )
             )
-        ));
+        );
         mouse = newMouse;
-    })
+    });
+
     canvas.onMouseWheel(({ deltaY }) => {
         camera.orbit(coords => coords.add(Vec3(deltaY * 0.001, 0, 0)));
-    })
+    });
+
     loop(async ({ dt }) => {
-        await camera.rayMapParallel(rayScene, [distanceFunction, noise]).to(canvas, { alpha });
+        (await camera.rayMapParallel(rayScene, [distanceFunction, noise]).to(canvas, { alpha })).paint();
         logger.print(`FPS: ${(1 / dt).toFixed(2)}`);
     }).play();
 
-    const label = document.createElement("span")
+    const label = document.createElement("span");
     const range = document.createElement("input");
     range.setAttribute("type", "range");
     range.setAttribute("min", 0.01);

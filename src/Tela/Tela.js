@@ -41,7 +41,7 @@ export default class Tela {
             this.image[k + 2] = color.blue;
             this.image[k + 3] = color.alpha;
         }
-        return this.paint();
+        return this;
     }
 
     mapBox(lambda, box) {
@@ -64,7 +64,7 @@ export default class Tela {
                 return Promise
                     .allSettled(workersPromises)
                     .then(() => {
-                        return this.paint();
+                        return this;
                     })
             }
         }
@@ -184,7 +184,7 @@ export default class Tela {
                 this.image[k + 3] = this.image[k + 3] + (color.alpha - this.image[k + 3]) / it;
             }
             if (it < time) it++
-            return this.paint();
+            return this;
         }
 
         ans.setPxl = (x, y, color) => {

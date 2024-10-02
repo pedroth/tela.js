@@ -10,5 +10,6 @@
             let py = y / height;
             return Color.ofRGB(px, py, 0);
         })
+        .paint();
 
 }

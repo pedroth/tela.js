@@ -47,7 +47,7 @@ async (canvas) => {
                 )
             )
             return texture.getPxl(p.x * texture.width, p.y * texture.height);
-        })
+        }).paint()
     }
     update();
 }

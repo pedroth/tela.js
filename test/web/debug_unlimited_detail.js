@@ -70,7 +70,7 @@ async (canvas, logger) => {
     }
 
     loop(({ dt }) => {
-        camera.rayMap(render).to(canvas);
+        camera.rayMap(render).to(canvas).paint();
         logger.print(`UD, FPS: ${(1 / dt).toFixed(2)}`);
     }).play()
 }

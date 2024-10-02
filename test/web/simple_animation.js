@@ -13,7 +13,7 @@
                 let px = (x * time) / width;
                 let py = (y * time) / height;
                 return Color.ofRGB(px % 1, py % 1, 0);
-            })
+            }).paint();
         if (time > T) animation.stop();
     }).play();
 }

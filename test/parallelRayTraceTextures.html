@@ -160,7 +160,7 @@
     )
 
     const loopControl = loop(async ({ dt }) => {
-        await camera.parallelShot(scene).to(exposedCanvas);
+        (await camera.parallelShot(scene).to(exposedCanvas)).paint();
         document.title = `PRay, FPS: ${(1 / dt).toFixed(2)}`;
     }).play();
     canvas.DOM.style = "flex:1;"

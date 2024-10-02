@@ -80,7 +80,7 @@ export function saveImageStreamToVideo(fileAddress, streamWithImages, { imageGet
     return {
         while: async streamStatePredicate => {
             console.log("Generating video...");
-            let s = streamWithImages;
+            let s = typeof streamWithImages === 'function' ? await streamWithImages() : streamWithImages;
             while (streamStatePredicate(s.head)) {
                 const image = imageGetter(s.head);
                 writeFileSync(`${fileName}_${ite++}.ppm`, createPPMFromImage(image));
