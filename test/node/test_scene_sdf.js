@@ -16,7 +16,7 @@ mesh = mesh
     .mapVertices(v => Vec3(v.z, v.y, -v.x))
 const scenes = [new BScene(), new KScene(100), new KScene(50), new NaiveScene()];
 scenes.forEach(async scene => {
-    scene.addList(mesh.asPoints(0.05));
+    scene.addList(mesh.asSpheres(0.05));
     const { result, time } = await measureTimeWithResult(() => camera.sdfShot(scene).to(canvas));
     console.log(`${scene.constructor.name}: ${time}s`);
     saveImageToFile(`${scene.constructor.name}.png`, result);

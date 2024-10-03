@@ -12,7 +12,7 @@ function palette(t) {
 }
 loop(async ({ time, dt }) => {
     window.setTitle(`FPS:${Math.floor(1 / dt)}`);
-    await window
+    (await window
         .mapParallel(
             (x, y, { width, height, time }) => {
                 let u = (2 * x - width) / height
@@ -36,5 +36,6 @@ loop(async ({ time, dt }) => {
             },
             [palette] // add dependencies
         )
-        .run({ width, height, time }); // run parallel shader with variables
+        .run({ width, height, time })) // run parallel shader with variables
+        .paint(); // flush window
 }).play();

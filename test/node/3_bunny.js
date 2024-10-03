@@ -21,17 +21,17 @@ bunnyMesh = bunnyMesh
     .mapVertices(v => Vec3(-v.y, v.x, v.z))
     .mapVertices(v => Vec3(v.z, v.y, -v.x))
     .mapColors(v => Color.ofRGB(...v.map(x => clamp()((x + 1) / 2)).toArray()));
-scene.add(...bunnyMesh.asPoints(0.05));
+scene.add(...bunnyMesh.asSpheres(0.05));
 scene.rebuild();
 
 const shoot = (img) => camera.normalShot(scene).to(img);
 
 const imageStream = new Stream(
     { time: 0, image: shoot(Image.ofSize(width, height)) },
-    ({ time, image }) => {
+    async ({ time, image }) => {
         const theta = Math.PI / 4 * time;
         camera.orbit(coord => Vec3(coord.x, theta, 0));
-        const { result: newImage, time: t } = measureTimeWithResult(() => shoot(image));
+        const { result: newImage, time: t } = await measureTimeWithResult(() => shoot(image));
         console.log(`Image took ${t}s`);
         return {
             time: time + dt,

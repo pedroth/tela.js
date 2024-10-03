@@ -147,7 +147,7 @@ export function saveParallelImageStreamToVideo(fileAddress, parallelStreamOfImag
     })
     return Promise.all(promises)
         .then(() => {
-            execSync(`ffmpeg -framerate ${fps} -i ${fileName}_%d.ppm ${fileName}.${extension}`);
+            execSync(`ffmpeg -framerate ${fps} -i ${fileName}_%d.ppm -y ${fileName}.${extension}`);
             for (let i = 0; i < n; i++) {
                 unlinkSync(`${fileName}_${i}.ppm`);
             }

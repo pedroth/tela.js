@@ -23,7 +23,7 @@ bunnyMesh = bunnyMesh
     .mapVertices(v => v.add(Vec3(0, 0, 3)))
     .mapColors(v => Color.ofRGB(...v.map(x => clamp()((x + 1) / 2)).toArray()));
 
-const bunnyPoints = bunnyMesh.asPoints(0.02);
+const bunnyPoints = bunnyMesh.asSpheres(0.02);
 const bunnySpeeds = [...Array(bunnyPoints.length)].map(() => Vec3().map(() => 5 * (2 * Math.random() - 1)));
 scene.addList(bunnyPoints);
 // physics
@@ -41,11 +41,11 @@ const bunnyPhysics = dt => {
 const canvas = Image.ofSize(width, height);
 const imageStream = new Stream(
     { time: 0, image: camera.sceneShot(scene).to(canvas) },
-    ({ time, image }) => {
+    async ({ time, image }) => {
         const theta = Math.PI / 6 * time;
         camera.orbit(orbit => Vec3(orbit.x, theta, Math.PI / 6));
-        const { result: newImage, time: t } = measureTimeWithResult(() => camera.reverseShot(scene).to(image));
-        if (time > 1) bunnyPhysics(dt);
+        const { result: newImage, time: t } = await measureTimeWithResult(() => camera.reverseShot(scene).to(image));
+        if (time > 5) bunnyPhysics(dt);
         console.log(`Image took ${t}s`);
         return {
             time: time + dt,

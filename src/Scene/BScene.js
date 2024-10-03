@@ -39,8 +39,8 @@ export default class BScene extends NaiveScene {
     return this.boundingBoxScene.interceptWithRay(ray, level);
   }
 
-  distanceOnRay(ray) {
-    return this.boundingBoxScene.distanceOnRay(ray);
+  distanceOnRay(ray, combineLeafs = Math.min) {
+    return this.boundingBoxScene.distanceOnRay(ray, combineLeafs);
   }
 
   getElementNear(p) {
@@ -158,9 +158,9 @@ class Node {
     return children[index].distanceToPoint(p);
   }
 
-  distanceOnRay(ray) {
+  distanceOnRay(ray, combineLeafs) {
     if (this.left.isLeaf && this.right.isLeaf) {
-      return Math.min(
+      return combineLeafs(
         this.left.distanceToPoint(ray.init),
         this.right.distanceToPoint(ray.init)
       );
@@ -172,9 +172,9 @@ class Node {
     const second = leftT > rightT ? this.left : this.right;
     const firstT = Math.min(leftT, rightT);
     const secondT = Math.max(leftT, rightT);
-    const firstHit = first.distanceOnRay(ray, firstT);
+    const firstHit = first.isLeaf ? first.distanceToPoint(ray.init) : first.distanceOnRay(ray, combineLeafs);
     if (firstHit < secondT) return firstHit;
-    const secondHit = second.distanceOnRay(ray, secondT);
+    const secondHit = second.isLeaf ? second.distanceToPoint(ray.init) : second.distanceOnRay(ray, combineLeafs);
     return secondHit <= firstHit ? secondHit : firstHit;
   }
 

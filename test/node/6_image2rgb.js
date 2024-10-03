@@ -70,12 +70,12 @@ const stateMachine = (() => {
 
 const imageStream = new Stream(
     { time: 0, image: camera.reverseShot(scene).to(Image.ofSize(width, height)) },
-    ({ time, image }) => {
+    async ({ time, image }) => {
         const dt = 1 / FPS;
         const theta = Math.PI / 4 * time;
         camera.orbit(coord => Vec3(coord.x, theta, 0));
         stateMachine(time);
-        const { result: newImage, time: t } = measureTimeWithResult(() => camera.reverseShot(scene).to(image));
+        const { result: newImage, time: t } = await measureTimeWithResult(() => camera.reverseShot(scene).to(image));
         console.log(`Image took ${t}s`);
         return {
             time: time + dt,

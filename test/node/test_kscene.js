@@ -19,7 +19,7 @@ let minTime = Number.MAX_VALUE;
 let minIndex = -1;
 for (let i = 0; i < maxIte; i++) {
     const scene = new KScene((i + 1) * spacing);
-    scene.addList(mesh.asPoints(size));
+    scene.addList(mesh.asSpheres(size));
     const { time } = await measureTimeWithResult(() => camera.normalShot(scene).to(Image.ofSize(width, height)));
     if (time < minTime) {
         minTime = time;

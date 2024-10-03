@@ -15,7 +15,7 @@ mesh = mesh
     .mapVertices(v => Vec3(-v.y, v.x, v.z))
     .mapVertices(v => Vec3(v.z, v.y, -v.x))
 const scenes = [new BScene(), new KScene(), new KScene(100), new VoxelScene(0.2), new NaiveScene()];
-// const triangles = mesh.asPoints(0.05);
+// const triangles = mesh.asSpheres(0.05);
 const triangles = mesh.asTriangles();
 scenes.forEach(async scene => {
     scene.addList(triangles);

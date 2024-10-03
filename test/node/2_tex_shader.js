@@ -28,13 +28,13 @@ const initialImage = shader(
 // scene
 const imageStream = new Stream(
     { time: 0, i: 0, image: initialImage },
-    ({ time, i, image }) => {
+    async ({ time, i, image }) => {
         const speed = 0.25;
         const box = new Box(
             Vec2(-speed * time + time, -speed * time + time),
             Vec2(1 + speed * time + time, 1 + speed * time + time)
         );
-        const { result: newImage, time: t } = measureTimeWithResult(
+        const { result: newImage, time: t } = await measureTimeWithResult(
             () => shader(image, box)
         );
         console.log(`Image took ${t}s`);

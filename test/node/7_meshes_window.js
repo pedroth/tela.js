@@ -1,13 +1,16 @@
 import { Camera, Mesh, NaiveScene, Vec3, Vec2, Image, loop, Window } from "../../src/index.node.js";
-import { readFileSync } from "fs"
+import { readFileSync } from "fs";
+
 const width = 640;
 const height = 480;
 const maxRadius = 3;
 const window = Window.ofSize(width, height);
-// scene
-const scene = new NaiveScene()
+
+// Scene setup
+const scene = new NaiveScene();
 const camera = new Camera().orbit(maxRadius, Math.PI, 0);
-// scene
+
+// Load and process mesh
 const obj = readFileSync("./assets/megaman.obj", { encoding: "utf-8" });
 let mesh = Mesh.readObj(obj, "mesh");
 const box = mesh.getBoundingBox();
@@ -16,19 +19,23 @@ mesh = mesh
     .mapVertices(v => v.sub(box.center).scale(scaleInv))
     .mapVertices(v => Vec3(-v.y, v.x, v.z))
     .mapVertices(v => Vec3(v.z, v.y, -v.x))
-    .addTexture(await Image.ofUrl("./assets/megaman.png"))
+    .addTexture(await Image.ofUrl("./assets/megaman.png"));
 scene.addList(mesh.asTriangles());
-// mouse handling
+
+// Mouse handling
 let mousedown = false;
 let mouse = Vec2();
+
 window.onMouseDown((x, y) => {
     mousedown = true;
     mouse = Vec2(x, y);
-})
+});
+
 window.onMouseUp(() => {
     mousedown = false;
     mouse = Vec2();
-})
+});
+
 window.onMouseMove((x, y) => {
     const newMouse = Vec2(x, y);
     if (!mousedown || newMouse.equals(mouse)) {
@@ -43,12 +50,13 @@ window.onMouseMove((x, y) => {
         )
     ));
     mouse = newMouse;
-})
+});
+
 window.onMouseWheel(({ dy }) => {
     camera.orbit(orbitCoord => orbitCoord.add(Vec3(-dy, 0, 0)));
-})
+});
 
-// play
+// Render loop
 loop(({ dt }) => {
     camera.reverseShot(
         scene,
@@ -58,6 +66,7 @@ loop(({ dt }) => {
             clipCameraPlane: false
         }
     )
-        .to(window);
+        .to(window)
+        .paint();
     window.setTitle(`FPS: ${Math.floor(1 / dt)}`);
-}).play()
+}).play();

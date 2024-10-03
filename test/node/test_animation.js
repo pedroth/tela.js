@@ -10,6 +10,6 @@ loop(({ time, dt }) => {
             ((x * time) / width) % 1,
             ((y * time) / height) % 1
         )
-    })
+    }).paint();
 })
 .play();
