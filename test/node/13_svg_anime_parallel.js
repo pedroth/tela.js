@@ -5,7 +5,7 @@ const width = 640;
 const height = 480;
 const FPS = 30;
 const dt = 1 / FPS;
-const maxT = 5;
+const maxT = 10;
 const [path] = process.argv.slice(2);
 const svg = parseSVG(readFileSync(path ?? "./assets/cross.svg", { encoding: "utf-8" }));
 const coordTransform = (x) => {
