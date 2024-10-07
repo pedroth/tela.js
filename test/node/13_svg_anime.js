@@ -1,10 +1,9 @@
-import { Color, Vec2, parseSVG, IO, Stream, Image, Box } from "../../src/index.node.js";
+import { Color, Vec2, parseSVG, video, Image, Box, measureTime } from "../../src/index.node.js";
 import { readFileSync } from "fs";
 
 const width = 640;
 const height = 480;
 const FPS = 30;
-const dt = 1 / FPS;
 const maxT = 3;
 const [path] = process.argv.slice(2);
 const svg = parseSVG(readFileSync(path ?? "./assets/cross.svg", { encoding: "utf-8" }));
@@ -72,16 +71,13 @@ const drawFrame = (time) => {
   return image.paint();
 };
 
-const videoStream = new Stream(
-  { time: 0, image: drawFrame(0) },
-  ({ time }) => {
-    return {
-      time: time + dt,
-      image: drawFrame(time),
-    };
-  }
-);
-
-IO.saveImageStreamToVideo("svg_anime.mp4", videoStream, { fps: FPS }).while(
-  ({ time }) => time < maxT + 1e-1
-);
+console.log(`Took :${await measureTime(async () => {
+  await video(
+    "svg_anime.mp4",
+    ({ time }) => {
+      return drawFrame(time);
+    },
+    { width, height, FPS }
+  )
+    .while(({ time }) => time < maxT)
+})}`);
