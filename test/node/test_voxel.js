@@ -1,4 +1,4 @@
-import { Camera, Image, Mesh, measureTimeWithResult, Vec3, VoxelScene } from "../../src/index.node.js";
+import { Camera, Image, Mesh, Vec3, VoxelScene, measureTime } from "../../src/index.node.js";
 import { readFileSync } from "fs"
 
 const width = 640;
@@ -21,7 +21,7 @@ let minIndex = -1;
 for (let i = 0; i < maxIte; i++) {
     const scene = new VoxelScene((i + 1) * spacing);
     scene.addList(mesh.asSpheres(size));
-    const { time } = measureTimeWithResult(() => camera.sceneShot(scene).to(Image.ofSize(width, height)));
+    const time  = await measureTime(() => camera.sceneShot(scene).to(Image.ofSize(width, height)));
     if (time < minTime) {
         minTime = time;
         minIndex = i;

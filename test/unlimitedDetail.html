@@ -101,7 +101,7 @@
     }
 
     loop(({dt}) => {
-        camera.rayMap(render).to(canvas);
+        camera.rayMap(render).to(canvas).paint();
         document.title = `UD, FPS: ${(1 / dt).toFixed(2)}`;
     }).play()
     canvas.DOM.style = "flex:1;"

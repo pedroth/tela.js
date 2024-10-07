@@ -28,7 +28,7 @@ const parallelImagesStream =
             mesh = mesh
                 .mapVertices(v => Vec3(-v.y, v.x, v.z))
                 .mapVertices(v => Vec3(v.z, v.y, -v.x))
-            scene.add(...mesh.asPoints(0.05));
+            scene.add(...mesh.asSpheres(0.05));
             scene.rebuild();
             return { scene };
         })

@@ -41,7 +41,7 @@ export default class Tela {
             this.image[k + 2] = color.blue;
             this.image[k + 3] = color.alpha;
         }
-        return this.paint();
+        return this;
     }
 
     mapBox(lambda, box) {
@@ -64,7 +64,7 @@ export default class Tela {
                 return Promise
                     .allSettled(workersPromises)
                     .then(() => {
-                        return this.paint();
+                        return this;
                     })
             }
         }
@@ -140,6 +140,24 @@ export default class Tela {
         return drawConvexPolygon(this, [x1, x2, x3], shader);
     }
 
+    drawCircle(center, radius, shader) {
+        const box = new Box(center.sub(Vec2(radius, radius)), center.add(Vec2(radius, radius)));
+        const intersection = this.box.intersection(box);
+        if (intersection.isEmpty) return;
+        const [xMin, yMin] = intersection.min.map(Math.floor).toArray();
+        const [xMax, yMax] = intersection.max.map(Math.floor).toArray();
+        for (let x = xMin; x < xMax; x++) {
+            for (let y = yMin; y < yMax; y++) {
+                const d = center.sub(Vec2(x, y)).length();
+                if (d > radius) continue;
+                const color = shader(x, y);
+                if (!color) continue;
+                this.setPxl(x, y, color);
+            }
+        }
+        return this;
+    }
+
     grid2canvas(i, j) {
         const h = this.height;
         const x = j;
@@ -184,7 +202,7 @@ export default class Tela {
                 this.image[k + 3] = this.image[k + 3] + (color.alpha - this.image[k + 3]) / it;
             }
             if (it < time) it++
-            return this.paint();
+            return this;
         }
 
         ans.setPxl = (x, y, color) => {

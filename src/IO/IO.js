@@ -80,7 +80,7 @@ export function saveImageStreamToVideo(fileAddress, streamWithImages, { imageGet
     return {
         while: async streamStatePredicate => {
             console.log("Generating video...");
-            let s = streamWithImages;
+            let s = typeof streamWithImages === 'function' ? await streamWithImages() : streamWithImages;
             while (streamStatePredicate(s.head)) {
                 const image = imageGetter(s.head);
                 writeFileSync(`${fileName}_${ite++}.ppm`, createPPMFromImage(image));
@@ -147,7 +147,7 @@ export function saveParallelImageStreamToVideo(fileAddress, parallelStreamOfImag
     })
     return Promise.all(promises)
         .then(() => {
-            execSync(`ffmpeg -framerate ${fps} -i ${fileName}_%d.ppm ${fileName}.${extension}`);
+            execSync(`ffmpeg -framerate ${fps} -i ${fileName}_%d.ppm -y ${fileName}.${extension}`);
             for (let i = 0; i < n; i++) {
                 unlinkSync(`${fileName}_${i}.ppm`);
             }

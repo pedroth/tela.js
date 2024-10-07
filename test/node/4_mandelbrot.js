@@ -40,8 +40,8 @@ function mandelbrot(i, image) {
 // scene
 const imageStream = new Stream(
     { time: 0, i: 0, image: mandelbrot(0, Image.ofSize(width, height)) },
-    ({ time, i, image }) => {
-        const { result: newImage, time: t } = measureTimeWithResult(() => mandelbrot(i + 1, image));
+    async ({ time, i, image }) => {
+        const { result: newImage, time: t } = await measureTimeWithResult(() => mandelbrot(i + 1, image));
         console.log(`Image took ${t}s`);
         return {
             time: time + dt,

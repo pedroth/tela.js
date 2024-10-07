@@ -33,5 +33,5 @@ loop(({ time, dt }) => {
                 finalColor = [finalColor[0] + col[0] * d, finalColor[1] + col[1] * d, finalColor[2] + col[2] * d]
             }
             return Color.ofRGB(finalColor[0], finalColor[1], finalColor[2]);
-        });
+        }).paint();
 }).play();

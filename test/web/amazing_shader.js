@@ -14,7 +14,7 @@
         return [a[0] + b[0] * Math.cos(6.28318 * (c[0] * t + d[0])), a[1] + b[1] * Math.cos(6.28318 * (c[1] * t + d[1])), a[2] + b[2] * Math.cos(6.28318 * (c[2] * t + d[2]))];
     }
     const animation = loop(({ time, dt }) => {
-            logger.print(`FPS: ${Math.floor(1 / dt)}`);
+            logger.print(`FPS: ${(1 / dt).toFixed(2)}`);
             canvas.map((x, y) => {
                 let u = (2 * x - width) / height
                 let v = (2 * y - height) / height;
@@ -34,7 +34,7 @@
                     finalColor = [finalColor[0] + col[0] * d, finalColor[1] + col[1] * d, finalColor[2] + col[2] * d]
                 }
                 return Color.ofRGB(finalColor[0], finalColor[1], finalColor[2]);
-            })
+            }).paint();
             if (time > T) animation.stop();
         })
         .play();

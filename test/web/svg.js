@@ -1,30 +1,29 @@
+/* eslint-disable no-undef */
 async (canvas) => {
     // resize incoming canvas:Canvas object.
     const width = 640;
     const height = 480;
     canvas.resize(width, height);
-    
+
     const svgPath = ["cross.svg", "euler.svg", "stokes.svg"][1];
-    const svg = parseSVG(await fetch(`/assets/${svgPath}`).then(x => x.text()));
+    const svg = parseSVG(await fetch(`/assets/${svgPath}`).then((x) => x.text()));
 
     const coordTransform = (x) => {
         const { min, max } = svg.viewBox;
         const diagonal = max.sub(min);
         let p = x.sub(min).div(diagonal);
-        p = Vec2(p.x, -p.y).add(Vec2(0, 1))
+        p = Vec2(p.x, -p.y).add(Vec2(0, 1));
         p = p.mul(Vec2(width, height)).map(Math.floor);
         return p;
-    }
+    };
 
-    const paths = svg.paths
-        .flatMap(x => x)
-        .map(p => p.map(coordTransform));
+    const paths = svg.paths.flatMap((x) => x).map((p) => p.map(coordTransform));
 
     const keyPointPaths = svg.keyPointPaths
-        .flatMap(x => x)
-        .map(p => p.map(coordTransform));
+        .flatMap((x) => x)
+        .map((p) => p.map(coordTransform));
 
-    const boxes = paths.map(path => {
+    const boxes = paths.map((path) => {
         let box = new Box();
         for (let j = 0; j < path.length; j++) {
             box = box.add(new Box(path[j], path[j]));
@@ -32,7 +31,7 @@ async (canvas) => {
         return box;
     });
 
-    const isInsideCurve = x => {
+    const isInsideCurve = (x) => {
         let count = 0;
         const indices = boxes
             .map((b, i) => ({ box: b, index: i }))
@@ -54,16 +53,16 @@ async (canvas) => {
             count += Math.round(winding);
         }
         return count < 0;
-    }
+    };
 
+    canvas.fill(Color.BLACK);
     for (let i = 0; i < paths.length; i++) {
         const path = paths[i];
         const keyPointPath = keyPointPaths[i];
         const box = boxes[i];
         canvas.mapBox((x, y) => {
             const p = Vec2(x + box.min.x, y + box.min.y);
-            if (isInsideCurve(p)) return Color.WHITE;
-            else Color.BLACK;
+            return isInsideCurve(p) ? Color.WHITE : Color.BLACK;
         }, box);
         for (let j = 0; j < keyPointPath.length - 1; j++) {
             canvas.drawLine(keyPointPath[j], keyPointPath[j + 1], () => Color.BLUE);
@@ -72,7 +71,5 @@ async (canvas) => {
             canvas.drawLine(path[j], path[j + 1], () => Color.RED);
         }
     }
-
     canvas.paint();
-
 }

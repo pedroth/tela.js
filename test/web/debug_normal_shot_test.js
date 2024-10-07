@@ -63,7 +63,7 @@ async (canvas) => {
     }
 
     loop(async ({ dt }) => {
-        await camera.rayMapParallel(render).to(canvas, {scene}); // parallel
+        (await camera.rayMapParallel(render).to(canvas, {scene})).paint(); // parallel
         // camera.normalShot(scene).to(canvas); // single core
         logger.print(`UD, FPS: ${(1 / dt).toFixed(2)}`);
     }).play()

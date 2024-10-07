@@ -1,4 +1,4 @@
-import { Vec2, Window, loop, Box, Color } from "../../src/index.node.js";
+import { Vec2, Window, loop, Box, Color, Vec } from "../../src/index.node.js";
 import { imageFromString } from "../../src/Utils/Fonts.js";
 
 // TODO: add Shift key symbols.
@@ -12,6 +12,7 @@ const rowSize = Math.floor(width / charSizeX);
 let chars = []
 let charsCursor = 0;
 let windowCursor = 0;
+let removeExplosionAnimationPostions = [];
 
 const mod = (x, n) => ((x % n) + n) % n;
 const window = new Window(width, height).onResizeWindow(() => window.paint()).maximize();
@@ -45,6 +46,7 @@ window.onKeyDown((e) => {
         "shift": () => { },
         "ctrl": () => { },
         "backspace": () => {
+            removeExplosionAnimationPostions.push(particlesIn(charsCursor));
             const cursorInRow = mod(charsCursor, rowSize);
             if (cursorInRow <= margin) {
                 const cursorInCol = Math.floor(charsCursor / rowSize);
@@ -72,6 +74,35 @@ function str2window(index) {
     const j = Math.floor(index / (rowSize));
     return Vec2(i * charSizeX, height - charSizeY - j * charSizeY);
 }
+
+function particlesIn(index) {
+    const numParticles = 100;
+    const variance = 100;
+    const pStart = str2window(index);
+    const pEnd = str2window(index + 1);
+    const box = new Box(pStart, pEnd.add(Vec2(0, charSizeY)));
+    return [...Array(numParticles)].map(() => {
+        return { p: box.sample(), v: Vec.RANDOM(2).map(x => 2 * x - 1).scale(variance), color: Math.random() < 0.5 ? Color.RED : Color.YELLOW };
+    })
+}
+
+function updateExplosionAnimations(dt) {
+    const g = Vec2(0, -98);
+    const radius = 2;
+    removeExplosionAnimationPostions.forEach(points => {
+        for (let i = 0; i < points.length; i++) {
+            window.drawCircle(points[i].p, radius, () => Color.BLACK); // clear circle, it is done in this way because we are not cleaning the whole window
+            const p = points[i].p;
+            const v = points[i].v;
+            points[i].v = v.add(g.scale(dt));
+            points[i].p = p.add(v.scale(dt));
+            window.drawCircle(points[i].p, radius, () => points[i].color); // draw circle
+        }
+    });
+    removeExplosionAnimationPostions = removeExplosionAnimationPostions
+        .filter(points => !points.every(point => point.p.y < 0));
+}
+
 //main
 loop(async ({ dt, time }) => {
     window.setTitle(`FPS: ${(1 / dt).toFixed(2)}`);
@@ -95,6 +126,9 @@ loop(async ({ dt, time }) => {
             window.mapBox(() => { return Color.BLACK; }, charBox);
         }
     }
+
+    updateExplosionAnimations(dt);
+
     const cursorInRow = mod(charsCursor, rowSize);
     if (cursorInRow < margin) {
         const delta = margin - cursorInRow;

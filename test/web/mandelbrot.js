@@ -53,7 +53,7 @@
             const l = z.length();
             const ll = Math.min(1, Math.max(0, l));
             return Color.ofRGB(1 - ll, ll, 0);
-        })
+        }).paint()
     }
     update();
 }

@@ -35,7 +35,7 @@
                 const color =
                     (1 - step(0.95)(mod(u_t)(1))) * (1 - step(0.95)(mod(v_t)(1)));
                 return Color.ofRGB(color, color, color);
-            })
+            }).paint();
         if (time > T) animation.stop();
     }).play()
 }

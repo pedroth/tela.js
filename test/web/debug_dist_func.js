@@ -128,7 +128,7 @@ async (canvas, logger) => {
     }
 
     loop(({ time, dt }) => {
-        camera.reverseShot(scene).to(canvas);
+        camera.reverseShot(scene).to(canvas).paint();
         scene.debug({ camera, canvas })
         let t = time % 10;
         debugDist(Vec3(0, -1 + 0.25 * t, 0))()

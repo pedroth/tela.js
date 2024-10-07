@@ -113,7 +113,7 @@ export default class Camera {
         return Promise
           .allSettled(rayMapWorkers(this, scene, canvas, lambdaWithRays, vars, dependencies))
           .then(() => {
-            return canvas.paint();
+            return canvas;
           })
       }
     }
@@ -143,7 +143,7 @@ export default class Camera {
         return Promise
           .allSettled(rayTraceWorkers(this, scene, canvas, params))
           .then(() => {
-            return canvas.paint();
+            return canvas;
           })
       }
     }

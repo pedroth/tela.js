@@ -65,6 +65,6 @@
             const blueColor = 1 - (wave[yi][xi] - minWave) / (maxWave - minWave);
             const greenColor = Math.abs(waveSpeed[yi][xi]) / maxAbsSpeed;
             return Color.ofRGB(redColor, greenColor, blueColor);
-        })
+        }).paint()
     }).play();
 }

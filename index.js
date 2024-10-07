@@ -70,7 +70,8 @@ function modalAlert(title, message) {
     modal.removeChildren();
     modal.appendChild(
         DOM.of("button")
-            .style("position: absolute; top: 0; right: 0; margin: 0.5rem")
+            .addClass("icon")
+            .style("position: absolute; top: 0; right: 0; margin: 0.5rem; width: 2rem;")
             .inner(svg("/assets/x.svg"))
             .event("click", () => modal.element.close()),
         DOM.of("h2").inner(title),

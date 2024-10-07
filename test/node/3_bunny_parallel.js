@@ -31,7 +31,7 @@ const parallelImagesStream =
                 .mapVertices(v => Vec3(-v.y, v.x, v.z))
                 .mapVertices(v => Vec3(v.z, v.y, -v.x))
                 .mapColors(v => Color.ofRGB(...v.map(x => Math.max(0, Math.min(1, 0.5 * (x + 1)))).toArray()));
-            scene.add(...bunnyMesh.asPoints(0.05));
+            scene.addList(bunnyMesh.asSpheres(0.05));
             return { scene };
         })
         .inputStreamGenerator((i) => ({ time: i * dt, width, height }))
