@@ -5,6 +5,3 @@ export const IS_NODE = typeof process !== 'undefined' && Boolean(process.version
 export const NUMBER_OF_CORES = IS_NODE ?
     (await import("node:os")).cpus().length :
     navigator.hardwareConcurrency;
-
-export const IS_GITHUB = typeof window !== "undefined" && (window.location.host || window.LOCATION_HOST) === "pedroth.github.io";
-export const SOURCE = IS_GITHUB ? "/tela.js" : "";

@@ -94,6 +94,8 @@ export function hashStr(string) {
 const __Worker = IS_NODE ? (await import("node:worker_threads")).Worker : Worker;
 export class MyWorker {
     constructor(path) {
+        const IS_GITHUB = typeof window !== "undefined" && (window.location.host || window.LOCATION_HOST) === "pedroth.github.io";
+        const SOURCE = IS_GITHUB ? "/tela.js" : "";
         try {
             if (IS_NODE) {
                 let workerPath = "/" + (import.meta.dirname).split('/').slice(1, -1).join('/');
