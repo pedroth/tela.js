@@ -1,4 +1,4 @@
-import { IS_NODE, SOURCE } from "./Constants.js";
+import { IS_NODE } from "./Constants.js";
 
 export async function measureTime(lambda) {
     const t = performance.now();
