@@ -46,7 +46,6 @@ export function rasterGraphics(scene, camera, params = {}) {
                 });
             }
         }
-        canvas.paint();
         return canvas;
     }
 }

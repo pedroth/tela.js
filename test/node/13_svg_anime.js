@@ -64,8 +64,15 @@ const drawFrame = (time) => {
       if (isInsideCurve(p)) return Color.BLACK.scale(1 - t).add(Color.WHITE.scale(t));
     }, box);
 
-    for (let j = 0; j < Math.min(path.length - 1, Math.floor(2 * n * (path.length - 1))); j++) {
+    const endPoint = 2 * n * (path.length - 1);
+    const endPointFloor = Math.floor(endPoint);
+    for (let j = 0; j < Math.min(path.length - 1, endPointFloor); j++) {
       image.drawLine(path[j], path[j + 1], () => Color.WHITE);
+    }
+    if (endPoint > endPointFloor && endPointFloor < path.length - 1) {
+      const t = endPoint - endPointFloor;
+      const p = path[endPointFloor].scale(1-t).add(path[endPointFloor+1].scale(t));
+      image.drawLine(path[endPointFloor], p, () => Color.WHITE);
     }
   }
   return image.paint();
