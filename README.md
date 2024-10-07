@@ -46,7 +46,7 @@ Playground usage:
                 ((x * time) / width) % 1,
                 ((y * time) / height) % 1
             )
-        })
+        }).paint()
     }).play();
     document.body.appendChild(canvas.DOM);
 
@@ -70,7 +70,7 @@ loop(({ time, dt }) => {
             ((x * time) / width) % 1,
             ((y * time) / height) % 1
         )
-    })
+    }).paint();
 })
 .play();
 ```
@@ -95,20 +95,19 @@ const FPS = 25;
 const maxVideoTime = 10; // time in seconds
 
 function animation({ time, image }) {
-    return image.map((x, y) => {
-        return Color.ofRGB(
-            ((x * time) / width) % 1,
-            ((y * time) / height) % 1
-        )
-    })
+  return image.map((x, y) => {
+    return Color.ofRGB(
+      ((x * time) / width) % 1,
+      ((y * time) / height) % 1
+    );
+  });
 }
 
 video(
-    "hello_world.mp4",
-    animation,
-    { width, height, FPS }
-)
-    .while(({ time }) => time < maxVideoTime);
+  "hello_world.mp4",
+  animation,
+  { width, height, FPS }
+).while(({ time }) => time < maxVideoTime);
 ```
 
 And run it: `node index.mjs` / `bun index.js`
@@ -149,8 +148,6 @@ You can find more examples of usage in:
 
 # TODOs
 
-- Fix parallel ray trace refresh bug
-- Parallel ray map
 - Serialize meshes not only triangles
 - Optimize data serialization in parallel ray tracer
 
