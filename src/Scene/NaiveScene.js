@@ -9,6 +9,10 @@ export default class NaiveScene {
     this.sceneElements = [];
   }
 
+  get(id) {
+    return this.id2ElemMap(id);
+  }
+
   getHash() {
     const elements = this.getElements();
     let combinedHash = 0;

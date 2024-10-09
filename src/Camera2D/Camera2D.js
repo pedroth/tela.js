@@ -27,6 +27,19 @@ export default class Camera2D {
     }
   }
 
+  mapBox(lambda, box) {
+    return {
+      to: canvas => {
+        const cameraBox = new Box(this.toCanvasCoord(box.min, canvas), this.toCanvasCoord(box.max, canvas));
+        return canvas.mapBox((x, y) => {
+          // (x,y) \in [0,cameraBox.width] x [0, cameraBox.height]
+          let p = Vec2(x, y).div(cameraBox.diagonal).mul(box.diagonal);
+          return lambda(p);
+        }, cameraBox);
+      }
+    }
+  }
+
   raster(scene) {
     const type2render = {
       [Sphere.name]: rasterCircle,
@@ -38,8 +51,7 @@ export default class Camera2D {
         const elements = scene.getElements();
         for (let i = 0; i < elements.length; i++) {
           const element = elements[i];
-          const type = element.type;
-          const rasterizer = type2render[type];
+          const rasterizer = type2render[element.constructor.name];
           if (rasterizer) {
             rasterizer(element, this, tela);
           }
@@ -54,8 +66,13 @@ export default class Camera2D {
     }
   }
 
-  toCanvasCoord(p) {
-    return p.sub(this.box.min).div(this.box.diagonal);
+  toCanvasCoord(p, canvas) {
+    return p.sub(this.box.min).div(this.box.diagonal).mul(Vec2(canvas.width, canvas.height));
+  }
+
+  toWorldCoord(x, canvas) {
+    const size = Vec2(canvas.width, canvas.height);
+    return x.div(size).mul(this.box.diagonal)
   }
 
   static deserialize(json) {
@@ -64,20 +81,34 @@ export default class Camera2D {
 }
 
 
-function rasterCircle(circle, camera, tela) {
-  const centerInCanvas = camera.toCanvasCoord(circle.center);
-  const radius = camera.toCanvasCoord(circle.center.add(Vec2(circle.radius, 0))).x - centerInCanvas.x;
-  tela.drawCircle(centerInCanvas, radius, () => {
+function rasterCircle(circle, camera, canvas) {
+  const centerInCanvas = camera.toCanvasCoord(circle.position, canvas);
+  const radius = camera.toCanvasCoord(circle.position.add(Vec2(circle.radius, 0)), canvas).x - centerInCanvas.x;
+  return canvas.drawCircle(centerInCanvas, radius, () => {
     return circle.color;
   });
 }
 
 function rasterLine(line, camera, canvas) {
-  const { a, b } = line;
-
+  const positionsInCanvas = line.positions.map(p => camera.toCanvasCoord(p, canvas));
+  return canvas.drawLine(
+    positionsInCanvas[0],
+    positionsInCanvas[1],
+    () => {
+      return line.colors[0]
+    }
+  );
 }
 
 function rasterTriangle(triangle, camera, canvas) {
-  const { a, b, c } = triangle;
+  const positionsInCanvas = triangle.positions.map(p => camera.toCanvasCoord(p, canvas));
+  return canvas.drawTriangle(
+    positionsInCanvas[0],
+    positionsInCanvas[1],
+    positionsInCanvas[2],
+    () => {
+      return triangle.colors[0]
+    }
+  );
 
 }

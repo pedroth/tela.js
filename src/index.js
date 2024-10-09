@@ -1,23 +1,24 @@
+import Anima from "./Utils/Anima.js"
+import BScene from "./Scene/BScene.js"
+import Box from "./Geometry/Box.js"
+import Camera from "./Camera/Camera.js"
+import Camera2D from "./Camera2D/Camera2D.js"
 import Canvas from "./Tela/Canvas.js"
 import Color from "./Color/Color.js"
 import DOM from "./Utils/DomBuilder.js"
-import Stream from "./Utils/Stream.js"
-import Camera from "./Camera/Camera.js"
-import Camera2D from "./Camera2D/Camera2D.js"
-import BScene from "./Scene/BScene.js"
 import KScene from "./Scene/KScene.js"
-import NaiveScene from "./Scene/NaiveScene.js"
-import VoxelScene from "./Scene/VoxelScene.js"
-import RandomScene from "./Scene/RandomScene.js"
-import Vec, { Vec2, Vec3 } from "./Vector/Vector.js"
-import Box from "./Geometry/Box.js"
-import Sphere from "./Geometry/Sphere.js"
 import Line from "./Geometry/Line.js"
-import Path from "./Geometry/Path.js"
-import Triangle from "./Geometry/Triangle.js"
 import Mesh from "./Geometry/Mesh.js"
+import NaiveScene from "./Scene/NaiveScene.js"
+import Path from "./Geometry/Path.js"
+import parseSVG from "./Utils/SVG.js"
+import RandomScene from "./Scene/RandomScene.js"
 import Ray from "./Ray/Ray.js"
-import parseSVG, {parseSvgPath} from "./Utils/SVG.js"
+import Sphere from "./Geometry/Sphere.js"
+import Stream from "./Utils/Stream.js"
+import Triangle from "./Geometry/Triangle.js"
+import Vec, { Vec2, Vec3 } from "./Vector/Vector.js"
+import VoxelScene from "./Scene/VoxelScene.js"
 
 export {
     Box,
@@ -29,6 +30,7 @@ export {
     Path,
     Vec2,
     Vec3,
+    Anima,
     Color,
     BScene,
     Canvas,
@@ -36,12 +38,12 @@ export {
     KScene,
     Sphere,
     Stream,
+    Camera2D,
     parseSVG,
     Triangle,
     NaiveScene,
     VoxelScene,
     RandomScene,
-    parseSvgPath,
 }
 
 export * from "./Utils/Math.js"
