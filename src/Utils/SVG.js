@@ -742,16 +742,19 @@ function readTransform(svg, transformNode, transform = transformBuilder()) {
         .attributes
         .filter(x => x.attributeName === "transform")
         .forEach(({ attributeValue }) => {
-            const params = attributeValue.match(/-?\d+\.?\d*/g).map(Number);
-            if (attributeValue.includes("matrix")) {
-                transform = dot(transform, transformBuilder(...params));
-            }
-            if (attributeValue.includes("translate")) {
-                transform = dot(transform, transformBuilder(1, 0, 0, 1, ...params))
-            }
-            if (attributeValue.includes("scale")) {
-                transform = dot(transform, transformBuilder(params[0], 0, 0, params[1] ?? params[0], 0, 0))
-            }
+            const multiTransforms = attributeValue.split(" ");
+            multiTransforms.forEach(T => {
+                const params = T.match(/-?\d+\.?\d*/g).map(Number);
+                if (T.includes("matrix")) {
+                    transform = dot(transform, transformBuilder(...params));
+                }
+                if (T.includes("scale")) {
+                    transform = dot(transform, transformBuilder(params[0], 0, 0, (params[1] ?? params[0]), 0, 0))
+                }
+                if (T.includes("translate")) {
+                    transform = dot(transform, transformBuilder(1, 0, 0, 1, ...params))
+                }
+            })
         })
     const nodeStack = [...(transformNode?.InnerSVG?.innerSvgs?.map(x => x.SVG) ?? [])];
     while (nodeStack.length > 0) {
