@@ -10,13 +10,13 @@ const charStart = -0.85;
 const duration = 0.5;
 const charBottom = 0;
 const charHeight = 0.5;
-const chars = [..."x^2+1=0"];
-const chars_2 = [..."x = ± i"];
+const chars = [..."x²+1=0"];
+const chars_2 = [..."x = ±i"];
 const charBoxes = chars.map((_, i) => new Box(Vec2(charStart + i * charSize, charBottom), Vec2(charStart + (i + 1) * charSize, charHeight)))
 
 function drawString(p, string, box, tau) {
     const img = imageFromString(string);
-    const z = p.div(box.diagonal);
+    const z = p.sub(box.min).div(box.diagonal);
     const d = img.getPxl(z.x, z.y);
     if (Number.isNaN(d)) return Color.BLACK;
     if (d < 0.45 * tau) return Color.WHITE;

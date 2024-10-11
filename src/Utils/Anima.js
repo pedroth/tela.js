@@ -8,11 +8,6 @@ export default class Anima {
         });
     }
 
-
-    static list(...args) {
-        return new Anima(args);
-    }
-
     anime(t, dt) {
         let s = 0;
         let i = 0;
@@ -20,9 +15,13 @@ export default class Anima {
             s += this.sequence[i].duration;
             i++;
         }
-        const prevBehavior = this.sequence[Math.max(0, i - 1)];
+        const index = Math.max(0, i - 1);
+        const prevBehavior = this.sequence[index];
         let tau = t - prevBehavior.start;
-        if(i >= this.sequence.length) tau = Math.min(tau, prevBehavior.duration);
+        if (i >= this.sequence.length) tau = Math.min(tau, prevBehavior.duration); // end animation
+        if (Math.abs(tau - prevBehavior.duration) < dt) {
+            tau = prevBehavior.duration
+        }
         return prevBehavior.behavior(tau, dt);
     }
 
@@ -33,6 +32,14 @@ export default class Anima {
      */
     static behavior(lambda, duration) {
         return { behavior: lambda, duration };
+    }
+
+    static wait(duration) {
+        return { behavior: () => { }, duration };
+    }
+
+    static list(...args) {
+        return new Anima(args);
     }
 }
 

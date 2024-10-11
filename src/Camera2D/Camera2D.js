@@ -27,15 +27,15 @@ export default class Camera2D {
     }
   }
 
-  mapBox(lambda, box) {
+  mapBox(lambda, boxInWorld) {
     return {
       to: canvas => {
-        const cameraBox = new Box(this.toCanvasCoord(box.min, canvas), this.toCanvasCoord(box.max, canvas));
+        const cameraBoxInCanvasCoords = new Box(this.toCanvasCoord(boxInWorld.min, canvas), this.toCanvasCoord(boxInWorld.max, canvas));
         return canvas.mapBox((x, y) => {
           // (x,y) \in [0,cameraBox.width] x [0, cameraBox.height]
-          let p = Vec2(x, y).div(cameraBox.diagonal).mul(box.diagonal);
+          let p = Vec2(x, y).div(cameraBoxInCanvasCoords.diagonal).mul(boxInWorld.diagonal).add(boxInWorld.min);
           return lambda(p);
-        }, cameraBox);
+        }, cameraBoxInCanvasCoords);
       }
     }
   }
