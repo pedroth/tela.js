@@ -742,7 +742,7 @@ function readTransform(svg, transformNode, transform = transformBuilder()) {
         .attributes
         .filter(x => x.attributeName === "transform")
         .forEach(({ attributeValue }) => {
-            const multiTransforms = attributeValue.split(" ");
+            const multiTransforms = attributeValue.includes("matrix") ? [attributeValue] : attributeValue.split(" ");
             multiTransforms.forEach(T => {
                 const params = T.match(/-?\d+\.?\d*/g).map(Number);
                 if (T.includes("matrix")) {
