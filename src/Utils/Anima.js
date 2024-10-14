@@ -25,6 +25,12 @@ export default class Anima {
         return prevBehavior.behavior(tau, dt);
     }
 
+    loop(t, dt) {
+        if (this.sequence.length === 0) return;
+        const maxT = this.sequence.at(-1).end;
+        return this.anime(t % maxT, dt);
+    }
+
     /**
      * 
      * @param {(t, dt) => any} lambda 

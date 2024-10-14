@@ -141,6 +141,10 @@ export default class Box {
         return this.min.add(Vec.RANDOM(this.dim).mul(this.diagonal));
     }
 
+    volume() {
+        return this.diagonal.fold((e, x) => e * x, 1);
+    }
+
     serialize() {
         return {
             type: Box.name,
