@@ -107,7 +107,7 @@ export default class Box {
 
     equals(box) {
         if (!(box instanceof Box)) return false;
-        if (this == Box.EMPTY) return true;
+        if (this.isEmpty !== box.isEmpty) return false;
         return this.min.equals(box.min) && this.max.equals(box.max);
     }
 
