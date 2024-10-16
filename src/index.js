@@ -19,6 +19,7 @@ import Stream from "./Utils/Stream.js"
 import Triangle from "./Geometry/Triangle.js"
 import Vec, { Vec2, Vec3 } from "./Vector/Vector.js"
 import VoxelScene from "./Scene/VoxelScene.js"
+import PQueue from "./Utils/PQueue.js"
 
 export {
     Box,
@@ -36,6 +37,7 @@ export {
     Canvas,
     Camera,
     KScene,
+    PQueue,
     Sphere,
     Stream,
     Camera2D,

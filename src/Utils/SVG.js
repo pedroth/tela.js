@@ -1,5 +1,6 @@
 import { Vec2 } from "../Vector/Vector.js";
 import { cBezier, qBezier } from "./Math.js";
+import { groupBy } from "./Utils.js";
 
 export default function parse(text) {
     const tokensStream = tokens(stream(text));
@@ -471,8 +472,8 @@ function finishPath(keyPointPath, svg, id, path) {
             svg.defPaths[id] = [];
             svg.defKeyPointPaths[id] = [];
         }
-        svg.defPaths[id].push(path);
-        svg.defKeyPointPaths[id].push(keyPointPath);
+        svg.defPaths[id].push(cleanPath(path));
+        svg.defKeyPointPaths[id].push(cleanPath(keyPointPath));
         path = [];
         keyPointPath = [];
     }
@@ -728,8 +729,8 @@ function readPath(svg, tagNode) {
             svg.defPaths[id] = [];
             svg.defKeyPointPaths[id] = [];
         }
-        svg.defPaths[id].push(path);
-        svg.defKeyPointPaths[id].push(keyPointPath);
+        svg.defPaths[id].push(cleanPath(path));
+        svg.defKeyPointPaths[id].push(cleanPath(keyPointPath));
     }
 }
 
@@ -862,6 +863,17 @@ function readSVGNode(svgNode) {
     return svg;
 }
 
+function cleanPath(path) {
+    const epsilon = 1e-6;
+    const cleanPath = [];
+    for (let i = 0; i < path.length - 1; i++) {
+        if (!cleanPath.some(x => x.sub(path[i]).length() < epsilon)) {
+            cleanPath.push(path[i]);
+        }
+    }
+    cleanPath.push(path.at(-1));
+    return cleanPath;
+}
 
 //========================================================================================
 /*                                                                                      *
