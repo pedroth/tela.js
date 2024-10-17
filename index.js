@@ -619,7 +619,7 @@ function execCode(code) {
             const script = DOM.of("script").build();
             script.type = "module";
             script.textContent = `
-            import {Path, Ray, Canvas, DOM, Color, KScene, BScene, Camera, Vec2, Vec3, Vec, Box, Sphere, Mesh, NaiveScene, RandomScene, VoxelScene, Line, Triangle, Diffuse, Metallic, Alpha, DiElectric, clamp, loop, parseSVG, imageFromString} from "${SOURCE}/src/index.js"
+            import {Path, Ray, Canvas, DOM, Color, KScene, BScene, Camera, Vec2, Vec3, Vec, Box, Sphere, Mesh, NaiveScene, RandomScene, VoxelScene, Line, Triangle, Diffuse, Metallic, Alpha, DiElectric, clamp, loop, parseSVG, imageFromString, Anima} from "${SOURCE}/src/index.js"
             window.globalAnimationIDs.forEach(id => cancelAnimationFrame(id));
             window.globalAnimationIDs = [];
             window.LOCATION_HOST = "${window.location.host}";
