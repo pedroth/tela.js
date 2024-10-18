@@ -130,6 +130,11 @@ export default class Box {
         return false;
     }
 
+    contains(box, precision = 1e-6) {
+        const v = box.volume();
+        return Math.abs(v - this.sub(box).volume()) < precision;
+    }
+
     toString() {
         return `{
         min:${this.min.toString()},
@@ -142,6 +147,7 @@ export default class Box {
     }
 
     volume() {
+        if(this.isEmpty) return 0;
         return this.diagonal.fold((e, x) => e * x, 1);
     }
 
