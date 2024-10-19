@@ -6,15 +6,10 @@ const height = 480;
 const FPS = 30;
 const maxT = 3;
 const [path] = process.argv.slice(2);
-const svg = parseSVG(readFileSync(path ?? "./assets/cross.svg", { encoding: "utf-8" }));
+const svg = parseSVG(readFileSync(path ?? "./assets/cross.svg", { encoding: "utf-8" })).normalize();
 
 const coordTransform = (x) => {
-  const { min, max } = svg.viewBox;
-  const diagonal = max.sub(min);
-  let p = x.sub(min).div(diagonal);
-  p = Vec2(p.x, -p.y).add(Vec2(0, 1));
-  p = p.mul(Vec2(width, height)).map(Math.floor);
-  return p;
+  return x.mul(Vec2(width, height)).map(Math.floor);
 };
 
 const image = new Image(width, height);

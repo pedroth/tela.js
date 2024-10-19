@@ -1,6 +1,5 @@
 import { Vec2 } from "../Vector/Vector.js";
 import { cBezier, qBezier } from "./Math.js";
-import { groupBy } from "./Utils.js";
 
 export default function parse(text) {
     const tokensStream = tokens(stream(text));
@@ -859,6 +858,26 @@ function readSVGNode(svgNode) {
     if (svg.paths.length === 0) {
         Object.values(svg.defPaths).forEach(paths => svg.paths.push(paths));
         Object.values(svg.defKeyPointPaths).forEach(paths => svg.keyPointPaths.push(paths));
+    }
+
+    function normalize(path) {
+        return path.map(x => {
+            const { min, max } = svg.viewBox;
+            const diagonal = max.sub(min);
+            let p = x.sub(min).div(diagonal);
+            p = Vec2(p.x, -p.y).add(Vec2(0, 1));
+            return p;
+        });
+    }
+    svg.normalize = () => {
+        const ans = {
+            width: svg.width,
+            height: svg.height,
+            viewBox: { min: Vec2(), max: Vec2(1, 1) },
+            paths: svg.paths.map(paths => paths.map(path => normalize(path))),
+            keyPointPaths: svg.keyPointPaths.map(paths => paths.map(path => normalize(path)))
+        }
+        return ans;
     }
     return svg;
 }
