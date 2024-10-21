@@ -25,7 +25,7 @@ export function rayTraceWorkers(camera, scene, canvas, params = {}) {
     // lazy loading workers
     if (RAY_TRACE_WORKERS.length === 0) {
         RAY_TRACE_WORKERS = [...Array(NUMBER_OF_CORES)]
-            .map(() => new MyWorker(`Camera/rayTraceWorker.js`));
+            .map(() => new MyWorker(`./Camera/rayTraceWorker.js`));
     }
     const w = canvas.width;
     const h = canvas.height;
@@ -75,7 +75,7 @@ export function rayMapWorkers(camera, scene, canvas, lambda, vars = [], dependen
     // lazy loading workers
     if (RAY_MAP_WORKERS.length === 0) {
         RAY_MAP_WORKERS = [...Array(NUMBER_OF_CORES)]
-            .map(() => new MyWorker(`Camera/rayMapWorker.js`));
+            .map(() => new MyWorker(`./Camera/rayMapWorker.js`));
     }
     const w = canvas.width;
     const h = canvas.height;

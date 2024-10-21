@@ -20,7 +20,7 @@ export function parallelWorkers(tela, lambda, dependencies = [], vars = []) {
     // lazy loading workers
     if (WORKERS.length === 0) {
         WORKERS = [...Array(NUMBER_OF_CORES)]
-            .map(() => new MyWorker(`Tela/telaWorker.js`));
+            .map(() => new MyWorker(`./Tela/telaWorker.js`));
     }
     const w = tela.width;
     const h = tela.height;

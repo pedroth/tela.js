@@ -6,8 +6,8 @@ const height = 480;
 const FPS = 30;
 const maxT = 3;
 const [path] = process.argv.slice(2);
-const svg = parseSVG(readFileSync(path ?? "./assets/cross.svg", { encoding: "utf-8" })).normalize();
 
+const svg = parseSVG(readFileSync(path ?? "./assets/cross.svg", { encoding: "utf-8" })).normalize();
 const coordTransform = (x) => {
   return x.mul(Vec2(width, height)).map(Math.floor);
 };

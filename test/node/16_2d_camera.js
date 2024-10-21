@@ -55,6 +55,6 @@ const stringImage = imageFromString(chars.join(""));
 const stringImageBox = new Box(Vec2(charStart, -0.5), Vec2(charStart + charSize * chars.length, 0));
 loop(async ({ dt, time }) => {
     window.setTitle(`FPS: ${(1 / dt).toFixed(2)}`);
-    animation.anime(time);
+    animation.loop(time);
     window.paint();
 }).play();

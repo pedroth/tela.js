@@ -234,7 +234,7 @@ class Node {
         }
         const leftT = this.left?.box?.interceptWithRay(ray)?.[0] ?? Number.MAX_VALUE;
         const rightT = this.right?.box?.interceptWithRay(ray)?.[0] ?? Number.MAX_VALUE;
-        if (leftT === Number.MAX_VALUE && rightT === Number.MAX_VALUE) return Number.MAX_VALUE;
+        if (leftT === Number.MAX_VALUE && rightT === Number.MAX_VALUE) return this.distanceToPoint(ray.init);
         const first = leftT <= rightT ? this.left : this.right;
         const second = leftT > rightT ? this.left : this.right;
         const firstT = Math.min(leftT, rightT);
