@@ -334,7 +334,7 @@ const eatAllSpacesChars = eatWhile(p => p.type === " " || p.type === "\t" || p.t
  * number -> -D.D / D.D / -D / D
  * D -> [0-9]D / ε
  */
-export function parseSvgPath(svgPath) {
+function parseSvgPath(svgPath) {
     const { left: path, } = parsePath(stream(svgPath));
     return path;
 }
