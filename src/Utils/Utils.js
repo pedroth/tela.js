@@ -104,6 +104,10 @@ export class MyWorker {
             } else {
                 const workerPath = `${SOURCE}/src/${path}`;
                 this.worker = new __Worker(`${workerPath}`, { type: "module" });
+                this.worker.onerror = () => {
+                    this.worker = new __Worker(`/node_modules/tela.js/src/${path}`, { type: "module" });
+                    console.log(`Caught error while import from ${SOURCE} web, trying node_modules`);
+                }
             }
         } catch (e) {
             console.log("Caught error while importing worker", e);

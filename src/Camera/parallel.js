@@ -11,10 +11,10 @@ import { MyWorker } from "../Utils/Utils.js";
 let RAY_TRACE_WORKERS = [];
 let RAY_MAP_WORKERS = [];
 let prevSceneHash = undefined;
-let isFirstTimeCounter = NUMBER_OF_CORES;
+let prevScene = undefined;
 let serializedScene = undefined;
 
-const MAGIC_SETUP_TIME = 800;
+const ERROR_MSG_TIMEOUT = 2000;
 //========================================================================================
 /*                                                                                      *
  *                                         MAIN                                         *
@@ -33,14 +33,16 @@ export function rayTraceWorkers(camera, scene, canvas, params = {}) {
     const isNewScene = prevSceneHash !== newHash;
     if (isNewScene) {
         prevSceneHash = newHash;
-        serializedScene = scene.serialize()
+        serializedScene = scene?.serialize()
+        prevScene = serializedScene;
     } else {
         serializedScene = undefined;
     }
     return RAY_TRACE_WORKERS.map((worker, k) => {
         return new Promise((resolve) => {
             worker.onMessage(message => {
-                const { image, startRow, endRow, } = message;
+                const { image, startRow, endRow, hasScene } = message;
+                prevScene = hasScene ? undefined : prevScene;
                 let index = 0;
                 const startIndex = CHANNELS * w * startRow;
                 const endIndex = CHANNELS * w * endRow;
@@ -58,18 +60,17 @@ export function rayTraceWorkers(camera, scene, canvas, params = {}) {
                 startRow: k * ratio,
                 endRow: Math.min(h, (k + 1) * ratio),
                 camera: camera.serialize(),
-                scene: serializedScene
+                scene: isNewScene ? serializedScene : prevScene !== undefined ? prevScene : undefined
             };
-            if (isFirstTimeCounter > 0 && !IS_NODE) {
-                // hack to work in the browser, don't know why it works
-                isFirstTimeCounter--;
-                setTimeout(() => worker.postMessage(message), MAGIC_SETUP_TIME);
-            } else {
-                worker.postMessage(message)
-            }
+            worker.postMessage(message);
+            setTimeout(() => {
+                // doesn't block promise 
+                resolve();
+            }, ERROR_MSG_TIMEOUT);
         });
     })
 }
+
 
 export function rayMapWorkers(camera, scene, canvas, lambda, vars = [], dependencies = []) {
     // lazy loading workers
@@ -83,14 +84,16 @@ export function rayMapWorkers(camera, scene, canvas, lambda, vars = [], dependen
     const isNewScene = prevSceneHash !== newHash;
     if (isNewScene) {
         prevSceneHash = newHash;
-        serializedScene = scene.serialize()
+        serializedScene = scene?.serialize()
+        prevScene = serializedScene;
     } else {
         serializedScene = undefined;
     }
     return RAY_MAP_WORKERS.map((worker, k) => {
         return new Promise((resolve) => {
             worker.onMessage(message => {
-                const { image, startRow, endRow, } = message;
+                const { image, startRow, endRow, hasScene } = message;
+                prevScene = hasScene ? undefined : prevScene;
                 let index = 0;
                 const startIndex = CHANNELS * w * startRow;
                 const endIndex = CHANNELS * w * endRow;
@@ -110,16 +113,13 @@ export function rayMapWorkers(camera, scene, canvas, lambda, vars = [], dependen
                 endRow: Math.min(h, (k + 1) * ratio),
                 camera: camera.serialize(),
                 dependencies: dependencies.map(d => d.toString()),
-                scene: serializedScene
+                scene: isNewScene ? serializedScene : prevScene !== undefined ? prevScene : undefined
             };
-            if (isFirstTimeCounter > 0 && !IS_NODE) {
-                // hack to work in the browser, don't know why it works
-                isFirstTimeCounter--;
-                setTimeout(() => worker.postMessage(message), MAGIC_SETUP_TIME);
-            } else {
-                worker.postMessage(message)
-            }
-
+            worker.postMessage(message)
+            setTimeout(() => {
+                // doesn't block promise 
+                resolve();
+            }, ERROR_MSG_TIMEOUT);
         });
     })
 }

@@ -53,7 +53,7 @@ if (IS_NODE) {
     onmessage = async message => {
         const input = message.data;
         const output = await main(input);
-        postMessage(output);
+        postMessage({ output, hasScene: scene !== undefined });
     };
 
     onerror = e => console.log("Caught error on rayTrace worker", e);

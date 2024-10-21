@@ -70,7 +70,7 @@ if (IS_NODE) {
     self.onmessage = async message => {
         const input = message.data;
         const output = await main(input);
-        postMessage(output);
+        postMessage({...output, hasScene: scene !== undefined});
     };
 
     self.onerror = e => {

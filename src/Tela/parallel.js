@@ -8,8 +8,8 @@ import { MyWorker } from "../Utils/Utils.js";
 //========================================================================================
 
 let WORKERS = [];
-let isFirstTimeCounter = NUMBER_OF_CORES;
-const MAGIC_SETUP_TIME = 700;
+const ERROR_MSG_TIMEOUT = 2000;
+
 //========================================================================================
 /*                                                                                      *
  *                                         MAIN                                         *
@@ -46,13 +46,11 @@ export function parallelWorkers(tela, lambda, dependencies = [], vars = []) {
                 __endRow: Math.min(h, (k + 1) * ratio),
                 __dependencies: dependencies.map(d => d.toString()),
             };
-            if (isFirstTimeCounter > 0 && !IS_NODE) {
-                // hack to work in the browser, don't know why it works
-                isFirstTimeCounter--;
-                setTimeout(() => worker.postMessage(message), MAGIC_SETUP_TIME);
-            } else {
-                worker.postMessage(message)
-            }
+            worker.postMessage(message);
+            setTimeout(() => {
+                // doesn't block promise 
+                resolve();
+            }, ERROR_MSG_TIMEOUT);
         });
     })
 }
