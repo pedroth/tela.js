@@ -10,11 +10,13 @@ import { MyWorker } from "../Utils/Utils.js";
 
 let RAY_TRACE_WORKERS = [];
 let RAY_MAP_WORKERS = [];
+
 let prevSceneHash = undefined;
 let prevScene = undefined;
 let serializedScene = undefined;
+let isFirstTimeCounter = NUMBER_OF_CORES;
 
-const ERROR_MSG_TIMEOUT = 2000;
+const ERROR_MSG_TIMEOUT = 1000;
 //========================================================================================
 /*                                                                                      *
  *                                         MAIN                                         *
@@ -39,10 +41,12 @@ export function rayTraceWorkers(camera, scene, canvas, params = {}) {
         serializedScene = undefined;
     }
     return RAY_TRACE_WORKERS.map((worker, k) => {
+        let timerId = undefined;
         return new Promise((resolve) => {
             worker.onMessage(message => {
                 const { image, startRow, endRow, hasScene } = message;
                 prevScene = hasScene ? undefined : prevScene;
+                if (!IS_NODE) clearTimeout(timerId);
                 let index = 0;
                 const startIndex = CHANNELS * w * startRow;
                 const endIndex = CHANNELS * w * endRow;
@@ -63,10 +67,15 @@ export function rayTraceWorkers(camera, scene, canvas, params = {}) {
                 scene: isNewScene ? serializedScene : prevScene !== undefined ? prevScene : undefined
             };
             worker.postMessage(message);
-            setTimeout(() => {
-                // doesn't block promise 
-                resolve();
-            }, ERROR_MSG_TIMEOUT);
+            if (isFirstTimeCounter > 0 && !IS_NODE) {
+                // hack to work in the browser, don't know why it works
+                isFirstTimeCounter--;
+                timerId = setTimeout(() => {
+                    console.log("TIMEOUT!!")
+                    // doesn't block promise 
+                    resolve();
+                }, ERROR_MSG_TIMEOUT);
+            }
         });
     })
 }
@@ -91,9 +100,11 @@ export function rayMapWorkers(camera, scene, canvas, lambda, vars = [], dependen
     }
     return RAY_MAP_WORKERS.map((worker, k) => {
         return new Promise((resolve) => {
+            let timerId = undefined;
             worker.onMessage(message => {
                 const { image, startRow, endRow, hasScene } = message;
                 prevScene = hasScene ? undefined : prevScene;
+                if (!IS_NODE) clearTimeout(timerId);
                 let index = 0;
                 const startIndex = CHANNELS * w * startRow;
                 const endIndex = CHANNELS * w * endRow;
@@ -115,11 +126,16 @@ export function rayMapWorkers(camera, scene, canvas, lambda, vars = [], dependen
                 dependencies: dependencies.map(d => d.toString()),
                 scene: isNewScene ? serializedScene : prevScene !== undefined ? prevScene : undefined
             };
-            worker.postMessage(message)
-            setTimeout(() => {
-                // doesn't block promise 
-                resolve();
-            }, ERROR_MSG_TIMEOUT);
+            worker.postMessage(message);
+            if (isFirstTimeCounter > 0 && !IS_NODE) {
+                // hack to work in the browser, don't know why it works
+                isFirstTimeCounter--;
+                timerId = setTimeout(() => {
+                    console.log("TIMEOUT!!")
+                    // doesn't block promise 
+                    fail();
+                }, ERROR_MSG_TIMEOUT);
+            }
         });
     })
 }

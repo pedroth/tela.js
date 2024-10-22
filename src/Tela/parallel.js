@@ -1,4 +1,4 @@
-import { CHANNELS, IS_NODE, NUMBER_OF_CORES } from "../Utils/Constants.js";
+import { CHANNELS, NUMBER_OF_CORES } from "../Utils/Constants.js";
 import Color from "../Color/Color.js";
 import { MyWorker } from "../Utils/Utils.js";
 //========================================================================================
@@ -8,7 +8,7 @@ import { MyWorker } from "../Utils/Utils.js";
 //========================================================================================
 
 let WORKERS = [];
-const ERROR_MSG_TIMEOUT = 2000;
+const ERROR_MSG_TIMEOUT = 1000;
 
 //========================================================================================
 /*                                                                                      *
@@ -25,9 +25,11 @@ export function parallelWorkers(tela, lambda, dependencies = [], vars = []) {
     const w = tela.width;
     const h = tela.height;
     return WORKERS.map((worker, k) => {
+        let timerId = undefined;
         return new Promise((resolve) => {
             worker.onMessage(message => {
                 const { image, startRow, endRow, } = message;
+                clearTimeout(timerId);
                 let index = 0;
                 const startIndex = CHANNELS * w * startRow;
                 const endIndex = CHANNELS * w * endRow;
@@ -47,8 +49,9 @@ export function parallelWorkers(tela, lambda, dependencies = [], vars = []) {
                 __dependencies: dependencies.map(d => d.toString()),
             };
             worker.postMessage(message);
-            setTimeout(() => {
+            timerId = setTimeout(() => {
                 // doesn't block promise 
+                console.log("TIMEOUT!!!")
                 resolve();
             }, ERROR_MSG_TIMEOUT);
         });
