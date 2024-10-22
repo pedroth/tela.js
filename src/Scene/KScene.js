@@ -32,14 +32,9 @@ export default class KScene extends NaiveScene {
         this.boundingBoxScene = new Node(this.k);
     }
 
-    distanceToPoint(p) {
+    distanceToPoint(p, combineLeafs = Math.min) {
         if (this.boundingBoxScene.leafs.length > 0) {
-            let distance = Number.MAX_VALUE;
-            const leafs = this.boundingBoxScene.leafs
-            for (let i = 0; i < leafs.length; i++) {
-                distance = Math.min(distance, leafs[i].element.distanceToPoint(p));
-            }
-            return distance;
+            return distanceFromLeafs(this.boundingBoxScene.leafs, p, combineLeafs);
         }
         return this.getElementNear(p).distanceToPoint(p);
     }
@@ -57,7 +52,7 @@ export default class KScene extends NaiveScene {
             normal = normal.add(n.scale(d));
             weight += d;
         }
-        return normal.length() > 0 ? normal.scale(1 / weight).normalize() : normal;
+        return normal.length() > 0 ? normal.scale(1 / weight).normalize() : super.normalToPoint(p);
     }
 
     interceptWithRay(ray) {
@@ -225,6 +220,7 @@ class Node {
     }
 
     distanceToPoint(p) {
+        if(!this.left && !this.right) return Number.MAX_VALUE;
         return this.getElementNear(p).distanceToPoint(p);
     }
 
