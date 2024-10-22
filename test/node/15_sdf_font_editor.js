@@ -12,7 +12,7 @@ const rowSize = Math.floor(width / charSizeX);
 let chars = []
 let charsCursor = 0;
 let windowCursor = 0;
-let removeExplosionAnimationPostions = [];
+let removeExplosionAnimationPositions = [];
 
 const mod = (x, n) => ((x % n) + n) % n;
 const window = new Window(width, height).onResizeWindow(() => window.paint()).maximize();
@@ -46,7 +46,7 @@ window.onKeyDown((e) => {
         "shift": () => { },
         "ctrl": () => { },
         "backspace": () => {
-            removeExplosionAnimationPostions.push(particlesIn(charsCursor));
+            removeExplosionAnimationPositions.push(particlesIn(charsCursor));
             const cursorInRow = mod(charsCursor, rowSize);
             if (cursorInRow <= margin) {
                 const cursorInCol = Math.floor(charsCursor / rowSize);
@@ -89,7 +89,7 @@ function particlesIn(index) {
 function updateExplosionAnimations(dt) {
     const g = Vec2(0, -98);
     const radius = 2;
-    removeExplosionAnimationPostions.forEach(points => {
+    removeExplosionAnimationPositions.forEach(points => {
         for (let i = 0; i < points.length; i++) {
             window.drawCircle(points[i].p, radius, () => Color.BLACK); // clear circle, it is done in this way because we are not cleaning the whole window
             const p = points[i].p;
@@ -99,7 +99,7 @@ function updateExplosionAnimations(dt) {
             window.drawCircle(points[i].p, radius, () => points[i].color); // draw circle
         }
     });
-    removeExplosionAnimationPostions = removeExplosionAnimationPostions
+    removeExplosionAnimationPositions = removeExplosionAnimationPositions
         .filter(points => !points.every(point => point.p.y < 0));
 }
 
