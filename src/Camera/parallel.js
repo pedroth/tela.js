@@ -133,7 +133,7 @@ export function rayMapWorkers(camera, scene, canvas, lambda, vars = [], dependen
                 timerId = setTimeout(() => {
                     console.log("TIMEOUT!!")
                     // doesn't block promise 
-                    fail();
+                    resolve();
                 }, ERROR_MSG_TIMEOUT);
             }
         });
