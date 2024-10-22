@@ -10,9 +10,12 @@ async (canvas, logger) => {
     const camera = new Camera();
     const obj = await fetch("/assets/bunny.obj").then((x) => x.text());
     let mesh = Mesh.readObj(obj, "mesh");
+    const box = mesh.getBoundingBox();
+    const scaleInv = 2 / box.diagonal.fold((e, x) => Math.max(e, x), Number.MIN_VALUE);
     mesh = mesh
+        .mapVertices((v) => v.sub(box.center).scale(scaleInv))
         .mapVertices((v) => Vec3(-v.y, v.x, v.z))
-        .mapVertices((v) => Vec3(v.z, v.y, -v.x));
+        .mapVertices((v) => Vec3(v.z, v.y, -v.x))
     scene.addList(mesh.asSpheres(0.05));
     scene.rebuild();
 

@@ -49,7 +49,7 @@ window.onMouseWheel(({ dy }) => {
     exposedWindow = window.exposure();
 });
 
-const meshObj = readFileSync("./assets/statue.obj", { encoding: "utf-8" });
+const meshObj = readFileSync("./assets/spot.obj", { encoding: "utf-8" });
 let mesh = Mesh.readObj(meshObj, "mesh");
 const meshBox = mesh.getBoundingBox();
 const maxDiagInv = 2 / meshBox.diagonal.fold((e, x) => Math.max(e, x), Number.MIN_VALUE);
@@ -59,7 +59,7 @@ mesh = mesh
   .mapVertices(v => Vec3(-v.z, -v.x, v.y))
   .mapVertices(v => v.add(Vec3(1.5, 1.5, 1.0)))
   .mapColors(() => Color.WHITE)
-  .addTexture(await Image.ofUrl("./assets/statue_low.jpg"))
+  .addTexture(await Image.ofUrl("./assets/spot.png"))
   .mapMaterials(() => Metallic(1.33333))
 scene.addList(mesh.asTriangles());
 
