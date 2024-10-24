@@ -56,6 +56,7 @@ export default class Camera2D {
             rasterizer(element, this, tela);
           }
         }
+        return tela;
       }
     }
   }
