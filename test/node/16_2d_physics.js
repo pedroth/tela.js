@@ -118,25 +118,25 @@ function enforceConstraints(path, prevDistances, prevArea, dt) {
     // distance constraint
     let constraintsCost = 0;
     for (let i = 0; i < n; i++) {
-        constraintsCost += path[mod(i + 1, n)].sub(path[i]).length() - prevDistances[i];
+        constraintsCost += path[mod(i + 1, n)].sub(path[i]).squareLength() - prevDistances[i]*prevDistances[i];
     }
     for (let i = 0; i < n; i++) {
         const prev = path[mod(i - 1, n)];
         const next = path[mod(i + 1, n)];
         const current = path[i];
-        const grad = current.sub(prev).normalize().add(current.sub(next).normalize());
+        const grad = current.sub(prev).add(current.sub(next));
         path[i] = current.add(grad.scale(-delta * constraintsCost));
     }
 
     // volume constraint
-    constraintsCost = areaFromPath(path) - prevArea;
-    for (let i = 0; i < n; i++) {
-        const prev = path[mod(i - 1, n)];
-        const next = path[mod(i + 1, n)];
-        let grad = prev.sub(next);
-        grad = Vec2(-grad.y, grad.x);
-        path[i] = path[i].add(grad.scale(-0.5 * delta * constraintsCost));
-    }
+    // constraintsCost = areaFromPath(path) - prevArea;
+    // for (let i = 0; i < n; i++) {
+    //     const prev = path[mod(i - 1, n)];
+    //     const next = path[mod(i + 1, n)];
+    //     let grad = prev.sub(next);
+    //     grad = Vec2(-grad.y, grad.x);
+    //     path[i] = path[i].add(grad.scale(-0.5 * delta * constraintsCost));
+    // }
     // above floor constraint
     for (let i = 0; i < n; i++) {
         path[i] = path[i].y < 0 ? Vec2(path[i].x, 1e-3) : path[i];
@@ -163,7 +163,6 @@ function updateScene(dt) {
         const L = path.length;
         const edgeDistances = pathEdgeLengths[i];
         const pathArea = pathAreas[i];
-        // const areaBefore = areaFromPath(path);
         for (let k = 0; k < subSteps; k++) {
             const prevPath = [...path];
             for (let j = 0; j < L; j++) {
@@ -171,13 +170,13 @@ function updateScene(dt) {
                 const mouseCoord = path[j].sub(mouse);
                 const mouseForce = mouseCoord.normalize().scale((rightMouseDown ? 1e-3 : 0) / mouseCoord.squareLength());
                 const friction = speed[j].scale(-1);
-                const acceleration = gravity.add(mouseForce).add(friction);
+                const acceleration = gravity.add(mouseForce).add(laplacian).add(friction);
                 speed[j] = speed[j].add(acceleration.scale(delta));
                 path[j] = path[j].add(speed[j].scale(delta));
             }
             enforceConstraints(path, edgeDistances, pathArea, delta);
+            preserveArea(pathArea, path);
             updateSpeed(speed, prevPath, path, delta);
-            // preserveArea(areaBefore, path);
         }
         console.log("L1-L0", Math.abs((distancesFromPath(path).reduce((e, x) => e + x, 0) - edgeDistances.reduce((e, x) => e + x, 0))))
         console.log("A1-A0", Math.abs(areaFromPath(path) - pathArea))
