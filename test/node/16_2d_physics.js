@@ -1,13 +1,21 @@
-import { Vec2, Window, loop, Box, Camera2D, NaiveScene, Line, Color, mod } from "../../src/index.node.js";
+import { Vec2, Window, loop, Box, Camera2D, NaiveScene, Line, Color, mod, clamp } from "../../src/index.node.js";
 
 const width = 640;
 const height = 640;
 const window = new Window(width, height).onResizeWindow(() => window.paint());
 
+const acosClamp = clamp(-1, 1);
+
+// const paths = [[Vec2(0.1, 0.1), Vec2(0.9, 0.1), Vec2(0.9, 0.9), Vec2(0.1, 0.9)]];
+// const speeds = [[Vec2(), Vec2(), Vec2(), Vec2()]];
+// const pathAreas = [[0.64]];
+// const pathEdgeLengths = [[0.8, 0.8, 0.8, 0.8]];
+// const curvatures = [[0, Math.PI / 2, Math.PI / 2, Math.PI / 2]];
 const paths = [];
 const speeds = [];
-const pathEdgeLengths = [];
 const pathAreas = [];
+const pathEdgeLengths = [];
+const curvatures = [];
 const scene = new NaiveScene();
 const draftScene = new NaiveScene();
 const camera = new Camera2D(new Box(Vec2(0), Vec2(1, 1)));
@@ -20,7 +28,9 @@ function cleanPath(path) {
             cleanPath.push(path[i]);
         }
     }
-    cleanPath.push(path.at(-1));
+    if (!cleanPath.some(x => x.sub(path.at(-1)).length() < epsilon)) {
+        cleanPath.push(path.at(-1));
+    }
     return cleanPath;
 }
 
@@ -47,8 +57,10 @@ window.onMouseUp(() => {
     if (path.length > 0) {
         paths.push([]);
         paths.at(-1).push(...cleanPath(path));
+        curvatures.push([]);
+        curvatures.at(-1).push(...curvatureFromPath(paths.at(-1)));
         pathEdgeLengths.push([]);
-        pathEdgeLengths.at(-1).push(...distancesFromPath(paths.at(-1)))
+        pathEdgeLengths.at(-1).push(...distancesFromPath(paths.at(-1)));
         pathAreas.push([]);
         pathAreas.at(-1).push(areaFromPath(paths.at(-1)));
         speeds.push([]);
@@ -75,11 +87,19 @@ window.onMouseMove((x, y) => {
  *                                                                                      */
 //========================================================================================
 
-function add2Scene(path) {
+function add2Scene(path, color = Color.WHITE) {
     const id = Math.floor(Math.random() * 1e5);
     for (let i = 0; i < path.length; i++) {
         const j = (i + 1) % path.length
-        const line = Line.builder().name(`Line_${id}_${i}`).positions(path[i], path[j]).colors(Color.WHITE, Color.WHITE).build();
+        const line = Line.builder().name(`Line_${id}_${i}`).positions(path[i], path[j]).colors(color, color).build();
+        scene.add(line)
+    }
+}
+
+function addSpeed(speed, path, color = Color.WHITE) {
+    const id = Math.floor(Math.random() * 1e5);
+    for (let i = 0; i < path.length; i++) {
+        const line = Line.builder().name(`Line_${id}_${i}`).positions(path[i], path[i].add(speed[i])).colors(color, color).build();
         scene.add(line)
     }
 }
@@ -102,6 +122,18 @@ function distancesFromPath(path) {
     return distances;
 }
 
+function curvatureFromPath(path) {
+    const n = path.length;
+    const curvature = [];
+    for (let i = 0; i < n; i++) {
+        const next = path[mod(i + 1, n)].sub(path[i]);
+        const prev = path[i].sub(path[mod(i - 1, n)]);
+        let dTheta = Math.atan2(prev.cross(next), prev.dot(next)); // signed turning angle
+        curvature.push(dTheta);
+    }
+    return curvature;
+}
+
 function preserveArea(A0, path) {
     const n = path.length;
     const A = areaFromPath(path);
@@ -112,30 +144,32 @@ function preserveArea(A0, path) {
     }
 }
 
-function enforceConstraints(path, prevDistances, prevArea, dt) {
+function enforceConstraints(path, prevDTheta, edgeDistances, dt) {
     const n = path.length;
     const delta = Math.max(1e-3, dt);
-    // distance constraint
-    let constraintsCost = 0;
+    // path -> curvature representation
+    const dTheta = curvatureFromPath(path);
+    // curvature constraint
     for (let i = 0; i < n; i++) {
-        constraintsCost += path[mod(i + 1, n)].sub(path[i]).squareLength() - prevDistances[i]*prevDistances[i];
-    }
-    for (let i = 0; i < n; i++) {
-        const prev = path[mod(i - 1, n)];
-        const next = path[mod(i + 1, n)];
-        const current = path[i];
-        const grad = current.sub(prev).add(current.sub(next));
-        path[i] = current.add(grad.scale(-delta * constraintsCost));
+        const grad = dTheta[i] - prevDTheta[i];
+        dTheta[i] += -grad * delta;
     }
 
-    // volume constraint
-    // constraintsCost = areaFromPath(path) - prevArea;
+    // curvature representation -> path
+    const t0 = path[0].sub(path.at(-1));
+    let theta = Math.atan2(t0.y, t0.x);
+    let p = path[0]
+    for (let i = 0; i < n - 1; i++) {
+        theta += dTheta[i];
+        path[i + 1] = p.add(
+            Vec2(Math.cos(theta), Math.sin(theta)).scale(edgeDistances[i])
+        );
+        p = path[i + 1];
+    }
+    // close curve
+    // const gap = path[0].sub(path.at(-1));
     // for (let i = 0; i < n; i++) {
-    //     const prev = path[mod(i - 1, n)];
-    //     const next = path[mod(i + 1, n)];
-    //     let grad = prev.sub(next);
-    //     grad = Vec2(-grad.y, grad.x);
-    //     path[i] = path[i].add(grad.scale(-0.5 * delta * constraintsCost));
+    //     path[i] = path[i].add(gap.scale(i / n)); // i_max = n-1 => i/n = n-1/n: this is on purpose. so that gap is not totally closed
     // }
     // above floor constraint
     for (let i = 0; i < n; i++) {
@@ -162,6 +196,7 @@ function updateScene(dt) {
         const speed = speeds[i];
         const L = path.length;
         const edgeDistances = pathEdgeLengths[i];
+        const curvature = curvatures[i];
         const pathArea = pathAreas[i];
         for (let k = 0; k < subSteps; k++) {
             const prevPath = [...path];
@@ -170,16 +205,14 @@ function updateScene(dt) {
                 const mouseCoord = path[j].sub(mouse);
                 const mouseForce = mouseCoord.normalize().scale((rightMouseDown ? 1e-3 : 0) / mouseCoord.squareLength());
                 const friction = speed[j].scale(-1);
-                const acceleration = gravity.add(mouseForce).add(laplacian).add(friction);
+                const acceleration = gravity.add(mouseForce).add(friction);
                 speed[j] = speed[j].add(acceleration.scale(delta));
                 path[j] = path[j].add(speed[j].scale(delta));
             }
-            enforceConstraints(path, edgeDistances, pathArea, delta);
-            preserveArea(pathArea, path);
+            enforceConstraints(path, curvature, edgeDistances, delta);
             updateSpeed(speed, prevPath, path, delta);
         }
-        console.log("L1-L0", Math.abs((distancesFromPath(path).reduce((e, x) => e + x, 0) - edgeDistances.reduce((e, x) => e + x, 0))))
-        console.log("A1-A0", Math.abs(areaFromPath(path) - pathArea))
+        addSpeed(speed, path, Color.RED);
         add2Scene(path);
     }
 }
