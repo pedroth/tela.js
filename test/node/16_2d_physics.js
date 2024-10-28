@@ -189,7 +189,7 @@ function enforceConstraints(path, { otherPaths, edgeDistances, pathArea, shape }
             sin * shape[i].x + cos * shape[i].y
         ).add(center);
         const grad = path[i].sub(newShapeI)
-        path[i] = path[i].add(grad.scale(-dt));
+        path[i] = path[i].add(grad.scale(-10*dt));
     }
 
     // collision handling
@@ -199,12 +199,14 @@ function enforceConstraints(path, { otherPaths, edgeDistances, pathArea, shape }
     for (let i = 0; i < otherBoxes.length; i++) {
         const intersection = pathBox.sub(otherBoxes[i]);
         if (!intersection.isEmpty) {
-            // addBox(intersection, Color.PURPLE);
-            const r = intersection.diagonal.x;
-            const diff = pathBox.center.sub(otherBoxes[i].center).normalize().scale(r / 2);
-            // console.log("$$$", diff.length())
-            // scene.add(Line.builder().name("test" + Math.random()).positions(pathBox.center, otherBoxes[i].center).colors(Color.CYAN, Color.CYAN).build())
-            path.forEach((_, j) => path[j] = path[j].add(diff.scale(dt)));
+            for (let j = 0; j < n; j++) {
+                if (!(new Box(path[j], path[j])).sub(intersection).isEmpty) {
+                    const r = intersection.diagonal.x / 2;
+                    const grad = path[j].sub(intersection.center).scale(10 * r);
+                    scene.add(Line.builder().name(Math.random()).positions(path[j], path[j].add(grad)).colors(Color.PURPLE, Color.PURPLE).build())
+                    path[j] = path[j].add(grad.scale(-10*dt));
+                }
+            }
         }
     }
 

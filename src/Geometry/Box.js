@@ -31,7 +31,9 @@ export default class Box {
         for (let i = 0; i < n; i++) {
             grad.push(this.distanceToPoint(pointVec.add(Vec.e(n)(i).scale(epsilon))) - d)
         }
-        return Vec.fromArray(grad).scale(Math.sign(d)).normalize();
+        let sign = Math.sign(d);
+        sign = sign === 0 ? 1 : sign;
+        return Vec.fromArray(grad).scale(sign).normalize();
     }
 
     interceptWithRay(ray) {
