@@ -4,16 +4,10 @@ const width = 640;
 const height = 640;
 const window = new Window(width, height).onResizeWindow(() => window.paint());
 
-const paths = [[Vec2(0.1, 0.1), Vec2(0.3, 0.1), Vec2(0.3, 0.3), Vec2(0.1, 0.3)]];
-const speeds = [[Vec2(), Vec2(), Vec2(), Vec2()]];
-const pathAreas = [[0.64]];
-const pathEdgeLengths = [[0.2, 0.2, 0.2, 0.2]];
-const curvatures = [[Math.PI / 2, Math.PI / 2, Math.PI / 2, Math.PI / 2]];
-// const paths = [];
-// const speeds = [];
-// const pathAreas = [];
-// const pathEdgeLengths = [];
-// const curvatures = [];
+let paths = [];
+let speeds = [];
+let pathAreas = [];
+let pathEdgeLengths = [];
 const scene = new NaiveScene();
 const draftScene = new NaiveScene();
 const camera = new Camera2D(new Box(Vec2(0), Vec2(1, 1)));
@@ -55,8 +49,6 @@ window.onMouseUp(() => {
     if (path.length > 0) {
         paths.push([]);
         paths.at(-1).push(...cleanPath(path));
-        curvatures.push([]);
-        curvatures.at(-1).push(...curvatureFromPath(paths.at(-1)));
         pathEdgeLengths.push([]);
         pathEdgeLengths.at(-1).push(...distancesFromPath(paths.at(-1)));
         pathAreas.push([]);
@@ -78,6 +70,16 @@ window.onMouseMove((x, y) => {
     draftScene.add(Line.builder().name(`${Math.random()}`).positions(mouse, newMouse).colors(Color.CYAN, Color.CYAN).build());
     mouse = newMouse;
 });
+
+
+window.onKeyDown((e) => {
+    if ("r" === e.key) {
+        paths = [];
+        speeds = [];
+        pathAreas = [];
+        pathEdgeLengths = [];
+    }
+})
 
 //========================================================================================
 /*                                                                                      *
@@ -120,18 +122,6 @@ function distancesFromPath(path) {
     return distances;
 }
 
-function curvatureFromPath(path) {
-    const n = path.length;
-    const curvature = [];
-    for (let i = 0; i < n; i++) {
-        const next = path[mod(i + 1, n)].sub(path[i]);
-        const prev = path[i].sub(path[mod(i - 1, n)]);
-        let dTheta = Math.atan2(prev.cross(next), prev.dot(next)); // signed turning angle
-        curvature.push(dTheta);
-    }
-    return curvature;
-}
-
 function preserveArea(A0, path) {
     const n = path.length;
     const A = areaFromPath(path);
@@ -142,57 +132,30 @@ function preserveArea(A0, path) {
     }
 }
 
-function enforceConstraints(path, prevDTheta, edgeDistances, dt) {
+
+function enforceConstraints(path, edgeDistances, pathArea, dt) {
     const n = path.length;
     if (dt === 0) return;
-    // path -> curvature representation
-    const average = path.reduce((e, x) => e.add(x), Vec2()).scale(1 / path.length)
+    // length constraint
     for (let i = 0; i < n; i++) {
-        path[i] = path[i].sub(average);
-    }
-    const dTheta = curvatureFromPath(path);
-    // curvature constraint
-    const grad = [];
-    for (let i = 0; i < n; i++) {
-        // grad.push(dTheta[i] - prevDTheta[i]);
-        // update curvatures
-        let gradient = dTheta[i] - prevDTheta[i];
-        dTheta[i] += - gradient * dt
+        const c1 = path[i].sub(path[mod(i - 1, n)]).length() - edgeDistances[mod(i - 1, n)]
+        const c2 = path[mod(i + 1, n)].sub(path[i]).length() - edgeDistances[i];
+        const grad1 = path[i].sub(path[mod(i - 1, n)]).normalize().scale(2 * c1);
+        const grad2 = path[i].sub(path[mod(i + 1, n)]).normalize().scale(2 * c2);
+        const grad = grad1.add(grad2);
+        path[i] = path[i].add(grad.scale(-dt))
     }
 
-    // const basis = orthoBasisFrom(Vec.ONES(n), Vec.fromArray(path.map(p => p.x)), Vec.fromArray(path.map(p => p.y)));
-    // let gradVec = Vec.fromArray(grad);
-    // // orthogonal grad projection from basis
-    // let proj = Vec.ZERO(n)
-    // for (let i = 0; i < basis.length; i++) {
-    //     proj = proj.add(basis[i].scale(gradVec.dot(basis[i])))
-    // }
-    // gradVec = gradVec.sub(proj);
-    // for (let i = 0; i < n; i++) {
-    //     dTheta[i] += -gradVec.get(i) * dt;
-    // }
-
-    // curvature representation -> path
-    const t0 = path[0].sub(path.at(-1));
-    let theta = Math.atan2(t0.y, t0.x);
-    theta = theta - 2 * Math.PI * Math.round(theta / (2 * Math.PI))
-    console.log("$$$", theta);
-    let p = path[0].add(Vec2(0.5, 0.5))
+    // area constraint
+    const areaCost = areaFromPath(path) - pathArea;
     for (let i = 0; i < n; i++) {
-        let omega = dTheta[i];
-        theta += omega;
-        path[mod(i + 1, n)] = p.add(
-            Vec2(Math.cos(theta), Math.sin(theta)).scale(edgeDistances[i])
-        );
-        p = path[mod(i + 1, n)];
+        const prev = path[mod(i - 1, n)];
+        const next = path[mod(i + 1, n)];
+        let grad = prev.sub(next);
+        grad = Vec2(-grad.y, grad.x);
+        path[i] = path[i].add(grad.scale(- dt * 2 * areaCost));
     }
-
-
-    // const gap = path[0].sub(path.at(-1));
-    // for (let i = 0; i < n; i++) {
-    //     path[i] = path[i].add(gap.scale(i / n)); // i_max = n-1 => i/n = n-1/n: this is on purpose. so that gap is not totally closed
-    // }
-
+    // preserveArea(pathArea, path);
 
     // above floor constraint
     for (let i = 0; i < n; i++) {
@@ -213,8 +176,8 @@ function updateSpeed(speed, prevPath, path, dt) {
 
 function updateScene(dt) {
     scene.clear();
-    const gravity = Vec2(0, -0.1);
-    const subSteps = 10;
+    const gravity = Vec2(0, -0.0);
+    const subSteps = 20;
     const delta = dt / subSteps;
     const n = paths.length;
     for (let i = 0; i < n; i++) {
@@ -222,7 +185,6 @@ function updateScene(dt) {
         const speed = speeds[i];
         const L = path.length;
         const edgeDistances = pathEdgeLengths[i];
-        const curvature = curvatures[i];
         const pathArea = pathAreas[i];
         for (let k = 0; k < subSteps; k++) {
             const prevPath = [...path];
@@ -235,7 +197,7 @@ function updateScene(dt) {
                 speed[j] = speed[j].add(acceleration.scale(delta));
                 path[j] = path[j].add(speed[j].scale(delta));
             }
-            enforceConstraints(path, curvature, edgeDistances, delta);
+            enforceConstraints(path, edgeDistances, pathArea, delta);
             updateSpeed(speed, prevPath, path, delta);
         }
         addSpeed(speed, path, Color.RED);
