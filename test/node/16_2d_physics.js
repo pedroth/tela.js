@@ -1,10 +1,11 @@
-import { Vec2, Window, loop, Box, Camera2D, NaiveScene, Line, Color, mod, clamp, orthoBasisFrom, Vec } from "../../src/index.node.js";
+import { Vec2, Window, loop, Box, Camera2D, NaiveScene, Line, Color, mod } from "../../src/index.node.js";
 
 const width = 640;
 const height = 640;
 const window = new Window(width, height).onResizeWindow(() => window.paint());
 
 let paths = [];
+let shapes = [];
 let speeds = [];
 let pathAreas = [];
 let pathEdgeLengths = [];
@@ -48,14 +49,17 @@ window.onMouseUp(() => {
     mouse = Vec2();
     if (path.length > 0) {
         paths.push([]);
-        paths.at(-1).push(...cleanPath(path));
+        const cleanedPath = cleanPath(path);
+        paths.at(-1).push(...cleanedPath);
+        shapes.push([]);
+        shapes.at(-1).push(...centeredShape(cleanedPath))
         pathEdgeLengths.push([]);
-        pathEdgeLengths.at(-1).push(...distancesFromPath(paths.at(-1)));
+        pathEdgeLengths.at(-1).push(...distancesFromPath(cleanedPath));
         pathAreas.push([]);
-        pathAreas.at(-1).push(areaFromPath(paths.at(-1)));
+        pathAreas.at(-1).push(areaFromPath(cleanedPath));
         speeds.push([]);
         speeds.at(-1).push(...[...Array(path.length)].fill(Vec2()))
-        add2Scene(paths.at(-1));
+        add2Scene(cleanedPath);
         path = [];
         draftScene.clear();
     }
@@ -104,6 +108,17 @@ function addSpeed(speed, path, color = Color.WHITE) {
     }
 }
 
+function addBox(box, color = Color.WHITE) {
+    if (box.isEmpty) return;
+    const corners = [box.min, box.min.add(Vec2(box.diagonal.x)), box.max, box.min.add(Vec2(0, box.diagonal.y))]
+    add2Scene(corners, color);
+}
+
+function centeredShape(path) {
+    const center = path.reduce((e, x) => e.add(x), Vec2()).scale(1 / path.length);
+    return path.map(p => p.sub(center));
+}
+
 function areaFromPath(path) {
     let area = 0;
     for (let i = 0; i < path.length; i++) {
@@ -133,7 +148,7 @@ function preserveArea(A0, path) {
 }
 
 
-function enforceConstraints(path, edgeDistances, pathArea, dt) {
+function enforceConstraints(path, { otherPaths, edgeDistances, pathArea, shape }, dt) {
     const n = path.length;
     if (dt === 0) return;
     // length constraint
@@ -157,6 +172,43 @@ function enforceConstraints(path, edgeDistances, pathArea, dt) {
     }
     // preserveArea(pathArea, path);
 
+    // shape matching
+    const center = path.reduce((e, x) => e.add(x), Vec2()).scale(1 / n);
+    const centeredPath = centeredShape(path);
+    const avgAngle = centeredPath.reduce((e, x, i) => {
+        return e + Math.atan2(
+            shape[i].cross(x), // ~ sin theta
+            shape[i].dot(x) // ~ cos theta
+        );
+    }, 0) / n;
+    const cos = Math.cos(avgAngle);
+    const sin = Math.sin(avgAngle);
+    for (let i = 0; i < n; i++) {
+        const newShapeI = Vec2(
+            cos * shape[i].x - sin * shape[i].y,
+            sin * shape[i].x + cos * shape[i].y
+        ).add(center);
+        const grad = path[i].sub(newShapeI)
+        path[i] = path[i].add(grad.scale(-dt));
+    }
+
+    // collision handling
+    const pathBox = path.reduce((e, x) => e.add(new Box(x, x)), new Box());
+    // addBox(pathBox, Color.RED)
+    const otherBoxes = otherPaths.map(pathI => pathI.reduce((e, x) => e.add(new Box(x, x)), new Box()));
+    for (let i = 0; i < otherBoxes.length; i++) {
+        const intersection = pathBox.sub(otherBoxes[i]);
+        if (!intersection.isEmpty) {
+            // addBox(intersection, Color.PURPLE);
+            const r = intersection.diagonal.x;
+            const diff = pathBox.center.sub(otherBoxes[i].center).normalize().scale(r / 2);
+            // console.log("$$$", diff.length())
+            // scene.add(Line.builder().name("test" + Math.random()).positions(pathBox.center, otherBoxes[i].center).colors(Color.CYAN, Color.CYAN).build())
+            path.forEach((_, j) => path[j] = path[j].add(diff.scale(dt)));
+        }
+    }
+
+
     // above floor constraint
     for (let i = 0; i < n; i++) {
         path[i] = path[i].y < 0 ? Vec2(path[i].x, 1e-3) : path[i];
@@ -176,7 +228,7 @@ function updateSpeed(speed, prevPath, path, dt) {
 
 function updateScene(dt) {
     scene.clear();
-    const gravity = Vec2(0, -0.0);
+    const gravity = Vec2(0, -0.1);
     const subSteps = 20;
     const delta = dt / subSteps;
     const n = paths.length;
@@ -186,6 +238,7 @@ function updateScene(dt) {
         const L = path.length;
         const edgeDistances = pathEdgeLengths[i];
         const pathArea = pathAreas[i];
+        const shape = shapes[i];
         for (let k = 0; k < subSteps; k++) {
             const prevPath = [...path];
             for (let j = 0; j < L; j++) {
@@ -197,10 +250,14 @@ function updateScene(dt) {
                 speed[j] = speed[j].add(acceleration.scale(delta));
                 path[j] = path[j].add(speed[j].scale(delta));
             }
-            enforceConstraints(path, edgeDistances, pathArea, delta);
+            enforceConstraints(
+                path,
+                { otherPaths: paths.filter((_, l) => i !== l), edgeDistances, pathArea, shape },
+                delta
+            );
             updateSpeed(speed, prevPath, path, delta);
         }
-        addSpeed(speed, path, Color.RED);
+        // addSpeed(speed, path, Color.RED);
         add2Scene(path);
     }
 }
