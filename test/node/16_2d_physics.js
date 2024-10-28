@@ -1,4 +1,4 @@
-import { Vec2, Window, loop, Box, Camera2D, NaiveScene, Line, Color, mod } from "../../src/index.node.js";
+import { Vec2, Window, loop, Box, Camera2D, NaiveScene, Line, Color, mod, argmin } from "../../src/index.node.js";
 
 const width = 640;
 const height = 640;
@@ -147,6 +147,21 @@ function preserveArea(A0, path) {
     }
 }
 
+function isInside(x, path) {
+    let n = path.length;
+    let count = 0;
+    for (let i = 0; i < n; i++) {
+        const a = path[i];
+        const b = path[mod(i + 1, n)];
+        const v = b.sub(a);
+        if (v.y === 0) continue;
+        const r = x.sub(a);
+        let t = - r.cross(v) / v.y;
+        count += t > 0 ? 1 : 0;
+    }
+    return count % 2 === 1;
+}
+
 
 function enforceConstraints(path, { otherPaths, edgeDistances, pathArea, shape }, dt) {
     const n = path.length;
@@ -189,7 +204,7 @@ function enforceConstraints(path, { otherPaths, edgeDistances, pathArea, shape }
             sin * shape[i].x + cos * shape[i].y
         ).add(center);
         const grad = path[i].sub(newShapeI)
-        path[i] = path[i].add(grad.scale(-10*dt));
+        path[i] = path[i].add(grad.scale(-10 * dt));
     }
 
     // collision handling
@@ -200,16 +215,15 @@ function enforceConstraints(path, { otherPaths, edgeDistances, pathArea, shape }
         const intersection = pathBox.sub(otherBoxes[i]);
         if (!intersection.isEmpty) {
             for (let j = 0; j < n; j++) {
-                if (!(new Box(path[j], path[j])).sub(intersection).isEmpty) {
-                    const r = intersection.diagonal.x / 2;
-                    const grad = path[j].sub(intersection.center).scale(10 * r);
-                    scene.add(Line.builder().name(Math.random()).positions(path[j], path[j].add(grad)).colors(Color.PURPLE, Color.PURPLE).build())
-                    path[j] = path[j].add(grad.scale(-10*dt));
+                if (isInside(path[j], otherPaths[i])) {
+                    const index = argmin(otherPaths[i], p => path[j].sub(p).length());
+                    const grad = index >= 0 ? otherPaths[i][index].sub(path[j]) : Vec2();
+                    scene.add(Line.builder().name(Math.random()).positions(path[j], path[j].add(grad.scale(-dt))).colors(Color.PURPLE, Color.PURPLE).build())
+                    path[j] = path[j].add(grad.scale(-dt));
                 }
             }
         }
     }
-
 
     // above floor constraint
     for (let i = 0; i < n; i++) {
