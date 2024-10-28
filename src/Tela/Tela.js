@@ -118,7 +118,7 @@ export default class Tela {
         if (line.length <= 1) return;
         const [pi, pf] = line;
         const v = pf.sub(pi);
-        const n = v.map(Math.abs).fold((e, x) => e + x);
+        const n = v.map(Math.abs).fold((e, x) => e + x) + 1;
         for (let k = 0; k < n; k++) {
             const s = k / n;
             const lineP = pi.add(v.scale(s)).map(Math.floor);
