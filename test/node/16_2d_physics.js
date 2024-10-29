@@ -79,6 +79,7 @@ window.onMouseMove((x, y) => {
 window.onKeyDown((e) => {
     if ("r" === e.key) {
         paths = [];
+        shapes = [];
         speeds = [];
         pathAreas = [];
         pathEdgeLengths = [];
@@ -98,20 +99,6 @@ function add2Scene(path, color = Color.WHITE) {
         const line = Line.builder().name(`Line_${id}_${i}`).positions(path[i], path[j]).colors(color, color).build();
         scene.add(line)
     }
-}
-
-function addSpeed(speed, path, color = Color.WHITE) {
-    const id = Math.floor(Math.random() * 1e5);
-    for (let i = 0; i < path.length; i++) {
-        const line = Line.builder().name(`Line_${id}_${i}`).positions(path[i], path[i].add(speed[i])).colors(color, color).build();
-        scene.add(line)
-    }
-}
-
-function addBox(box, color = Color.WHITE) {
-    if (box.isEmpty) return;
-    const corners = [box.min, box.min.add(Vec2(box.diagonal.x)), box.max, box.min.add(Vec2(0, box.diagonal.y))]
-    add2Scene(corners, color);
 }
 
 function centeredShape(path) {
@@ -137,16 +124,6 @@ function distancesFromPath(path) {
     return distances;
 }
 
-function preserveArea(A0, path) {
-    const n = path.length;
-    const A = areaFromPath(path);
-    const k = Math.sqrt(A0 / A);
-    const average = path.reduce((e, x) => e.add(x), Vec2()).scale(1 / n);
-    for (let i = 0; i < n; i++) {
-        path[i] = average.add(path[i].sub(average).scale(k));
-    }
-}
-
 function isInside(x, path) {
     let n = path.length;
     let count = 0;
@@ -157,11 +134,11 @@ function isInside(x, path) {
         if (v.y === 0) continue;
         const r = x.sub(a);
         let t = - r.cross(v) / v.y;
-        count += t > 0 ? 1 : 0;
+        const s = r.y / v.y;
+        count += t > 0 && s >= 0 && s <= 1 ? 1 : 0;
     }
     return count % 2 === 1;
 }
-
 
 function enforceConstraints(path, { otherPaths, edgeDistances, pathArea, shape }, dt) {
     const n = path.length;
@@ -191,10 +168,12 @@ function enforceConstraints(path, { otherPaths, edgeDistances, pathArea, shape }
     const center = path.reduce((e, x) => e.add(x), Vec2()).scale(1 / n);
     const centeredPath = centeredShape(path);
     const avgAngle = centeredPath.reduce((e, x, i) => {
-        return e + Math.atan2(
+        let theta = Math.atan2(
             shape[i].cross(x), // ~ sin theta
             shape[i].dot(x) // ~ cos theta
         );
+        theta = theta - 2 * Math.PI * Math.round(theta / (2 * Math.PI))
+        return e + theta;
     }, 0) / n;
     const cos = Math.cos(avgAngle);
     const sin = Math.sin(avgAngle);
@@ -217,9 +196,9 @@ function enforceConstraints(path, { otherPaths, edgeDistances, pathArea, shape }
             for (let j = 0; j < n; j++) {
                 if (isInside(path[j], otherPaths[i])) {
                     const index = argmin(otherPaths[i], p => path[j].sub(p).length());
-                    const grad = index >= 0 ? otherPaths[i][index].sub(path[j]) : Vec2();
+                    const grad = index >= 0 ? path[j].sub(otherPaths[i][index]) : Vec2();
                     scene.add(Line.builder().name(Math.random()).positions(path[j], path[j].add(grad.scale(-dt))).colors(Color.PURPLE, Color.PURPLE).build())
-                    path[j] = path[j].add(grad.scale(-dt));
+                    path[j] = path[j].add(grad.scale(-10 * dt));
                 }
             }
         }
@@ -245,7 +224,7 @@ function updateSpeed(speed, prevPath, path, dt) {
 function updateScene(dt) {
     scene.clear();
     const gravity = Vec2(0, -0.1);
-    const subSteps = 20;
+    const subSteps = 10;
     const delta = dt / subSteps;
     const n = paths.length;
     for (let i = 0; i < n; i++) {
@@ -261,7 +240,7 @@ function updateScene(dt) {
                 const laplacian = path[mod(j + 1, L)].add(path[mod(j - 1, L)]).sub(path[j].scale(2)).scale(20);
                 const mouseCoord = path[j].sub(mouse);
                 const mouseForce = mouseCoord.normalize().scale((rightMouseDown ? 1e-3 : 0) / mouseCoord.squareLength());
-                const friction = speed[j].scale(-1);
+                const friction = speed[j].scale(-0.5);
                 const acceleration = gravity.add(mouseForce).add(friction);
                 speed[j] = speed[j].add(acceleration.scale(delta));
                 path[j] = path[j].add(speed[j].scale(delta));
@@ -286,3 +265,29 @@ loop(async ({ dt, time }) => {
     camera.raster(draftScene).to(window);
     camera.raster(scene).to(window).paint();
 }).play();
+
+
+
+function preserveArea(A0, path) {
+    const n = path.length;
+    const A = areaFromPath(path);
+    const k = Math.sqrt(A0 / A);
+    const average = path.reduce((e, x) => e.add(x), Vec2()).scale(1 / n);
+    for (let i = 0; i < n; i++) {
+        path[i] = average.add(path[i].sub(average).scale(k));
+    }
+}
+
+function addSpeed(speed, path, color = Color.WHITE) {
+    const id = Math.floor(Math.random() * 1e5);
+    for (let i = 0; i < path.length; i++) {
+        const line = Line.builder().name(`Line_${id}_${i}`).positions(path[i], path[i].add(speed[i])).colors(color, color).build();
+        scene.add(line)
+    }
+}
+
+function addBox(box, color = Color.WHITE) {
+    if (box.isEmpty) return;
+    const corners = [box.min, box.min.add(Vec2(box.diagonal.x)), box.max, box.min.add(Vec2(0, box.diagonal.y))]
+    add2Scene(corners, color);
+}
