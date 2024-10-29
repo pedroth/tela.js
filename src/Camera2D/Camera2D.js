@@ -102,13 +102,13 @@ function rasterLine(line, camera, canvas) {
 }
 
 function rasterTriangle(triangle, camera, canvas) {
-  const positionsInCanvas = triangle.positions.map(p => camera.toCanvasCoord(p, canvas));
+  const positionsInCanvas = triangle.positions.map(p => camera.toCanvasCoord(p, canvas).map(Math.floor));
   return canvas.drawTriangle(
     positionsInCanvas[0],
     positionsInCanvas[1],
     positionsInCanvas[2],
     () => {
-      return triangle.colors[0]
+      return triangle.colors[0];
     }
   );
 

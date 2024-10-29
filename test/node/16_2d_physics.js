@@ -1,9 +1,10 @@
-import { Vec2, Window, loop, Box, Camera2D, NaiveScene, Line, Color, mod, argmin } from "../../src/index.node.js";
+import { Vec2, Window, loop, Box, Camera2D, NaiveScene, Line, Color, mod, argmin, Sphere, triangulate, Triangle, imageFromString } from "../../src/index.node.js";
 
 const width = 640;
 const height = 640;
 const window = new Window(width, height).onResizeWindow(() => window.paint());
 
+let isFilled = false;
 let paths = [];
 let shapes = [];
 let speeds = [];
@@ -59,7 +60,7 @@ window.onMouseUp(() => {
         pathAreas.at(-1).push(areaFromPath(cleanedPath));
         speeds.push([]);
         speeds.at(-1).push(...[...Array(path.length)].fill(Vec2()))
-        add2Scene(cleanedPath);
+        addPathLine2Scene(cleanedPath);
         path = [];
         draftScene.clear();
     }
@@ -68,6 +69,7 @@ window.onMouseUp(() => {
 window.onMouseMove((x, y) => {
     const newMouse = camera.toWorldCoord(Vec2(x, y), window);
     if (!mousedown || newMouse.equals(mouse)) {
+        mouse = newMouse;
         return;
     }
     path.push(mouse.clone(), newMouse.clone())
@@ -84,6 +86,9 @@ window.onKeyDown((e) => {
         pathAreas = [];
         pathEdgeLengths = [];
     }
+    if ("t" === e.key) {
+        isFilled = !isFilled;
+    }
 })
 
 //========================================================================================
@@ -92,12 +97,29 @@ window.onKeyDown((e) => {
  *                                                                                      */
 //========================================================================================
 
-function add2Scene(path, color = Color.WHITE) {
+function addPathLine2Scene(path, color = Color.WHITE) {
     const id = Math.floor(Math.random() * 1e5);
     for (let i = 0; i < path.length; i++) {
         const j = (i + 1) % path.length
         const line = Line.builder().name(`Line_${id}_${i}`).positions(path[i], path[j]).colors(color, color).build();
         scene.add(line)
+    }
+}
+
+function addPathTriangles2Scene(path, color = Color.ofRGB(0.9, 0.9, 0.9)) {
+    const orientation = computePathOrientation(path);
+    const copiedPath = [...path];
+    const triangles = triangulate([orientation > 0 ? copiedPath.reverse() : copiedPath])
+    const id = Math.floor(Math.random() * 1e5);
+    for (let i = 0; i < triangles.length; i++) {
+        scene.add(
+            Triangle
+                .builder()
+                .name(`Triangle_${id}_${i}`)
+                .positions(triangles[i][0], triangles[i][1], triangles[i][2])
+                .colors(color, color, color)
+                .build()
+        )
     }
 }
 
@@ -138,6 +160,18 @@ function isInside(x, path) {
         count += t > 0 && s >= 0 && s <= 1 ? 1 : 0;
     }
     return count % 2 === 1;
+}
+
+function computePathOrientation(path) {
+    const x = Vec2();
+    let theta = 0;
+    for (let j = 0; j < path.length - 1; j++) {
+        const u = x.sub(path[j]);
+        const v = x.sub(path[j + 1]);
+        const uWedgeV = u.cross(v);
+        theta += uWedgeV;
+    }
+    return Math.sign(0.5 * theta);
 }
 
 function enforceConstraints(path, { otherPaths, edgeDistances, pathArea, shape }, dt) {
@@ -237,9 +271,8 @@ function updateScene(dt) {
         for (let k = 0; k < subSteps; k++) {
             const prevPath = [...path];
             for (let j = 0; j < L; j++) {
-                const laplacian = path[mod(j + 1, L)].add(path[mod(j - 1, L)]).sub(path[j].scale(2)).scale(20);
                 const mouseCoord = path[j].sub(mouse);
-                const mouseForce = mouseCoord.normalize().scale((rightMouseDown ? 1e-3 : 0) / mouseCoord.squareLength());
+                const mouseForce = mouseCoord.scale((rightMouseDown ? -1 : 0));
                 const friction = speed[j].scale(-0.5);
                 const acceleration = gravity.add(mouseForce).add(friction);
                 speed[j] = speed[j].add(acceleration.scale(delta));
@@ -253,11 +286,26 @@ function updateScene(dt) {
             updateSpeed(speed, prevPath, path, delta);
         }
         // addSpeed(speed, path, Color.RED);
-        add2Scene(path);
+        if (rightMouseDown) scene.add(Sphere.builder().name("Mouse").radius(0.01).position(mouse).color(Color.RED).build())
+        if (isFilled)
+            addPathTriangles2Scene(path)
+        else
+            addPathLine2Scene(path);
     }
 }
 
-// main
+//========================================================================================
+/*                                                                                      *
+ *                                         MAIN                                         *
+ *                                                                                      */
+//========================================================================================
+
+/**
+ * mouse-right: mouse force field
+ * mouse-left: draw figure
+ * r: reset scene
+ * t: triangle mode on/off
+ */
 loop(async ({ dt, time }) => {
     window.setTitle(`FPS: ${(1 / dt).toFixed(2)}`);
     updateScene(dt);
@@ -266,6 +314,14 @@ loop(async ({ dt, time }) => {
     camera.raster(scene).to(window).paint();
 }).play();
 
+
+
+
+//========================================================================================
+/*                                                                                      *
+ *                                         DEBUG                                        *
+ *                                                                                      */
+//========================================================================================
 
 
 function preserveArea(A0, path) {
@@ -289,5 +345,5 @@ function addSpeed(speed, path, color = Color.WHITE) {
 function addBox(box, color = Color.WHITE) {
     if (box.isEmpty) return;
     const corners = [box.min, box.min.add(Vec2(box.diagonal.x)), box.max, box.min.add(Vec2(0, box.diagonal.y))]
-    add2Scene(corners, color);
+    addPathLine2Scene(corners, color);
 }
