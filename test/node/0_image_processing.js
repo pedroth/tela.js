@@ -8,4 +8,5 @@ const processImage = (x, y) => {
 }
 window.map(processImage);
 const processedImage = image.map(processImage);
+processedImage.toFile("sdf_font.png");
 processedImage.toFile("sdf_font.ppm");

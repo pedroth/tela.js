@@ -22,7 +22,8 @@ export default class Triangle {
         this.tangents = [this.edges[0], this.edges.at(-1).scale(-1)];
         const u = this.tangents[0];
         const v = this.tangents[1];
-        this.faceNormal = u.cross(v).normalize();
+        const cross = u.cross(v);
+        this.faceNormal = Number.isFinite(cross) ? Vec3(0, 0, cross) : cross.normalize();
     }
 
     getBoundingBox() {

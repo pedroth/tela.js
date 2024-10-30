@@ -10,11 +10,13 @@ import { MyWorker } from "../Utils/Utils.js";
 
 let RAY_TRACE_WORKERS = [];
 let RAY_MAP_WORKERS = [];
-let prevSceneHash = undefined;
-let isFirstTimeCounter = NUMBER_OF_CORES;
-let serializedScene = undefined;
 
-const MAGIC_SETUP_TIME = 800;
+let prevSceneHash = undefined;
+let prevScene = undefined;
+let serializedScene = undefined;
+let isFirstTimeCounter = NUMBER_OF_CORES;
+
+const ERROR_MSG_TIMEOUT = 1000;
 //========================================================================================
 /*                                                                                      *
  *                                         MAIN                                         *
@@ -25,7 +27,7 @@ export function rayTraceWorkers(camera, scene, canvas, params = {}) {
     // lazy loading workers
     if (RAY_TRACE_WORKERS.length === 0) {
         RAY_TRACE_WORKERS = [...Array(NUMBER_OF_CORES)]
-            .map(() => new MyWorker(`Camera/rayTraceWorker.js`));
+            .map(() => new MyWorker(`./Camera/rayTraceWorker.js`));
     }
     const w = canvas.width;
     const h = canvas.height;
@@ -33,14 +35,18 @@ export function rayTraceWorkers(camera, scene, canvas, params = {}) {
     const isNewScene = prevSceneHash !== newHash;
     if (isNewScene) {
         prevSceneHash = newHash;
-        serializedScene = scene.serialize()
+        serializedScene = scene?.serialize()
+        prevScene = serializedScene;
     } else {
         serializedScene = undefined;
     }
     return RAY_TRACE_WORKERS.map((worker, k) => {
+        let timerId = undefined;
         return new Promise((resolve) => {
             worker.onMessage(message => {
-                const { image, startRow, endRow, } = message;
+                const { image, startRow, endRow, hasScene } = message;
+                prevScene = hasScene ? undefined : prevScene;
+                if (!IS_NODE) clearTimeout(timerId);
                 let index = 0;
                 const startIndex = CHANNELS * w * startRow;
                 const endIndex = CHANNELS * w * endRow;
@@ -58,24 +64,28 @@ export function rayTraceWorkers(camera, scene, canvas, params = {}) {
                 startRow: k * ratio,
                 endRow: Math.min(h, (k + 1) * ratio),
                 camera: camera.serialize(),
-                scene: serializedScene
+                scene: isNewScene ? serializedScene : prevScene !== undefined ? prevScene : undefined
             };
+            worker.postMessage(message);
             if (isFirstTimeCounter > 0 && !IS_NODE) {
                 // hack to work in the browser, don't know why it works
                 isFirstTimeCounter--;
-                setTimeout(() => worker.postMessage(message), MAGIC_SETUP_TIME);
-            } else {
-                worker.postMessage(message)
+                timerId = setTimeout(() => {
+                    console.log("TIMEOUT!!")
+                    // doesn't block promise 
+                    resolve();
+                }, ERROR_MSG_TIMEOUT);
             }
         });
     })
 }
 
+
 export function rayMapWorkers(camera, scene, canvas, lambda, vars = [], dependencies = []) {
     // lazy loading workers
     if (RAY_MAP_WORKERS.length === 0) {
         RAY_MAP_WORKERS = [...Array(NUMBER_OF_CORES)]
-            .map(() => new MyWorker(`Camera/rayMapWorker.js`));
+            .map(() => new MyWorker(`./Camera/rayMapWorker.js`));
     }
     const w = canvas.width;
     const h = canvas.height;
@@ -83,14 +93,18 @@ export function rayMapWorkers(camera, scene, canvas, lambda, vars = [], dependen
     const isNewScene = prevSceneHash !== newHash;
     if (isNewScene) {
         prevSceneHash = newHash;
-        serializedScene = scene.serialize()
+        serializedScene = scene?.serialize()
+        prevScene = serializedScene;
     } else {
         serializedScene = undefined;
     }
     return RAY_MAP_WORKERS.map((worker, k) => {
         return new Promise((resolve) => {
+            let timerId = undefined;
             worker.onMessage(message => {
-                const { image, startRow, endRow, } = message;
+                const { image, startRow, endRow, hasScene } = message;
+                prevScene = hasScene ? undefined : prevScene;
+                if (!IS_NODE) clearTimeout(timerId);
                 let index = 0;
                 const startIndex = CHANNELS * w * startRow;
                 const endIndex = CHANNELS * w * endRow;
@@ -110,16 +124,18 @@ export function rayMapWorkers(camera, scene, canvas, lambda, vars = [], dependen
                 endRow: Math.min(h, (k + 1) * ratio),
                 camera: camera.serialize(),
                 dependencies: dependencies.map(d => d.toString()),
-                scene: serializedScene
+                scene: isNewScene ? serializedScene : prevScene !== undefined ? prevScene : undefined
             };
+            worker.postMessage(message);
             if (isFirstTimeCounter > 0 && !IS_NODE) {
                 // hack to work in the browser, don't know why it works
                 isFirstTimeCounter--;
-                setTimeout(() => worker.postMessage(message), MAGIC_SETUP_TIME);
-            } else {
-                worker.postMessage(message)
+                timerId = setTimeout(() => {
+                    console.log("TIMEOUT!!")
+                    // doesn't block promise 
+                    resolve();
+                }, ERROR_MSG_TIMEOUT);
             }
-
         });
     })
 }

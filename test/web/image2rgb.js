@@ -58,41 +58,29 @@ async (canvas, logger) => {
         });
     scene.addList(grid.map(({ point }) => point));
 
-    const stateMachine = (() => {
-        let state = 0;
-        const dt = 0.25;
-        const period = 15;
-        const halfPeriod = period / 2;
-        return t => {
-            let time = t % period;
-            if (state === 0 && time < halfPeriod) {
-                grid.forEach(({ init, point }) => {
-                    const speed = init.sub(point.position);
-                    point.position = point.position.add(speed.scale(dt));
-                })
-                return state;
-            }
-            if (state === 0 && time >= halfPeriod) {
-                return state++;
-            }
-            if (state === 1 && time >= halfPeriod) {
-                grid.forEach(({ point }) => {
-                    const colorVec3 = Vec3(...point.color.toArray());
-                    const speed = colorVec3.sub(point.position);
-                    point.position = point.position.add(speed.scale(dt));
-                })
-                return state;
-            }
-            if (state === 1 && time < halfPeriod) {
-                return state--;
-            }
-        }
-    })();
+    const duration = 2;
+    const animation = Anima.list(
+        Anima.behavior(t => {
+            grid.forEach(({ init, point }) => {
+                const speed = init.sub(point.position);
+                point.position = point.position.add(speed.scale(t));
+            })
+        }, duration),
+        Anima.wait(duration),
+        Anima.behavior(t => {
+            grid.forEach(({ point }) => {
+                const colorVec3 = Vec3(...point.color.toArray());
+                const speed = colorVec3.sub(point.position);
+                point.position = point.position.add(speed.scale(t));
+            })
+        }, duration),
+        Anima.wait(duration)
+    )
 
     // boilerplate for fps
     loop(({ time, dt }) => {
         camera.reverseShot(scene).to(canvas).paint();
-        stateMachine(time)
+        animation.loop(time, dt);
         logger.print(`FPS: ${(1 / dt).toFixed(2)}`);
     }).play();
 }

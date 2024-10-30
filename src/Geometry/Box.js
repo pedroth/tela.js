@@ -31,7 +31,9 @@ export default class Box {
         for (let i = 0; i < n; i++) {
             grad.push(this.distanceToPoint(pointVec.add(Vec.e(n)(i).scale(epsilon))) - d)
         }
-        return Vec.fromArray(grad).scale(Math.sign(d)).normalize();
+        let sign = Math.sign(d);
+        sign = sign === 0 ? 1 : sign;
+        return Vec.fromArray(grad).scale(sign).normalize();
     }
 
     interceptWithRay(ray) {
@@ -107,7 +109,7 @@ export default class Box {
 
     equals(box) {
         if (!(box instanceof Box)) return false;
-        if (this == Box.EMPTY) return true;
+        if (this.isEmpty !== box.isEmpty) return false;
         return this.min.equals(box.min) && this.max.equals(box.max);
     }
 
@@ -130,6 +132,11 @@ export default class Box {
         return false;
     }
 
+    contains(box, precision = 1e-6) {
+        const v = box.volume();
+        return Math.abs(v - this.sub(box).volume()) < precision;
+    }
+
     toString() {
         return `{
         min:${this.min.toString()},
@@ -139,6 +146,11 @@ export default class Box {
 
     sample() {
         return this.min.add(Vec.RANDOM(this.dim).mul(this.diagonal));
+    }
+
+    volume() {
+        if(this.isEmpty) return 0;
+        return this.diagonal.fold((e, x) => e * x, 1);
     }
 
     serialize() {

@@ -46,3 +46,17 @@ export function randomPointInSphere(dim) {
     }
     return randomInSphere;
 }
+
+
+export function orthoBasisFrom(...vectors) {
+    const basis = [];
+    const n = vectors.length;
+    for (let i = 0; i < n; i++) {
+        let v = vectors[i];
+        for (let j = 0; j < basis.length; j++) {
+            v = v.sub(basis[j].scale(v.dot(basis[j])))
+        }
+        basis.push(v.normalize());
+    }
+    return basis;
+}

@@ -1,7 +1,7 @@
 import { Color, loop, Window } from "../../src/index.node.js";
 
-const width = 640/2;
-const height = 480/2;
+const width = 640 / 2;
+const height = 480 / 2;
 const window = Window.ofSize(width, height);
 window.setWindowSize(2 * width, 2 * height);
 function palette(t) {

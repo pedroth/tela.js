@@ -6,15 +6,10 @@ const height = 480;
 const FPS = 30;
 const maxT = 3;
 const [path] = process.argv.slice(2);
-const svg = parseSVG(readFileSync(path ?? "./assets/cross.svg", { encoding: "utf-8" }));
 
+const svg = parseSVG(readFileSync(path ?? "./assets/cross.svg", { encoding: "utf-8" })).normalize();
 const coordTransform = (x) => {
-  const { min, max } = svg.viewBox;
-  const diagonal = max.sub(min);
-  let p = x.sub(min).div(diagonal);
-  p = Vec2(p.x, -p.y).add(Vec2(0, 1));
-  p = p.mul(Vec2(width, height)).map(Math.floor);
-  return p;
+  return x.mul(Vec2(width, height)).map(Math.floor);
 };
 
 const image = new Image(width, height);
@@ -64,8 +59,15 @@ const drawFrame = (time) => {
       if (isInsideCurve(p)) return Color.BLACK.scale(1 - t).add(Color.WHITE.scale(t));
     }, box);
 
-    for (let j = 0; j < Math.min(path.length - 1, Math.floor(2 * n * (path.length - 1))); j++) {
+    const endPoint = 2 * n * (path.length - 1);
+    const endPointFloor = Math.floor(endPoint);
+    for (let j = 0; j < Math.min(path.length - 1, endPointFloor); j++) {
       image.drawLine(path[j], path[j + 1], () => Color.WHITE);
+    }
+    if (endPoint > endPointFloor && endPointFloor < path.length - 1) {
+      const t = endPoint - endPointFloor;
+      const p = path[endPointFloor].scale(1-t).add(path[endPointFloor+1].scale(t));
+      image.drawLine(path[endPointFloor], p, () => Color.WHITE);
     }
   }
   return image.paint();

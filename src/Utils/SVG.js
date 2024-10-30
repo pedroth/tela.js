@@ -334,7 +334,7 @@ const eatAllSpacesChars = eatWhile(p => p.type === " " || p.type === "\t" || p.t
  * number -> -D.D / D.D / -D / D
  * D -> [0-9]D / ε
  */
-export function parseSvgPath(svgPath) {
+function parseSvgPath(svgPath) {
     const { left: path, } = parsePath(stream(svgPath));
     return path;
 }
@@ -471,8 +471,8 @@ function finishPath(keyPointPath, svg, id, path) {
             svg.defPaths[id] = [];
             svg.defKeyPointPaths[id] = [];
         }
-        svg.defPaths[id].push(path);
-        svg.defKeyPointPaths[id].push(keyPointPath);
+        svg.defPaths[id].push(cleanPath(path));
+        svg.defKeyPointPaths[id].push(cleanPath(keyPointPath));
         path = [];
         keyPointPath = [];
     }
@@ -728,8 +728,8 @@ function readPath(svg, tagNode) {
             svg.defPaths[id] = [];
             svg.defKeyPointPaths[id] = [];
         }
-        svg.defPaths[id].push(path);
-        svg.defKeyPointPaths[id].push(keyPointPath);
+        svg.defPaths[id].push(cleanPath(path));
+        svg.defKeyPointPaths[id].push(cleanPath(keyPointPath));
     }
 }
 
@@ -742,16 +742,19 @@ function readTransform(svg, transformNode, transform = transformBuilder()) {
         .attributes
         .filter(x => x.attributeName === "transform")
         .forEach(({ attributeValue }) => {
-            const params = attributeValue.match(/-?\d+\.?\d*/g).map(Number);
-            if (attributeValue.includes("matrix")) {
-                transform = dot(transform, transformBuilder(...params));
-            }
-            if (attributeValue.includes("translate")) {
-                transform = dot(transform, transformBuilder(1, 0, 0, 1, ...params))
-            }
-            if (attributeValue.includes("scale")) {
-                transform = dot(transform, transformBuilder(params[0], 0, 0, params[1] ?? params[0], 0, 0))
-            }
+            const multiTransforms = attributeValue.includes("matrix") ? [attributeValue] : attributeValue.split(" ");
+            multiTransforms.forEach(T => {
+                const params = T.match(/-?\d+\.?\d*/g).map(Number);
+                if (T.includes("matrix")) {
+                    transform = dot(transform, transformBuilder(...params));
+                }
+                if (T.includes("scale")) {
+                    transform = dot(transform, transformBuilder(params[0], 0, 0, (params[1] ?? params[0]), 0, 0))
+                }
+                if (T.includes("translate")) {
+                    transform = dot(transform, transformBuilder(1, 0, 0, 1, ...params))
+                }
+            })
         })
     const nodeStack = [...(transformNode?.InnerSVG?.innerSvgs?.map(x => x.SVG) ?? [])];
     while (nodeStack.length > 0) {
@@ -856,9 +859,40 @@ function readSVGNode(svgNode) {
         Object.values(svg.defPaths).forEach(paths => svg.paths.push(paths));
         Object.values(svg.defKeyPointPaths).forEach(paths => svg.keyPointPaths.push(paths));
     }
+
+    function normalize(path) {
+        return path.map(x => {
+            const { min, max } = svg.viewBox;
+            const diagonal = max.sub(min);
+            let p = x.sub(min).div(diagonal);
+            p = Vec2(p.x, -p.y).add(Vec2(0, 1));
+            return p;
+        });
+    }
+    svg.normalize = () => {
+        const ans = {
+            width: svg.width,
+            height: svg.height,
+            viewBox: { min: Vec2(), max: Vec2(1, 1) },
+            paths: svg.paths.map(paths => paths.map(path => normalize(path))),
+            keyPointPaths: svg.keyPointPaths.map(paths => paths.map(path => normalize(path)))
+        }
+        return ans;
+    }
     return svg;
 }
 
+function cleanPath(path) {
+    const epsilon = 1e-6;
+    const cleanPath = [];
+    for (let i = 0; i < path.length - 1; i++) {
+        if (!cleanPath.some(x => x.sub(path[i]).length() < epsilon)) {
+            cleanPath.push(path[i]);
+        }
+    }
+    cleanPath.push(path.at(-1));
+    return cleanPath;
+}
 
 //========================================================================================
 /*                                                                                      *

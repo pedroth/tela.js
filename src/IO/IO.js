@@ -114,6 +114,7 @@ export function saveParallelImageStreamToVideo(fileAddress, parallelStreamOfImag
                 Vec,
                 Vec2,
                 Vec3,
+                Ray,
                 Mesh,
                 Color,
                 Image,

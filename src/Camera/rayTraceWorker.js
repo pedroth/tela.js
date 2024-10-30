@@ -47,13 +47,13 @@ if (IS_NODE) {
     parentPort.on("message", async message => {
         const input = message;
         const output = await main(input);
-        parentPort.postMessage(output);
+        parentPort.postMessage({ ...output, hasScene: scene !== undefined });
     });
 } else {
     onmessage = async message => {
         const input = message.data;
         const output = await main(input);
-        postMessage(output);
+        postMessage({ ...output, hasScene: scene !== undefined });
     };
 
     onerror = e => console.log("Caught error on rayTrace worker", e);

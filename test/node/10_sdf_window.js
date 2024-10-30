@@ -7,17 +7,16 @@ import {
   videoAsync,
   Color,
   Vec2,
-  Ray
+  Ray,
+  loop,
+  Window
 } from "../../src/index.node.js";
 import { readFileSync } from "fs";
 
-
-// constants
-const width = 640 / 2;
-const height = 480 / 2;
-const FPS = 30;
-const dt = 1 / FPS;
-const maxT = 4;
+const width = 640;
+const height = 480;
+const window = new Window(width / 3, height / 3).onResizeWindow(() => window.paint());
+window.setWindowSize(width, height);
 
 const scene = new KScene();
 const camera = new Camera();
@@ -79,21 +78,40 @@ const rayScene = (ray, { scene, time }) => {
   return Color.BLACK;
 };
 
+// mouse handling
+let mousedown = false;
+let mouse = Vec2();
+window.onMouseDown((x, y) => {
+  mousedown = true;
+  mouse = Vec2(x, y);
+});
+window.onMouseUp(() => {
+  mousedown = false;
+  mouse = Vec2();
+});
+window.onMouseMove((x, y) => {
+  const newMouse = Vec2(x, y);
+  if (!mousedown || newMouse.equals(mouse)) {
+    return;
+  }
+  const [dx, dy] = newMouse.sub(mouse).toArray();
+  camera.orbit((coords) =>
+    coords.add(
+      Vec3(
+        0,
+        -2 * Math.PI * (dx / window.width),
+        -2 * Math.PI * (dy / window.height)
+      )
+    )
+  );
+  mouse = newMouse;
+});
+window.onMouseWheel(({ dy }) => {
+  camera.orbit((coords) => coords.add(Vec3(-dy * 0.1, 0, 0)));
+});
 
-function animation({ time, image }) {
-  const theta = 2 * Math.PI * 0.25 * (time - 1);
-  camera.orbit((coords) => Vec3(coords.x, theta, Math.PI / 4));
-  return camera.rayMap(ray => rayScene(ray, { time, scene })).to(image);
-
-}
-
-console.log(
-  "Video created in: ",
-  await measureTime(async () => {
-    await videoAsync(
-      "./sdf.mp4",
-      animation,
-      { width, height, fps: FPS }
-    ).while(({ time }) => time < maxT);
-  })
-);
+loop(async ({ dt, time }) => {
+  (await camera.rayMapParallel(rayScene, [smin, torusSdf, normalFunction]).to(window, { scene, time })).paint();
+  // camera.rayMap(ray => rayScene(ray, { scene, time })).to(window).paint();
+  window.setTitle(`FPS: ${(1 / dt).toFixed(2)}`);
+}).play();

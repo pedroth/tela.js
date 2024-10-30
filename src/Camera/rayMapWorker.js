@@ -64,18 +64,12 @@ if (IS_NODE) {
     parentPort.on("message", async message => {
         const input = message;
         const output = await main(input);
-        parentPort.postMessage(output);
+        parentPort.postMessage({...output, hasScene: scene !== undefined});
     });
 } else {
     self.onmessage = async message => {
         const input = message.data;
         const output = await main(input);
-        postMessage(output);
+        postMessage({...output, hasScene: scene !== undefined});
     };
-
-    self.onerror = e => {
-        console.log(`Caught error inside ray map worker ${e}`)
-    };
-
-
 }

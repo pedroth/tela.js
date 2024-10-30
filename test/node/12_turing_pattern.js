@@ -1,5 +1,4 @@
-import { Image, Stream, IO, measureTime, Color } from "../../src/index.node.js";
-const { saveImageStreamToVideo } = IO;
+import { measureTime, Color, video } from "../../src/index.node.js";
 
 const width = 640;
 const height = 480;
@@ -7,7 +6,6 @@ const FPS = 25;
 let dt = 1 / FPS;
 const maxT = 90;
 const mod = (n, m) => ((n % m) + m) % m;
-const canvas = Image.ofSize(width, height);
 
 // params
 const n = 100;
@@ -47,7 +45,7 @@ const shader = (img) => {
           U[i][mod(j - 1, n)] +
           U[mod(i + 1, n)][j] +
           U[mod(i - 1, n)][j]) /
-          4 -
+        4 -
         U[i][j];
 
       let vLaplacian =
@@ -55,7 +53,7 @@ const shader = (img) => {
           V[i][mod(j - 1, n)] +
           V[mod(i + 1, n)][j] +
           V[mod(i - 1, n)][j]) /
-          4 -
+        4 -
         V[i][j];
 
       let ddt = 0.9;
@@ -84,24 +82,13 @@ const shader = (img) => {
   });
 };
 
-const imageStream = new Stream(
-  { time: 0, i: 0, image: canvas },
-  ({ time, i, image }) => {
-    const newImage = shader(image);
-    console.log(`progress: ${Math.floor((time / maxT) * 100)}%`);
-    return {
-      time: time + dt,
-      i: i + 1,
-      image: newImage,
-    };
-  }
-);
-
 console.log(
   "Video created in: ",
   await measureTime(async () => {
-    await saveImageStreamToVideo("./turing.mp4", imageStream, { fps: FPS }).while(
-      ({ time }) => time < maxT
-    );
+    await video(
+      "./turing.mp4",
+      ({ image }) => shader(image),
+      { fps: FPS }
+    ).while(({ time }) => time < maxT);
   })
 );

@@ -114,7 +114,8 @@ export default class Window extends Tela {
 //========================================================================================
 
 function handleMouse(canvas, lambda) {
-    return ({ x, y }) => {
-        return lambda(x, canvas.height - 1 - y);
+    return (e) => {
+        const { x, y } = e;
+        return lambda(x, canvas.height - 1 - y, e);
     }
 }

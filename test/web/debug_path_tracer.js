@@ -163,6 +163,7 @@ async (canvas, logger) => {
         const freq = 0.05;
         let t = time % 10;
         debugRay(Ray(Vec3(0, -5, 2), Vec3(0, Math.cos(freq * t), -Math.sin(freq * t))))();
+        canvas.paint();
         logger.print(Math.floor(1 / dt));
     }).play();
 }

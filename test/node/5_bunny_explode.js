@@ -1,4 +1,4 @@
-import { Color, Image, Stream, IO, Mesh, Vec3, KScene, Camera, clamp, measureTime, measureTimeWithResult } from "../../src/index.node.js";
+import { Color, Image, Stream, IO, Mesh, Vec3, KScene, Camera, clamp, measureTime } from "../../src/index.node.js";
 import { readFileSync } from "node:fs"
 
 const { saveImageStreamToVideo } = IO;
@@ -44,9 +44,8 @@ const imageStream = new Stream(
     async ({ time, image }) => {
         const theta = Math.PI / 6 * time;
         camera.orbit(orbit => Vec3(orbit.x, theta, Math.PI / 6));
-        const { result: newImage, time: t } = await measureTimeWithResult(() => camera.reverseShot(scene).to(image));
+        const newImage = camera.reverseShot(scene).to(image);
         if (time > 5) bunnyPhysics(dt);
-        console.log(`Image took ${t}s`);
         return {
             time: time + dt,
             image: newImage
