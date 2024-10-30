@@ -1,4 +1,4 @@
-import { CHANNELS, NUMBER_OF_CORES } from "../Utils/Constants.js";
+import { CHANNELS, IS_NODE, NUMBER_OF_CORES } from "../Utils/Constants.js";
 import Color from "../Color/Color.js";
 import { MyWorker } from "../Utils/Utils.js";
 //========================================================================================
@@ -9,6 +9,7 @@ import { MyWorker } from "../Utils/Utils.js";
 
 let WORKERS = [];
 const ERROR_MSG_TIMEOUT = 1000;
+let isFirstTimeCounter = NUMBER_OF_CORES;
 
 //========================================================================================
 /*                                                                                      *
@@ -29,7 +30,7 @@ export function parallelWorkers(tela, lambda, dependencies = [], vars = []) {
         return new Promise((resolve) => {
             worker.onMessage(message => {
                 const { image, startRow, endRow, } = message;
-                clearTimeout(timerId);
+                if (!IS_NODE) clearTimeout(timerId);
                 let index = 0;
                 const startIndex = CHANNELS * w * startRow;
                 const endIndex = CHANNELS * w * endRow;
@@ -49,11 +50,15 @@ export function parallelWorkers(tela, lambda, dependencies = [], vars = []) {
                 __dependencies: dependencies.map(d => d.toString()),
             };
             worker.postMessage(message);
-            timerId = setTimeout(() => {
-                // doesn't block promise 
-                console.log("TIMEOUT!!!")
-                resolve();
-            }, ERROR_MSG_TIMEOUT);
+            if (isFirstTimeCounter > 0 && !IS_NODE) {
+                // hack to work in the browser, don't know why it works
+                isFirstTimeCounter--;
+                timerId = setTimeout(() => {
+                    console.log("TIMEOUT!!")
+                    // doesn't block promise 
+                    resolve();
+                }, ERROR_MSG_TIMEOUT);
+            }
         });
     })
 }

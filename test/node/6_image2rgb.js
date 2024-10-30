@@ -1,14 +1,12 @@
-import { Image, measureTimeWithResult, measureTime, Vec3, NaiveScene, Camera, Sphere, Anima, videoAsync } from "../../src/index.node.js";
+import { Image, measureTime, Vec3, NaiveScene, Camera, Sphere, Anima, videoAsync, Window, loop } from "../../src/index.node.js";
 
 const width = 640;
 const height = 480;
 const FPS = 25;
 const dt = 1 / FPS;
-
-
 // scene
 const scene = new NaiveScene();
-const camera = new Camera({ lookAt: Vec3(0.5, 0.5, 0.5) }).orbit(2, 0, 0);
+const camera = new Camera({ lookAt: Vec3(0.5, 0.5, 0.5) }).orbit(5, 0, 0);
 const img = await Image.ofUrl("./assets/kakashi.jpg");
 const grid = [...Array(img.width * img.height)]
     .map((_, k) => {
@@ -28,6 +26,8 @@ const grid = [...Array(img.width * img.height)]
                 .build()
         }
     })
+scene.addList(grid.map(({ point }) => point));
+
 
 const duration = 1;
 const animation = Anima.list(
@@ -52,8 +52,7 @@ const videoUpdate = async ({ time, image }) => {
     const theta = Math.PI / 4 * time;
     camera.orbit(coord => Vec3(coord.x, theta, 0));
     animation.loop(0.25 * time, dt);
-    const { result: newImage, time: t } = await measureTimeWithResult(() => camera.reverseShot(scene).to(image));
-    console.log(`Image took ${t}s`);
+    const newImage = camera.reverseShot(scene).to(image).paint();
     return newImage;
 }
 

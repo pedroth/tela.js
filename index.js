@@ -536,6 +536,10 @@ const examples = [
         path: "/test/web/signed_distance.js"
     },
     {
+        title: "Torus 2 Box",
+        path: "/test/web/signed_distance_anime.js"
+    },
+    {
         title: "bunny SDF",
         path: "/test/web/signed_bunny.js"
     },
@@ -574,10 +578,6 @@ const examples = [
     {
         title: "parallel volumetric rendering",
         path: "/test/web/volumetric_parallel.js"
-    },
-    {
-        title: "Torus 2 Box",
-        path: "/test/web/signed_distance_anime.js"
     },
     {
         title: "debug mesh spheres test",

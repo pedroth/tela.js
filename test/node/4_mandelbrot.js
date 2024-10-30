@@ -1,11 +1,11 @@
-import { Image, Stream, IO, measureTimeWithResult, measureTime, Vec2, Box, Color } from "../../src/index.node.js";
+import { Image, Stream, IO, measureTime, Vec2, Box, Color } from "../../src/index.node.js";
 const { saveImageStreamToVideo } = IO;
 
 const width = 640;
 const height = 480;
 const FPS = 25;
 const dt = 1 / FPS;
-const maxT = 20;
+const maxT = 10;
 // utils
 const size = Vec2(width, height);
 const complexMul = (z, w) => Vec2(z.x * w.x - z.y * w.y, z.x * w.y + z.y * w.x);
@@ -28,7 +28,7 @@ function mandelbrot(i, image) {
             )
         )
         let z = Vec2();
-        for (let i = 0; i < ite; i++) {
+        for (let j = 0; j < ite; j++) {
             z = complexMul(z, z).add(p);
         }
         const l = z.length();
@@ -41,8 +41,7 @@ function mandelbrot(i, image) {
 const imageStream = new Stream(
     { time: 0, i: 0, image: mandelbrot(0, Image.ofSize(width, height)) },
     async ({ time, i, image }) => {
-        const { result: newImage, time: t } = await measureTimeWithResult(() => mandelbrot(i + 1, image));
-        console.log(`Image took ${t}s`);
+        const newImage = mandelbrot(i + 1, image);
         return {
             time: time + dt,
             i: i + 1,

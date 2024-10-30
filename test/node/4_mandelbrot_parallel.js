@@ -30,7 +30,7 @@ function mandelbrot(i, width, height) {
             )
         )
         let z = Vec2();
-        for (let i = 0; i < ite; i++) {
+        for (let j = 0; j < ite; j++) {
             z = complexMul(z, z).add(p);
         }
         const l = z.length();

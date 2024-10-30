@@ -79,8 +79,8 @@ function rasterSphere({ canvas, camera, elem, w, h, zBuffer }) {
         const texColor = getTexColor(texCoord, texture);
         finalColor = finalColor.add(texColor).scale(1 / 2);
     }
-    for (let k = -intRadius; k < intRadius; k++) {
-        for (let l = -intRadius; l < intRadius; l++) {
+    for (let l = -intRadius; l < intRadius; l++) {
+        for (let k = -intRadius; k < intRadius; k++) {
             const xl = Math.max(0, Math.min(w - 1, x + k));
             const yl = Math.floor(y + l);
             const squareLength = k * k + l * l;
