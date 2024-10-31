@@ -52,13 +52,17 @@ export default class VoxelScene extends NaiveScene {
     }
 
     normalToPoint(p) {
+        let weight = 0;
         let normal = Vec3();
         const elements = Object.values(this.gridMap[hash(p, this.gridSpace)] || {});
-        for (let i = 0; i < elements.length; i++) {
-            const elem = elements[i];
-            normal = normal.add(elem.normalToPoint(p));
+        const size = elements.length;
+        for (let i = 0; i < size; i++) {
+            const n = elements[i].normalToPoint(p);
+            const d = 1 / elements[i].distanceToPoint(p);
+            normal = normal.add(n.scale(d));
+            weight += d;
         }
-        return normal.length() > 0 ? normal.normalize() : normal;
+        return normal.length() > 0 ? normal.scale(1 / weight).normalize() : super.normalToPoint(p);
     }
 
     interceptWithRay(ray) {

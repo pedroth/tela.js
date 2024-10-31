@@ -90,7 +90,6 @@ async (canvas, logger) => {
             p = ray.trace(t);
             const d = scene.distanceOnRay(Ray(p, ray.dir), smin);
             t += d;
-
             if (d < epsilon) {
                 const normal = scene.normalToPoint(p);
                 return Color.ofRGB(
@@ -99,12 +98,10 @@ async (canvas, logger) => {
                     (normal.z + 1) / 2
                 );
             }
-
             if (d > 10) {
                 return Color.ofRGB(0, 0, 10 * (i / maxIte));
             }
         }
-
         return Color.BLACK;
     }
 

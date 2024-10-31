@@ -14,7 +14,7 @@ async (canvas, logger) => {
     canvas.resize(width, height);
 
     // scene
-    const scene = new VoxelScene(0.25);
+    const scene = new VoxelScene(0.5);
     const camera = new Camera().orbit(5, 0, 0);
     const canvas2Ray = camera.rayFromImage(canvas.width, canvas.height);
 
@@ -86,13 +86,10 @@ async (canvas, logger) => {
         const epsilon = 1e-6;
         let p = ray.init;
         let t = scene.distanceOnRay(ray, smin);
-        let minT = t;
-
         for (let i = 0; i < maxIte; i++) {
             p = ray.trace(t);
             const d = scene.distanceOnRay(Ray(p, ray.dir), smin);
             t += d;
-
             if (d < epsilon) {
                 const normal = scene.normalToPoint(p);
                 return Color.ofRGB(
@@ -101,20 +98,16 @@ async (canvas, logger) => {
                     (normal.z + 1) / 2
                 );
             }
-
             if (d > 10) {
                 return Color.ofRGB(0, 0, 10 * (i / maxIte));
             }
-
-            minT = d;
         }
-
         return Color.BLACK;
     }
 
     // scene
     loop(({ dt, time }) => {
-        logger.print(Math.floor(1 / dt));
+        logger.print(`FPS: ${(1 / dt).toFixed(2)}`);
         camera.rayMap(render).to(canvas).paint();
         // scene.debug({ camera, canvas });
         if (time % 10 < 0.5) scene.rebuild();
