@@ -150,6 +150,14 @@ You can find more examples of usage in:
 
 - Serialize meshes not only triangles
 - Optimize data serialization in parallel ray tracer
+- Refactor geometric objects to have shader function
+- Refactor parallel raytracing to parallel canvas map
+
+- Add lorentz attractors demo
+- Add Iterated map fractals demo
+- Add Volumetric fluid sim
+- Megaman rag doll physics
+- Black hole demo
 
 
 [ffmpeg]: https://ffmpeg.org/

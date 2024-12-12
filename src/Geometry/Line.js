@@ -3,6 +3,7 @@ import Color from "../Color/Color.js";
 import { Diffuse, MATERIALS } from "../Material/Material.js";
 import { clamp } from "../Utils/Math.js";
 import Vec, { Vec2, Vec3 } from "../Vector/Vector.js";
+import { randomUUID } from "crypto";
 
 export default class Line {
     constructor({ name, positions, colors, texCoords, normals, texture, radius, emissive, material }) {
@@ -111,7 +112,7 @@ export default class Line {
 const indx = [1, 2];
 class LineBuilder {
     constructor() {
-        this._name;
+        this._name = randomUUID();
         this._texture;
         this._radius = 1;
         this._normals = indx.map(() => Vec3());

@@ -23,6 +23,9 @@
   "trustedDependencies": [
     "@kmamal/sdl"
   ],
+  "peerDependencies": {
+    "@kmamal/sdl": "^0.10.2"
+  },
   "bugs": {
     "url": "https://github.com/pedroth/tela.js/issues"
   },

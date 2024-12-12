@@ -4,6 +4,7 @@ import { Diffuse, MATERIALS } from "../Material/Material.js";
 import { randomPointInSphere } from "../Utils/Math.js";
 import Vec, { Vec2, Vec3 } from "../Vector/Vector.js";
 import { deserialize as deserializeImage } from "../Tela/utils.js";
+import { randomUUID } from "crypto";
 
 class Sphere {
     constructor({ name, position, color, texCoord, normal, radius, texture, emissive, material }) {
@@ -89,7 +90,7 @@ class Sphere {
 
 class SphereBuilder {
     constructor() {
-        this._name;
+        this._name = randomUUID();
         this._texture;
         this._radius = 1;
         this._normal = Vec3();
@@ -118,7 +119,7 @@ class SphereBuilder {
     }
 
     radius(radius) {
-        if (!radius) return this;
+        if (radius === undefined) return this;
         this._radius = radius;
         return this;
     }

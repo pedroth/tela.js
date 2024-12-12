@@ -31,6 +31,10 @@ export default class Anima {
         return this.anime(t % maxT, dt);
     }
 
+    animeTime() {
+        return this.sequence.at(-1).end;
+    }
+
     /**
      * 
      * @param {(t, dt) => any} lambda 
