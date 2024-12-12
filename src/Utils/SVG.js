@@ -798,6 +798,9 @@ function readTransform(svg, transformNode, transform = transformBuilder()) {
                 svg.keyPointPaths.push(svg.defKeyPointPaths[useParams.id].map(paths => paths.map(useParams.transform)));
             }
         }
+        if (tag === "path") {
+            readPath(svg, currentNode.EmptyTag ?? currentNode.StartTag);
+        }
         nodeStack.push(...(currentNode?.InnerSVG?.innerSvgs?.map(x => x.SVG) ?? []));
     }
 
