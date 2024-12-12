@@ -3,6 +3,7 @@ import Color from "../Color/Color.js";
 import { Diffuse, MATERIALS } from "../Material/Material.js";
 import Vec, { Vec2, Vec3 } from "../Vector/Vector.js";
 import { deserialize as deserializeImage } from "../Tela/utils.js";
+import { randomUUID } from "crypto";
 
 export default class Triangle {
     constructor({ name, positions, colors, texCoords, normals, texture, emissive, material }) {
@@ -105,7 +106,7 @@ export default class Triangle {
 const indx = [1, 2, 3];
 class TriangleBuilder {
     constructor() {
-        this._name;
+        this._name = randomUUID();
         this._texture;
         this._normals = indx.map(() => Vec3());
         this._colors = indx.map(() => Color.BLACK);
