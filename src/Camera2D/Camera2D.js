@@ -1,5 +1,4 @@
 import { Vec2 } from "../Vector/Vector.js"
-import Ray from "../Ray/Ray.js";
 import Box from "../Geometry/Box.js";
 import Sphere from "../Geometry/Sphere.js";
 import Line from "../Geometry/Line.js";

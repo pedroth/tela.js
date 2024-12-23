@@ -90,7 +90,7 @@ export function saveImageStreamToVideo(fileAddress, streamWithImages, { imageGet
                 s = await s.tail;
             }
             if (!fps) fps = ite / time;
-            execSync(`ffmpeg -framerate ${fps} -i ${fileName}_%d.ppm -y ${fileName}.${extension}`);
+            execSync(`ffmpeg -framerate ${fps} -i ${fileName}_%d.ppm -y -c:v libx264 -crf 20 -preset medium -profile:v baseline -level 3.0 -pix_fmt yuv420p -movflags +faststart ${fileName}.${extension}`);
             for (let i = 0; i < ite; i++) {
                 unlinkSync(`${fileName}_${i}.ppm`);
             }

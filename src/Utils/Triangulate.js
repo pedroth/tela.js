@@ -42,7 +42,7 @@ function triangulateBoxTree(boxTree) {
     let i = 0;
     let samePath = 1e6;
     while (path.length > 3 && samePath > 0) {
-        // i = Math.floor(Math.random() * path.length);
+        i = Math.floor(Math.random() * path.length);
         const prevIndex = mod(i - 1, path.length);
         const nextIndex = mod(i + 1, path.length);
         const prev = path[prevIndex];
@@ -53,7 +53,7 @@ function triangulateBoxTree(boxTree) {
         const uWedgeV = u.cross(v);
         if (uWedgeV > 0) {
             samePath--;
-            i = (i + 1) % path.length;
+            // i = (i + 1) % path.length;
             continue;
         }
 
@@ -63,6 +63,7 @@ function triangulateBoxTree(boxTree) {
             const p = path[j].sub(c);
             const pWedgeV = p.cross(v);
             const uWedgeP = u.cross(p);
+            if(uWedgeV === 0) continue;
             const alpha = pWedgeV / uWedgeV;
             const beta = uWedgeP / uWedgeV;
             if (alpha < 1 && alpha > 0 && beta < 1 && beta > 0) {
@@ -75,7 +76,7 @@ function triangulateBoxTree(boxTree) {
             if (uWedgeV < 0) triangles.push([c, prev, next])
             path.splice(i, 1);
         }
-        i = (i + 1) % path.length;
+        // i = (i + 1) % path.length;
     }
     const prev = path[2];
     const next = path[1];

@@ -733,6 +733,28 @@ function readPath(svg, tagNode) {
     }
 }
 
+function readRect(svg, tagNode, transform = transformBuilder()) {
+    const attrs = tagNode?.Attrs?.attributes;
+    const [idObj] = attrs.filter(a => a.attributeName === "id");
+    const id = idObj?.attributeValue ?? generateUniqueID(5);
+    let width = undefined;
+    let height = undefined;
+    let x = undefined;
+    let y = undefined;
+    attrs.forEach(({ attributeName, attributeValue }) => {
+        if ("width" === attributeName) width = Number.parseFloat(attributeValue)
+        if ("height" === attributeName) height = Number.parseFloat(attributeValue)
+        if ("x" === attributeName) x = Number.parseFloat(attributeValue)
+        if ("y" === attributeName) y = Number.parseFloat(attributeValue)
+    })
+    const p = Vec2(x, y)
+    let path = [p, p.add(Vec2(width, 0)), p.add(Vec2(width, height)), p.add(Vec2(0, height)), p];
+    path = path.map(transform)
+    finishPath(path, svg, id, path)
+    svg.paths.push([path])
+    svg.keyPointPaths.push([path])
+}
+
 const transformBuilder = (a = 1, b = 0, c = 0, d = 1, e = 0, f = 0) => x => Vec2(a, b).scale(x.x).add(Vec2(c, d).scale(x.y)).add(Vec2(e, f));
 const dot = (f, g) => x => f(g(x));
 
@@ -799,7 +821,10 @@ function readTransform(svg, transformNode, transform = transformBuilder()) {
             }
         }
         if (tag === "path") {
-            readPath(svg, currentNode.EmptyTag ?? currentNode.StartTag);
+            readPath(svg, currentNode.EmptyTag ?? currentNode.StartTag, transform);
+        }
+        if (tag === "rect") {
+            readRect(svg, currentNode.EmptyTag ?? currentNode.StartTag, transform)
         }
         nodeStack.push(...(currentNode?.InnerSVG?.innerSvgs?.map(x => x.SVG) ?? []));
     }
@@ -855,6 +880,9 @@ function readSVGNode(svgNode) {
         }
         if (tag === "path") {
             readPath(svg, currentNode.EmptyTag ?? currentNode.StartTag);
+        }
+        if (tag === "rect") {
+            readRect(svg, currentNode.EmptyTag ?? currentNode.StartTag)
         }
         nodeStack.push(...(currentNode?.InnerSVG?.innerSvgs?.map(x => x.SVG) ?? []));
     }
