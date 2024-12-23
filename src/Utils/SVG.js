@@ -819,9 +819,11 @@ function readTransform(svg, transformNode, transform = transformBuilder()) {
                 svg.paths.push(svg.defPaths[useParams.id].map(paths => paths.map(useParams.transform)));
                 svg.keyPointPaths.push(svg.defKeyPointPaths[useParams.id].map(paths => paths.map(useParams.transform)));
             }
+            continue;
         }
         if (tag === "path") {
             readPath(svg, currentNode.EmptyTag ?? currentNode.StartTag, transform);
+            continue
         }
         if (tag === "rect") {
             readRect(svg, currentNode.EmptyTag ?? currentNode.StartTag, transform)
@@ -880,6 +882,7 @@ function readSVGNode(svgNode) {
         }
         if (tag === "path") {
             readPath(svg, currentNode.EmptyTag ?? currentNode.StartTag);
+            continue
         }
         if (tag === "rect") {
             readRect(svg, currentNode.EmptyTag ?? currentNode.StartTag)
