@@ -8,8 +8,7 @@
   },
   "module": "./src/index.js",
   "files": [
-    "src/",
-    "dist/"
+    "src/"
   ],
   "dependencies": {
     "@kmamal/sdl": "^0.10.2",
