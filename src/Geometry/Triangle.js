@@ -3,7 +3,7 @@ import Color from "../Color/Color.js";
 import { Diffuse, MATERIALS } from "../Material/Material.js";
 import Vec, { Vec2, Vec3 } from "../Vector/Vector.js";
 import { deserialize as deserializeImage } from "../Tela/utils.js";
-import { randomUUID } from "crypto";
+import { generateUniqueID } from "../Utils/Utils.js";
 
 export default class Triangle {
     constructor({ name, positions, colors, texCoords, normals, texture, emissive, material }) {
@@ -24,7 +24,7 @@ export default class Triangle {
         const u = this.tangents[0];
         const v = this.tangents[1];
         const cross = u.cross(v);
-        this.faceNormal = Number.isFinite(cross) ? Vec3(0, 0, cross) : cross.normalize();
+        this.faceNormal = Number.isFinite(cross) ? Vec3(0, 0, cross) : cross?.normalize();
     }
 
     getBoundingBox() {
@@ -106,7 +106,7 @@ export default class Triangle {
 const indx = [1, 2, 3];
 class TriangleBuilder {
     constructor() {
-        this._name = randomUUID();
+        this._name = generateUniqueID(10);
         this._texture;
         this._normals = indx.map(() => Vec3());
         this._colors = indx.map(() => Color.BLACK);

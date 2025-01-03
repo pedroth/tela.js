@@ -131,3 +131,16 @@ export class MyWorker {
         return this.worker.postMessage(message);
     }
 }
+
+export function generateUniqueID(length) {
+    const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+    const charactersLength = characters.length;
+
+    let randomID = '';
+
+    for (let i = 0; i < length; i++) {
+        randomID += characters[Math.floor(Math.random() * charactersLength)];
+    }
+
+    return randomID;
+}

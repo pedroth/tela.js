@@ -152,6 +152,7 @@ You can find more examples of usage in:
 - Optimize data serialization in parallel ray tracer
 - Refactor geometric objects to have shader function
 - Refactor parallel raytracing to parallel canvas map
+- Read glb and gltf files
 
 - Add lorentz attractors demo
 - Add Iterated map fractals demo

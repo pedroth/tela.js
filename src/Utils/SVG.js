@@ -1,5 +1,6 @@
 import { Vec2 } from "../Vector/Vector.js";
 import { cBezier, qBezier } from "./Math.js";
+import { generateUniqueID } from "./Utils.js";
 
 export default function parse(text) {
     const tokensStream = tokens(stream(text));
@@ -970,17 +971,4 @@ function stream(stringOrArray) {
             }
         }
     };
-}
-
-function generateUniqueID(length) {
-    const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-    const charactersLength = characters.length;
-
-    let randomID = '';
-
-    for (let i = 0; i < length; i++) {
-        randomID += characters[Math.floor(Math.random() * charactersLength)];
-    }
-
-    return randomID;
 }
