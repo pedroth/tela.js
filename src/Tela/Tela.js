@@ -185,6 +185,18 @@ export default class Tela {
         // end of chatGPT
         ans.width = this.width;
         ans.height = this.height;
+        ans.fill = color => {
+            const n = this.image.length;
+            if (!color) return;
+            for (let k = 0; k < n; k += 4) {
+                this.image[k] = this.image[k] + (color.red - this.image[k]) / it;
+                this.image[k + 1] = this.image[k + 1] + (color.green - this.image[k + 1]) / it;
+                this.image[k + 2] = this.image[k + 2] + (color.blue - this.image[k + 2]) / it;
+                this.image[k + 3] = this.image[k + 3] + (color.alpha - this.image[k + 3]) / it;
+            }
+            if (it < time) it++
+            return this;
+        }
         ans.map = (lambda) => {
             const n = this.image.length;
             const w = this.width;

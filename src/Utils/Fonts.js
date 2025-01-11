@@ -14,6 +14,7 @@ try {
     const TELA = await import(IS_NODE ? "../Tela/Image.js" : "../Tela/Canvas.js").then(def => def.default)
     // octaviogood fonts documentation: https://www.shadertoy.com/view/llcXRl
     fontImage = await or(
+        () => TELA.ofUrl(`../src/Utils/sdf_font.png`),
         () => TELA.ofUrl(`./src/Utils/sdf_font.png`),
         () => TELA.ofUrl(`./node_modules/tela.js/src/Utils/sdf_font.png`)
     );

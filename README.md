@@ -151,7 +151,8 @@ You can find more examples of usage in:
 - Serialize meshes not only triangles
 - Optimize data serialization in parallel ray tracer
 - Refactor geometric objects to have shader function
-- Refactor parallel raytracing to parallel canvas map
+- Refactor parallel raytracing to be just parallel canvas map
+- Add Phong shading to raster graphics
 - Read glb and gltf files
 
 - Add lorentz attractors demo

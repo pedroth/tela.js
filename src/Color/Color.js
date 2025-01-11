@@ -100,14 +100,16 @@ export default class Color {
     return Color.ofRGB(r(), r(), r());
   }
 
-  static RED = Color.ofRGB(1, 0, 0);
-  static GREEN = Color.ofRGB(0, 1, 0);
-  static BLUE = Color.ofRGB(0, 0, 1);
   static BLACK = Color.ofRGB(0, 0, 0);
+  static BLUE = Color.ofRGB(0, 0, 1);
+  static GREEN = Color.ofRGB(0, 1, 0);
+  static CYAN = Color.ofRGB(0, 1, 1);
+  static RED = Color.ofRGB(1, 0, 0);
+  static PURPLE = Color.ofRGB(0.9, 0, 0.9);
+  static MAGENTA = Color.ofRGB(1, 0, 1);
+  static YELLOW = Color.ofRGB(1, 1, 0);
+  static ORANGE = Color.ofRGB(1, 0.8, 0);
   static WHITE = Color.ofRGB(1, 1, 1);
   static GRAY = Color.ofRGB(0.5, 0.5, 0.5);
   static GREY = Color.ofRGB(0.5, 0.5, 0.5);
-  static PURPLE = Color.ofRGB(1, 0, 1);
-  static YELLOW = Color.ofRGB(1, 1, 0);
-  static CYAN = Color.ofRGB(0, 1, 1);
 }
