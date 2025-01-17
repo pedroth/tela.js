@@ -6,7 +6,7 @@ import { deserialize as deserializeImage } from "../Tela/utils.js";
 import { generateUniqueID } from "../Utils/Utils.js";
 
 export default class Triangle {
-    constructor({ name, positions, colors, texCoords, normals, texture, emissive, material }) {
+    constructor({ name, positions, colors, texCoords, normals, texture, emissive, material, radius }) {
         this.name = name;
         this.colors = colors;
         this.normals = normals;
@@ -15,6 +15,7 @@ export default class Triangle {
         this.texCoords = texCoords;
         this.emissive = emissive;
         this.material = material;
+        this.radius = radius;
         this.edges = [];
         const n = this.positions.length;
         for (let i = 0; i < n; i++) {
@@ -25,6 +26,15 @@ export default class Triangle {
         const v = this.tangents[1];
         const cross = u.cross(v);
         this.faceNormal = Number.isFinite(cross) ? Vec3(0, 0, cross) : cross?.normalize();
+
+        // precompute inverse of matrix [u, v]^T [u, v]
+        const a = u.dot(u);
+        const b = u.dot(v);
+        const c = b;
+        const d = v.dot(v);
+        const detInv = 1 / (a * d - b * c);
+        this.invU1 = Vec2(d, -b).scale(detInv)
+        this.invU2 = Vec2(-c, a).scale(detInv);
     }
 
     getBoundingBox() {
@@ -34,14 +44,35 @@ export default class Triangle {
     }
 
     distanceToPoint(p) {
-        // TODO
-        return Number.MAX_VALUE;
+        const r = p.sub(this.positions[0]);
+        const x = Vec2(this.tangents[0].dot(r), this.tangents[1].dot(r));
+        let alpha = Vec2(this.invU1.dot(x), this.invU2.dot(x)).map(x => x < 0 ? 0 : x);
+        const sum = alpha.fold((e, x) => e + x, 0)
+        if (sum > 1) {
+            alpha = alpha.scale(1 / sum);
+        }
+        const pointOnTriangle = this.positions[0]
+            .add(
+                this.tangents[0].scale(alpha.x)
+                    .add(
+                        this.tangents[1].scale(alpha.y)
+                    )
+            )
+        return p.sub(pointOnTriangle).length() - this.radius;
     }
 
     normalToPoint(p) {
-        const r = p.sub(this.positions[0]);
-        const dot = this.faceNormal.dot(r);
-        return dot < 1e-3 ? this.faceNormal : this.faceNormal.scale(-1);
+        const epsilon = 1e-3;
+        const n = p.dim;
+        const En = Vec.e(n);
+        const grad = [];
+        const d = this.distanceToPoint(p);
+        for (let i = 0; i < n; i++) {
+            grad.push(this.distanceToPoint(p.add(En(i).scale(epsilon))) - d)
+        }
+        let sign = Math.sign(d);
+        sign = sign === 0 ? 1 : sign;
+        return Vec.fromArray(grad).scale(sign).normalize();
     }
 
     interceptWithRay(ray) {
@@ -112,12 +143,18 @@ class TriangleBuilder {
         this._colors = indx.map(() => Color.BLACK);
         this._positions = indx.map(() => Vec3());
         this._texCoords = [Vec2(), Vec2(1, 0), Vec2(0, 1)];
+        this._radius = 1;
         this._emissive = false;
         this._material = Diffuse();
     }
 
     name(name) {
         this._name = name;
+        return this;
+    }
+
+    radius(radius) {
+        this._radius = radius;
         return this;
     }
 
@@ -163,6 +200,7 @@ class TriangleBuilder {
     build() {
         const attrs = {
             name: this._name,
+            radius: this._radius,
             colors: this._colors,
             normals: this._normals,
             positions: this._positions,

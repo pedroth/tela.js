@@ -26,10 +26,11 @@ export default class Box {
     normalToPoint(pointVec) {
         const epsilon = 1e-3;
         const n = pointVec.dim;
+        const En = Vec.e(n);
         const grad = [];
         const d = this.distanceToPoint(pointVec);
         for (let i = 0; i < n; i++) {
-            grad.push(this.distanceToPoint(pointVec.add(Vec.e(n)(i).scale(epsilon))) - d)
+            grad.push(this.distanceToPoint(pointVec.add(En(i).scale(epsilon))) - d)
         }
         let sign = Math.sign(d);
         sign = sign === 0 ? 1 : sign;
