@@ -33,6 +33,7 @@ export default class Triangle {
         const c = b;
         const d = v.dot(v);
         const detInv = 1 / (a * d - b * c);
+        this.isDegenerate = !Number.isFinite(detInv) || Number.isNaN(detInv)
         this.invU1 = Vec2(d, -b).scale(detInv)
         this.invU2 = Vec2(-c, a).scale(detInv);
     }
@@ -45,6 +46,7 @@ export default class Triangle {
 
     distanceToPoint(p) {
         const r = p.sub(this.positions[0]);
+        if (this.isDegenerate) return r.length() - this.radius;
         const x = Vec2(this.tangents[0].dot(r), this.tangents[1].dot(r));
         let alpha = Vec2(this.invU1.dot(x), this.invU2.dot(x)).map(x => x < 0 ? 0 : x);
         const sum = alpha.fold((e, x) => e + x, 0)
@@ -62,17 +64,10 @@ export default class Triangle {
     }
 
     normalToPoint(p) {
-        const epsilon = 1e-3;
-        const n = p.dim;
-        const En = Vec.e(n);
-        const grad = [];
-        const d = this.distanceToPoint(p);
-        for (let i = 0; i < n; i++) {
-            grad.push(this.distanceToPoint(p.add(En(i).scale(epsilon))) - d)
-        }
-        let sign = Math.sign(d);
-        sign = sign === 0 ? 1 : sign;
-        return Vec.fromArray(grad).scale(sign).normalize();
+        // fixes problem in ray tracing
+        const r = p.sub(this.positions[0]);
+        const dot = this.faceNormal.dot(r);
+        return dot < 1e-3 ? this.faceNormal : this.faceNormal.scale(-1);
     }
 
     interceptWithRay(ray) {
