@@ -112,4 +112,5 @@ export default class Color {
   static WHITE = Color.ofRGB(1, 1, 1);
   static GRAY = Color.ofRGB(0.5, 0.5, 0.5);
   static GREY = Color.ofRGB(0.5, 0.5, 0.5);
+  static BROWN = Color.ofRGB(0.345,0.2235,0.1529);
 }
