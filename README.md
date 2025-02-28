@@ -78,7 +78,7 @@ loop(({ time, dt }) => {
 And run it: `node index.mjs` / `bun index.js`
 
 > Note: [Attention to running node with ES6 imports module](https://nodejs.org/api/esm.html#modules-ecmascript-modules)
-
+> Note: If you're using `bun` and the `Window`, which uses `@kmamal/sdl` as dependency, make sure to run `bun pm trust @kmamal/sdl`.
 
 ## Generate images and videos
 
