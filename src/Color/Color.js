@@ -7,7 +7,7 @@ import { MAX_8BIT, RAD2DEG } from "../Utils/Constants.js";
  */
 export default class Color {
   constructor(rgb, alpha = 1.0) {
-    this.rgb = rgb;
+    this.rgb = rgb.map(x => Number.isNaN(x) ? 0 : x);
     this.alpha = alpha;
   }
 

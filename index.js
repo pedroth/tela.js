@@ -576,7 +576,7 @@ const examples = [
         path: "/test/web/svg.js"
     },
     {
-        title: "parallel volumetric rendering",
+        title: "volumetric sin wave",
         path: "/test/web/volumetric_parallel.js"
     },
     {
