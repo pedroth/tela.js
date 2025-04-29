@@ -3,6 +3,8 @@ import Box from "../Geometry/Box.js";
 import Sphere from "../Geometry/Sphere.js";
 import Line from "../Geometry/Line.js";
 import Triangle from "../Geometry/Triangle.js";
+import Color from "../Color/Color.js";
+import { getTexColor } from "../Camera/common.js";
 
 export default class Camera2D {
   constructor(box = new Box(Vec2(), Vec2(1, 1))) {
@@ -101,14 +103,51 @@ function rasterLine(line, camera, canvas) {
 }
 
 function rasterTriangle(triangle, camera, canvas) {
-  const positionsInCanvas = triangle.positions.map(p => camera.toCanvasCoord(p, canvas).map(Math.floor));
-  return canvas.drawTriangle(
-    positionsInCanvas[0],
-    positionsInCanvas[1],
-    positionsInCanvas[2],
-    () => {
-      return triangle.colors[0];
+  const colors = triangle.colors;
+  const texCoords = triangle.texCoords;
+  const texture = triangle.texture;
+  const intPoints = triangle
+    .positions
+    .map(p => camera.toCanvasCoord(p, canvas).map(Math.floor));
+  const u = intPoints[1].sub(intPoints[0]);
+  const v = intPoints[2].sub(intPoints[0]);
+  const det = u.x * v.y - u.y * v.x; // wedge product
+  if (det === 0) return;
+  const invDet = 1 / det;
+  const c1 = colors[0].toArray();
+  const c2 = colors[1].toArray();
+  const c3 = colors[2].toArray();
+  const haveTextures = texCoords &&
+    texCoords.length > 0 &&
+    !texCoords.some(x => x === undefined);
+  const shader = (x, y) => {
+    const p = Vec2(x, y).sub(intPoints[0]);
+    const alpha = - (v.x * p.y - v.y * p.x) * invDet;
+    const beta = (u.x * p.y - u.y * p.x) * invDet;
+    const gamma = 1 - alpha - beta;
+  
+    // compute color
+    let c = Color.ofRGB(
+      c1[0] * gamma + c2[0] * alpha + c3[0] * beta,
+      c1[1] * gamma + c2[1] * alpha + c3[1] * beta,
+      c1[2] * gamma + c2[2] * alpha + c3[2] * beta,
+      c1[3] * gamma + c2[3] * alpha + c3[3] * beta,
+    );
+    if (haveTextures) {
+      const texUV = texCoords[0].scale(gamma)
+        .add(texCoords[1].scale(alpha))
+        .add(texCoords[2].scale(beta));
+      const texColor = texture ? getTexColor(texUV, texture) : c;
+      c = texColor;
     }
+    return Math.random() < c.alpha ? c : undefined;
+  }
+
+  return canvas.drawTriangle(
+    intPoints[0],
+    intPoints[1],
+    intPoints[2],
+    shader
   );
 
 }

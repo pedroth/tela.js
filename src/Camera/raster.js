@@ -234,11 +234,11 @@ function rasterTriangle({ canvas, camera, elem, w, h, zBuffer, params }) {
         }
         const [i, j] = canvas.canvas2grid(x, y);
         const zBufferIndex = Math.floor(w * i + j);
-        if (z < zBuffer[zBufferIndex] && c.alpha >= 1) {
-            zBuffer[zBufferIndex] = z;
-            return c;
+        if (z < zBuffer[zBufferIndex]) {
+            const color = Math.random() < c.alpha ? c : undefined;
+            if(color) zBuffer[zBufferIndex] = z; // if color is undefined, don't update zBuffer
+            return color;
         }
-        return Math.random() < c.alpha ? c : undefined;
     }
     canvas.drawTriangle(intPoints[0], intPoints[1], intPoints[2], shader);
 }

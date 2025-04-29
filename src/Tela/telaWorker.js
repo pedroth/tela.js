@@ -1,5 +1,6 @@
 import { CHANNELS, IS_NODE } from "../Utils/Constants.js";
 import { memoize } from "../Utils/Utils.js";
+// necessary to load this even though is not used in the code, it might be used in the eval.
 import Color from "../Color/Color.js";
 import Box from "../Geometry/Box.js";
 import Vec, { Vec2, Vec3 } from "../Vector/Vector.js";
