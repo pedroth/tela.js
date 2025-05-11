@@ -38,28 +38,43 @@ export default class Triangle {
         this.invU2 = Vec2(-c, a).scale(detInv);
     }
 
+    getBarycentricCoords(p) {
+        const r = p.sub(this.positions[0]);
+        const x = Vec2(this.tangents[0].dot(r), this.tangents[1].dot(r));
+        let alpha = Vec2(this.invU1.dot(x), this.invU2.dot(x));
+        const sum = alpha.fold((e, x) => e + x, 0)
+        return Vec3(alpha.x, alpha.y, 1 - sum);
+    }
+
     getBoundingBox() {
+        const n = this.positions[0].dim;
         if (this.boundingBox) return this.boundingBox;
-        this.boundingBox = this.positions.reduce((box, x) => box.add(new Box(x, x)), Box.EMPTY);
+        const r = Vec.ONES(n).scale(this.radius)
+        this.boundingBox = this.positions.reduce((box, x) => box.add(new Box(x.sub(r), x.add(r))), Box.EMPTY);
         return this.boundingBox;
     }
 
     distanceToPoint(p) {
-        const r = p.sub(this.positions[0]);
-        if (this.isDegenerate) return r.length() - this.radius;
-        const x = Vec2(this.tangents[0].dot(r), this.tangents[1].dot(r));
-        let alpha = Vec2(this.invU1.dot(x), this.invU2.dot(x)).map(x => x < 0 ? 0 : x);
-        const sum = alpha.fold((e, x) => e + x, 0)
-        if (sum > 1) {
-            alpha = alpha.scale(1 / sum);
-        }
+        let alpha = this.getBarycentricCoords(p).map(x => Math.max(0, x));
+        const sum = alpha.fold((e, x) => e + x, 0);
+        
+        // if (sum === 1) {
+        //     const r0 = p.sub(this.positions[0]);
+        //     const r1 = p.sub(this.positions[1]);
+        //     const r2 = p.sub(this.positions[2]);
+        //     return -Math.min(
+        //         r0.sub(this.edges[0].scale(this.edges[0].dot(r0) / this.edges[0].dot(this.edges[0]))).length(),
+        //         r1.sub(this.edges[1].scale(this.edges[1].dot(r1) / this.edges[1].dot(this.edges[1]))).length(),
+        //         r2.sub(this.edges[2].scale(this.edges[2].dot(r2) / this.edges[2].dot(this.edges[2]))).length()
+        //     )
+        // }
+
+        alpha = alpha.scale(1 / sum);
         const pointOnTriangle = this.positions[0]
             .add(
                 this.tangents[0].scale(alpha.x)
-                    .add(
-                        this.tangents[1].scale(alpha.y)
-                    )
-            )
+                    .add(this.tangents[1].scale(alpha.y))
+            );
         return p.sub(pointOnTriangle).length() - this.radius;
     }
 

@@ -139,7 +139,7 @@ export default class KScene extends NaiveScene {
         debugScene = debugScene || new NaiveScene();
         if (level === 0) {
             let maxLevels = Math.round(Math.log2(node.numberOfLeafs / this.k)) + 1;
-            maxLevels = maxLevels === 0 ? 1 : maxLevels;
+            maxLevels = maxLevels <= 0 ? 1 : maxLevels;
             for (let i = 0; i <= maxLevels; i++)
                 level2colors.push(
                     Color.RED.scale(1 - i / maxLevels).add(Color.BLUE.scale(i / maxLevels))
@@ -220,7 +220,7 @@ class Node {
     }
 
     distanceToPoint(p) {
-        if(!this.left && !this.right) return Number.MAX_VALUE;
+        if (!this.left && !this.right) return Number.MAX_VALUE;
         return this.getElementNear(p).distanceToPoint(p);
     }
 

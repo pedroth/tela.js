@@ -5,6 +5,8 @@ import { clamp } from "../Utils/Math.js";
 import Vec, { Vec2, Vec3 } from "../Vector/Vector.js";
 import { generateUniqueID } from "../Utils/Utils.js";
 
+const clamp01 = clamp();
+
 export default class Line {
     constructor({ name, positions, colors, texCoords, normals, texture, radius, emissive, material }) {
         this.name = name;
@@ -32,7 +34,9 @@ export default class Line {
     distanceToPoint(p) {
         const l = this.edge;
         const v = p.sub(this.positions[0]);
-        const h = clamp()(l.dot(v) / l.dot(l))
+        const sqLength = l.dot(l);
+        if(sqLength < 1e-6) return Number.MAX_VALUE
+        const h = clamp01(l.dot(v) / sqLength);
         return p.sub(this.positions[0].add(l.scale(h))).length() - this.radius;
     }
 
