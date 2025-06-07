@@ -19,16 +19,17 @@ async (canvas, logger) => {
     scene.addList(mesh.asSpheres(0.05));
     scene.rebuild();
 
-    const rayScene = (ray, { scene }) => {
+    const rayScene = (ray, { scene, time }) => {
+        const tau = 0.1 * Math.sin(time) - 0.1;
         const maxIte = 100;
         const maxDist = 10;
         const epsilon = 1e-3;
         const { init } = ray;
         let p = init;
-        let t = scene.distanceOnRay(ray);
+        let t = scene.distanceOnRay(ray) + tau;
         for (let i = 0; i < maxIte; i++) {
             p = ray.trace(t);
-            const d = scene.distanceOnRay(Ray(p, ray.dir));
+            const d = scene.distanceOnRay(Ray(p, ray.dir)) + tau;
             t += d;
             if (d < epsilon) {
                 const normal = scene.normalToPoint(p).map((x) => (x + 1) / 2);
@@ -71,8 +72,8 @@ async (canvas, logger) => {
         camera.orbit((coords) => coords.add(Vec3(deltaY * 0.001, 0, 0)));
     });
 
-    loop(async ({ dt }) => {
-        (await camera.rayMapParallel(rayScene).to(canvas, { scene })).paint();
+    loop(async ({ dt, time }) => {
+        (await camera.rayMapParallel(rayScene).to(canvas, { scene, time })).paint();
         logger.print(`FPS: ${Math.floor(1 / dt)}`);
     }).play();
 }

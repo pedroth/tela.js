@@ -3,6 +3,8 @@ import { memoize } from "../Utils/Utils.js";
 // necessary to load this even though is not used in the code, it might be used in the eval.
 import Color from "../Color/Color.js";
 import Box from "../Geometry/Box.js";
+import Triangle from "../Geometry/Triangle.js";
+import Line from "../Geometry/Line.js";
 import Vec, { Vec2, Vec3 } from "../Vector/Vector.js";
 import Camera from "../Camera/Camera.js";
 import Ray from "../Ray/Ray.js";
@@ -27,7 +29,7 @@ async function main(inputs) {
     for (let i = __startRow; i < __endRow; i++) {
         for (let x = 0; x < __width; x++) {
             const y = __height - 1 - i;
-            const color = func(x, y, __vars);
+            const color = await func(x, y, __vars);
             if (!color) continue;
             image[index++] = color.red;
             image[index++] = color.green;

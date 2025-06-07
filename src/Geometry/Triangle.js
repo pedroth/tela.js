@@ -57,7 +57,7 @@ export default class Triangle {
     distanceToPoint(p) {
         let alpha = this.getBarycentricCoords(p).map(x => Math.max(0, x));
         const sum = alpha.fold((e, x) => e + x, 0);
-        
+
         // if (sum === 1) {
         //     const r0 = p.sub(this.positions[0]);
         //     const r1 = p.sub(this.positions[1]);
@@ -79,28 +79,58 @@ export default class Triangle {
     }
 
     normalToPoint(p) {
-        // fixes problem in ray tracing
-        const r = p.sub(this.positions[0]);
-        const dot = this.faceNormal.dot(r);
-        return dot < 1e-3 ? this.faceNormal : this.faceNormal.scale(-1);
+        if (this.radius === 0) {
+            const r = p.sub(this.positions[0]);
+            const dot = this.faceNormal.dot(r);
+            return dot < 1e-3 ? this.faceNormal : this.faceNormal.scale(-1);
+        }
+        const epsilon = 1e-6;
+        const f = this.distanceToPoint(p);
+        const sign = Math.sign(f);
+        const grad = Vec3(
+            this.distanceToPoint(p.add(Vec3(epsilon, 0, 0))) - f,
+            this.distanceToPoint(p.add(Vec3(0, epsilon, 0))) - f,
+            this.distanceToPoint(p.add(Vec3(0, 0, epsilon))) - f,
+        ).normalize();
+        return grad.scale(sign);
     }
 
     interceptWithRay(ray) {
-        const epsilon = 1e-9
-        const v = ray.dir;
-        const p = ray.init.sub(this.positions[0]);
-        const n = this.faceNormal;
-        const t = - n.dot(p) / n.dot(v);
-        if (t <= epsilon) return;
-        const x = ray.trace(t);
-        for (let i = 0; i < this.positions.length; i++) {
-            const xi = this.positions[i];
-            const u = x.sub(xi);
-            const ni = n.cross(this.edges[i]);
-            const dot = ni.dot(u);
-            if (dot <= epsilon) return;
+        if(this.radius === 0) {
+            const epsilon = 1e-9
+            const v = ray.dir;
+            const p = ray.init.sub(this.positions[0]);
+            const n = this.faceNormal;
+            const t = - n.dot(p) / n.dot(v);
+            if (t <= epsilon) return;
+            const x = ray.trace(t);
+            for (let i = 0; i < this.positions.length; i++) {
+                const xi = this.positions[i];
+                const u = x.sub(xi);
+                const ni = n.cross(this.edges[i]);
+                const dot = ni.dot(u);
+                if (dot <= epsilon) return;
+            }
+            return [t - epsilon, x, this];
         }
-        return [t - epsilon, x, this];
+        const maxIte = 20;
+        const epsilon = 1e-3;
+        let p = ray.init;
+        let t = this.distanceToPoint(p);
+        let minT = t;
+        for (let i = 0; i < maxIte; i++) {
+            p = ray.trace(t);
+            const d = this.distanceToPoint(p);
+            t += d;
+            if (d < epsilon) {
+                return [t, p, this];
+            }
+            if (d > minT) {
+                break;
+            }
+            minT = d;
+        }
+        return;
     }
 
     sample() {
@@ -153,7 +183,7 @@ class TriangleBuilder {
         this._colors = indx.map(() => Color.BLACK);
         this._positions = indx.map(() => Vec3());
         this._texCoords = [Vec2(), Vec2(1, 0), Vec2(0, 1)];
-        this._radius = 1;
+        this._radius = 0.0;
         this._emissive = false;
         this._material = Diffuse();
     }

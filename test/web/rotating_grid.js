@@ -24,12 +24,12 @@
         logger.print(`FPS: ${Math.floor(1 / dt)}`);
         canvas
             .map((x, y) => {
-                let u = x / (width - 1);
-                let v = y / (height - 1);
-                const grid = 10;
+                let u = -3 + 6 * (x / width);
+                let v = -3 + 6 * (y / height);
+                const grid = 1;
                 u *= grid;
                 v *= grid;
-                const t = 0.1 * time;
+                const t = 0.5 * time;
                 const u_t = Math.cos(t) * u + Math.sin(t) * v;
                 const v_t = -Math.sin(t) * u + Math.cos(t) * v;
                 const color =
