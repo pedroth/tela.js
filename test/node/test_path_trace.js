@@ -44,12 +44,12 @@ window.onMouseMove((x, y) => {
     exposedWindow = window.exposure();
 });
 
-window.onMouseWheel(({ dy }) => {
-    camera.orbit((orbitCoord) => orbitCoord.add(Vec3(-dy, 0, 0)));
+window.onMouseWheel(({ deltaY }) => {
+    camera.orbit((orbitCoord) => orbitCoord.add(Vec3(deltaY, 0, 0)));
     exposedWindow = window.exposure();
 });
 
-const meshObj = readFileSync("./assets/moses_low.obj", { encoding: "utf-8" });
+const meshObj = readFileSync("./assets/moses.obj", { encoding: "utf-8" });
 let mesh = Mesh.readObj(meshObj, "mesh");
 const meshBox = mesh.getBoundingBox();
 const maxDiagInv = 2 / meshBox.diagonal.fold((e, x) => Math.max(e, x), Number.MIN_VALUE);

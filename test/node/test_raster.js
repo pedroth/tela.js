@@ -8,7 +8,7 @@ window.setWindowSize(width, height);
 
 // scene
 const scene = new NaiveScene();
-const camera = new Camera().orbit(5, 0, 0);
+const camera = new Camera({distancePlane: 0.5}).orbit(5, 0, 0);
 
 // mouse handling
 let mousedown = false;
@@ -42,10 +42,10 @@ window.onMouseMove((x, y) => {
     mouse = newMouse;
 });
 
-window.onMouseWheel(({ dy }) => {
-    camera.orbit((orbitCoord) => orbitCoord.add(Vec3(-dy, 0, 0)));
+window.onMouseWheel(({ deltaY }) => {
+    camera.orbit((orbitCoord) => orbitCoord.add(Vec3(deltaY, 0, 0)));
 });
-
+    
 const meshObj = readFileSync("./assets/JesusMary.obj", { encoding: "utf-8" });
 let mesh = Mesh.readObj(meshObj, "mesh");
 const meshBox = mesh.getBoundingBox();
@@ -55,8 +55,7 @@ mesh = mesh
     .mapVertices(v => v.scale(1))
     .mapVertices(v => Vec3(-v.z, -v.x, v.y))
     .mapVertices(v => v.add(Vec3()))
-    .mapColors((v,n) => Color.WHITE)
-    // .addTexture(await Image.ofUrl("./assets/JesusMary_low.jpg"))
+    .addTexture(await Image.ofUrl("./assets/JesusMary.jpg"))
 scene.addList(mesh.asTriangles());
 scene.rebuild();
 

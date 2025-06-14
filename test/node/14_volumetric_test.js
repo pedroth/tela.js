@@ -115,8 +115,8 @@ window.onMouseMove((x, y) => {
   ));
   mouse = newMouse;
 });
-window.onMouseWheel(({ dy }) => {
-  camera.orbit(coords => coords.add(Vec3(-dy * 0.1, 0, 0)));
+window.onMouseWheel(({ deltaY }) => {
+  camera.orbit(coords => coords.add(Vec3(deltaY * 0.1, 0, 0)));
 });
 
 // main

@@ -50,7 +50,7 @@ export default class Window extends Tela {
     }
 
     onMouseWheel(lambda) {
-        this.window.on("mouseWheel", lambda);
+        this.window.on("mouseWheel", ({ dy }) => lambda({ deltaY: -dy }));
         return this;
     }
 

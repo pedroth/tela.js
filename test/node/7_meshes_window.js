@@ -52,8 +52,8 @@ window.onMouseMove((x, y) => {
     mouse = newMouse;
 });
 
-window.onMouseWheel(({ dy }) => {
-    camera.orbit(orbitCoord => orbitCoord.add(Vec3(-dy, 0, 0)));
+window.onMouseWheel(({ deltaY }) => {
+    camera.orbit(orbitCoord => orbitCoord.add(Vec3(deltaY, 0, 0)));
 });
 
 // Render loop
