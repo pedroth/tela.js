@@ -19,26 +19,53 @@ async (canvas, logger) => {
     scene.addList(mesh.asSpheres(0.05));
     scene.rebuild();
 
+    function torusSdf(r, R) {
+        return p => {
+            const q = Vec2(p.x, p.y).length() - r;
+            return Vec2(q, p.z).length() - R;
+        }
+    }
+
+    function smin(a, b, k = 32) {
+        const res = Math.exp(-k * a) + Math.exp(-k * b);
+        return -Math.log(res) / k;
+    }
+
+    function normalFunction(F, p) {
+        const epsilon = 1e-3;
+        const f = F(p);
+        const n = Vec3(
+            F(p.add(Vec3(epsilon, 0, 0))) - f,
+            F(p.add(Vec3(0, epsilon, 0))) - f,
+            F(p.add(Vec3(0, 0, epsilon))) - f,
+        );
+        return n.normalize();
+    }
+
     const rayScene = (ray, { scene, time }) => {
-        const tau = 0.1 * Math.sin(time) - 0.1;
         const maxIte = 100;
         const maxDist = 10;
         const epsilon = 1e-3;
         const { init } = ray;
         let p = init;
-        let t = scene.distanceOnRay(ray) + tau;
+        let t = 0;
+        const torusDist = torusSdf(0.75, 0.25);
         for (let i = 0; i < maxIte; i++) {
             p = ray.trace(t);
-            const d = scene.distanceOnRay(Ray(p, ray.dir)) + tau;
+            const tau = ((Math.sin(2 * Math.PI * 0.25 * (time - 1)) + 1) / 2);
+            const torusD = torusDist(p);
+            const sceneDist = scene.distanceOnRay(Ray(p, ray.dir), smin);
+            const d = tau * torusD + (1 - tau) * sceneDist;
             t += d;
             if (d < epsilon) {
-                const normal = scene.normalToPoint(p).map((x) => (x + 1) / 2);
-                return Color.ofRGB(normal.x, normal.y, normal.z);
+                const normal = normalFunction(torusDist, p).scale(tau).add(scene.normalToPoint(p).scale(1 - tau)).normalize();
+                return Color.ofRGB(...normal.map(x => (x + 1) / 2).toArray());
             }
             if (d > maxDist) return Color.ofRGB(0, 0, 10 * (i / maxIte));
         }
         return Color.BLACK;
     };
+
 
     // mouse handling
     let mousedown = false;
@@ -73,7 +100,9 @@ async (canvas, logger) => {
     });
 
     loop(async ({ dt, time }) => {
-        (await camera.rayMapParallel(rayScene).to(canvas, { scene, time })).paint();
+        (await camera.rayMapParallel(rayScene, [smin, torusSdf, normalFunction]).to(canvas, { scene, time })).paint();
         logger.print(`FPS: ${Math.floor(1 / dt)}`);
     }).play();
 }
+
+

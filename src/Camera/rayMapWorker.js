@@ -10,6 +10,7 @@ import Ray from "../Ray/Ray.js";
 const parentPort = IS_NODE ? (await import("node:worker_threads")).parentPort : undefined;
 
 let scene = undefined;
+let _memory_ = {}
 
 function getScene(serializedScene) {
     return deserializeScene(serializedScene).then(s => s.rebuild());
@@ -28,7 +29,7 @@ async function main(inputs) {
         camera: serializedCamera,
     } = inputs;
 
-    scene = serializedScene ? (await getScene(serializedScene)).rebuild() : scene;
+    scene = serializedScene ? (await getScene(serializedScene)) : scene;
     const camera = Camera.deserialize(serializedCamera);
     const rayGen = camera.rayFromImage(width, height);
     const __lambda = getLambda(lambda, dependencies);
