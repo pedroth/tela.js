@@ -42,7 +42,7 @@
   "scripts": {
     "serve": "bunx http-server",
     "clean": "rm -fr node_modules; rm *.png *.jpeg *.ppm *.webm *.mp4",
-    "pub": "npm version patch; npm publish"
+    "pub": "npm version patch; npm publish; git push; git push --tags"
   },
   "type": "module"
 }
