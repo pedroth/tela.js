@@ -1,9 +1,11 @@
 import Camera from "./Camera.js";
-import { memoize } from "../Utils/Utils.js";
+import { memoize} from "../Utils/Utils.js";
+import { clamp } from "../Utils/Math.js";
 import { CHANNELS, IS_NODE } from "../Utils/Constants.js";
 import { deserializeScene } from "../Scene/utils.js";
 import Color from "../Color/Color.js";
 import Box from "../Geometry/Box.js";
+import Sphere from "../Geometry/Sphere.js";
 import Vec, { Vec2, Vec3 } from "../Vector/Vector.js";
 import Ray from "../Ray/Ray.js";
 

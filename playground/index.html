@@ -542,7 +542,6 @@
             const examplePath = examples.filter(({ title }) => getSelectedExample() === title)[0].path;
             let exampleTxt = getURLData() ?? TelaLocalStorage.getItem("input");
             if (window.location.href.includes("#example=")) {
-                console.log(">>>>");
                 exampleTxt = await getExampleFromPath(examplePath);
             }
             editor.setValue(exampleTxt);

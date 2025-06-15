@@ -1,8 +1,8 @@
-import { Color, Vec2, Window, loop, Camera, Vec3, Vec, Image, clamp, Sphere } from "../../src/index.node.js";
+import { Color, Vec2, Window, loop, Camera, Vec3, Vec, Image, clamp, Sphere, Ray } from "../../src/index.node.js";
 
 const width = 640;
 const height = 480;
-const window = new Window(width/2, height/2).onResizeWindow(() => window.paint());
+const window = new Window(width / 3, height / 3).onResizeWindow(() => window.paint());
 window.setWindowSize(width, height);
 
 // mouse handling
@@ -39,7 +39,7 @@ window.onMouseWheel(({ deltaY }) => {
 const camera = new Camera();
 const clampAcos = clamp(-1, 1);
 const backgroundImage = await Image.ofUrl("./assets/universe.jpg");
-const blackHole = Sphere.builder().radius(3).build();
+const blackHole = Sphere.builder().radius(1).build();
 const rayScene = (ray) => {
   function renderBackground(ray) {
     const dir = ray.dir;
@@ -48,13 +48,22 @@ const rayScene = (ray) => {
     return backgroundImage.getPxl(theta * backgroundImage.width, alpha * backgroundImage.height);
   }
 
-  const hit = blackHole.interceptWithRay(ray);
-  if(hit) {
-    const [_, hitPoint, sphere] = hit;
-    
-    
+  const realBHRadius = 0.1;
+  const n = 50; // Number of steps for simulation
+  const speedOfLight = 3; // Arbitrary speed of light
+  const dt = 1 / n; // Time step for simulation
+  let v = ray.dir.scale(speedOfLight);
+  let x = ray.init;
+  for (let i = 0; i < n; i++) {
+    const r = blackHole.position.sub(x);
+    const a = r.scale(1 / r.squareLength());
+    v = v.add(a.scale(dt)); // Simulate gravitational pull
+    x = x.add(v.scale(dt)); // Update position
+    if (blackHole.position.sub(x).length() < blackHole.radius * realBHRadius) {
+      return Color.ofRGB(0, 0, 0); // Black hole color
+    }
   }
-  return renderBackground(ray);
+  return renderBackground(Ray(x, v.normalize()));
 };
 loop(async ({ dt, time }) => {
   // Render the scene

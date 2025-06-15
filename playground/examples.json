@@ -155,6 +155,11 @@
         "thumbnail": "/playground/images/volumetric_parallel_2.png"
     },
     {
+        "title": "black hole",
+        "path": "/test/web/black_hole.js",
+        "thumbnail": "/playground/images/black_hole.png"
+    },
+    {
         "title": "debug mesh spheres test",
         "path": "/test/web/debug_normal_shot_test.js",
         "thumbnail": "/playground/images/debug_normal_shot_test.png"
