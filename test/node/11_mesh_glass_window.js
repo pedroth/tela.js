@@ -1,18 +1,16 @@
 import {
   Color,
   Image,
-  IO,
-  measureTime,
   Mesh,
   Vec3,
   Camera,
   Triangle,
   DiElectric,
   KScene,
+  loop,
+  Window,
 } from "../../src/index.node.js";
 import { readFileSync } from "fs";
-
-const { saveImageToFile } = IO;
 
 // constants
 const width = 640;
@@ -96,12 +94,17 @@ scene.add(
     .build()
 );
 
-const shot = async (image) =>
-  await camera
-    .parallelShot(scene, { samplesPerPxl: 1000, bounces: 10, gamma: 0.5 })
-    .to(image ?? Image.ofSize(width, height));
+const window = Window.ofSize(width, height).exposure();
+let frames = 0
+loop(async ({ dt }) => {
+   const image = await camera
+    .parallelShot(scene, {
+      bounces: 10,
+      samplesPerPxl: 1,
+      gamma: 0.5,
+    })
+    .to(window);
+  image.paint();
+  window.setTitle(`FPS: ${Math.round(1 / dt)}, frames: ${frames++}`);
+}).play()
 
-const time = await measureTime(async () =>
-  saveImageToFile(`./mesh_glass.png`, await shot(Image.ofSize(width, height)))
-);
-console.log(`Image done in ${time}s`);
