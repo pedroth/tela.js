@@ -211,9 +211,10 @@ function rasterTriangle({ canvas, camera, elem, w, h, zBuffer, params }) {
         const alpha = - (v.x * p.y - v.y * p.x) * invDet;
         const beta = (u.x * p.y - u.y * p.x) * invDet;
         const gamma = 1 - alpha - beta;
-        const z = pointsInCamCoord[0].z * gamma +
-            pointsInCamCoord[1].z * alpha +
-            pointsInCamCoord[2].z * beta;
+        const zs = pointsInCamCoord.map(p => p.z);
+        const W = (1 / zs[0]) * gamma + (1 / zs[1]) * alpha + (1 / zs[2]) * beta; 
+        // wReciprocal is the weight for perspective correction of z coordinate
+        const wReciprocal = 1 / W;
         // compute color
         let c = Color.ofRGB(
             c1[0] * gamma + c2[0] * alpha + c3[0] * beta,
@@ -222,9 +223,10 @@ function rasterTriangle({ canvas, camera, elem, w, h, zBuffer, params }) {
             c1[3] * gamma + c2[3] * alpha + c3[3] * beta,
         );
         if (haveTextures) {
-            const texUV = texCoords[0].scale(gamma)
-                .add(texCoords[1].scale(alpha))
-                .add(texCoords[2].scale(beta));
+            const texUV = texCoords[0].scale(gamma / zs[0])
+                .add(texCoords[1].scale(alpha / zs[1]))
+                .add(texCoords[2].scale(beta / zs[2]))
+                .scale(wReciprocal);
             const texColor = texture ?
                 params.bilinearTexture ?
                     getBiLinearTexColor(texUV, texture) :
@@ -234,9 +236,9 @@ function rasterTriangle({ canvas, camera, elem, w, h, zBuffer, params }) {
         }
         const [i, j] = canvas.canvas2grid(x, y);
         const zBufferIndex = Math.floor(w * i + j);
-        if (z < zBuffer[zBufferIndex]) {
+        if (wReciprocal < zBuffer[zBufferIndex]) {
             const color = Math.random() < c.alpha ? c : undefined;
-            if(color) zBuffer[zBufferIndex] = z; // if color is undefined, don't update zBuffer
+            if (color) zBuffer[zBufferIndex] = wReciprocal; // if color is undefined, don't update zBuffer
             return color;
         }
     }
