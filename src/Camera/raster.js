@@ -212,8 +212,8 @@ function rasterTriangle({ canvas, camera, elem, w, h, zBuffer, params }) {
         const beta = (u.x * p.y - u.y * p.x) * invDet;
         const gamma = 1 - alpha - beta;
         const zs = pointsInCamCoord.map(p => p.z);
-        const z = zs[0] * gamma + zs[1] * alpha + zs[2] * beta;
-        const W = (1 / zs[0]) * gamma + (1 / zs[1]) * alpha + (1 / zs[2]) * beta;
+        const W = (1 / zs[0]) * gamma + (1 / zs[1]) * alpha + (1 / zs[2]) * beta; 
+        // wReciprocal is the weight for perspective correction of z coordinate
         const wReciprocal = 1 / W;
         // compute color
         let c = Color.ofRGB(
@@ -236,9 +236,9 @@ function rasterTriangle({ canvas, camera, elem, w, h, zBuffer, params }) {
         }
         const [i, j] = canvas.canvas2grid(x, y);
         const zBufferIndex = Math.floor(w * i + j);
-        if (z < zBuffer[zBufferIndex]) {
+        if (wReciprocal < zBuffer[zBufferIndex]) {
             const color = Math.random() < c.alpha ? c : undefined;
-            if (color) zBuffer[zBufferIndex] = z; // if color is undefined, don't update zBuffer
+            if (color) zBuffer[zBufferIndex] = wReciprocal; // if color is undefined, don't update zBuffer
             return color;
         }
     }
