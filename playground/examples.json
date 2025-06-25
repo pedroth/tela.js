@@ -1,192 +1,192 @@
 [
     {
         "title": "Simple shader",
-        "path": "/test/web/simple_shader.js",
-        "thumbnail": "/playground/images/simple_shader.png"
+        "path": "test/web/simple_shader.js",
+        "thumbnail": "playground/images/simple_shader.png"
     },
     {
         "title": "Flat earth shader",
-        "path": "/test/web/tex_shader.js",
-        "thumbnail": "/playground/images/tex_shader.png"
+        "path": "test/web/tex_shader.js",
+        "thumbnail": "playground/images/tex_shader.png"
     },
     {
         "title": "Mandelbrot set shader",
-        "path": "/test/web/mandelbrot.js",
-        "thumbnail": "/playground/images/mandelbrot.png"
+        "path": "test/web/mandelbrot.js",
+        "thumbnail": "playground/images/mandelbrot.png"
     },
     {
         "title": "Parallel mandelbrot set",
-        "path": "/test/web/mandelbrot_parallel.js",
-        "thumbnail": "/playground/images/mandelbrot_parallel.png"
+        "path": "test/web/mandelbrot_parallel.js",
+        "thumbnail": "playground/images/mandelbrot_parallel.png"
     },
     {
         "title": "Simple animation shader",
-        "path": "/test/web/simple_animation.js",
-        "thumbnail": "/playground/images/simple_animation.png"
+        "path": "test/web/simple_animation.js",
+        "thumbnail": "playground/images/simple_animation.png"
     },
     {
         "title": "Rotating grid and video gen",
-        "path": "/test/web/rotating_grid.js",
-        "thumbnail": "/playground/images/rotating_grid.png"
+        "path": "test/web/rotating_grid.js",
+        "thumbnail": "playground/images/rotating_grid.png"
     },
     {
         "title": "Amazing effects shader",
-        "path": "/test/web/amazing_shader.js",
-        "thumbnail": "/playground/images/amazing_shader.png"
+        "path": "test/web/amazing_shader.js",
+        "thumbnail": "playground/images/amazing_shader.png"
     },
     {
         "title": "Amazing effects shader 2",
-        "path": "/test/web/amazing_shader_2.js",
-        "thumbnail": "/playground/images/amazing_shader_2.png"
+        "path": "test/web/amazing_shader_2.js",
+        "thumbnail": "playground/images/amazing_shader_2.png"
     },
     {
         "title": "Parallel shader",
-        "path": "/test/web/parallel_shader.js",
-        "thumbnail": "/playground/images/parallel_shader.png"
+        "path": "test/web/parallel_shader.js",
+        "thumbnail": "playground/images/parallel_shader.png"
     },
     {
         "title": "Turing patterns",
-        "path": "/test/web/turing_pattern.js",
-        "thumbnail": "/playground/images/turing_pattern.png"
+        "path": "test/web/turing_pattern.js",
+        "thumbnail": "playground/images/turing_pattern.png"
     },
     {
         "title": "Wave equation",
-        "path": "/test/web/interactive_wave.js",
-        "thumbnail": "/playground/images/interactive_wave.png"
+        "path": "test/web/interactive_wave.js",
+        "thumbnail": "playground/images/interactive_wave.png"
     },
     {
         "title": "Soft body physics",
-        "path": "/test/web/soft_body.js",
-        "thumbnail": "/playground/images/soft_body.png"
+        "path": "test/web/soft_body.js",
+        "thumbnail": "playground/images/soft_body.png"
     },
     {
         "title": "Elements",
-        "path": "/test/web/elements.js",
-        "thumbnail": "/playground/images/elements.png"
+        "path": "test/web/elements.js",
+        "thumbnail": "playground/images/elements.png"
     },
     {
         "title": "n points",
-        "path": "/test/web/n-points.js",
-        "thumbnail": "/playground/images/n-points.png"
+        "path": "test/web/n-points.js",
+        "thumbnail": "playground/images/n-points.png"
     },
     {
         "title": "Point cloud bunny",
-        "path": "/test/web/bunny.js",
-        "thumbnail": "/playground/images/bunny.png"
+        "path": "test/web/bunny.js",
+        "thumbnail": "playground/images/bunny.png"
     },
     {
         "title": "Bunny explodes",
-        "path": "/test/web/bunny_explode.js",
-        "thumbnail": "/playground/images/bunny_explode.png"
+        "path": "test/web/bunny_explode.js",
+        "thumbnail": "playground/images/bunny_explode.png"
     },
     {
         "title": "Wire frame meshes",
-        "path": "/test/web/wireframe.js",
-        "thumbnail": "/playground/images/wireframe.png"
+        "path": "test/web/wireframe.js",
+        "thumbnail": "playground/images/wireframe.png"
     },
     {
         "title": "Earth",
-        "path": "/test/web/earth.js",
-        "thumbnail": "/playground/images/earth.png"
+        "path": "test/web/earth.js",
+        "thumbnail": "playground/images/earth.png"
     },
     {
         "title": "Summer forest",
-        "path": "/test/web/summer_forest.js",
-        "thumbnail": "/playground/images/summer_forest.png"
+        "path": "test/web/summer_forest.js",
+        "thumbnail": "playground/images/summer_forest.png"
     },
     {
         "title": "SDF test",
-        "path": "/test/web/signed_distance.js",
-        "thumbnail": "/playground/images/signed_distance.png"
+        "path": "test/web/signed_distance.js",
+        "thumbnail": "playground/images/signed_distance.png"
     },
     {
         "title": "Torus 2 Box",
-        "path": "/test/web/signed_distance_anime.js",
-        "thumbnail": "/playground/images/signed_distance_anime.png"
+        "path": "test/web/signed_distance_anime.js",
+        "thumbnail": "playground/images/signed_distance_anime.png"
     },
     {
         "title": "bunny SDF",
-        "path": "/test/web/signed_bunny.js",
-        "thumbnail": "/playground/images/signed_bunny.png"
+        "path": "test/web/signed_bunny.js",
+        "thumbnail": "playground/images/signed_bunny.png"
     },
     {
         "title": "SDF editor",
-        "path": "/test/web/sdf_editor.js",
-        "thumbnail": "/playground/images/sdf_editor.png"
+        "path": "test/web/sdf_editor.js",
+        "thumbnail": "playground/images/sdf_editor.png"
     },
     {
         "title": "SDF editor parallel",
-        "path": "/test/web/sdf_editor_parallel.js",
-        "thumbnail": "/playground/images/sdf_editor_parallel.png"
+        "path": "test/web/sdf_editor_parallel.js",
+        "thumbnail": "playground/images/sdf_editor_parallel.png"
     },
     {
         "title": "Cornell box (SLOW)",
-        "path": "/test/web/cornell_box.js",
-        "thumbnail": "/playground/images/cornell_box.png"
+        "path": "test/web/cornell_box.js",
+        "thumbnail": "playground/images/cornell_box.png"
     },
     {
         "title": "Cornell box parallel",
-        "path": "/test/web/cornell_box_parallel.js",
-        "thumbnail": "/playground/images/cornell_box_parallel.png"
+        "path": "test/web/cornell_box_parallel.js",
+        "thumbnail": "playground/images/cornell_box_parallel.png"
     },
     {
         "title": "Glass bunny",
-        "path": "/test/web/glass.js",
-        "thumbnail": "/playground/images/glass.png"
+        "path": "test/web/glass.js",
+        "thumbnail": "playground/images/glass.png"
     },
     {
         "title": "image to rgb space",
-        "path": "/test/web/image2rgb.js",
-        "thumbnail": "/playground/images/image2rgb.png"
+        "path": "test/web/image2rgb.js",
+        "thumbnail": "playground/images/image2rgb.png"
     },
     {
         "title": "rendering svg",
-        "path": "/test/web/svg.js",
-        "thumbnail": "/playground/images/svg.png"
+        "path": "test/web/svg.js",
+        "thumbnail": "playground/images/svg.png"
     },
     {
         "title": "volumetric sin wave",
-        "path": "/test/web/volumetric_parallel.js",
-        "thumbnail": "/playground/images/volumetric_parallel.png"
+        "path": "test/web/volumetric_parallel.js",
+        "thumbnail": "playground/images/volumetric_parallel.png"
     },
     {
         "title": "volumetric noise",
-        "path": "/test/web/volumetric_parallel_2.js",
-        "thumbnail": "/playground/images/volumetric_parallel_2.png"
+        "path": "test/web/volumetric_parallel_2.js",
+        "thumbnail": "playground/images/volumetric_parallel_2.png"
     },
     {
         "title": "black hole",
-        "path": "/test/web/black_hole.js",
-        "thumbnail": "/playground/images/black_hole.png"
+        "path": "test/web/black_hole.js",
+        "thumbnail": "playground/images/black_hole.png"
     },
     {
         "title": "debug mesh spheres test",
-        "path": "/test/web/debug_normal_shot_test.js",
-        "thumbnail": "/playground/images/debug_normal_shot_test.png"
+        "path": "test/web/debug_normal_shot_test.js",
+        "thumbnail": "playground/images/debug_normal_shot_test.png"
     },
     {
         "title": "debug ray marching",
-        "path": "/test/web/debug_path_tracer.js",
-        "thumbnail": "/playground/images/debug_path_tracer.png"
+        "path": "test/web/debug_path_tracer.js",
+        "thumbnail": "playground/images/debug_path_tracer.png"
     },
     {
         "title": "debug distance to scene",
-        "path": "/test/web/debug_dist_func.js",
-        "thumbnail": "/playground/images/debug_dist_func.png"
+        "path": "test/web/debug_dist_func.js",
+        "thumbnail": "playground/images/debug_dist_func.png"
     },
     {
         "title": "debug voronoi",
-        "path": "/test/web/debug_voronoi.js",
-        "thumbnail": "/playground/images/debug_voronoi.png"
+        "path": "test/web/debug_voronoi.js",
+        "thumbnail": "playground/images/debug_voronoi.png"
     },
     {
         "title": "debug unlimited detail",
-        "path": "/test/web/debug_unlimited_detail.js",
-        "thumbnail": "/playground/images/debug_unlimited_detail.png"
+        "path": "test/web/debug_unlimited_detail.js",
+        "thumbnail": "playground/images/debug_unlimited_detail.png"
     },
     {
         "title": "debug parallel ray tracer",
-        "path": "/test/web/debug_parallel_ray_tracer.js",
-        "thumbnail": "/playground/images/debug_parallel_ray_tracer.png"
+        "path": "test/web/debug_parallel_ray_tracer.js",
+        "thumbnail": "playground/images/debug_parallel_ray_tracer.png"
     }
 ]

@@ -178,7 +178,7 @@
         <p>
             Experimental graphic library from scratch (software-only), with reference implementation of computer graphics algorithms.
         </p>
-        <img src="/tela.png" alt="Tela.js logo">
+        <img src="tela.png" alt="Tela.js logo">
         <nav>
             <a href="https://github.com/pedroth/tela.js" target="_blank">GitHub Repo</a>
             <a href="https://github.com/pedroth/tela.js#readme" target="_blank">README</a>
@@ -210,7 +210,7 @@
         .then(examples => {
             examples.forEach((example, index) => {
                 const a = document.createElement('a');
-                a.href = `/playground/#example=${index}`;
+                a.href = `playground/#example=${index}`;
                 const img = document.createElement('img');
                 img.src = example.thumbnail || 'images/default.png'; // Fallback image
                 img.alt = `Example ${index}`;
