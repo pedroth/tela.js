@@ -290,7 +290,7 @@
             .style("max-width: fit-content; display:flex; gap: 1rem")
             .appendChild(
                 DOM.of("a")
-                    .attr("href", "/")
+                    .attr("href", SOURCE === "" ? "/" : SOURCE)
                     .appendChild(
                         DOM.of("h2").inner("Tela.js"),
                     ),
