@@ -540,7 +540,7 @@
         await renderUI()
         AppState.editor.forEach(async editor => {
             const examplePath = examples.filter(({ title }) => getSelectedExample() === title)[0].path;
-            let exampleTxt = getURLData() ?? TelaLocalStorage.getItem("input");
+            let exampleTxt = (getURLData() ?? TelaLocalStorage.getItem("input")) ?? await getExampleFromPath(examplePath);
             if (window.location.href.includes("#example=")) {
                 exampleTxt = await getExampleFromPath(examplePath);
             }
