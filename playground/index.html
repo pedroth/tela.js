@@ -119,6 +119,15 @@
         return decorations;
     }
 
+
+    function removeHashFromURL() {
+        const url = window.location.href;
+        if (url.includes("#")) {
+            const newUrl = url.split("#")[0];
+            window.history.replaceState({}, document.title, newUrl);
+        }
+    }
+
     //========================================================================================
     /*                                                                                      *
      *                                          UI                                          *
@@ -234,6 +243,7 @@
             const examplePath = selectElem.options[index].value;
             const selectedExample = selectElem.options[index].text;
             TelaLocalStorage.setItem("selectedExample", selectedExample);
+            removeHashFromURL();
             AppState.editor.forEach(async editor => {
                 const exampleTxt = await getExampleFromPath(examplePath);
                 editor.setValue(exampleTxt)

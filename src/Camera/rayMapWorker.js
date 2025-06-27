@@ -9,6 +9,9 @@ import Sphere from "../Geometry/Sphere.js";
 import Vec, { Vec2, Vec3 } from "../Vector/Vector.js";
 import Ray from "../Ray/Ray.js";
 
+const Canvas = !IS_NODE ? (await import("../Tela/Canvas.js")).default : undefined;
+const Image = IS_NODE ? (await import("../Tela/Image.js")).default : undefined;
+
 const parentPort = IS_NODE ? (await import("node:worker_threads")).parentPort : undefined;
 
 let scene = undefined;
@@ -42,7 +45,7 @@ async function main(inputs) {
     for (let y = startRow; y < endRow; y++) {
         for (let x = 0; x < width; x++) {
             const ray = rayGen(x, height - 1 - y);
-            const color = __lambda(ray, { ...vars, scene });
+            const color = await __lambda(ray, { ...vars, scene, _memory_});
             if(!color) continue;
             image[index++] = color.red;
             image[index++] = color.green;

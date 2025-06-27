@@ -6,7 +6,6 @@ async (canvas, logger) => {
     canvas.resize(width, height);
 
     // scene
-    // scene
     const camera = new Camera();
 
     // utils
@@ -143,7 +142,7 @@ async (canvas, logger) => {
         renderedScene.paint();
 
         // Update window title with FPS
-        canvas.setTitle(`FPS: ${(1 / dt).toFixed(2)}`);
+        logger.print(`FPS: ${(1 / dt).toFixed(2)}`);
     }).play();
 
 }

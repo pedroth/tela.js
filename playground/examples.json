@@ -160,6 +160,11 @@
         "thumbnail": "playground/images/black_hole.png"
     },
     {
+        "title": "black hole parallel",
+        "path": "/test/web/black_hole_parallel.js",
+        "thumbnail": "playground/images/black_hole_parallel.png"
+    },
+    {
         "title": "debug mesh spheres test",
         "path": "/test/web/debug_normal_shot_test.js",
         "thumbnail": "playground/images/debug_normal_shot_test.png"
