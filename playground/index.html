@@ -334,6 +334,7 @@
             debounce(() => {
                 const newInput = editor.getValue();
                 TelaLocalStorage.setItem("input", newInput);
+                removeHashFromURL();
             })
         );
         AppState.editor = some(editor);
