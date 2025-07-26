@@ -148,11 +148,21 @@ export default class Canvas extends Tela {
 
 function handleMouse(canvas, lambda) {
   return event => {
+    let mouseX, mouseY;
+    if (event instanceof TouchEvent) {
+      const touch = event.touches[0];
+      if(touch === undefined) return;
+      mouseX = touch.clientX;
+      mouseY = touch.clientY;
+    } else {
+      mouseX = event.clientX;
+      mouseY = event.clientY;
+    }
     const h = canvas.height;
     const w = canvas.width;
     const rect = canvas.canvas.getBoundingClientRect();
     // different coordinates from canvas DOM image data
-    const mx = (event.clientX - rect.left) / rect.width, my = (event.clientY - rect.top) / rect.height;
+    const mx = (mouseX - rect.left) / rect.width, my = (mouseY - rect.top) / rect.height;
     const x = Math.floor(mx * w);
     const y = Math.floor(h - 1 - my * h);
     return lambda(x, y, event);
