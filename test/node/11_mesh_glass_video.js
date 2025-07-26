@@ -80,7 +80,7 @@ scene.add(
 
 const shot = async (image) => {
   return await camera
-    .parallelShot(scene, { samplesPerPxl: 10, bounces: 10 })
+    .parallelShot(scene, { samplesPerPxl: 200, bounces: 10, gamma: 0.5, isBiased: true })
     .to(image ?? Image.ofSize(width, height));
 };
 

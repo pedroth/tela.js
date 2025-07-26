@@ -25,7 +25,10 @@ const meshObj = readFileSync("./assets/spot.obj", { encoding: "utf-8" });
 let mesh = Mesh.readObj(meshObj, "mesh").addTexture(
   Image.ofUrl("./assets/spot.png")
 );
+const box = mesh.getBoundingBox();
+const scaleInv = 2 / box.diagonal.fold((e, x) => Math.max(e, x), Number.MIN_VALUE);
 mesh = mesh
+  .mapVertices(v => v.sub(box.center).scale(scaleInv))
   .mapVertices((v) => Vec3(-v.z, -v.x, v.y))
   .mapVertices((v) => v.add(Vec3(1.5, 1.5, 1.0)))
   .mapColors(() => Color.WHITE)
@@ -98,7 +101,7 @@ scene.add(
 
 const shot = async (image) =>
   await camera
-    .parallelShot(scene, { samplesPerPxl: 1000, bounces: 10, gamma: 0.5 })
+    .parallelShot(scene, { samplesPerPxl: 100, bounces: 10, gamma: 0.5, isBiased: false})
     .to(image ?? Image.ofSize(width, height));
 
 const time = await measureTime(async () =>

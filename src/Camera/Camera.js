@@ -194,7 +194,6 @@ export default class Camera {
       distanceToPlane: this.distanceToPlane,
       position: this.position.toArray(),
       orientCoords: this._orientCoords.toArray(),
-      orbitCoords: this._orbitCoords.toArray(),
     }
   }
 
@@ -204,7 +203,6 @@ export default class Camera {
       distanceToPlane: json.distanceToPlane,
       position: Vec.fromArray(json.position),
       orientCoords: Vec.fromArray(json.orientCoords),
-      orbitCoords: Vec.fromArray(json.orbitCoords)
     })
   }
 }

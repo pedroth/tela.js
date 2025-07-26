@@ -11,7 +11,6 @@ import Ray from "../Ray/Ray.js";
 
 const Canvas = !IS_NODE ? (await import("../Tela/Canvas.js")).default : undefined;
 const Image = IS_NODE ? (await import("../Tela/Image.js")).default : undefined;
-
 const parentPort = IS_NODE ? (await import("node:worker_threads")).parentPort : undefined;
 
 let scene = undefined;

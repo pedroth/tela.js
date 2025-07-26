@@ -4,9 +4,13 @@ import { CHANNELS, IS_NODE } from "../Utils/Constants.js";
 import { deserializeScene } from "../Scene/utils.js";
 import Color from "../Color/Color.js";
 
+
+const Canvas = !IS_NODE ? (await import("../Tela/Canvas.js")).default : undefined;
+const Image = IS_NODE ? (await import("../Tela/Image.js")).default : undefined;
 const parentPort = IS_NODE ? (await import("node:worker_threads")).parentPort : undefined;
 
 let scene = undefined;
+let _memory_ = {}
 
 function getScene(serializedScene) {
     return deserializeScene(serializedScene).then(s => s.rebuild());

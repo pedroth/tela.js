@@ -59,10 +59,19 @@ mesh = mesh
     .mapVertices(v => Vec3(-v.z, -v.x, v.y))
     .mapVertices(v => v.add(Vec3()))
     .mapColors(() => Color.WHITE)
-    // .addTexture(await Image.ofUrl("./assets/dog_low.jpg"))
 scene.addList(mesh.asTriangles());
-
-// cornell box
+scene.add(
+    Triangle.builder()
+        .name("bottom-1")
+        .colors(Color.RED, Color.RED, Color.RED)
+        .positions(Vec3(-3, -3, -1), Vec3(3, -3, -1), Vec3(3, 3, -1))
+        .build(),
+    Triangle.builder()
+        .name("bottom-2")
+        .colors(Color.RED, Color.RED, Color.RED)
+        .positions(Vec3(3, 3, -1), Vec3(-3, 3, -1), Vec3(-3, -3, -1))
+        .build()
+);
 scene.add(
     Sphere
         .builder()

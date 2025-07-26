@@ -5,13 +5,14 @@ import { randomPointInSphere } from "../Utils/Math.js";
 import { getBiLinearTexColor, getDefaultTexColor, getTexColor } from "./common.js";
 
 export function rayTrace(ray, scene, params = {}) {
-    let { samplesPerPxl, bounces, variance, gamma, bilinearTexture } = params;
+    let { samplesPerPxl, bounces, variance, gamma, bilinearTexture, isBiased } = params;
     bounces = bounces ?? 10;
     variance = variance ?? 0.001;
     samplesPerPxl = samplesPerPxl ?? 1;
     gamma = gamma ?? 0.5;
     bilinearTexture = bilinearTexture ?? false;
-    const invSamples = (bounces ?? 1) / samplesPerPxl
+    isBiased = isBiased ?? true;
+    const invSamples = (isBiased ? bounces : 1) / samplesPerPxl
     let c = Color.BLACK;
     for (let i = 0; i < samplesPerPxl; i++) {
         const epsilon = randomPointInSphere(3).scale(variance);
@@ -41,7 +42,39 @@ export function trace(ray, scene, options) {
         scene,
         { bounces: bounces - 1, bilinearTexture }
     );
-    return e.emissive ? color.add(color.mul(finalC)) : color.mul(finalC);
+    // add dot product 
+    const dot = r.dir.dot(e.normalToPoint(p));
+    const finalCScale = dot <= 0 ? -dot : dot;
+    return e.emissive ? color.add(color.mul(finalC.scale(finalCScale))) : color.mul(finalC.scale(finalCScale));
+}
+
+export function traceMetro(ray, scene, options) {
+    const { bounces, bilinearTexture } = options;
+    if (bounces < 0) return Color.BLACK;
+    const hit = scene.interceptWithRay(ray);
+    if (!hit) return Color.BLACK;
+    const [, p, e] = hit;
+    const color = getColorFromElement(e, ray, { bilinearTexture });
+    const mat = e.material;
+    let r = mat.scatter(ray, p, e);
+    let rStar = mat.scatter(ray, p, e);
+    let finalC = trace(
+        r,
+        scene,
+        { bounces: bounces - 1, bilinearTexture }
+    );
+    let CStar = trace(
+        rStar,
+        scene,
+        { bounces: bounces - 1, bilinearTexture }
+    );
+    const probM = CStar.toGray().red / finalC.toGray().red;
+    if (Math.random() < probM) {
+        finalC = CStar;
+    }
+    const dot = r.dir.dot(e.normalToPoint(p));
+    const finalCScale = dot <= 0 ? -dot : dot;
+    return e.emissive ? color.add(color.mul(finalC.scale(finalCScale))) : color.mul(finalC.scale(finalCScale));
 }
 
 function getColorFromElement(e, ray, params) {
