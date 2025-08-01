@@ -81,7 +81,7 @@ scene.add(
         .build(),
     Sphere.builder()
         .name("sphere")
-        .colors(Color.ofRGB(0.5, 0.2, 0.8))
+        .color(Color.ofRGB(0.5, 0.2, 0.8))
         .position(Vec3(0, 0, 1))
         .radius(1)
         .build()
@@ -91,7 +91,25 @@ scene.add(
 loop(async ({ dt }) => {
     camera.position = camera.position.add(camera.toWorldCoord(camSpeed).scale(dt));
     const image = await camera
-        .sceneShot(async (ray, { scene, bounces, gamma }) => {
+        .rayMapParallel(async (ray, { scene, bounces, gamma, _memory_ }) => {
+            if (_memory_.backgroundImage === undefined) {
+                _memory_.backgroundImage = await Image.ofUrl("./assets/beach_sphere.jpg");
+            }
+
+            const clampAcos = (x) => x > 1 ? 1 : x < -1 ? -1 : x;
+            function renderBG(ray) {
+                const dir = ray.dir;
+                // atan2 returns [-π, π], we want [0, 1]
+                const theta = Math.atan2(dir.y, dir.x) / (2 * Math.PI) + 0.5;
+                const alpha = Math.acos(-clampAcos(dir.z)) / (Math.PI);
+                return _memory_.backgroundImage
+                    .getPxl(
+                        theta * _memory_.backgroundImage.width,
+                        alpha * _memory_.backgroundImage.height
+                    );
+            }
+
+
             function renderSkyBox(ray) {
                 const dir = ray.dir;
                 const skyColorHorizon = Color.ofRGB(0.5, 0.7, 1.0); // Light blue near horizon
@@ -110,7 +128,7 @@ loop(async ({ dt }) => {
 
             function trace(ray, scene, options) {
                 const { bounces } = options;
-                if (bounces < 0) return Color.BLACK;
+                if (bounces < 0) return renderSkyBox(ray);
                 const hit = scene.interceptWithRay(ray);
                 if (!hit) return renderSkyBox(ray);
                 const [, p, e] = hit;
@@ -126,7 +144,6 @@ loop(async ({ dt }) => {
                 const finalCScale = dot <= 0 ? -dot : dot;
                 return e.emissive ? color.add(color.mul(finalC.scale(finalCScale))) : color.mul(finalC.scale(finalCScale));
             }
-
             return trace(ray, scene, { bounces }).toGamma(gamma)
         })
         .to(exposedWindow, { scene, bounces: 10, samplesPerPxl: 1, gamma: 0.5 });

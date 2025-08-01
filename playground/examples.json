@@ -95,6 +95,11 @@
         "thumbnail": "playground/images/summer_forest.png"
     },
     {
+        "title": "Minecraft",
+        "path": "/test/web/minecraft.js",
+        "thumbnail": "playground/images/minecraft.png"
+    },
+    {
         "title": "SDF test",
         "path": "/test/web/signed_distance.js",
         "thumbnail": "playground/images/signed_distance.png"

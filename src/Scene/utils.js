@@ -14,7 +14,7 @@ const SCENE_TYPES = {
 }
 
 export async function deserializeScene(sceneJson) {
-    const { type = KScene.name, sceneData, params = [], backgroundSrc} = sceneJson;
+    const { type = KScene.name, sceneData, params = []} = sceneJson;
     const SceneClass = SCENE_TYPES[type];
     const artifacts = {};
     const sceneElements = [];
@@ -26,6 +26,5 @@ export async function deserializeScene(sceneJson) {
     }
 
     return new SceneClass(...params)
-        .addBackground(backgroundSrc)
         .addList(sceneElements);
 }
