@@ -104,7 +104,7 @@ loop(async ({ dt }) => {
     const image = await camera
         .rayMapParallel(async (ray, { scene, bounces, gamma, _memory_ }) => {
             if (_memory_.backgroundImage === undefined) {
-                _memory_.backgroundImage = await Image.ofUrl("./assets/beach_sphere.jpg");
+                _memory_.backgroundImage = await Image.ofUrl("./assets/beach.jpg");
             }
 
             function renderBG(ray) {

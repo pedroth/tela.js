@@ -135,6 +135,11 @@
         "thumbnail": "playground/images/cornell_box_parallel.png"
     },
     {
+        "title": "Sky",
+        "path": "/test/web/sky.js",
+        "thumbnail": "playground/images/sky.png"
+    },
+    {
         "title": "Glass bunny",
         "path": "/test/web/glass.js",
         "thumbnail": "playground/images/glass.png"

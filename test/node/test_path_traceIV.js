@@ -1,6 +1,5 @@
 import {
     Camera,
-    Mesh,
     Vec3,
     Vec2,
     Color,
@@ -8,10 +7,10 @@ import {
     KScene,
     loop,
     Window,
-    Alpha,
-    Sphere
+    Sphere,
+    renderBackground,
+    Image
 } from "../../src/index.node.js";
-import { readFileSync } from "fs";
 
 const width = 640;
 const height = 480;
@@ -21,7 +20,7 @@ let exposedWindow = window.exposure();
 
 // scene
 const scene = new KScene();
-const camera = new Camera().orbit(5, 0, 0);
+const camera = new Camera().orbit(5, 0, Math.PI / 8);
 
 // mouse handling
 let mousedown = false;
@@ -93,7 +92,8 @@ loop(async ({ dt }) => {
     const image = await camera
         .rayMapParallel(async (ray, { scene, bounces, gamma, _memory_ }) => {
             if (_memory_.backgroundImage === undefined) {
-                _memory_.backgroundImage = await Image.ofUrl("./assets/beach_sphere.jpg");
+                https://steamcommunity.com/sharedfiles/filedetails/?id=3009862235
+                _memory_.backgroundImage = await Image.ofUrl("./assets/sky.jpg");
             }
 
             const clampAcos = (x) => x > 1 ? 1 : x < -1 ? -1 : x;
@@ -123,14 +123,43 @@ loop(async ({ dt }) => {
                 const atmosphereGlow = Math.pow(Math.max(0, sunDot), 5.0); // Softer power for wider glow
                 const sunColor = Color.ofRGB(1.0, 0.8, 0.5); // Warm yellow/orange
                 const sunEffect = sunColor.scale(sunGlow * 2.0).add(sunColor.scale(atmosphereGlow * 0.5));
-                return skyColor.add(sunEffect);
+                return sunEffect;
+            }
+
+            function traceMetro(ray, scene, options) {
+                const { bounces, bilinearTexture } = options;
+                if (bounces < 0) return renderBG(ray);
+                const hit = scene.interceptWithRay(ray);
+                if (!hit) return renderBG(ray);
+                const [, p, e] = hit;
+                const color = e.color ?? e.colors[0];
+                const mat = e.material;
+                let r = mat.scatter(ray, p, e);
+                let rStar = mat.scatter(ray, p, e);
+                let finalC = trace(
+                    r,
+                    scene,
+                    { bounces: bounces - 1, bilinearTexture }
+                );
+                let CStar = trace(
+                    rStar,
+                    scene,
+                    { bounces: bounces - 1, bilinearTexture }
+                );
+                const probM = CStar.toGray().red / finalC.toGray().red;
+                if (Math.random() < probM) {
+                    finalC = CStar;
+                }
+                const dot = r.dir.dot(e.normalToPoint(p));
+                const finalCScale = dot <= 0 ? -dot : dot;
+                return e.emissive ? color.add(color.mul(finalC.scale(finalCScale))) : color.mul(finalC.scale(finalCScale));
             }
 
             function trace(ray, scene, options) {
                 const { bounces } = options;
-                if (bounces < 0) return renderSkyBox(ray);
+                if (bounces < 0) return renderBG(ray);
                 const hit = scene.interceptWithRay(ray);
-                if (!hit) return renderSkyBox(ray);
+                if (!hit) return renderBG(ray);
                 const [, p, e] = hit;
                 const color = e.color ?? e.colors[0];
                 const mat = e.material;
@@ -144,9 +173,24 @@ loop(async ({ dt }) => {
                 const finalCScale = dot <= 0 ? -dot : dot;
                 return e.emissive ? color.add(color.mul(finalC.scale(finalCScale))) : color.mul(finalC.scale(finalCScale));
             }
-            return trace(ray, scene, { bounces }).toGamma(gamma)
+            return traceMetro(ray, scene, { bounces }).toGamma(gamma)
         })
         .to(exposedWindow, { scene, bounces: 10, samplesPerPxl: 1, gamma: 0.5 });
     image.paint();
     window.setTitle(`FPS: ${(1 / dt).toFixed(2)}`);
 }).play();
+
+
+// const sky = await Image.ofUrl("./assets/beach.jpg")
+// function renderSkyBox(ray) {
+//     return renderBackground(ray, sky);
+// }
+
+// loop(async ({ dt }) => {
+//     camera.position = camera.position.add(camera.toWorldCoord(camSpeed).scale(dt));
+//     const image = await camera
+//         .sceneShot(scene, { bounces: 10, gamma: 0.5, isBiased: false, renderSkyBox })
+//         .to(exposedWindow);
+//     image.paint();
+//     window.setTitle(`FPS: ${(1 / dt).toFixed(2)}`);
+// }).play();

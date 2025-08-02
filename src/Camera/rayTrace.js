@@ -4,35 +4,45 @@ import Ray from "../Ray/Ray.js";
 import { randomPointInSphere } from "../Utils/Math.js";
 import { getBiLinearTexColor, getDefaultTexColor, getTexColor } from "./common.js";
 
+export function renderBackground(ray, backgroundImage) {
+    const clampAcos = (x) => x > 1 ? 1 : x < -1 ? -1 : x;
+    const dir = ray.dir;
+    // atan2 returns [-π, π], we want [0, 1]
+    const theta = Math.atan2(dir.y, dir.x) / (2 * Math.PI) + 0.5;
+    const alpha = Math.acos(-clampAcos(dir.z)) / (Math.PI);
+    return backgroundImage
+        .getPxl(
+            theta * backgroundImage.width,
+            alpha * backgroundImage.height
+        );
+}
+
+
 export function rayTrace(ray, scene, params = {}) {
-    let { samplesPerPxl, bounces, variance, gamma, bilinearTexture, isBiased } = params;
+    let { samplesPerPxl, bounces, variance, gamma, bilinearTexture, isBiased, renderSkyBox } = params;
     bounces = bounces ?? 10;
     variance = variance ?? 0.001;
     samplesPerPxl = samplesPerPxl ?? 1;
     gamma = gamma ?? 0.5;
     bilinearTexture = bilinearTexture ?? false;
     isBiased = isBiased ?? true;
+    renderSkyBox = renderSkyBox ?? (() => Color.BLACK);
     const invSamples = (isBiased ? bounces : 1) / samplesPerPxl
     let c = Color.BLACK;
     for (let i = 0; i < samplesPerPxl; i++) {
         const epsilon = randomPointInSphere(3).scale(variance);
         const epsilonOrtho = epsilon.sub(ray.dir.scale(epsilon.dot(ray.dir)));
         const r = Ray(ray.init, ray.dir.add(epsilonOrtho).normalize());
-        c = c.add(trace(r, scene, { bounces, bilinearTexture }));
+        c = c.add(trace(r, scene, { bounces, bilinearTexture, renderSkyBox }));
     }
     return c.scale(invSamples).toGamma(gamma);
 }
 
-export function getRayTracer(scene, params = {}) {
-    const lambda = ray => rayTrace(ray, scene, params);
-    return lambda;
-}
-
 export function trace(ray, scene, options) {
-    const { bounces, bilinearTexture } = options;
-    if (bounces < 0) return Color.BLACK;
+    const { bounces, bilinearTexture, renderSkyBox } = options;
+    if (bounces < 0) return renderSkyBox(ray);
     const hit = scene.interceptWithRay(ray);
-    if (!hit) return Color.BLACK;
+    if (!hit) return renderSkyBox(ray);
     const [, p, e] = hit;
     const color = getColorFromElement(e, ray, { bilinearTexture });
     const mat = e.material;
@@ -40,7 +50,7 @@ export function trace(ray, scene, options) {
     let finalC = trace(
         r,
         scene,
-        { bounces: bounces - 1, bilinearTexture }
+        { bounces: bounces - 1, bilinearTexture, renderSkyBox }
     );
     // add dot product 
     const dot = r.dir.dot(e.normalToPoint(p));
@@ -49,7 +59,7 @@ export function trace(ray, scene, options) {
 }
 
 export function traceMetro(ray, scene, options) {
-    const { bounces, bilinearTexture } = options;
+    const { bounces, bilinearTexture, renderSkyBox } = options;
     if (bounces < 0) return Color.BLACK;
     const hit = scene.interceptWithRay(ray);
     if (!hit) return Color.BLACK;
@@ -61,12 +71,12 @@ export function traceMetro(ray, scene, options) {
     let finalC = trace(
         r,
         scene,
-        { bounces: bounces - 1, bilinearTexture }
+        { bounces: bounces - 1, bilinearTexture, renderSkyBox }
     );
     let CStar = trace(
         rStar,
         scene,
-        { bounces: bounces - 1, bilinearTexture }
+        { bounces: bounces - 1, bilinearTexture, renderSkyBox }
     );
     const probM = CStar.toGray().red / finalC.toGray().red;
     if (Math.random() < probM) {

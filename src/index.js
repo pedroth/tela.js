@@ -55,3 +55,4 @@ export * from "./Utils/Monads.js";
 export * from "./Utils/Constants.js"
 export * from "./Utils/Fonts.js"
 export * from "./Utils/Triangulate.js"
+export * from "./Camera/rayTrace.js"

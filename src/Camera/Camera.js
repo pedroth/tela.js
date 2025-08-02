@@ -1,6 +1,6 @@
 import Vec, { Vec2, Vec3 } from "../Vector/Vector.js"
 import Ray from "../Ray/Ray.js";
-import { getRayTracer } from "./rayTrace.js";
+import { rayTrace } from "./rayTrace.js";
 import { rasterGraphics } from "./raster.js";
 import { sdfTrace } from "./sdf.js";
 import { normalTrace } from "./normal.js";
@@ -120,7 +120,11 @@ export default class Camera {
   }
 
   sceneShot(scene, params) {
-    return this.rayMap(getRayTracer(scene, params));
+    return this.rayMap(
+      ray => {
+        return rayTrace(ray, scene, params)
+      }
+    );
   }
 
   reverseShot(scene, params) {
