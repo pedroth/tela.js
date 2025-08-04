@@ -60,9 +60,9 @@ export function trace(ray, scene, options) {
 
 export function traceMetro(ray, scene, options) {
     const { bounces, bilinearTexture, renderSkyBox } = options;
-    if (bounces < 0) return Color.BLACK;
+    if (bounces < 0) return renderSkyBox(ray);
     const hit = scene.interceptWithRay(ray);
-    if (!hit) return Color.BLACK;
+    if (!hit) return renderSkyBox(ray);
     const [, p, e] = hit;
     const color = getColorFromElement(e, ray, { bilinearTexture });
     const mat = e.material;

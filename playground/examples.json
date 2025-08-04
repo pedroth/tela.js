@@ -140,6 +140,16 @@
         "thumbnail": "playground/images/sky.png"
     },
     {
+        "title": "Sky parallel",
+        "path": "/test/web/sky_parallel.js",
+        "thumbnail": "playground/images/sky_parallel.png"
+    },
+    {
+        "title": "Megaman sky",
+        "path": "/test/web/megaman_sky.js",
+        "thumbnail": "playground/images/megaman_sky.png"
+    },
+    {
         "title": "Glass bunny",
         "path": "/test/web/glass.js",
         "thumbnail": "playground/images/glass.png"
