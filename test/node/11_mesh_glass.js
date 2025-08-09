@@ -101,7 +101,15 @@ scene.add(
 
 const shot = async (image) =>
   await camera
-    .parallelShot(scene, { samplesPerPxl: 100, bounces: 10, gamma: 0.5, isBiased: false})
+    .parallelShot(
+      scene,
+      {
+        samplesPerPxl: 100,
+        bounces: 10,
+        gamma: 0.5,
+        isBiased: false,
+        // skyBoxPath: "./assets/sky.jpg"
+      })
     .to(image ?? Image.ofSize(width, height));
 
 const time = await measureTime(async () =>

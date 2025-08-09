@@ -138,6 +138,8 @@ loop(async ({ dt }) => {
       bounces: 10,
       samplesPerPxl: 1,
       gamma: 0.5,
+      isBiased: false,
+      skyBoxPath: "./assets/sky.jpg",
     })
     .to(exposedWindow);
   image.paint();

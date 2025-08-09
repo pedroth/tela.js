@@ -44,18 +44,20 @@ export function trace(ray, scene, options) {
     const hit = scene.interceptWithRay(ray);
     if (!hit) return renderSkyBox(ray);
     const [, p, e] = hit;
-    const color = getColorFromElement(e, ray, { bilinearTexture });
+    const albedo = getColorFromElement(e, ray, { bilinearTexture });
     const mat = e.material;
-    let r = mat.scatter(ray, p, e);
-    let finalC = trace(
-        r,
+    if (e.emissive) {
+        return albedo;
+    }
+    const scatteredRay = mat.scatter(ray, p, e);
+    const scatteredColor = trace(
+        scatteredRay,
         scene,
         { bounces: bounces - 1, bilinearTexture, renderSkyBox }
     );
-    // add dot product 
-    const dot = r.dir.dot(e.normalToPoint(p));
-    const finalCScale = dot <= 0 ? -dot : dot;
-    return e.emissive ? color.add(color.mul(finalC.scale(finalCScale))) : color.mul(finalC.scale(finalCScale));
+    const attenuation = scatteredRay.dir.dot(e.normalToPoint(p));
+    const finalColor = albedo.mul(scatteredColor).scale(attenuation > 0 ? attenuation : 0);
+    return finalColor;
 }
 
 export function traceMetro(ray, scene, options) {
@@ -64,27 +66,33 @@ export function traceMetro(ray, scene, options) {
     const hit = scene.interceptWithRay(ray);
     if (!hit) return renderSkyBox(ray);
     const [, p, e] = hit;
-    const color = getColorFromElement(e, ray, { bilinearTexture });
+    const albedo = getColorFromElement(e, ray, { bilinearTexture });
     const mat = e.material;
-    let r = mat.scatter(ray, p, e);
-    let rStar = mat.scatter(ray, p, e);
-    let finalC = trace(
-        r,
-        scene,
-        { bounces: bounces - 1, bilinearTexture, renderSkyBox }
-    );
-    let CStar = trace(
-        rStar,
-        scene,
-        { bounces: bounces - 1, bilinearTexture, renderSkyBox }
-    );
-    const probM = CStar.toGray().red / finalC.toGray().red;
-    if (Math.random() < probM) {
-        finalC = CStar;
+    if (e.emissive) {
+        return albedo;
     }
-    const dot = r.dir.dot(e.normalToPoint(p));
-    const finalCScale = dot <= 0 ? -dot : dot;
-    return e.emissive ? color.add(color.mul(finalC.scale(finalCScale))) : color.mul(finalC.scale(finalCScale));
+    // Metropolis sampling
+    // https://en.wikipedia.org/wiki/Metropolis_light_transport
+
+    let scatteredRay = mat.scatter(ray, p, e);
+    let scatteredRayStar = mat.scatter(ray, p, e);
+    let scatterColor = trace(
+        scatteredRay,
+        scene,
+        { bounces: bounces - 1, bilinearTexture, renderSkyBox }
+    );
+    let scatterColorStar = trace(
+        scatteredRayStar,
+        scene,
+        { bounces: bounces - 1, bilinearTexture, renderSkyBox }
+    );
+    const probM = scatterColorStar.toGray().red / scatterColor.toGray().red;
+    if (Math.random() < probM) {
+        scatterColor = scatterColorStar;
+    }
+    const attenuation = scatteredRay.dir.dot(e.normalToPoint(p));
+    const finalColor = albedo.mul(scatterColor).scale(attenuation > 0 ? attenuation : 0);
+    return finalColor;
 }
 
 function getColorFromElement(e, ray, params) {
