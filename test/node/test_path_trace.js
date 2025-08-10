@@ -88,18 +88,14 @@ scene.rebuild();
 loop(async ({ dt }) => {
     const image = await camera
         .parallelShot(scene, {
-            bounces: 3,
-            samplesPerPxl: 3,
+            bounces: 10,
+            samplesPerPxl: 1,
             gamma: 0.5,
+            // useCache: true,
+            useMetro: false,
+            isBiased: true
         })
         .to(exposedWindow);
-    // const image = camera
-    //     .sceneShot(scene, {
-    //         bounces: 10,
-    //         samplesPerPxl: 1,
-    //         gamma: 0.5,
-    //     })
-    //     .to(exposedWindow);
     image.paint();
     window.setTitle(`FPS: ${(1 / dt).toFixed(2)}`);
 }).play();

@@ -4,7 +4,7 @@ import { rayTrace } from "./rayTrace.js";
 import { rasterGraphics } from "./raster.js";
 import { sdfTrace } from "./sdf.js";
 import { normalTrace } from "./normal.js";
-import { rayMapWorkers, rayTraceWorkers } from "./parallel.js";
+import { rayMapWorkers } from "./parallel.js";
 
 export default class Camera {
   constructor(props = {}) {

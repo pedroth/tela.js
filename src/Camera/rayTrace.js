@@ -19,7 +19,7 @@ export function renderBackground(ray, backgroundImage) {
 
 
 export function rayTrace(ray, scene, params = {}) {
-    let { samplesPerPxl, bounces, variance, gamma, bilinearTexture, isBiased, renderSkyBox } = params;
+    let { samplesPerPxl, bounces, variance, gamma, bilinearTexture, isBiased, renderSkyBox, useCache, useMetro } = params;
     bounces = bounces ?? 10;
     variance = variance ?? 0.001;
     samplesPerPxl = samplesPerPxl ?? 1;
@@ -27,62 +27,73 @@ export function rayTrace(ray, scene, params = {}) {
     bilinearTexture = bilinearTexture ?? false;
     isBiased = isBiased ?? true;
     renderSkyBox = renderSkyBox ?? (() => Color.BLACK);
+    useCache = useCache ?? false;
+    useMetro = useMetro ?? false;
     const invSamples = (isBiased ? bounces : 1) / samplesPerPxl
     let c = Color.BLACK;
     for (let i = 0; i < samplesPerPxl; i++) {
         const epsilon = randomPointInSphere(3).scale(variance);
         const epsilonOrtho = epsilon.sub(ray.dir.scale(epsilon.dot(ray.dir)));
         const r = Ray(ray.init, ray.dir.add(epsilonOrtho).normalize());
-        c = c.add(trace(r, scene, { bounces, bilinearTexture, renderSkyBox }));
+        c = c.add(
+            useMetro ?
+                traceMetro(r, scene, { bounces, bilinearTexture, renderSkyBox, useCache }) :
+                trace(r, scene, { bounces, bilinearTexture, renderSkyBox, useCache })
+        );
     }
     return c.scale(invSamples).toGamma(gamma);
 }
 
 export function trace(ray, scene, options) {
-    const { bounces, bilinearTexture, renderSkyBox } = options;
+    const { bounces, bilinearTexture, renderSkyBox, useCache } = options;
     if (bounces < 0) return renderSkyBox(ray);
     const hit = scene.interceptWithRay(ray);
     if (!hit) return renderSkyBox(ray);
     const [, p, e] = hit;
+    if (useCache) {
+        const cachedColor = cache.get(p);
+        if (cachedColor) { return cachedColor; }
+    }
     const albedo = getColorFromElement(e, ray, { bilinearTexture });
     const mat = e.material;
-    if (e.emissive) {
-        return albedo;
-    }
-    const scatteredRay = mat.scatter(ray, p, e);
-    const scatteredColor = trace(
-        scatteredRay,
+    let scatterRay = mat.scatter(ray, p, e);
+    let scatterColor = trace(
+        scatterRay,
         scene,
         { bounces: bounces - 1, bilinearTexture, renderSkyBox }
     );
-    const attenuation = scatteredRay.dir.dot(e.normalToPoint(p));
-    const finalColor = albedo.mul(scatteredColor).scale(attenuation > 0 ? attenuation : 0);
+    let attenuation = scatterRay.dir.dot(e.normalToPoint(p));
+    attenuation = attenuation <= 0 ? -attenuation : attenuation;
+    const finalColor = e.emissive ?
+        albedo.add(albedo.mul(scatterColor.scale(attenuation))) :
+        albedo.mul(scatterColor.scale(attenuation));
+    if (useCache) { cache.set(p, finalColor); }
     return finalColor;
 }
 
 export function traceMetro(ray, scene, options) {
-    const { bounces, bilinearTexture, renderSkyBox } = options;
+    const { bounces, bilinearTexture, renderSkyBox, useCache } = options;
     if (bounces < 0) return renderSkyBox(ray);
     const hit = scene.interceptWithRay(ray);
     if (!hit) return renderSkyBox(ray);
     const [, p, e] = hit;
+    if (useCache) {
+        const cachedColor = cache.get(p);
+        if (cachedColor) { return cachedColor; }
+    }
     const albedo = getColorFromElement(e, ray, { bilinearTexture });
     const mat = e.material;
-    if (e.emissive) {
-        return albedo;
-    }
     // Metropolis sampling
     // https://en.wikipedia.org/wiki/Metropolis_light_transport
-
-    let scatteredRay = mat.scatter(ray, p, e);
-    let scatteredRayStar = mat.scatter(ray, p, e);
+    let scatterRay = mat.scatter(ray, p, e);
+    let scatterRayStar = mat.scatter(ray, p, e);
     let scatterColor = trace(
-        scatteredRay,
+        scatterRay,
         scene,
         { bounces: bounces - 1, bilinearTexture, renderSkyBox }
     );
     let scatterColorStar = trace(
-        scatteredRayStar,
+        scatterRayStar,
         scene,
         { bounces: bounces - 1, bilinearTexture, renderSkyBox }
     );
@@ -90,8 +101,12 @@ export function traceMetro(ray, scene, options) {
     if (Math.random() < probM) {
         scatterColor = scatterColorStar;
     }
-    const attenuation = scatteredRay.dir.dot(e.normalToPoint(p));
-    const finalColor = albedo.mul(scatterColor).scale(attenuation > 0 ? attenuation : 0);
+    let attenuation = scatterRay.dir.dot(e.normalToPoint(p));
+    attenuation = attenuation <= 0 ? -attenuation : attenuation;
+    const finalColor = e.emissive ?
+        albedo.add(albedo.mul(scatterColor.scale(attenuation))) :
+        albedo.mul(scatterColor.scale(attenuation));
+    if (useCache) { cache.set(p, finalColor); }
     return finalColor;
 }
 
@@ -133,3 +148,52 @@ function getTriangleColor(triangle, ray, params) {
         .add(colors[1].scale(beta))
         .add(colors[2].scale(1 - alpha - beta))
 }
+
+
+const lightColorCache = (gridSpace) => {
+    const point2ColorMap = {};
+    const point2Ite = {};
+    const ans = {};
+    ans.hash = (p) => {
+        const integerCoord = p.map(z => Math.floor(z / gridSpace));
+        const h = (integerCoord.x * 92837111) ^ (integerCoord.y * 689287499) ^ (integerCoord.z * 283923481);
+        return Math.abs(h);
+    }
+    ans.set = (p, c) => {
+        const h = ans.hash(p);
+        if (h in point2ColorMap) {
+            point2Ite[h] = point2Ite[h] + 1;
+            point2ColorMap[h] = point2ColorMap[h].add(c.sub(point2ColorMap[h]).scale(1 / point2Ite[h]));
+        } else {
+            point2Ite[h] = 1;
+            point2ColorMap[h] = c;
+        }
+
+        return ans;
+    }
+    ans.get = (p) => {
+        const samples = 10;
+        const coin = Math.random() < 0.5;
+        if (!coin) return undefined;
+        let validSamples = 0;
+        const h = ans.hash(p);
+        let accColor = point2ColorMap[h];
+        if (!accColor) return undefined;
+        for (let i = 0; i < samples; i++) {
+            const epsilon = randomPointInSphere(3).scale(gridSpace);
+            const p2 = p.add(epsilon);
+            const h = ans.hash(p2);
+            if (h in point2ColorMap) {
+                accColor = accColor.add(point2ColorMap[h]);
+                validSamples++;
+            }
+        }
+        if (validSamples === 0) return undefined;
+        return accColor.scale(1 / validSamples);
+
+        // const h = ans.hash(p);
+        // return Math.random() < 0.5 ? point2ColorMap[h] : undefined;
+    }
+    return ans;
+}
+const cache = lightColorCache(0.05);

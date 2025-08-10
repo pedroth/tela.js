@@ -9,12 +9,14 @@ import {
     Window,
     Sphere,
     renderBackground,
-    Image
+    Image,
+    DiElectric,
+    Metallic
 } from "../../src/index.node.js";
 
 const width = 640;
 const height = 480;
-const window = Window.ofSize(240, 160);
+const window = Window.ofSize(width, height);
 window.setWindowSize(width, height);
 let exposedWindow = window.exposure();
 
@@ -56,9 +58,10 @@ window.onMouseMove((x, y) => {
 });
 
 window.onKeyDown((e) => {
-    const magnitude = 0.5;
+    const magnitude = 1.5;
     if (e.key === "w") camSpeed = Vec3(0, 0, magnitude);
     if (e.key === "s") camSpeed = Vec3(0, 0, -magnitude);
+    exposedWindow = window.exposure();
 });
 
 window.onKeyUp(() => {
@@ -81,10 +84,40 @@ scene.add(
     Sphere.builder()
         .name("sphere")
         .color(Color.ofRGB(0.5, 0.2, 0.8))
-        .position(Vec3(0, 0, 1))
+        .position(Vec3(0, 0, 1.5))
+        .material(Metallic(1.5))
         .radius(1)
         .build()
 );
+
+scene.add(
+    Triangle.builder()
+        .name("light_00")
+        .colors(Color.WHITE, Color.WHITE, Color.WHITE)
+        .positions(Vec3(0, 0, 2.9), Vec3(1, 0, 2.9), Vec3(1, 1, 2.9))
+        .emissive(true)
+        .build(),
+    Triangle.builder()
+        .name("light_01")
+        .colors(Color.WHITE, Color.WHITE, Color.WHITE)
+        .positions(Vec3(1, 1, 2.9), Vec3(0, 1, 2.9), Vec3(0, 0, 2.9))
+        .emissive(true)
+        .build(),
+    Triangle.builder()
+        .name("light_10")
+        .colors(Color.WHITE, Color.WHITE, Color.WHITE)
+        .positions(Vec3(-1, -1, 2.9), Vec3(0, -1, 2.9), Vec3(0, 0, 2.9))
+        .emissive(true)
+        .build(),
+    Triangle.builder()
+        .name("light_11")
+        .colors(Color.WHITE, Color.WHITE, Color.WHITE)
+        .positions(Vec3(0, 0, 2.9), Vec3(-1, 0, 2.9), Vec3(-1, -1, 2.9))
+        .emissive(true)
+        .build()
+);
+
+scene.rebuild()
 
 function renderSkyBox(ray) {
     const dir = ray.dir;
@@ -105,7 +138,15 @@ function renderSkyBox(ray) {
 loop(async ({ dt }) => {
     camera.position = camera.position.add(camera.toWorldCoord(camSpeed).scale(dt));
     const image = await camera
-        .parallelShot(scene, { bounces: 10, gamma: 0.5, isBiased: false, renderSkyBox })
+        .sceneShot(
+            scene,
+            {
+                bounces: 10,
+                isBiased: true,
+                useMetro: true,
+                useCache: true,
+                // renderSkyBox
+            })
         .to(exposedWindow);
     image.paint();
     window.setTitle(`FPS: ${(1 / dt).toFixed(2)}`);
