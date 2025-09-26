@@ -56,17 +56,19 @@ export function trace(ray, scene, options) {
     }
     const albedo = getColorFromElement(e, ray, { bilinearTexture });
     const mat = e.material;
+    const isEmissive = e.emissive;
+    if (isEmissive) {
+        if (useCache) { cache.set(p, albedo); }
+        return albedo;
+    }
     let scatterRay = mat.scatter(ray, p, e);
     let scatterColor = trace(
         scatterRay,
         scene,
         { bounces: bounces - 1, bilinearTexture, renderSkyBox }
     );
-    let attenuation = scatterRay.dir.dot(e.normalToPoint(p));
-    attenuation = attenuation <= 0 ? -attenuation : attenuation;
-    const finalColor = e.emissive ?
-        albedo.add(albedo.mul(scatterColor.scale(attenuation))) :
-        albedo.mul(scatterColor.scale(attenuation));
+    const attenuation = Math.abs(e.normalToPoint(p).dot(scatterRay.dir));
+    const finalColor = albedo.mul(scatterColor).scale(attenuation)
     if (useCache) { cache.set(p, finalColor); }
     return finalColor;
 }
@@ -83,6 +85,11 @@ export function traceMetro(ray, scene, options) {
     }
     const albedo = getColorFromElement(e, ray, { bilinearTexture });
     const mat = e.material;
+    const isEmissive = e.emissive;
+    if (isEmissive) {
+        if (useCache) { cache.set(p, albedo); }
+        return albedo;
+    }
     // Metropolis sampling
     // https://en.wikipedia.org/wiki/Metropolis_light_transport
     let scatterRay = mat.scatter(ray, p, e);
@@ -99,13 +106,11 @@ export function traceMetro(ray, scene, options) {
     );
     const probM = scatterColorStar.toGray().red / scatterColor.toGray().red;
     if (Math.random() < probM) {
+        scatterRay = scatterRayStar;
         scatterColor = scatterColorStar;
     }
-    let attenuation = scatterRay.dir.dot(e.normalToPoint(p));
-    attenuation = attenuation <= 0 ? -attenuation : attenuation;
-    const finalColor = e.emissive ?
-        albedo.add(albedo.mul(scatterColor.scale(attenuation))) :
-        albedo.mul(scatterColor.scale(attenuation));
+    const attenuation = Math.abs(e.normalToPoint(p).dot(scatterRay.dir));
+    const finalColor = albedo.mul(scatterColor).scale(attenuation)
     if (useCache) { cache.set(p, finalColor); }
     return finalColor;
 }

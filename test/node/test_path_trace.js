@@ -3,7 +3,7 @@ import { readFileSync } from "fs";
 
 const width = 640;
 const height = 480;
-const window = Window.ofSize(width, height);
+const window = Window.ofSize(width / 2, height / 2);
 window.setWindowSize(width, height);
 let exposedWindow = window.exposure();
 
@@ -91,8 +91,8 @@ loop(async ({ dt }) => {
             bounces: 10,
             samplesPerPxl: 1,
             gamma: 0.5,
-            // useCache: true,
-            useMetro: false,
+            useCache: true,
+            useMetro: true,
             isBiased: true
         })
         .to(exposedWindow);

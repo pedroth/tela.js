@@ -145,7 +145,7 @@ loop(async ({ dt }) => {
                 isBiased: true,
                 useMetro: true,
                 useCache: true,
-                // renderSkyBox
+                renderSkyBox
             })
         .to(exposedWindow);
     image.paint();
