@@ -213,5 +213,10 @@
         "title": "debug parallel ray tracer",
         "path": "/test/web/debug_parallel_ray_tracer.js",
         "thumbnail": "playground/images/debug_parallel_ray_tracer.png"
+    },
+    {
+        "title": "debug perspective correct interpolation",
+        "path": "/test/web/debug_perspective_interpolation.js",
+        "thumbnail": "playground/images/debug_perspective_interpolation.png"
     }
 ]
