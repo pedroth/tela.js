@@ -16,7 +16,7 @@ import {
 
 const width = 640;
 const height = 480;
-const window = Window.ofSize(width, height);
+const window = Window.ofSize(width/2, height/2);
 window.setWindowSize(width, height);
 let exposedWindow = window.exposure();
 
@@ -121,15 +121,15 @@ scene.rebuild()
 
 function renderSkyBox(ray) {
     const dir = ray.dir;
-    const skyColorHorizon = Color.ofRGB(0.5, 0.7, 1.0); // Light blue near horizon
+    const skyColorHorizon = Color.ofRGB(0.3, 0.5, 0.8); // Light blue near horizon
     const skyColorZenith = Color.ofRGB(0.1, 0.2, 0.4);   // Darker blue overhead
     const skyBlendFactor = Math.pow(Math.max(0, dir.z), 0.5);
     const skyColor = skyColorHorizon.scale(1 - skyBlendFactor).add(skyColorZenith.scale(skyBlendFactor));
     const sunDirection = Vec3(0.7, 0.3, 0.5).normalize();
     const sunDot = dir.dot(sunDirection);
-    const sunSharpness = 200.0; // Controls how sharp the sun disk is
+    const sunSharpness = 20000.0; // Controls how sharp the sun disk is
     const sunGlow = Math.pow(Math.max(0, sunDot), sunSharpness);
-    const atmosphereGlow = Math.pow(Math.max(0, sunDot), 5.0); // Softer power for wider glow
+    const atmosphereGlow = Math.pow(Math.max(0, sunDot), 1000.0); // Softer power for wider glow
     const sunColor = Color.ofRGB(1.0, 0.8, 0.5); // Warm yellow/orange
     const sunEffect = sunColor.scale(sunGlow * 2.0).add(sunColor.scale(atmosphereGlow * 0.5));
     return skyColor.add(sunEffect);
@@ -141,11 +141,11 @@ loop(async ({ dt }) => {
         .sceneShot(
             scene,
             {
-                bounces: 10,
+                bounces: 3,
                 isBiased: true,
                 useMetro: true,
-                useCache: true,
-                renderSkyBox
+                // useCache: true,
+                // renderSkyBox
             })
         .to(exposedWindow);
     image.paint();

@@ -91,8 +91,7 @@ loop(async ({ dt }) => {
             bounces: 10,
             samplesPerPxl: 1,
             gamma: 0.5,
-            useCache: true,
-            useMetro: true,
+            useCache: false,
             isBiased: true
         })
         .to(exposedWindow);
