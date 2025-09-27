@@ -72,6 +72,7 @@ async (canvas, logger) => {
                 cullBackFaces: false,
                 bilinearTextures: false,
                 clipCameraPlane: true,
+                perspectiveCorrect: true,
             })
             .to(canvas)
             .paint();

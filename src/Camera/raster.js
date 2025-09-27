@@ -19,12 +19,14 @@ export function rasterGraphics(scene, camera, params = {}) {
         clipCameraPlane,
         clearScreen,
         backgroundColor,
+        perspectiveCorrect,
     } = params;
     params.cullBackFaces = cullBackFaces ?? true;
     params.bilinearTexture = bilinearTexture ?? false;
     params.clipCameraPlane = clipCameraPlane ?? true;
     params.clearScreen = clearScreen ?? true;
     params.backgroundColor = backgroundColor ?? Color.BLACK;
+    params.perspectiveCorrect = perspectiveCorrect ?? false;
 
     return canvas => {
         params.clearScreen && canvas.fill(params.backgroundColor);
@@ -207,13 +209,23 @@ function rasterTriangle({ canvas, camera, elem, w, h, zBuffer, params }) {
         texCoords.length > 0 &&
         !texCoords.some(x => x === undefined);
     const shader = (x, y) => {
+        let W = 1;
+        let wReciprocal = 1;
         const p = Vec2(x, y).sub(intPoints[0]);
-        const alpha = - (v.x * p.y - v.y * p.x) * invDet;
-        const beta = (u.x * p.y - u.y * p.x) * invDet;
-        const gamma = 1 - alpha - beta;
-        const z = pointsInCamCoord[0].z * gamma +
-            pointsInCamCoord[1].z * alpha +
-            pointsInCamCoord[2].z * beta;
+        let alpha = - (v.x * p.y - v.y * p.x) * invDet;
+        let beta = (u.x * p.y - u.y * p.x) * invDet;
+        let gamma = 1 - alpha - beta;
+        const zs = pointsInCamCoord.map(p => p.z);
+        if (params.perspectiveCorrect) {
+            // wReciprocal is the weight for perspective correction of z coordinate
+            W = (1 / zs[0]) * gamma + (1 / zs[1]) * alpha + (1 / zs[2]) * beta;
+            wReciprocal = 1 / W;
+            alpha = (alpha / zs[1]) * wReciprocal;
+            beta = (beta / zs[2]) * wReciprocal;
+            gamma = (gamma / zs[0]) * wReciprocal;
+        } else {
+            wReciprocal = zs[0] * gamma + zs[1] * alpha + zs[2] * beta;
+        }
         // compute color
         let c = Color.ofRGB(
             c1[0] * gamma + c2[0] * alpha + c3[0] * beta,
@@ -224,7 +236,7 @@ function rasterTriangle({ canvas, camera, elem, w, h, zBuffer, params }) {
         if (haveTextures) {
             const texUV = texCoords[0].scale(gamma)
                 .add(texCoords[1].scale(alpha))
-                .add(texCoords[2].scale(beta));
+                .add(texCoords[2].scale(beta))
             const texColor = texture ?
                 params.bilinearTexture ?
                     getBiLinearTexColor(texUV, texture) :
@@ -234,9 +246,9 @@ function rasterTriangle({ canvas, camera, elem, w, h, zBuffer, params }) {
         }
         const [i, j] = canvas.canvas2grid(x, y);
         const zBufferIndex = Math.floor(w * i + j);
-        if (z < zBuffer[zBufferIndex]) {
+        if (wReciprocal < zBuffer[zBufferIndex]) {
             const color = Math.random() < c.alpha ? c : undefined;
-            if(color) zBuffer[zBufferIndex] = z; // if color is undefined, don't update zBuffer
+            if (color) zBuffer[zBufferIndex] = wReciprocal; // if color is undefined, don't update zBuffer
             return color;
         }
     }
