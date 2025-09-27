@@ -31,6 +31,11 @@ export default class Color {
     return Color.ofRGB(this.rgb[0] + color.red, this.rgb[1] + color.green, this.rgb[2] + color.blue, this.alpha + color.alpha);
   }
 
+  sub(color) {
+    return Color.ofRGB(this.rgb[0] - color.red, this.rgb[1] - color.green, this.rgb[2] - color.blue, this.alpha - color.alpha);
+  }
+
+
   scale(r) {
     return Color.ofRGB(r * this.red, r * this.green, r * this.blue, r * this.alpha);
   }
@@ -69,8 +74,24 @@ export default class Color {
     return Color.ofRGB(r, g, b);
   }
 
+  toGray() {
+    const gray = 0.299 * this.red + 0.587 * this.green + 0.114 * this.blue;
+    return Color.ofRGB(gray, gray, gray, this.alpha);
+  }
+
   invert() {
     return Color.ofRGB(1 - this.red, 1 - this.green, 1 - this.blue);
+  }
+
+  static ofArray(arr) {
+    if (arr.length < 3) {
+      throw new Error("Array must have at least 3 elements");
+    }
+    const rgb = [];
+    rgb[0] = arr[0];
+    rgb[1] = arr[1];
+    rgb[2] = arr[2];
+    return new Color(rgb, arr[3] ?? 1);
   }
 
   static ofRGB(red = 0, green = 0, blue = 0, alpha = 1) {
@@ -112,5 +133,5 @@ export default class Color {
   static WHITE = Color.ofRGB(1, 1, 1);
   static GRAY = Color.ofRGB(0.5, 0.5, 0.5);
   static GREY = Color.ofRGB(0.5, 0.5, 0.5);
-  static BROWN = Color.ofRGB(0.345,0.2235,0.1529);
+  static BROWN = Color.ofRGB(0.345, 0.2235, 0.1529);
 }

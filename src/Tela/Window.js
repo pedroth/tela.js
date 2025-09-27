@@ -55,12 +55,12 @@ export default class Window extends Tela {
     }
 
     onKeyDown(lambda) {
-        this.window.on("keyDown", lambda);
+        this.window.on("keyDown", handleKeys(lambda));
         return this;
     }
 
     onKeyUp(lambda) {
-        this.window.on("keyDown", lambda);
+        this.window.on("keyUp", handleKeys(lambda));
         return this;
     }
 
@@ -117,5 +117,12 @@ function handleMouse(canvas, lambda) {
     return (e) => {
         const { x, y } = e;
         return lambda(x, canvas.height - 1 - y, e);
+    }
+}
+
+function handleKeys(lambda) {
+    return (e) => {
+        const { key } = e;
+        return lambda({ code: key, ...e });
     }
 }
