@@ -91,7 +91,7 @@ export default class RandomScene {
     interceptWithRay(ray, level) {
         const nodeCache = RAY_CACHE.get(ray);
         if (nodeCache) {
-            return leafsinterceptWithRay(nodeCache.leafs, ray);
+            return getNearestLeafHit(nodeCache.leafs, ray);
         }
         return this.boundingBoxScene.interceptWithRay(ray, level);
     }
@@ -226,7 +226,7 @@ class Node {
         if (!boxHit) return;
         if (this.leafs.length > 0) {
             RAY_CACHE.put(ray, this);
-            return leafsinterceptWithRay(this.leafs, ray);
+            return getNearestLeafHit(this.leafs, ray);
         }
         const children = [this.left, this.right];
         const hits = [];
@@ -370,7 +370,7 @@ function random(n) {
 
 const RCACHE = random(100);
 
-function leafsinterceptWithRay(leafs, ray) {
+function getNearestLeafHit(leafs, ray) {
     let closestDistance = Number.MAX_VALUE;
     let closest;
     for (let i = 0; i < leafs.length; i++) {

@@ -36,13 +36,13 @@ class Sphere {
     normalToPoint(p) {
         const r = p.sub(this.position);
         const length = r.length();
-        return length > this.radius ? r.normalize() : r.scale(-1).normalize();
+        return length >= this.radius ?  r.normalize() : r.scale(-1).normalize();
     }
 
     interceptWithRay(ray) {
         const epsilon = 1e-9;
         const t = sphereInterception(this, ray);
-        return !t ? undefined : [t, ray.trace(t - epsilon), this];
+        return !t ? undefined : [t - epsilon, ray.trace(t - epsilon), this];
     }
 
     sample() {

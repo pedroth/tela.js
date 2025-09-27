@@ -119,6 +119,13 @@ async (canvas, logger) => {
             .build(),
         Triangle
             .builder()
+            .name("alpha-tri")
+            .colors(Color.ofRGB(1, 1, 0), Color.ofRGB(1, 1, 0), Color.ofRGB(1, 1, 0))
+            .positions(Vec3(1, 0, 0), Vec3(0, 1, 0), Vec3(0, 0, 1))
+            .emissive(true)
+            .build(),
+        Triangle
+            .builder()
             .name("light-1")
             .colors(Color.WHITE, Color.WHITE, Color.WHITE)
             .positions(Vec3(1, 1, 2.9), Vec3(2, 1, 2.9), Vec3(2, 2, 2.9))

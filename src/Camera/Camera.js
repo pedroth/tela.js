@@ -1,10 +1,10 @@
 import Vec, { Vec2, Vec3 } from "../Vector/Vector.js"
 import Ray from "../Ray/Ray.js";
-import { getRayTracer } from "./rayTrace.js";
+import { rayTrace } from "./rayTrace.js";
 import { rasterGraphics } from "./raster.js";
 import { sdfTrace } from "./sdf.js";
 import { normalTrace } from "./normal.js";
-import { rayMapWorkers, rayTraceWorkers } from "./parallel.js";
+import { rayMapWorkers } from "./parallel.js";
 
 export default class Camera {
   constructor(props = {}) {
@@ -120,7 +120,11 @@ export default class Camera {
   }
 
   sceneShot(scene, params) {
-    return this.rayMap(getRayTracer(scene, params));
+    return this.rayMap(
+      ray => {
+        return rayTrace(ray, scene, params)
+      }
+    );
   }
 
   reverseShot(scene, params) {
@@ -138,13 +142,30 @@ export default class Camera {
   }
 
   parallelShot(scene, params) {
+    let serializeParams = { ...params }
+    if (params?.renderSkyBox && typeof params.renderSkyBox === 'function') {
+      serializeParams.renderSkyBox = params.renderSkyBox.toString();
+    }
     return {
       to: canvas => {
-        return Promise
-          .allSettled(rayTraceWorkers(this, scene, canvas, params))
-          .then(() => {
-            return canvas;
-          })
+        return this.rayMapParallel(async (ray, { scene, params, _memory_ }) => {
+          if (!_memory_._skyBox && typeof params?.skyBoxPath === 'string') {
+            // eslint-disable-next-line no-undef
+            _memory_._skyBox = await TELA.ofUrl(params.skyBoxPath);
+            _memory_.renderSkyBox = (ray) => {
+              // eslint-disable-next-line no-undef
+              return renderBackground(ray, _memory_._skyBox);
+            }
+          }
+          if (_memory_.renderSkyBox) {
+            params.renderSkyBox = _memory_.renderSkyBox;
+          }
+          if (typeof params?.renderSkyBox === 'string') {
+            params.renderSkyBox = eval(`(${params.renderSkyBox})`);
+          }
+          return rayTrace(ray, scene, params)
+
+        }).to(canvas, { scene, params: serializeParams });
       }
     }
   }
@@ -194,7 +215,6 @@ export default class Camera {
       distanceToPlane: this.distanceToPlane,
       position: this.position.toArray(),
       orientCoords: this._orientCoords.toArray(),
-      orbitCoords: this._orbitCoords.toArray(),
     }
   }
 
@@ -204,7 +224,6 @@ export default class Camera {
       distanceToPlane: json.distanceToPlane,
       position: Vec.fromArray(json.position),
       orientCoords: Vec.fromArray(json.orientCoords),
-      orbitCoords: Vec.fromArray(json.orbitCoords)
     })
   }
 }

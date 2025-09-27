@@ -11,7 +11,7 @@ const scene = new NaiveScene();
 const camera = new Camera().orbit(maxRadius, Math.PI, 0);
 
 // Load and process mesh
-const obj = readFileSync("./assets/megaman.obj", { encoding: "utf-8" });
+const obj = readFileSync("./assets/riku.obj", { encoding: "utf-8" });
 let mesh = Mesh.readObj(obj, "mesh");
 const box = mesh.getBoundingBox();
 const scaleInv = 2 / box.diagonal.fold((e, x) => Math.max(e, x), Number.MIN_VALUE);
@@ -19,7 +19,7 @@ mesh = mesh
     .mapVertices(v => v.sub(box.center).scale(scaleInv))
     .mapVertices(v => Vec3(-v.y, v.x, v.z))
     .mapVertices(v => Vec3(v.z, v.y, -v.x))
-    .addTexture(await Image.ofUrl("./assets/megaman.png"));
+    .addTexture(await Image.ofUrl("./assets/riku.png"));
 scene.addList(mesh.asTriangles());
 
 // Mouse handling

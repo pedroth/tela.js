@@ -45,7 +45,8 @@ async (canvas, logger) => {
     const rayScene = (ray) => {
         function renderBackground(ray) {
             const dir = ray.dir;
-            const theta = Math.atan2(dir.y, dir.x) / (Math.PI);
+            // atan2 returns [-π, π], we want [0, 1]
+            const theta = Math.atan2(dir.y, dir.x) / (2 * Math.PI) + 0.5;
             const alpha = Math.acos(-clampAcos(dir.z)) / (Math.PI);
             return backgroundImage.getPxl(theta * backgroundImage.width, alpha * backgroundImage.height);
         }

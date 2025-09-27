@@ -11,6 +11,7 @@ import {
   KScene,
   Metallic,
   Window,
+  renderBackground,
 } from "../../src/index.node.js";
 import { readFileSync } from "fs";
 
@@ -73,7 +74,7 @@ mesh = mesh
   .mapVertices(v => v.add(Vec3(1.5, 1.5, 1.0)))
   .mapColors(() => Color.WHITE)
   .addTexture(await Image.ofUrl("./assets/spot.png"))
-  .mapMaterials(() => Metallic(1.33333))
+  // .mapMaterials(() => Metallic(1.33333))
 scene.add(mesh);
 
 // cornell box
@@ -144,10 +145,15 @@ scene.add(
 
 scene.rebuild();
 
+const background = Image.ofUrl("./assets/sky.jpg");
+function renderSkyBox(ray) {
+  return renderBackground(ray, background);
+}
+
 // play
 loop(async ({ dt }) => {
   camera
-    .sceneShot(scene, { bounces: 10, samplesPerPxl: 1, gamma: 0.5 })
+    .sceneShot(scene, { bounces: 10, samplesPerPxl: 1, gamma: 0.5, isBiased: false, renderSkyBox})
     .to(exposedWindow)
     .paint();
   window.setTitle(`FPS: ${(1 / dt).toFixed(2)}`);

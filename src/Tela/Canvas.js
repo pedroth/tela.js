@@ -27,19 +27,19 @@ export default class Canvas extends Tela {
 
   onMouseDown(lambda) {
     this.canvas.addEventListener("mousedown", handleMouse(this, lambda), false);
-    this.canvas.addEventListener("touchstart", handleMouse(this, lambda), false);
+    this.canvas.addEventListener("touchstart", handleTouch(this, lambda), false);
     return this;
   }
 
   onMouseUp(lambda) {
     this.canvas.addEventListener("mouseup", handleMouse(this, lambda), false);
-    this.canvas.addEventListener("touchend", handleMouse(this, lambda), false);
+    this.canvas.addEventListener("touchend", handleTouch(this, lambda), false);
     return this;
   }
 
   onMouseMove(lambda) {
     this.canvas.addEventListener("mousemove", handleMouse(this, lambda), false);
-    this.canvas.addEventListener("touchmove", handleMouse(this, lambda), false);
+    this.canvas.addEventListener("touchmove", handleTouch(this, lambda), false);
     return this;
   }
 
@@ -152,9 +152,37 @@ function handleMouse(canvas, lambda) {
     const w = canvas.width;
     const rect = canvas.canvas.getBoundingClientRect();
     // different coordinates from canvas DOM image data
-    const mx = (event.clientX - rect.left) / rect.width, my = (event.clientY - rect.top) / rect.height;
+    const mx = (event.clientX - rect.left) / rect.width;
+    const my = (event.clientY - rect.top) / rect.height;
     const x = Math.floor(mx * w);
     const y = Math.floor(h - 1 - my * h);
     return lambda(x, y, event);
   }
+}
+
+function handleTouch(canvas, lambda) {
+  // Return the actual event handler function
+  return event => {
+    let touch;
+
+    if (event.touches && event.touches.length > 0) {
+      touch = event.touches[0];
+    } else if (event.changedTouches && event.changedTouches.length > 0) {
+      // Use the changed touch point for end or cancel events
+      // Capturing the position where the finger was lifted.
+      touch = event.changedTouches[0];
+    } else {
+      return;
+    }
+
+    const h = canvas.height;
+    const w = canvas.width;
+    const rect = canvas.canvas.getBoundingClientRect();
+    // different coordinates from canvas DOM image data
+    const mx = (touch.clientX - rect.left) / rect.width;
+    const my = (touch.clientY - rect.top) / rect.height;
+    const x = Math.floor(mx * w);
+    const y = Math.floor(h - 1 - my * h);
+    return lambda(x, y, event);
+  };
 }

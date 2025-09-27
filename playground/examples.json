@@ -95,6 +95,11 @@
         "thumbnail": "playground/images/summer_forest.png"
     },
     {
+        "title": "Minecraft",
+        "path": "/test/web/minecraft.js",
+        "thumbnail": "playground/images/minecraft.png"
+    },
+    {
         "title": "SDF test",
         "path": "/test/web/signed_distance.js",
         "thumbnail": "playground/images/signed_distance.png"
@@ -128,6 +133,21 @@
         "title": "Cornell box parallel",
         "path": "/test/web/cornell_box_parallel.js",
         "thumbnail": "playground/images/cornell_box_parallel.png"
+    },
+    {
+        "title": "Sky",
+        "path": "/test/web/sky.js",
+        "thumbnail": "playground/images/sky.png"
+    },
+    {
+        "title": "Sky parallel",
+        "path": "/test/web/sky_parallel.js",
+        "thumbnail": "playground/images/sky_parallel.png"
+    },
+    {
+        "title": "Megaman sky",
+        "path": "/test/web/megaman_sky.js",
+        "thumbnail": "playground/images/megaman_sky.png"
     },
     {
         "title": "Glass bunny",
