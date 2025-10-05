@@ -31,7 +31,7 @@ export default class BScene extends NaiveScene {
   }
 
   distanceToPoint(p) {
-    return this.getElementNear(p).distanceToPoint(p);
+    return this.getElementsNear(p).distanceToPoint(p);
   }
 
   interceptWithRay(ray, level) {
@@ -43,9 +43,9 @@ export default class BScene extends NaiveScene {
     return this.boundingBoxScene.distanceOnRay(ray, combineLeafs);
   }
 
-  getElementNear(p) {
+  getElementsNear(p) {
     if (this.boundingBoxScene.numberOfLeafs < 2) {
-      return this.boundingBoxScene.getElementNear(p);
+      return this.boundingBoxScene.getElementsNear(p);
     }
     const initial = [this.boundingBoxScene.left, this.boundingBoxScene.right]
       .map(x => ({ node: x, distance: x.box.distanceToPoint(p) }));
@@ -60,7 +60,7 @@ export default class BScene extends NaiveScene {
     }
   }
 
-  getElementInBox(box) {
+  getElementsInBox(box) {
     return this.boundingBoxScene.getElemInBox(box);
   }
 
@@ -178,7 +178,7 @@ class Node {
     return secondHit <= firstHit ? secondHit : firstHit;
   }
 
-  getElementNear(p) {
+  getElementsNear(p) {
     const children = [this.left, this.right].filter(x => x);
     const index = argmin(children, n => n.box.center.sub(p).length());
     return children[index].getElemNear(p);

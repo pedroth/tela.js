@@ -80,11 +80,11 @@ export default class RandomScene {
         return this.sceneElements;
     }
 
-    getElementInBox(box) {
+    getElementsInBox(box) {
         return this.boundingBoxScene.getElemIn(box);
     }
 
-    getElementNear(p) {
+    getElementsNear(p) {
         return this.boundingBoxScene.getElemNear(p);
     }
 
@@ -105,7 +105,7 @@ export default class RandomScene {
             }
             return distance;
         }
-        return this.getElementNear(p).distanceToPoint(p);
+        return this.getElementsNear(p).distanceToPoint(p);
     }
 
     normalToPoint(p) {

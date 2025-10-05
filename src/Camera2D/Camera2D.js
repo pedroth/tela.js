@@ -49,7 +49,7 @@ export default class Camera2D {
     }
     return {
       to: tela => {
-        const elements = scene.getElements();
+        const elements = scene.getElementsInBox(this.box);
         for (let i = 0; i < elements.length; i++) {
           const element = elements[i];
           const rasterizer = type2render[element.constructor.name];

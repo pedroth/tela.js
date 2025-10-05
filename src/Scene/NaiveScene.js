@@ -85,12 +85,19 @@ export default class NaiveScene {
     return this.distanceToPoint(ray.init);
   }
 
-  getElementNear(p) {
+  getElementsNear(p) {
     return this.sceneElements[argmin(this.sceneElements, x => x.distanceToPoint(p))];
   }
 
-  getElementInBox(box) {
-    return this.sceneElements.reduce((e, x) => e.add(x.getBoundingBox().collidesWith(box)), Box.EMPTY);
+  getElementsInBox(box) {
+    let filteredElements = [];
+    for (let i = 0; i < this.sceneElements.length; i++) {
+      const elem = this.sceneElements[i];
+      if (elem.getBoundingBox().collidesWith(box)) {
+        filteredElements.push(elem);
+      }
+    }
+    return filteredElements;
   }
 
   rebuild() {

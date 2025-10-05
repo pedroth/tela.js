@@ -116,11 +116,11 @@ export default class VoxelScene extends NaiveScene {
         return Number.MAX_VALUE;
     }
 
-    getElementNear(p) {
+    getElementsNear(p) {
         throw Error("Not implemented");
     }
 
-    getElementInBox(box) {
+    getElementsInBox(box) {
         const size = box.diagonal.fold((e, x) => e * x, 1);
         const samples = Math.floor(size / this.gridSpace);
         let elements = [];

@@ -54,11 +54,11 @@ async (canvas) => {
                 .div(size)
                 .map(x => cameraSize * (2 * x - 1));
             if (x < verticalBarX) {
-                const elem = nscene.getElementNear(p);
+                const elem = nscene.getElementsNear(p);
                 return elem.color;
             }
             if (x === verticalBarX) return Color.BLACK;
-            const elem = scene.getElementNear(p);
+            const elem = scene.getElementsNear(p);
             return elem.color;
         })
         nscene.getElements()

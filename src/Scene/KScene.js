@@ -36,7 +36,7 @@ export default class KScene extends NaiveScene {
         if (this.boundingBoxScene.leafs.length > 0) {
             return distanceFromLeafs(this.boundingBoxScene.leafs, p, combineLeafs);
         }
-        return this.getElementNear(p).distanceToPoint(p);
+        return this.getElementsNear(p).distanceToPoint(p);
     }
 
     normalToPoint(p) {
@@ -44,7 +44,7 @@ export default class KScene extends NaiveScene {
         let weight = 0;
         const ones = Vec3(1, 1, 1).scale(1 / (2 * this.k));
         const box = new Box(p.sub(ones), p.add(ones));
-        const elements = this.getElementInBox(box);
+        const elements = this.getElementsInBox(box);
         const size = elements.length;
         for (let i = 0; i < size; i++) {
             const n = elements[i].normalToPoint(p);
@@ -63,9 +63,9 @@ export default class KScene extends NaiveScene {
         return this.boundingBoxScene.distanceOnRay(ray, combineLeafs);
     }
 
-    getElementNear(p) {
+    getElementsNear(p) {
         if (this.boundingBoxScene.leafs.length > 0) {
-            return this.boundingBoxScene.getElementNear(p);
+            return this.boundingBoxScene.getElementsNear(p);
         }
         const initial = [this.boundingBoxScene.left, this.boundingBoxScene.right]
             .map(x => ({ node: x, distance: x.box.distanceToPoint(p) }));
@@ -86,7 +86,7 @@ export default class KScene extends NaiveScene {
         }
     }
 
-    getElementInBox(box) {
+    getElementsInBox(box) {
         return this.boundingBoxScene.getElemInBox(box);
     }
 
@@ -221,7 +221,7 @@ class Node {
 
     distanceToPoint(p) {
         if (!this.left && !this.right) return Number.MAX_VALUE;
-        return this.getElementNear(p).distanceToPoint(p);
+        return this.getElementsNear(p).distanceToPoint(p);
     }
 
     distanceOnRay(ray, combineLeafs) {
@@ -241,14 +241,14 @@ class Node {
         return secondHit <= firstHit ? secondHit : firstHit;
     }
 
-    getElementNear(p) {
+    getElementsNear(p) {
         if (this.leafs.length > 0) {
             const minIndex = argmin(this.leafs, x => x.distanceToPoint(p));
             return this.leafs[minIndex].element;
         }
         const children = [this.left, this.right];
         const index = argmin(children, n => n.box.center.sub(p).length());
-        return children[index].getElementNear(p);
+        return children[index].getElementsNear(p);
     }
 
     getNodeNear(p) {
