@@ -6,6 +6,8 @@ import Triangle from "../Geometry/Triangle.js";
 import { Vec2 } from "../Vector/Vector.js";
 import { getBiLinearTexColor, getDefaultTexColor, getTexColor } from "./common.js";
 
+const ditheringMatrix4x4 = Float32Array.from([0, 8, 2, 10, 12, 4, 14, 6, 3, 11, 1, 9, 15, 7, 13, 5]).map((x) => x / 16);
+
 export function rasterGraphics(scene, camera, params = {}) {
     const type2render = {
         [Sphere.name]: rasterSphere,
@@ -247,7 +249,8 @@ function rasterTriangle({ canvas, camera, elem, w, h, zBuffer, params }) {
         const [i, j] = canvas.canvas2grid(x, y);
         const zBufferIndex = Math.floor(w * i + j);
         if (wReciprocal < zBuffer[zBufferIndex]) {
-            const color = Math.random() < c.alpha ? c : undefined;
+            const matrixValue = ditheringMatrix4x4[(i % 4) * 4 + (j % 4)];
+            const color = matrixValue < c.alpha ? c : undefined;
             if (color) zBuffer[zBufferIndex] = wReciprocal; // if color is undefined, don't update zBuffer
             return color;
         }
