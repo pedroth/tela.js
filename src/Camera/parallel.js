@@ -8,7 +8,6 @@ import { MyWorker } from "../Utils/Utils.js";
  *                                                                                      */
 //========================================================================================
 
-let RAY_TRACE_WORKERS = [];
 let RAY_MAP_WORKERS = [];
 
 let prevSceneHash = undefined;

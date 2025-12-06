@@ -1,3 +1,4 @@
+import Tela from "./Tela/Tela.js"
 import Anima from "./Utils/Anima.js"
 import BScene from "./Scene/BScene.js"
 import Box from "./Geometry/Box.js"
@@ -46,6 +47,7 @@ export {
     NaiveScene,
     VoxelScene,
     RandomScene,
+    Tela,
 }
 
 export * from "./Utils/Math.js"
