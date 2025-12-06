@@ -87,7 +87,7 @@ export default class KScene extends NaiveScene {
     }
 
     getElementsInBox(box) {
-        return this.boundingBoxScene.getElemInBox(box);
+        return this.boundingBoxScene.isEmpty ? [] : this.boundingBoxScene.getElemInBox(box);
     }
 
     rebuild() {
