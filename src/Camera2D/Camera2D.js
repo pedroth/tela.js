@@ -74,7 +74,10 @@ export default class Camera2D {
 
   toWorldCoord(x, canvas) {
     const size = Vec2(canvas.width, canvas.height);
-    return x.div(size).mul(this.box.diagonal)
+    return Vec2(
+      (x.x / size.x) * this.box.diagonal.x + this.box.min.x,
+      (x.y / size.y) * this.box.diagonal.y + this.box.min.y
+    );
   }
 
   static deserialize(json) {
@@ -125,7 +128,7 @@ function rasterTriangle(triangle, camera, canvas) {
     const alpha = - (v.x * p.y - v.y * p.x) * invDet;
     const beta = (u.x * p.y - u.y * p.x) * invDet;
     const gamma = 1 - alpha - beta;
-  
+
     // compute color
     let c = Color.ofRGB(
       c1[0] * gamma + c2[0] * alpha + c3[0] * beta,

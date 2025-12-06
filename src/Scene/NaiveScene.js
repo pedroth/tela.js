@@ -1,7 +1,6 @@
 
 import Vec from "../Vector/Vector.js";
 import { argmin, hashStr } from "../Utils/Utils.js";
-import Box from "../Geometry/Box.js";
 
 export default class NaiveScene {
   constructor() {
