@@ -1,5 +1,4 @@
-import { Vec2, Window, loop, Box, Color } from "../../src/index.node.js";
-import { imageFromString } from "../../src/Utils/Fonts.js";
+import { Vec2, Window, loop, Box, Color, imageFromString } from "../../src/index.node.js";
 
 const width = 1024;
 const height = 240;

@@ -16,7 +16,8 @@ try {
     fontImage = await or(
         () => TELA.ofUrl(`../src/Utils/sdf_font.png`),
         () => TELA.ofUrl(`./src/Utils/sdf_font.png`),
-        () => TELA.ofUrl(`./node_modules/tela.js/src/Utils/sdf_font.png`)
+        () => TELA.ofUrl(`./node_modules/tela.js/src/Utils/sdf_font.png`),
+        () => TELA.ofUrl(`https://cdn.jsdelivr.net/npm/tela.js/src/Utils/sdf_font.png`)
     );
     fontImageWidth = fontImage.width;
     fontImageHeight = fontImage.height;

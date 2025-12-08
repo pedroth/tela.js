@@ -1,8 +1,6 @@
-import { Vec2, Window, loop, Box, Color, Vec } from "../../src/index.node.js";
-import { imageFromString } from "../../src/Utils/Fonts.js";
+import { Vec2, Window, loop, Box, Color, Vec, imageFromString } from "../../src/index.node.js";
 
 // TODO: add Shift key symbols.
-
 const width = 1024;
 const height = 720;
 const charSizeX = 25;
