@@ -148,18 +148,21 @@ You can find more examples of usage in:
 
 # TODOs
 
+- Read glb and gltf files
+- Realtime light maps rendering in raster graphics
 - Serialize meshes not only triangles
 - Optimize data serialization in parallel ray tracer
 - Refactor geometric objects to have shader function
-- Refactor parallel raytracing to be just parallel canvas map
 - Add Phong shading to raster graphics
-- Read glb and gltf files
 
+- Add Volumetric fluid sim
+- Add surface water tension sim
+- Megaman rag doll physics
 - Add lorentz attractors demo
 - Add Iterated map fractals demo
-- Add Volumetric fluid sim
-- Megaman rag doll physics
-- Black hole demo
+- Quaternion julia sets
+
+- Replicate some demos from https://oimo.io/works
 
 
 [ffmpeg]: https://ffmpeg.org/

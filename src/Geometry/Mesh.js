@@ -260,7 +260,7 @@ export default class Mesh {
             }
             if (type === "f") {
                 triangulate(spaces.slice(1))
-                    .forEach(triangleIdx => {
+                    ?.forEach(triangleIdx => {
                         faces.push(parseFace(triangleIdx))
                     })
                 continue;

@@ -97,3 +97,12 @@ $$\lfloor \text{index} / CW \rfloor = \lfloor(C(Wx+y)+z) / CW \rfloor$$
 
 $$\lfloor \text{index} / CW \rfloor = x$$
 
+
+In the end we need to put the variables as the first diagram:
+
+$$
+x' = y\\
+y' = H - 1 - x
+
+$$
+
