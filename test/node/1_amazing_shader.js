@@ -1,3 +1,4 @@
+// Port from https://www.shadertoy.com/view/mtyGWy
 import { Color, Image, Stream, IO, measureTime } from "../../src/index.node.js";
 const { saveImageStreamToVideo } = IO;
 

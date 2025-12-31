@@ -1,3 +1,5 @@
+
+// Port from https://www.shadertoy.com/view/mtyGWy
 import { Color, loop, Window } from "../../src/index.node.js";
 
 const width = 640;
