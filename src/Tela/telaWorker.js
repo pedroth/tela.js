@@ -10,6 +10,7 @@ import Camera from "../Camera/Camera.js";
 import Ray from "../Ray/Ray.js";
 
 const parentPort = IS_NODE ? (await import("node:worker_threads")).parentPort : undefined;
+let memory = {}
 
 async function main(inputs) {
     const {
@@ -20,7 +21,9 @@ async function main(inputs) {
         __startRow,
         __endRow,
         __dependencies,
+        __memory,
     } = inputs;
+    memory = {...memory, ...__memory };
     const bufferSize = __width * (__endRow - __startRow + 1) * CHANNELS;
     const image = new Float32Array(bufferSize);
     let index = 0;
@@ -29,7 +32,7 @@ async function main(inputs) {
     for (let i = __startRow; i < __endRow; i++) {
         for (let x = 0; x < __width; x++) {
             const y = __height - 1 - i;
-            const color = await func(x, y, __vars);
+            const color = await func(x, y, __vars, memory);
             if (!color) continue;
             image[index++] = color.red;
             image[index++] = color.green;

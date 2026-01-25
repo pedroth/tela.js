@@ -59,8 +59,8 @@ export default class Tela {
 
     mapParallel(lambda, dependencies = []) {
         return {
-            run: (vars = {}) => {
-                const workersPromises = parallelWorkers(this, lambda, dependencies, vars);
+            run: (vars = {}, memory = {}) => {
+                const workersPromises = parallelWorkers(this, lambda, dependencies, vars, memory);
                 return Promise
                     .allSettled(workersPromises)
                     .then(() => {

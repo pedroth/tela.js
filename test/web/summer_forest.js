@@ -17,11 +17,11 @@ async (canvas, logger) => {
 
     // From https://www.models-resource.com/playstation/spyro2riptosrage/
     const texture = await Canvas.ofUrl("/assets/summer_forest.png");
-    const earthObj = await fetch("/assets/summer_forest.obj").then(x => x.text());
-    const earthMesh = Mesh.readObj(earthObj, "earth")
+    const meshObj = await fetch("/assets/summer_forest.obj").then(x => x.text());
+    const mesh = Mesh.readObj(meshObj, "summer_forest")
         .mapColors(() => Color.ofRGB(0.25, 0.25, 0.25))
         .addTexture(texture);
-    scene.add(earthMesh);
+    scene.add(mesh);
 
     // mouse handling
     let mousedown = false;

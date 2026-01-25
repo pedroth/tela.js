@@ -17,7 +17,7 @@ let isFirstTimeCounter = NUMBER_OF_CORES;
  *                                                                                      */
 //========================================================================================
 
-export function parallelWorkers(tela, lambda, dependencies = [], vars = []) {
+export function parallelWorkers(tela, lambda, dependencies = [], vars = [], memory = {}) {
     // lazy loading workers
     if (WORKERS.length === 0) {
         WORKERS = [...Array(NUMBER_OF_CORES)]
@@ -48,6 +48,7 @@ export function parallelWorkers(tela, lambda, dependencies = [], vars = []) {
                 __startRow: k * ratio,
                 __endRow: Math.min(h, (k + 1) * ratio),
                 __dependencies: dependencies.map(d => d.toString()),
+                __memory: memory,
             };
             worker.postMessage(message);
             if (isFirstTimeCounter > 0 && !IS_NODE) {
