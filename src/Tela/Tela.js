@@ -331,29 +331,27 @@ function isInsideConvex(positions) {
 }
 
 function clipLine(p0, p1, box) {
-    const pointStack = [p0, p1];
-    const inStack = [];
-    const outStack = [];
-    for (let i = 0; i < pointStack.length; i++) {
-        const p = pointStack[i];
-        if (box.collidesWith(p)) {
-            inStack.push(p);
-        } else {
-            outStack.push(p);
-        }
+    const p0In = box.collidesWith(p0);
+    const p1In = box.collidesWith(p1);
+
+    // Case 1: Both points are inside
+    if (p0In && p1In) {
+        return [p0, p1];
     }
-    // both points are inside
-    if (inStack.length >= 2) {
-        return inStack;
+
+    // Case 2: p0 is inside, p1 is outside
+    if (p0In) {
+        return [p0, ...lineBoxIntersection(p0, p1, box)];
     }
-    // one of them is inside
-    if (inStack.length === 1) {
-        const [inPoint] = inStack;
-        const [outPoint] = outStack;
-        return [inPoint, ...lineBoxIntersection(inPoint, outPoint, box)];
+
+    // Case 3: p1 is inside, p0 is outside
+    if (p1In) {
+        return [p1, ...lineBoxIntersection(p1, p0, box)];
     }
-    // both points are outside, need to intersect the boundary
-    return lineBoxIntersection(...outStack, box);
+
+    // Case 4: Both are outside (line could still pass through the box)
+    // Note: lineBoxIntersection should return an empty array if no intersection exists
+    return lineBoxIntersection(p0, p1, box);
 }
 
 function lineBoxIntersection(start, end, box) {
