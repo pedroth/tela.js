@@ -12,6 +12,9 @@ import Ray from "../Ray/Ray.js";
 const parentPort = IS_NODE ? (await import("node:worker_threads")).parentPort : undefined;
 let memory = {}
 
+// Cached shared memory view
+let sharedImageArray = null;
+
 async function main(inputs) {
     const {
         __vars,
@@ -22,11 +25,31 @@ async function main(inputs) {
         __endRow,
         __dependencies,
         __memory,
+        __sharedImageBuffer,
+        __workerIndex,
     } = inputs;
     memory = {...memory, ...__memory };
-    const bufferSize = __width * (__endRow - __startRow + 1) * CHANNELS;
-    const image = new Float32Array(bufferSize);
-    let index = 0;
+    
+    // Use shared memory if available, otherwise allocate local buffer
+    const useSharedMemory = __sharedImageBuffer !== undefined;
+    let image;
+    let writeIndex;
+    
+    if (useSharedMemory) {
+        // Create or reuse view into shared buffer
+        if (sharedImageArray === null || sharedImageArray.buffer !== __sharedImageBuffer) {
+            sharedImageArray = new Float32Array(__sharedImageBuffer);
+        }
+        image = sharedImageArray;
+        // Write directly to our region in the shared buffer
+        writeIndex = CHANNELS * __width * __startRow;
+    } else {
+        // Fallback to local buffer (will be copied on postMessage)
+        const bufferSize = __width * (__endRow - __startRow + 1) * CHANNELS;
+        image = new Float32Array(bufferSize);
+        writeIndex = 0;
+    }
+    
     const func = getLambda(__lambda, __dependencies);
     // the order does matter
     for (let i = __startRow; i < __endRow; i++) {
@@ -34,11 +57,16 @@ async function main(inputs) {
             const y = __height - 1 - i;
             const color = await func(x, y, __vars, memory);
             if (!color) continue;
-            image[index++] = color.red;
-            image[index++] = color.green;
-            image[index++] = color.blue;
-            image[index++] = color.alpha;
+            image[writeIndex++] = color.red;
+            image[writeIndex++] = color.green;
+            image[writeIndex++] = color.blue;
+            image[writeIndex++] = color.alpha;
         }
+    }
+    
+    // Return metadata only when using shared memory (no data copy needed)
+    if (useSharedMemory) {
+        return { startRow: __startRow, endRow: __endRow, workerIndex: __workerIndex };
     }
     return { image, startRow: __startRow, endRow: __endRow };
 }

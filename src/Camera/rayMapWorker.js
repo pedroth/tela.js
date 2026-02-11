@@ -18,6 +18,9 @@ const parentPort = IS_NODE ? (await import("node:worker_threads")).parentPort : 
 let scene = undefined;
 let _memory_ = {}
 
+// Cached shared memory views
+let sharedImageArray = null;
+
 function getScene(serializedScene) {
     return deserializeScene(serializedScene).then(s => s.rebuild());
 }
@@ -33,26 +36,51 @@ async function main(inputs) {
         lambda,
         scene: serializedScene,
         camera: serializedCamera,
+        sharedImageBuffer,
+        workerIndex,
     } = inputs;
 
     scene = serializedScene ? (await getScene(serializedScene)) : scene;
     const camera = Camera.deserialize(serializedCamera);
     const rayGen = camera.rayFromImage(width, height);
     const __lambda = getLambda(lambda, dependencies);
-    const bufferSize = width * (endRow - startRow + 1) * CHANNELS;
-    const image = new Float32Array(bufferSize);
-    let index = 0;
+    
+    // Use shared memory if available, otherwise allocate local buffer
+    const useSharedMemory = sharedImageBuffer !== undefined;
+    let image;
+    let writeIndex;
+    
+    if (useSharedMemory) {
+        // Create or reuse view into shared buffer
+        if (sharedImageArray === null || sharedImageArray.buffer !== sharedImageBuffer) {
+            sharedImageArray = new Float32Array(sharedImageBuffer);
+        }
+        image = sharedImageArray;
+        // Write directly to our region in the shared buffer
+        writeIndex = CHANNELS * width * startRow;
+    } else {
+        // Fallback to local buffer (will be copied on postMessage)
+        const bufferSize = width * (endRow - startRow + 1) * CHANNELS;
+        image = new Float32Array(bufferSize);
+        writeIndex = 0;
+    }
+    
     // the order does matter
     for (let y = startRow; y < endRow; y++) {
         for (let x = 0; x < width; x++) {
             const ray = rayGen(x, height - 1 - y);
             const color = await __lambda(ray, { ...vars, scene, _memory_ });
             if (!color) continue;
-            image[index++] = color.red;
-            image[index++] = color.green;
-            image[index++] = color.blue;
-            image[index++] = color.alpha;
+            image[writeIndex++] = color.red;
+            image[writeIndex++] = color.green;
+            image[writeIndex++] = color.blue;
+            image[writeIndex++] = color.alpha;
         }
+    }
+    
+    // Return metadata only when using shared memory (no data copy needed)
+    if (useSharedMemory) {
+        return { startRow, endRow, workerIndex };
     }
     return { image, startRow, endRow };
 }
