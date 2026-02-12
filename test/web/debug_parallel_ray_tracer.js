@@ -1,8 +1,8 @@
 
 /* eslint-disable no-undef */
 async (canvas, logger) => {
-    const width = 640/2;
-    const height = 480/2;
+    const width = 640 / 2;
+    const height = 480 / 2;
     canvas.resize(width, height);
     let exposedCanvas = canvas.exposure();
     // scene
@@ -135,7 +135,12 @@ async (canvas, logger) => {
 
     // boilerplate for fps
     loop(async ({ dt }) => {
-        (await camera.parallelShot(scene).to(exposedCanvas)).paint();
+        (await
+            camera.parallelShot(
+                scene,
+                { isBiased: false, skyBoxPath: "/assets/sky.jpg" }
+            ).to(exposedCanvas)
+        ).paint();
         logger.print(`PRay, FPS: ${(1 / dt).toFixed(2)}`);
     }).play();
 }
