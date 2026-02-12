@@ -40,8 +40,6 @@ export function rasterGraphics(scene, camera, params = {}) {
             const elem = elements[i];
             if (elem.constructor.name in type2render) {
                 type2render[elem.constructor.name]({
-                    w,
-                    h,
                     elem,
                     canvas,
                     params,
@@ -55,7 +53,9 @@ export function rasterGraphics(scene, camera, params = {}) {
 }
 
 
-function rasterSphere({ canvas, camera, elem, w, h, zBuffer }) {
+function rasterSphere({ canvas, camera, elem, zBuffer }) {
+    const w = canvas.width;
+    const h = canvas.height;
     const point = elem;
     const { distanceToPlane } = camera;
     const { texCoord, texture, position, color, radius } = point;
@@ -103,7 +103,9 @@ function rasterSphere({ canvas, camera, elem, w, h, zBuffer }) {
     }
 }
 
-function rasterLine({ canvas, camera, elem, w, h, zBuffer, params }) {
+function rasterLine({ canvas, camera, elem, zBuffer, params }) {
+    const w = canvas.width;
+    const h = canvas.height;
     const lineElem = elem;
     const { colors, positions } = lineElem;
     const { distanceToPlane } = camera;
@@ -161,7 +163,9 @@ function rasterLine({ canvas, camera, elem, w, h, zBuffer, params }) {
     canvas.drawLine(intPoints[0], intPoints[1], shader);
 }
 
-function rasterTriangle({ canvas, camera, elem, w, h, zBuffer, params }) {
+function rasterTriangle({ canvas, camera, elem, zBuffer, params }) {
+    const w = canvas.width;
+    const h = canvas.height;
     const triangleElem = elem;
     const { distanceToPlane } = camera;
     const { colors, positions, texCoords, texture, } = triangleElem;
@@ -258,10 +262,10 @@ function rasterTriangle({ canvas, camera, elem, w, h, zBuffer, params }) {
     canvas.drawTriangle(intPoints[0], intPoints[1], intPoints[2], shader);
 }
 
-function rasterMesh({ canvas, camera, elem, w, h, zBuffer, params }) {
+function rasterMesh({ canvas, camera, elem, zBuffer, params }) {
     const triangles = elem._meshScene.getElements();
     for (let i = 0; i < triangles.length; i++) {
-        rasterTriangle({ canvas, camera, elem: triangles[i], w, h, zBuffer, params })
+        rasterTriangle({ canvas, camera, elem: triangles[i], zBuffer, params })
     }
 }
 
