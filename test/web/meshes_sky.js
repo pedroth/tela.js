@@ -72,21 +72,21 @@ async (canvas, logger) => {
 
     })
     canvas.onMouseWheel(({ deltaY }) => {
-        camera.orbit(coords => coords.add(Vec3(deltaY * 0.001, 0, 0)));
         exposedCanvas = canvas.exposure();
+        camera.orbit(coords => coords.add(Vec3(deltaY * 0.001, 0, 0)));
     })
     // cornell box
     const floorTriangles = [
         Triangle
             .builder()
             .name("bottom-1")
-            .colors(Color.WHITE, Color.WHITE, Color.WHITE)
+            .colors(Color.RED, Color.RED, Color.RED)
             .positions(Vec3(), Vec3(3, 0, 0), Vec3(3, 3, 0))
             .build(),
         Triangle
             .builder()
             .name("bottom-2")
-            .colors(Color.WHITE, Color.WHITE, Color.WHITE)
+            .colors(Color.RED, Color.RED, Color.RED)
             .positions(Vec3(3, 3, 0), Vec3(0, 3, 0), Vec3())
             .build(),
     ];
@@ -113,7 +113,7 @@ async (canvas, logger) => {
         scene.addList(mesh.asTriangles());
     }
 
-    await loadMesh(1);
+    await loadMesh(0);
 
     select.addEventListener("change", async () => {
         await loadMesh(Number(select.value));
