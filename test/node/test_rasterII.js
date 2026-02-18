@@ -71,7 +71,7 @@ mesh = mesh
             default: return Color.YELLOW;
         }
     })
-    // .addTexture(await Image.ofUrl("./assets/earth.jpg"))
+    .addTexture(await Image.ofUrl("./assets/earth.jpg"))
 scene.addList(mesh.asTriangles());
 scene.rebuild();
 

@@ -306,7 +306,7 @@ function parseFace(vertexInfo) {
     const face = { vertices: [], textures: [], normals: [] }
     Object.keys(group).map(k => {
         k = Number.parseInt(k);
-        const indices = group[k].map(x => x - 1);
+        const indices = group[k].map(x => x - 1); // obj file is 1-indexed
         if (k === 0) face.vertices = indices;
         if (k === 1) face.textures = indices;
         if (k === 2) face.normals = indices;

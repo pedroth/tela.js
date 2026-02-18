@@ -53,7 +53,7 @@ window.onMouseMove((x, y) => {
 });
 
 window.onMouseWheel(({ deltaY }) => {
-    camera.orbit(orbitCoord => orbitCoord.add(Vec3(deltaY, 0, 0)));
+    camera.orbit(orbitCoord => orbitCoord.add(Vec3(0.1 * deltaY, 0, 0)));
 });
 
 // Render loop
