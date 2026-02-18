@@ -1,7 +1,6 @@
 import { writeFileSync, unlinkSync, readFileSync } from "fs";
 import { execSync, exec } from "child_process";
 import { CHANNELS, MAX_8BIT } from "../Utils/Constants.js";
-import { PNG } from "pngjs";
 
 export function saveImageToFile(fileAddress, image) {
     const { fileName, extension } = getFileNameAndExtensionFromAddress(fileAddress);
@@ -37,13 +36,15 @@ function parsePPM(data) {
         .match(/\d+/g)
         .map(Number);
     const pixelStart = index;
-    const pixels = [];
-    for (let i = pixelStart; i < data.length; i += 3) {
-        pixels.push({
-            r: data[i],
-            g: data[i + 1],
-            b: data[i + 2],
-        });
+    const numPixels = width * height;
+    const pixels = new Uint8Array(numPixels * CHANNELS);
+    for (let i = 0; i < numPixels; i++) {
+        const srcIdx = pixelStart + i * 3;
+        const dstIdx = i * CHANNELS;
+        pixels[dstIdx] = data[srcIdx];
+        pixels[dstIdx + 1] = data[srcIdx + 1];
+        pixels[dstIdx + 2] = data[srcIdx + 2];
+        pixels[dstIdx + 3] = MAX_8BIT;
     }
     return { width, height, maxColor, pixels };
 }
@@ -51,12 +52,11 @@ function parsePPM(data) {
 export function readImageFrom(src) {
     const { fileName, extension } = getFileNameAndExtensionFromAddress(src);
     if ("ppm" === extension.toLowerCase()) return parsePPM(readFileSync(src));
-    if ("png" === extension.toLowerCase()) return parsePNG(readFileSync(src));
     const finalName = `${fileName}_${Math.floor(Math.random() * 1e6)}`;
-    execSync(`ffmpeg -i ${src} ${finalName}.ppm`);
-    const imageFile = readFileSync(`${finalName}.ppm`);
-    const { width, height, pixels } = parsePPM(imageFile);
-    unlinkSync(`${finalName}.ppm`);
+    execSync(`ffmpeg -i ${src} -pix_fmt rgba -update 1 ${finalName}.pam`);
+    const imageFile = readFileSync(`${finalName}.pam`);
+    const { width, height, pixels } = parsePAM(imageFile);
+    unlinkSync(`${finalName}.pam`);
     return { width, height, pixels };
 }
 
@@ -171,19 +171,30 @@ export function saveParallelImageStreamToVideo(fileAddress, parallelStreamOfImag
         })
 }
 
-export function parsePNG(fileBuffer) {
-    const png = PNG.sync.read(fileBuffer);
-    const width = png.width;
-    const height = png.height;
-    const data = png.data;
-    const pixels = [];
-    for (let i = 0; i < data.length; i += CHANNELS) {
-        pixels.push({
-            r: data[i],
-            g: data[i + 1],
-            b: data[i + 2],
-            a: data[i + 3],
-        });
+// parse P7 PAM (Portable Arbitrary Map) image file
+function parsePAM(data) {
+    // find ENDHDR\n efficiently using Buffer
+    const endhdrStr = 'ENDHDR\n';
+    const headerEnd = data.indexOf(endhdrStr);
+    const headerText = data.slice(0, headerEnd).toString('ascii');
+    const pixelStart = headerEnd + endhdrStr.length;
+    let width, height, depth, maxval;
+    for (const l of headerText.split('\n')) {
+        const trimmed = l.trim();
+        if (trimmed.startsWith('WIDTH')) width = parseInt(trimmed.split(/\s+/)[1]);
+        else if (trimmed.startsWith('HEIGHT')) height = parseInt(trimmed.split(/\s+/)[1]);
+        else if (trimmed.startsWith('DEPTH')) depth = parseInt(trimmed.split(/\s+/)[1]);
+        else if (trimmed.startsWith('MAXVAL')) maxval = parseInt(trimmed.split(/\s+/)[1]);
     }
-    return { width, height, pixels };
+    const numPixels = width * height;
+    const pixels = new Uint8Array(numPixels * CHANNELS);
+    for (let i = 0; i < numPixels; i++) {
+        const srcIdx = pixelStart + i * depth;
+        const dstIdx = i * CHANNELS;
+        pixels[dstIdx] = data[srcIdx];
+        pixels[dstIdx + 1] = data[srcIdx + 1];
+        pixels[dstIdx + 2] = data[srcIdx + 2];
+        pixels[dstIdx + 3] = depth >= 4 ? data[srcIdx + 3] : MAX_8BIT;
+    }
+    return { width, height, maxColor: maxval, pixels };
 }

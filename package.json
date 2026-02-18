@@ -11,8 +11,7 @@
     "src/"
   ],
   "dependencies": {
-    "@kmamal/sdl": "^0.10.2",
-    "pngjs": "^7.0.0"
+    "@kmamal/sdl": "^0.10.2"
   },
   "devDependencies": {
     "bun-types": "latest",
