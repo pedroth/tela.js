@@ -90,6 +90,11 @@
         "thumbnail": "playground/images/earth.png"
     },
     {
+        "title": "All meshes",
+        "path": "/test/web/all_meshes.js",
+        "thumbnail": "playground/images/all_meshes.png"
+    },
+    {
         "title": "Summer forest",
         "path": "/test/web/summer_forest.js",
         "thumbnail": "playground/images/summer_forest.png"
@@ -148,6 +153,11 @@
         "title": "Megaman sky",
         "path": "/test/web/megaman_sky.js",
         "thumbnail": "playground/images/megaman_sky.png"
+    },
+    {
+        "title": "Meshes sky",
+        "path": "/test/web/meshes_sky.js",
+        "thumbnail": "playground/images/meshes_sky.png"
     },
     {
         "title": "Glass bunny",

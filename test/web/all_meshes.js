@@ -1,17 +1,21 @@
 /* eslint-disable no-undef */
 async (canvas, logger) => {
     const meshes = [
-      { mesh: "/assets/spot.obj", texture: "/assets/spot.png" },
+        { mesh: "/assets/spot.obj", texture: "/assets/spot.png" },
         { mesh: "/assets/megaman.obj", texture: "/assets/megaman.png" },
         { mesh: "/assets/spyro.obj", texture: "/assets/spyro.png" },
         { mesh: "/assets/earth.obj", texture: "/assets/earth.jpg" },
         { mesh: "/assets/blub.obj", texture: "/assets/blub.png" },
         { mesh: "/assets/bob.obj", texture: "/assets/bob.png" },
+        { mesh: "/assets/dragon.obj", texture: "/assets/dragon.jpg" },
         { mesh: "/assets/ogre.obj", texture: "/assets/ogre.png" },
         { mesh: "/assets/oil.obj", texture: "/assets/oil.png" },
         { mesh: "/assets/riku.obj", texture: "/assets/riku.png" },
-        { mesh: "/assets/statue.obj", texture: "/assets/statue.jpg" },
         { mesh: "/assets/wipeout.obj", texture: "/assets/wipeout.png" },
+        { mesh: "/assets/statue.obj", texture: "/assets/statue.jpg" },
+        { mesh: "/assets/dog.obj", texture: "/assets/dog.jpg" },
+        { mesh: "/assets/burger.obj", texture: "/assets/burger.jpg" }, // slow
+        { mesh: "/assets/JesusMary.obj", texture: "/assets/JesusMary.jpg" }, // slow
     ];
 
     // DOM: mesh selector
@@ -90,13 +94,6 @@ async (canvas, logger) => {
 
         scene.clear();
         scene.addList(mesh.asTriangles());
-        scene.addList(
-            mesh
-                .mapVertices(v => v.scale(1.03))
-                .mapColors(() => Color.ofRGB(0, 0.5, 0.7))
-                .setName("lines")
-                .asLines()
-        );
     }
 
     await loadMesh(0);

@@ -1,4 +1,3 @@
-
 /* eslint-disable no-undef */
 async (canvas, logger) => {
     const meshes = [
@@ -10,10 +9,12 @@ async (canvas, logger) => {
         { mesh: "/assets/bob.obj", texture: "/assets/bob.png" },
         { mesh: "/assets/oil.obj", texture: "/assets/oil.png" },
         { mesh: "/assets/riku.obj", texture: "/assets/riku.png" },
+        { mesh: "/assets/wipeout.obj", texture: "/assets/wipeout.png" },
         { mesh: "/assets/bunny_orig.obj", texture: undefined },
         { mesh: "/assets/rocker_arm.obj", texture: undefined },
         { mesh: "/assets/teapot.obj", texture: undefined },
         { mesh: "/assets/torus.obj", texture: undefined },
+        { mesh: "/assets/moses_min.obj", texture: undefined },
         { mesh: "/assets/dragonHD.obj", texture: undefined },
     ];
 
@@ -34,13 +35,14 @@ async (canvas, logger) => {
     div.appendChild(label);
     document.body.appendChild(div);
 
-    const width = 640 / 2;
-    const height = 480 / 2;
+    // resize incoming canvas:Canvas object.
+    const width = 240;
+    const height = 160;
     canvas.resize(width, height);
     let exposedCanvas = canvas.exposure();
     // scene
     const scene = new KScene();
-    const camera = new Camera({ lookAt: Vec3(1.5, 1.5, 1.5) }).orbit(3, 0, 0);
+    const camera = new Camera({ lookAt: Vec3(1.5, 1.5, 1.0) }).orbit(3, 0, 0);
     // mouse handling
     let mousedown = false;
     let mouse = Vec2();
@@ -73,33 +75,8 @@ async (canvas, logger) => {
         camera.orbit(coords => coords.add(Vec3(deltaY * 0.001, 0, 0)));
         exposedCanvas = canvas.exposure();
     })
-
     // cornell box
-    const cornellBoxTriangles = [
-        Triangle
-            .builder()
-            .name("left-1")
-            .colors(Color.RED, Color.RED, Color.RED)
-            .positions(Vec3(3, 0, 3), Vec3(3, 0, 0), Vec3())
-            .build(),
-        Triangle
-            .builder()
-            .name("left-2")
-            .colors(Color.RED, Color.RED, Color.RED)
-            .positions(Vec3(), Vec3(0, 0, 3), Vec3(3, 0, 3))
-            .build(),
-        Triangle
-            .builder()
-            .name("right-1")
-            .colors(Color.GREEN, Color.GREEN, Color.GREEN)
-            .positions(Vec3(0, 3, 0), Vec3(3, 3, 0), Vec3(3, 3, 3))
-            .build(),
-        Triangle
-            .builder()
-            .name("right-2")
-            .colors(Color.GREEN, Color.GREEN, Color.GREEN)
-            .positions(Vec3(3, 3, 3), Vec3(0, 3, 3), Vec3(0, 3, 0))
-            .build(),
+    const floorTriangles = [
         Triangle
             .builder()
             .name("bottom-1")
@@ -112,46 +89,8 @@ async (canvas, logger) => {
             .colors(Color.WHITE, Color.WHITE, Color.WHITE)
             .positions(Vec3(3, 3, 0), Vec3(0, 3, 0), Vec3())
             .build(),
-        Triangle
-            .builder()
-            .name("top-1")
-            .colors(Color.WHITE, Color.WHITE, Color.WHITE)
-            .positions(Vec3(3, 3, 3), Vec3(3, 0, 3), Vec3(0, 0, 3))
-            .build(),
-        Triangle
-            .builder()
-            .name("top-2")
-            .colors(Color.WHITE, Color.WHITE, Color.WHITE)
-            .positions(Vec3(0, 0, 3), Vec3(0, 3, 3), Vec3(3, 3, 3))
-            .build(),
-        Triangle
-            .builder()
-            .name("back-1")
-            .colors(Color.WHITE, Color.WHITE, Color.WHITE)
-            .positions(Vec3(), Vec3(0, 3, 0), Vec3(0, 3, 3))
-            .build(),
-        Triangle
-            .builder()
-            .name("back-2")
-            .colors(Color.WHITE, Color.WHITE, Color.WHITE)
-            .positions(Vec3(0, 3, 3), Vec3(0, 0, 3), Vec3())
-            .build(),
-        Triangle
-            .builder()
-            .name("light-1")
-            .colors(Color.WHITE, Color.WHITE, Color.WHITE)
-            .positions(Vec3(1, 1, 2.9), Vec3(2, 1, 2.9), Vec3(2, 2, 2.9))
-            .emissive(true)
-            .build(),
-        Triangle
-            .builder()
-            .name("light-2")
-            .colors(Color.WHITE, Color.WHITE, Color.WHITE)
-            .positions(Vec3(2, 2, 2.9), Vec3(1, 2, 2.9), Vec3(1, 1, 2.9))
-            .emissive(true)
-            .build(),
     ];
-    scene.add(...cornellBoxTriangles);
+    scene.add(...floorTriangles);
 
     async function loadMesh(index) {
         const obj = await fetch(meshes[index].mesh).then(x => x.text());
@@ -161,33 +100,53 @@ async (canvas, logger) => {
         mesh = mesh
             .mapVertices(v => v.sub(meshBox.center).scale(maxDiagInv))
             .mapVertices(v => v.scale(1))
-            .mapVertices(v => Vec3(-v.z, -v.x, v.y))
+            .mapVertices(v => Vec3(-v.y, v.x, v.z))
+            .mapVertices(v => Vec3(v.z, v.y, -v.x))
+            .mapVertices(v => Vec3(-v.x, -v.y, v.z))
             .mapVertices(v => v.add(Vec3(1.5, 1.5, 1.0)))
             .mapColors(() => Color.WHITE)
-            .mapMaterials(() => Metallic(1.33333))
         if (meshes[index].texture) {
             mesh = mesh.addTexture(await Canvas.ofUrl(meshes[index].texture));
         }
         scene.clear();
-        scene.add(...cornellBoxTriangles);
+        scene.add(...floorTriangles);
         scene.addList(mesh.asTriangles());
     }
 
-    await loadMesh(0);
+    await loadMesh(1);
 
     select.addEventListener("change", async () => {
-        exposedCanvas = canvas.exposure();
         await loadMesh(Number(select.value));
     });
 
-    // boilerplate for fps
+    function renderSkyBox(ray) {
+        const dir = ray.dir;
+        const skyColorHorizon = Color.ofRGB(0.5, 0.7, 1.0); // Light blue near horizon
+        const skyColorZenith = Color.ofRGB(0.1, 0.2, 0.4);   // Darker blue overhead
+        const skyBlendFactor = Math.pow(Math.max(0, dir.z), 0.5);
+        const skyColor = skyColorHorizon.scale(1 - skyBlendFactor).add(skyColorZenith.scale(skyBlendFactor));
+        const sunDirection = Vec3(0.7, 0.3, 0.5).normalize();
+        const sunDot = dir.dot(sunDirection);
+        const sunSharpness = 200.0; // Controls how sharp the sun disk is
+        const sunGlow = Math.pow(Math.max(0, sunDot), sunSharpness);
+        const atmosphereGlow = Math.pow(Math.max(0, sunDot), 5.0); // Softer power for wider glow
+        const sunColor = Color.ofRGB(1.0, 0.8, 0.5); // Warm yellow/orange
+        const sunEffect = sunColor.scale(sunGlow * 2.0).add(sunColor.scale(atmosphereGlow * 0.5));
+        return skyColor.add(sunEffect);
+    }
+
     loop(async ({ dt }) => {
-        (await
-            camera.parallelShot(
+        const image = await camera
+            .parallelShot(
                 scene,
-                { isBiased: false, skyBoxPath: "/assets/sky.jpg" }
-            ).to(exposedCanvas)
-        ).paint();
-        logger.print(`PRay, FPS: ${(1 / dt).toFixed(2)}`);
+                {
+                    bounces: 10,
+                    gamma: 0.5,
+                    isBiased: false,
+                    renderSkyBox
+                })
+            .to(exposedCanvas);
+        image.paint();
+        logger.print(`FPS: ${(1 / dt).toFixed(2)}`);
     }).play();
 }
