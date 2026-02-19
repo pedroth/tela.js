@@ -9,8 +9,8 @@ async (canvas, logger) => {
     canvas.DOM.addEventListener("contextmenu", (e) => e.preventDefault());
 
     // resize incoming canvas:Canvas object.
-    const width = 640 / 3;
-    const height = 480 / 3;
+    const width = 640 / 4;
+    const height = 480 / 4;
     canvas.resize(width, height);
 
     // scene
@@ -48,13 +48,26 @@ async (canvas, logger) => {
             const ray = canvas2Ray(x, y);
             const normal = canvas2Ray(width / 2, height / 2).dir;
             const p = ray.trace(-normal.dot(ray.init) / normal.dot(ray.dir));
-            scene.add(
-                Sphere.builder()
-                    .radius(0.25)
-                    .position(p)
-                    .name(ballId++)
-                    .build()
-            );
+            const hit = scene.interceptWithRay(ray);
+            if (hit) {
+                const [_, pHit, eHit] = hit;
+                const v = eHit.position.sub(pHit).normalize();
+                scene.add(
+                    Sphere.builder()
+                        .radius(0.25)
+                        .position(pHit.add(v.scale(scene.gridSpace*0.5)))
+                        .name(ballId++)
+                        .build()
+                );
+            } else {
+                scene.add(
+                    Sphere.builder()
+                        .radius(0.25)
+                        .position(p)
+                        .name(ballId++)
+                        .build()
+                );
+            }
         }
 
         if (rightMouseDown) {
@@ -105,11 +118,35 @@ async (canvas, logger) => {
         return Color.BLACK;
     }
 
+    function renderParallel(ray, {scene}) {
+        const maxIte = 100;
+        const epsilon = 1e-6;
+        let p = ray.init;
+        let t = scene.distanceOnRay(ray, smin);
+        for (let i = 0; i < maxIte; i++) {
+            p = ray.trace(t);
+            const d = scene.distanceOnRay(Ray(p, ray.dir), smin);
+            t += d;
+            if (d < epsilon) {
+                const normal = scene.normalToPoint(p);
+                return Color.ofRGB(
+                    (normal.x + 1) / 2,
+                    (normal.y + 1) / 2,
+                    (normal.z + 1) / 2
+                );
+            }
+            if (d > 10) {
+                return Color.ofRGB(0, 0, 10 * (i / maxIte));
+            }
+        }
+        return Color.BLACK;
+    }
+
     // scene
-    loop(({ dt, time }) => {
+    loop(async ({ dt, time }) => {
+        // camera.rayMap(render).to(canvas).paint();
+        (await camera.rayMapParallel(renderParallel, [smin]).to(canvas, { scene })).paint();
         logger.print(`FPS: ${(1 / dt).toFixed(2)}`);
-        camera.rayMap(render).to(canvas).paint();
         // scene.debug({ camera, canvas });
-        if (time % 10 < 0.5) scene.rebuild();
     }).play();
 }

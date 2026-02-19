@@ -5,18 +5,17 @@ const height = 480;
 const window = new Window(width, height).onResizeWindow(() => window.paint());
 window.setWindowSize(width, height);
 
-const width_sim = 100;
-const height_sim = 100;
+const GRID_SIZE = 100;
 // utils
 const amp = 10;
 const spread = 200;
 const friction = 0.1;
 const waveScalarSpeed = 10;
 const mod = (n, m) => ((n % m) + m) % m;
-const wave = [...new Array(height_sim)].map((_, i) =>
-  new Float64Array(width_sim).map((_, j) => {
-    const x = (j - width_sim / 2) / width_sim;
-    const y = (i - height_sim / 2) / height_sim;
+const wave = [...new Array(GRID_SIZE)].map((_, i) =>
+  new Float64Array(GRID_SIZE).map((_, j) => {
+    const x = (j - GRID_SIZE / 2) / GRID_SIZE;
+    const y = (i - GRID_SIZE / 2) / GRID_SIZE;
     return (
       amp * Math.exp(-spread * ((x - 0.25) * (x - 0.25) + y * y)) +
       amp * Math.exp(-spread * ((x + 0.25) * (x + 0.25) + y * y)) +
@@ -24,8 +23,8 @@ const wave = [...new Array(height_sim)].map((_, i) =>
     );
   })
 );
-const waveSpeed = [...new Array(height_sim)].map(
-  () => new Float64Array(width_sim)
+const waveSpeed = [...new Array(GRID_SIZE)].map(
+  () => new Float64Array(GRID_SIZE)
 );
 
 let mousedown = false;
@@ -40,10 +39,10 @@ window.onMouseUp(() => {
 window.onMouseMove((x, y) => {
   if (!mousedown) return;
 
-  const xi = Math.floor((x / width) * width_sim);
-  const yi = Math.floor((y / height) * height_sim);
-  const i = mod(yi - height_sim + 1, height_sim);
-  const j = mod(xi, width_sim);
+  const xi = Math.floor((x / width) * GRID_SIZE);
+  const yi = Math.floor((y / height) * GRID_SIZE);
+  const i = mod(yi - GRID_SIZE + 1, GRID_SIZE);
+  const j = mod(xi, GRID_SIZE);
   let steps = [-1, 0, 1];
   // steps = [-2, -1, 0, 1, 2]; // Uncomment this line for bigger paint brush
   const n = steps.length;
@@ -51,7 +50,7 @@ window.onMouseMove((x, y) => {
   for (let k = 0; k < nn; k++) {
     const u = Math.floor(k / n);
     const v = k % n;
-    wave[mod(i + steps[u], height_sim)][mod(j + steps[v], width_sim)] = amp;
+    wave[mod(i + steps[u], GRID_SIZE)][mod(j + steps[v], GRID_SIZE)] = amp;
   }
 });
 
@@ -63,17 +62,17 @@ loop(({ dt }) => {
   let minWave = Number.MAX_VALUE;
   let maxAbsSpeed = Number.MIN_VALUE;
   // update wave
-  for (let i = 0; i < height_sim; i++) {
-    for (let j = 0; j < width_sim; j++) {
+  for (let i = 0; i < GRID_SIZE; i++) {
+    for (let j = 0; j < GRID_SIZE; j++) {
       /**
        * Sympletic integration
        */
       // compute acceleration
       const laplacian =
-        wave[i][mod(j + 1, width_sim)] +
-        wave[i][mod(j - 1, width_sim)] +
-        wave[mod(i + 1, height_sim)][j] +
-        wave[mod(i - 1, height_sim)][j] -
+        wave[i][mod(j + 1, GRID_SIZE)] +
+        wave[i][mod(j - 1, GRID_SIZE)] +
+        wave[mod(i + 1, GRID_SIZE)][j] +
+        wave[mod(i - 1, GRID_SIZE)][j] -
         4 * wave[i][j];
       const acceleration = waveScalarSpeed * laplacian - friction * waveSpeed[i][j];
 
@@ -92,10 +91,12 @@ loop(({ dt }) => {
   }
 
   window.map((x, y) => {
-    let xi = Math.floor(x / width * width_sim);
-    let yi = Math.floor(y / height * height_sim);
-    const redColor = (wave[yi][xi] - minWave) / (maxWave - minWave);
-    const blueColor = 1 - (wave[yi][xi] - minWave) / (maxWave - minWave);
+    let xi = Math.floor((x / width) * GRID_SIZE);
+    let yi = Math.floor((y / height) * GRID_SIZE);
+    const range = (maxWave - minWave);
+    const t = range === 0 ? 0 : (wave[yi][xi] - minWave) / range;
+    const redColor = t;
+    const blueColor = 1 - t;
     const greenColor = Math.abs(waveSpeed[yi][xi]) / maxAbsSpeed;
     return Color.ofRGB(redColor, greenColor, blueColor);
   }).paint()

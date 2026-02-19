@@ -48,13 +48,18 @@ export default class VoxelScene extends NaiveScene {
     }
 
     distanceToPoint(p) {
-        throw new Error("Not implemented");
+        const elements = this.getElementsNear(p);
+        let distance = Number.MAX_VALUE;
+        for (let i = 0; i < elements.length; i++) {
+            distance = Math.min(distance, elements[i].distanceToPoint(p));
+        }
+        return distance;
     }
 
     normalToPoint(p) {
         let weight = 0;
         let normal = Vec3();
-        const elements = Object.values(this.gridMap[hash(p, this.gridSpace)] || {});
+        const elements = this.getElementsNear(p);
         const size = elements.length;
         for (let i = 0; i < size; i++) {
             const n = elements[i].normalToPoint(p);
@@ -69,16 +74,17 @@ export default class VoxelScene extends NaiveScene {
         const maxDist = 10;
         const maxIte = maxDist / this.gridSpace;
         let t = 0;
-        let elements = [];
+        const elementsMap = {};
         for (let n = 0; n < maxIte; n++) {
             let p = ray.trace(t);
-            const newElements = Object.values(this.gridMap[hash(p, this.gridSpace)] || {});
-            if (newElements?.length) {
-                elements = elements.concat(newElements);
+            const nearby = this.getElementsNear(p);
+            for (let i = 0; i < nearby.length; i++) {
+                elementsMap[nearby[i].name] = nearby[i];
             }
             t += this.gridSpace;
         }
-        if (elements?.length) {
+        const elements = Object.values(elementsMap);
+        if (elements.length) {
             let closestDistance = Number.MAX_VALUE;
             let closest;
             for (let i = 0; i < elements.length; i++) {
@@ -93,31 +99,51 @@ export default class VoxelScene extends NaiveScene {
     }
 
     distanceOnRay(ray, combineLeafs = Math.min) {
-        const maxDist = 10;
-        const maxIte = maxDist / this.gridSpace;
-        let t = 0;
-        let elements = [];
-        for (let n = 0; n < maxIte; n++) {
-            let p = ray.trace(t);
-            const newElements = Object.values(this.gridMap[hash(p, this.gridSpace)] || {});
-            if (newElements?.length) {
-                elements = elements.concat(newElements);
-                break;
-            }
-            t += this.gridSpace;
-        }
-        if (elements?.length) {
+        // Check the cell at ray origin first (cheapest check)
+        const originCell = this.gridMap[hash(ray.init, this.gridSpace)];
+        if (originCell) {
+            const elements = this.getElementsNear(ray.init);
             let distance = Number.MAX_VALUE;
             for (let i = 0; i < elements.length; i++) {
                 distance = combineLeafs(distance, elements[i].distanceToPoint(ray.init));
             }
             return distance;
         }
+        // Walk the ray checking single cells, return distance to first occupied neighborhood
+        const maxDist = 10;
+        const maxIte = maxDist / this.gridSpace;
+        let t = this.gridSpace;
+        for (let n = 0; n < maxIte; n++) {
+            const p = ray.trace(t);
+            if (this.gridMap[hash(p, this.gridSpace)]) {
+                // Found occupied cell, return approximate distance
+                return t;
+            }
+            t += this.gridSpace;
+        }
         return Number.MAX_VALUE;
     }
 
     getElementsNear(p) {
-        throw Error("Not implemented");
+        const elements = {};
+        const ix = Math.floor(p.x / this.gridSpace);
+        const iy = Math.floor(p.y / this.gridSpace);
+        const iz = Math.floor(p.z / this.gridSpace);
+        const range = [-1, 0, 1];
+        const n = range.length;
+        const nn = n * n;
+        const nnn = n * n * n;
+        for (let k = 0; k < nnn; k++) {
+            const dx = range[Math.floor(k / (nn)) % n];
+            const dy = range[Math.floor(k / n) % n];
+            const dz = range[k % n];
+            const h = hashCoord(ix + dx, iy + dy, iz + dz);
+            const cell = this.gridMap[h];
+            if (cell) {
+                Object.assign(elements, cell);
+            }
+        }
+        return Object.values(elements);
     }
 
     getElementsInBox(box) {
@@ -172,8 +198,15 @@ export default class VoxelScene extends NaiveScene {
 }
 
 // Hash function from https://www.youtube.com/watch?v=D2M8jTtKi44
-function hash(p, gridSpace) {
-    const integerCoord = p.map(z => Math.floor(z / gridSpace));
-    const h = (integerCoord.x * 92837111) ^ (integerCoord.y * 689287499) ^ (integerCoord.z * 283923481);
+function hashCoord(ix, iy, iz) {
+    const h = (ix * 92837111) ^ (iy * 689287499) ^ (iz * 283923481);
     return Math.abs(h);
+}
+
+function hash(p, gridSpace) {
+    return hashCoord(
+        Math.floor(p.x / gridSpace),
+        Math.floor(p.y / gridSpace),
+        Math.floor(p.z / gridSpace)
+    );
 }

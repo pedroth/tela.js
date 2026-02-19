@@ -14,10 +14,10 @@ export default class NaiveScene {
 
   getHash() {
     const elements = this.getElements();
-    let combinedHash = 0;
+    let combinedHash = elements.length;
     const prime = 31;  // A prime number, typically used in hash functions
     for (let i = 0; i < elements.length; i++) {
-      const hash = hashStr(elements[i].name);
+      const hash = hashStr(String(elements[i].name));
       combinedHash = (combinedHash * prime) ^ hash;
     }
     return combinedHash >>> 0; // unsigned shift operator, converts combinedHash to unsigned number
