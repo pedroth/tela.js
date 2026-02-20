@@ -99,25 +99,30 @@ export default class VoxelScene extends NaiveScene {
     }
 
     distanceOnRay(ray, combineLeafs = Math.min) {
-        // Check the cell at ray origin first (cheapest check)
-        const originCell = this.gridMap[hash(ray.init, this.gridSpace)];
-        if (originCell) {
-            const elements = this.getElementsNear(ray.init);
+        // Check neighborhood around ray origin
+        const elements = this.getElementsNear(ray.init);
+        if (elements.length > 0) {
             let distance = Number.MAX_VALUE;
             for (let i = 0; i < elements.length; i++) {
                 distance = combineLeafs(distance, elements[i].distanceToPoint(ray.init));
             }
             return distance;
         }
-        // Walk the ray checking single cells, return distance to first occupied neighborhood
+        // No elements in neighborhood, walk the ray to find first occupied cell
+        // then compute actual SDF distance from ray.init to those elements
         const maxDist = 10;
         const maxIte = maxDist / this.gridSpace;
         let t = this.gridSpace;
         for (let n = 0; n < maxIte; n++) {
             const p = ray.trace(t);
             if (this.gridMap[hash(p, this.gridSpace)]) {
-                // Found occupied cell, return approximate distance
-                return t;
+                // Found occupied cell, compute actual SDF distance from ray origin
+                const nearElements = this.getElementsNear(p);
+                let distance = Number.MAX_VALUE;
+                for (let i = 0; i < nearElements.length; i++) {
+                    distance = combineLeafs(distance, nearElements[i].distanceToPoint(ray.init));
+                }
+                return distance;
             }
             t += this.gridSpace;
         }
