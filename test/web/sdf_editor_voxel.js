@@ -147,6 +147,7 @@ async (canvas, logger) => {
         // camera.rayMap(render).to(canvas).paint();
         (await camera.rayMapParallel(renderParallel, [smin]).to(canvas, { scene })).paint();
         logger.print(`FPS: ${(1 / dt).toFixed(2)}`);
-        // scene.debug({ camera, canvas });
+        // canvas.fill(Color.BLACK).paint();
+        // scene.debug({ camera, canvas }).paint();
     }).play();
 }
