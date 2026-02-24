@@ -225,6 +225,7 @@ export default class Tela {
             this.image[index + 1] = this.image[index + 1] + (color.green - this.image[index + 1]) / it;
             this.image[index + 2] = this.image[index + 2] + (color.blue - this.image[index + 2]) / it;
             this.image[index + 3] = this.image[index + 3] + (color.alpha - this.image[index + 3]) / it;
+            if (it < time) it++
             return this;
         }
 
