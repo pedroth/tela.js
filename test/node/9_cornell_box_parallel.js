@@ -49,18 +49,38 @@ window.onMouseWheel(({ deltaY }) => {
     exposedWindow = window.exposure();
 });
 
-const meshObj = readFileSync("./assets/spot.obj", { encoding: "utf-8" });
+const meshes = [
+    { mesh: "./assets/spot.obj", texture: "./assets/spot.png" },
+    { mesh: "./assets/megaman.obj", texture: "./assets/megaman.png" },
+    { mesh: "./assets/spyro.obj", texture: "./assets/spyro.png" },
+    { mesh: "./assets/earth.obj", texture: "./assets/earth.jpg" },
+    { mesh: "./assets/blub.obj", texture: "./assets/blub.png" },
+    { mesh: "./assets/bob.obj", texture: "./assets/bob.png" },
+    { mesh: "./assets/oil.obj", texture: "./assets/oil.png" },
+    { mesh: "./assets/riku.obj", texture: "./assets/riku.png" },
+    { mesh: "./assets/wipeout.obj", texture: "./assets/wipeout.png" },
+    { mesh: "./assets/bunny_orig.obj", texture: undefined },
+    { mesh: "./assets/rocker_arm.obj", texture: undefined },
+    { mesh: "./assets/teapot.obj", texture: undefined },
+    { mesh: "./assets/torus.obj", texture: undefined },
+    { mesh: "./assets/moses_min.obj", texture: undefined },
+    { mesh: "./assets/dragonHD.obj", texture: undefined },
+];
+const meshIndex = 0;
+const meshObj = readFileSync(meshes[meshIndex].mesh, { encoding: "utf-8" });
 let mesh = Mesh.readObj(meshObj, "mesh");
 const meshBox = mesh.getBoundingBox();
 const maxDiagInv = 2 / meshBox.diagonal.fold((e, x) => Math.max(e, x), Number.MIN_VALUE);
 mesh = mesh
-  .mapVertices(v => v.sub(meshBox.center).scale(maxDiagInv))
-  .mapVertices(v => v.scale(1))
-  .mapVertices(v => Vec3(-v.z, -v.x, v.y))
-  .mapVertices(v => v.add(Vec3(1.5, 1.5, 1.0)))
-  .mapColors(() => Color.WHITE)
-  .addTexture(await Image.ofUrl("./assets/spot.png"))
-  .mapMaterials(() => Metallic(1.33333))
+    .mapVertices(v => v.sub(meshBox.center).scale(maxDiagInv))
+    .mapVertices(v => v.scale(1))
+    .mapVertices(v => Vec3(-v.z, -v.x, v.y))
+    .mapVertices(v => v.add(Vec3(1.5, 1.5, 1.0)))
+    .mapColors(() => Color.WHITE)
+    // .mapMaterials(() => Metallic(1.33333));
+if (meshes[meshIndex].texture) {
+    mesh = mesh.addTexture(await Image.ofUrl(meshes[meshIndex].texture));
+}
 scene.addList(mesh.asTriangles());
 
 // cornell box
@@ -133,15 +153,16 @@ scene.rebuild();
 
 // play
 loop(async ({ dt }) => {
-  const image = await camera
-    .parallelShot(scene, {
-      bounces: 10,
-      samplesPerPxl: 1,
-      gamma: 0.5,
-      isBiased: false,
-      skyBoxPath: "./assets/sky.jpg",
-    })
-    .to(exposedWindow);
-  image.paint();
-  window.setTitle(`FPS: ${(1 / dt).toFixed(2)}`);
+    const image = await camera
+        .parallelShot(scene, {
+            bounces: 10,
+            samplesPerPxl: 1,
+            bilinearTexture: true,
+            gamma: 0.5,
+            isBiased: false,
+            skyBoxPath: "./assets/sky.jpg",
+        })
+        .to(exposedWindow);
+    image.paint();
+    window.setTitle(`FPS: ${(1 / dt).toFixed(2)}`);
 }).play();
