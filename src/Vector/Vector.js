@@ -183,7 +183,7 @@ export class VectorException extends Error { }
 export function Vec3(x = 0, y = 0, z = 0) { return new Vector3(x, y, z); }
 export function Vec2(x = 0, y = 0) { return new Vector2(x, y); }
 
-class Vector3 {
+export class Vector3 {
   constructor(x = 0, y = 0, z = 0) {
     this.x = x;
     this.y = y;
@@ -334,7 +334,7 @@ class Vector3 {
   static ONES = new Vector3(1, 1, 1);
 }
 
-class Vector2 {
+export class Vector2 {
   constructor(x = 0, y = 0) {
     this.x = x;
     this.y = y;

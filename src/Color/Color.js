@@ -121,6 +121,10 @@ export default class Color {
     return Color.ofRGB(r(), r(), r());
   }
 
+  static lerp(c1, c2, t) {
+    return c1.scale(1 - t).add(c2.scale(t));
+  }
+
   static BLACK = Color.ofRGB(0, 0, 0);
   static BLUE = Color.ofRGB(0, 0, 1);
   static GREEN = Color.ofRGB(0, 1, 0);

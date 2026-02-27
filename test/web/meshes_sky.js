@@ -135,6 +135,7 @@ async (canvas, logger) => {
         return skyColor.add(sunEffect);
     }
 
+    const lightDir = Vec3(0.7, 0.3, 0.5).normalize();
     loop(async ({ dt }) => {
         const image = await camera
             .parallelShot(
@@ -143,7 +144,9 @@ async (canvas, logger) => {
                     bounces: 10,
                     gamma: 0.5,
                     isBiased: false,
-                    renderSkyBox
+                    renderSkyBox,
+                    lightDir,
+                    lightSharpness: 200,
                 })
             .to(exposedCanvas);
         image.paint();

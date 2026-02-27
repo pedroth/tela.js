@@ -1,4 +1,4 @@
-import Vec, { Vec2, Vec3 } from "../Vector/Vector.js"
+import Vec, { Vec2, Vec3, Vector3 } from "../Vector/Vector.js"
 import Ray from "../Ray/Ray.js";
 import { rayTrace } from "./rayTrace.js";
 import { rasterGraphics } from "./raster.js";
@@ -145,6 +145,9 @@ export default class Camera {
     let serializeParams = { ...params }
     if (params?.renderSkyBox && typeof params.renderSkyBox === 'function') {
       serializeParams.renderSkyBox = params.renderSkyBox.toString();
+    }
+    if(params?.lightDir instanceof Vector3) {
+      serializeParams.lightDir = params.lightDir.toArray();
     }
     return {
       to: canvas => {

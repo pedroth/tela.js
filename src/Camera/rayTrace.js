@@ -1,5 +1,6 @@
 import Color from "../Color/Color.js";
 import Triangle from "../Geometry/Triangle.js";
+import { Vec3 } from "../Vector/Vector.js";
 import Ray from "../Ray/Ray.js";
 import { randomPointInSphere } from "../Utils/Math.js";
 import { getBiLinearTexColor, getDefaultTexColor, getTexColor } from "./common.js";
@@ -19,7 +20,18 @@ export function renderBackground(ray, backgroundImage) {
 
 
 export function rayTrace(ray, scene, params = {}) {
-    let { samplesPerPxl, bounces, variance, gamma, bilinearTexture, isBiased, renderSkyBox, useCache, useMetro } = params;
+    let {
+        samplesPerPxl,
+        bounces,
+        variance,
+        gamma,
+        bilinearTexture,
+        isBiased,
+        renderSkyBox,
+        lightDir,
+        useCache,
+        useMetro
+    } = params;
     bounces = bounces ?? 10;
     variance = variance ?? 0.001;
     samplesPerPxl = samplesPerPxl ?? 1;
@@ -29,6 +41,12 @@ export function rayTrace(ray, scene, params = {}) {
     renderSkyBox = renderSkyBox ?? (() => Color.BLACK);
     useCache = useCache ?? false;
     useMetro = useMetro ?? false;
+    // if lightDir is array, convert to Vec3
+    if (lightDir && Array.isArray(lightDir)) {
+        lightDir = Vec3(...lightDir);
+    }
+    lightDir = lightDir ?? undefined;
+
     const invSamples = (isBiased ? bounces : 1) / samplesPerPxl
     let c = Color.BLACK;
     for (let i = 0; i < samplesPerPxl; i++) {
@@ -37,18 +55,37 @@ export function rayTrace(ray, scene, params = {}) {
         const r = Ray(ray.init, ray.dir.add(epsilonOrtho).normalize());
         c = c.add(
             useMetro ?
-                traceMetro(r, scene, { bounces, bilinearTexture, renderSkyBox, useCache }) :
-                trace(r, scene, { bounces, bilinearTexture, renderSkyBox, useCache })
+                traceMetro(r, scene, { bounces, bilinearTexture, renderSkyBox, lightDir, useCache }) :
+                trace(r, scene, { bounces, bilinearTexture, renderSkyBox, lightDir, useCache })
         );
     }
     return c.scale(invSamples).toGamma(gamma);
 }
 
+function renderMissScene(ray, { renderSkyBox, lightDir, scene, power: lightSharpness = 200 }) {
+    const skyColor = renderSkyBox ? renderSkyBox(ray) : Color.BLACK;
+    if (!lightDir) return skyColor;
+
+    const hit = scene.interceptWithRay(Ray(ray.init, lightDir));
+    if (hit) return Color.lerp(skyColor, Color.BLACK, 0.5); // in shadow
+
+    // 1. Clamp to 0 so we don't get artifacts behind the camera
+    const dot = Math.max(0, lightDir.dot(ray.dir));
+
+    // 2. Use a high exponent for the sharp sun disk
+    // At dot = 0, sunIntensity is 0. No "if" needed.
+    const sunIntensity = Math.pow(dot, lightSharpness);
+
+    // 3. Smooth Interpolation (Lerp)
+    // Instead of adding and scaling by 0.5, we transition between the two.
+    return Color.lerp(skyColor, Color.WHITE, sunIntensity);
+}
+
 export function trace(ray, scene, options) {
-    const { bounces, bilinearTexture, renderSkyBox, useCache } = options;
-    if (bounces < 0) return renderSkyBox(ray);
+    const { bounces, bilinearTexture, renderSkyBox, lightDir, useCache } = options;
+    if (bounces < 0) return renderMissScene(ray, { renderSkyBox, lightDir, scene });
     const hit = scene.interceptWithRay(ray);
-    if (!hit) return renderSkyBox(ray);
+    if (!hit) return renderMissScene(ray, { renderSkyBox, lightDir, scene });
     const [, p, e] = hit;
     if (useCache) {
         const cachedColor = cache.get(p);
@@ -65,7 +102,7 @@ export function trace(ray, scene, options) {
     let scatterColor = trace(
         scatterRay,
         scene,
-        { bounces: bounces - 1, bilinearTexture, renderSkyBox }
+        { bounces: bounces - 1, bilinearTexture, renderSkyBox, lightDir, useCache }
     );
     const attenuation = Math.abs(e.normalToPoint(p).dot(scatterRay.dir));
     const finalColor = albedo.mul(scatterColor).scale(attenuation)
@@ -74,10 +111,10 @@ export function trace(ray, scene, options) {
 }
 
 export function traceMetro(ray, scene, options) {
-    const { bounces, bilinearTexture, renderSkyBox, useCache } = options;
-    if (bounces < 0) return renderSkyBox(ray);
+    const { bounces, bilinearTexture, renderSkyBox, lightDir, useCache } = options;
+    if (bounces < 0) return renderMissScene(ray, { renderSkyBox, lightDir, scene });
     const hit = scene.interceptWithRay(ray);
-    if (!hit) return renderSkyBox(ray);
+    if (!hit) return renderMissScene(ray, { renderSkyBox, lightDir, scene });
     const [, p, e] = hit;
     if (useCache) {
         const cachedColor = cache.get(p);
@@ -97,12 +134,12 @@ export function traceMetro(ray, scene, options) {
     let scatterColor = trace(
         scatterRay,
         scene,
-        { bounces: bounces - 1, bilinearTexture, renderSkyBox }
+        { bounces: bounces - 1, bilinearTexture, renderSkyBox, lightDir, useCache }
     );
     let scatterColorStar = trace(
         scatterRayStar,
         scene,
-        { bounces: bounces - 1, bilinearTexture, renderSkyBox }
+        { bounces: bounces - 1, bilinearTexture, renderSkyBox, lightDir, useCache }
     );
     const probM = scatterColorStar.toGray().red / scatterColor.toGray().red;
     if (Math.random() < probM) {
