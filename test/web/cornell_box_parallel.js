@@ -1,8 +1,8 @@
 /* eslint-disable no-undef */
 async (canvas, logger) => {
     // resize incoming canvas:Canvas object.
-    const width = 640 / 2;
-    const height = 480 / 2;
+    const width = 640/2;
+    const height = 480/2;
     canvas.resize(width, height);
     let exposedCanvas = canvas.exposure();
     // scene
@@ -141,7 +141,7 @@ async (canvas, logger) => {
             .radius(0.5)
             .name("glass-sphere")
             .color(Color.ofRGB(1, 1, 1))
-            .material(DiElectric(1.3))
+            .material(DiElectric(3))
             .position(Vec3(1.0, 1.5, 1.0))
             .build(),
         Triangle
@@ -170,7 +170,7 @@ async (canvas, logger) => {
 
     // boilerplate for fps
     loop(async ({ dt }) => {
-        (await camera.parallelShot(scene).to(exposedCanvas)).paint();
+        (await camera.parallelShot(scene, {bounces: 20, useMetro: true}).to(exposedCanvas)).paint();
         logger.print(`FPS: ${(1 / dt).toFixed(2)}`);
     }).play();
 }

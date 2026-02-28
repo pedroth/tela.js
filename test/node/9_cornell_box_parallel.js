@@ -1,3 +1,4 @@
+import exp from "constants";
 import { Camera, Mesh, Vec3, Vec2, Color, DiElectric, Triangle, KScene, Image, loop, Metallic, Window } from "../../src/index.node.js";
 import { readFileSync } from "fs";
 
@@ -14,6 +15,8 @@ const camera = new Camera({ lookAt: Vec3(1.5, 1.5, 1.5) }).orbit(5, 0, 0);
 // mouse handling
 let mousedown = false;
 let mouse = Vec2();
+let nextMeshIndex = 0;
+let currentMeshIndex = -1;
 
 window.onMouseDown((x, y) => {
     mousedown = true;
@@ -49,6 +52,16 @@ window.onMouseWheel(({ deltaY }) => {
     exposedWindow = window.exposure();
 });
 
+window.onKeyDown((e) => {
+    const { key } = e;
+    if (key === "right") {
+        nextMeshIndex = (currentMeshIndex + 1) % meshes.length;
+    }
+    if (key === "left") {
+        nextMeshIndex = (currentMeshIndex - 1 + meshes.length) % meshes.length;
+    }
+});
+
 const meshes = [
     { mesh: "./assets/spot.obj", texture: "./assets/spot.png" },
     { mesh: "./assets/megaman.obj", texture: "./assets/megaman.png" },
@@ -66,93 +79,103 @@ const meshes = [
     { mesh: "./assets/moses_min.obj", texture: undefined },
     { mesh: "./assets/dragonHD.obj", texture: undefined },
 ];
-const meshIndex = 0;
-const meshObj = readFileSync(meshes[meshIndex].mesh, { encoding: "utf-8" });
-let mesh = Mesh.readObj(meshObj, "mesh");
-const meshBox = mesh.getBoundingBox();
-const maxDiagInv = 2 / meshBox.diagonal.fold((e, x) => Math.max(e, x), Number.MIN_VALUE);
-mesh = mesh
-    .mapVertices(v => v.sub(meshBox.center).scale(maxDiagInv))
-    .mapVertices(v => v.scale(1))
-    .mapVertices(v => Vec3(-v.z, -v.x, v.y))
-    .mapVertices(v => v.add(Vec3(1.5, 1.5, 1.0)))
-    .mapColors(() => Color.WHITE)
+
+async function loadMesh(index) {
+    scene.clear();
+    const meshIndex = index;
+    const meshObj = readFileSync(meshes[meshIndex].mesh, { encoding: "utf-8" });
+    let mesh = Mesh.readObj(meshObj, "mesh");
+    const meshBox = mesh.getBoundingBox();
+    const maxDiagInv = 2 / meshBox.diagonal.fold((e, x) => Math.max(e, x), Number.MIN_VALUE);
+    mesh = mesh
+        .mapVertices(v => v.sub(meshBox.center).scale(maxDiagInv))
+        .mapVertices(v => v.scale(1))
+        .mapVertices(v => Vec3(-v.z, -v.x, v.y))
+        .mapVertices(v => v.add(Vec3(1.5, 1.5, 1.0)))
+        .mapColors(() => Color.WHITE)
     // .mapMaterials(() => Metallic(1.33333));
-if (meshes[meshIndex].texture) {
-    mesh = mesh.addTexture(await Image.ofUrl(meshes[meshIndex].texture));
+    if (meshes[meshIndex].texture) {
+        mesh = mesh.addTexture(await Image.ofUrl(meshes[meshIndex].texture));
+    }
+    scene.addList(mesh.asTriangles());
+
+    // cornell box
+    scene.add(
+        Triangle.builder()
+            .name("left-1")
+            .colors(Color.RED, Color.RED, Color.RED)
+            .positions(Vec3(3, 0, 3), Vec3(3, 0, 0), Vec3())
+            .build(),
+        Triangle.builder()
+            .name("left-2")
+            .colors(Color.RED, Color.RED, Color.RED)
+            .positions(Vec3(), Vec3(0, 0, 3), Vec3(3, 0, 3))
+            .build(),
+        Triangle.builder()
+            .name("right-1")
+            .colors(Color.GREEN, Color.GREEN, Color.GREEN)
+            .positions(Vec3(0, 3, 0), Vec3(3, 3, 0), Vec3(3, 3, 3))
+            .build(),
+        Triangle.builder()
+            .name("right-2")
+            .colors(Color.GREEN, Color.GREEN, Color.GREEN)
+            .positions(Vec3(3, 3, 3), Vec3(0, 3, 3), Vec3(0, 3, 0))
+            .build(),
+        Triangle.builder()
+            .name("bottom-1")
+            .colors(Color.WHITE, Color.WHITE, Color.WHITE)
+            .positions(Vec3(), Vec3(3, 0, 0), Vec3(3, 3, 0))
+            .build(),
+        Triangle.builder()
+            .name("bottom-2")
+            .colors(Color.WHITE, Color.WHITE, Color.WHITE)
+            .positions(Vec3(3, 3, 0), Vec3(0, 3, 0), Vec3())
+            .build(),
+        Triangle.builder()
+            .name("top-1")
+            .colors(Color.WHITE, Color.WHITE, Color.WHITE)
+            .positions(Vec3(3, 3, 3), Vec3(3, 0, 3), Vec3(0, 0, 3))
+            .build(),
+        Triangle.builder()
+            .name("top-2")
+            .colors(Color.WHITE, Color.WHITE, Color.WHITE)
+            .positions(Vec3(0, 0, 3), Vec3(0, 3, 3), Vec3(3, 3, 3))
+            .build(),
+        Triangle.builder()
+            .name("back-1")
+            .colors(Color.WHITE, Color.WHITE, Color.WHITE)
+            .positions(Vec3(), Vec3(0, 3, 0), Vec3(0, 3, 3))
+            .build(),
+        Triangle.builder()
+            .name("back-2")
+            .colors(Color.WHITE, Color.WHITE, Color.WHITE)
+            .positions(Vec3(0, 3, 3), Vec3(0, 0, 3), Vec3())
+            .build(),
+        Triangle.builder()
+            .name("light-1")
+            .colors(Color.WHITE, Color.WHITE, Color.WHITE)
+            .positions(Vec3(1, 1, 2.9), Vec3(2, 1, 2.9), Vec3(2, 2, 2.9))
+            .emissive(true)
+            .build(),
+        Triangle.builder()
+            .name("light-2")
+            .colors(Color.WHITE, Color.WHITE, Color.WHITE)
+            .positions(Vec3(2, 2, 2.9), Vec3(1, 2, 2.9), Vec3(1, 1, 2.9))
+            .emissive(true)
+            .build()
+    );
+
+    scene.rebuild();
+    currentMeshIndex = meshIndex;
+    exposedWindow = window.exposure();
 }
-scene.addList(mesh.asTriangles());
 
-// cornell box
-scene.add(
-    Triangle.builder()
-        .name("left-1")
-        .colors(Color.RED, Color.RED, Color.RED)
-        .positions(Vec3(3, 0, 3), Vec3(3, 0, 0), Vec3())
-        .build(),
-    Triangle.builder()
-        .name("left-2")
-        .colors(Color.RED, Color.RED, Color.RED)
-        .positions(Vec3(), Vec3(0, 0, 3), Vec3(3, 0, 3))
-        .build(),
-    Triangle.builder()
-        .name("right-1")
-        .colors(Color.GREEN, Color.GREEN, Color.GREEN)
-        .positions(Vec3(0, 3, 0), Vec3(3, 3, 0), Vec3(3, 3, 3))
-        .build(),
-    Triangle.builder()
-        .name("right-2")
-        .colors(Color.GREEN, Color.GREEN, Color.GREEN)
-        .positions(Vec3(3, 3, 3), Vec3(0, 3, 3), Vec3(0, 3, 0))
-        .build(),
-    Triangle.builder()
-        .name("bottom-1")
-        .colors(Color.WHITE, Color.WHITE, Color.WHITE)
-        .positions(Vec3(), Vec3(3, 0, 0), Vec3(3, 3, 0))
-        .build(),
-    Triangle.builder()
-        .name("bottom-2")
-        .colors(Color.WHITE, Color.WHITE, Color.WHITE)
-        .positions(Vec3(3, 3, 0), Vec3(0, 3, 0), Vec3())
-        .build(),
-    Triangle.builder()
-        .name("top-1")
-        .colors(Color.WHITE, Color.WHITE, Color.WHITE)
-        .positions(Vec3(3, 3, 3), Vec3(3, 0, 3), Vec3(0, 0, 3))
-        .build(),
-    Triangle.builder()
-        .name("top-2")
-        .colors(Color.WHITE, Color.WHITE, Color.WHITE)
-        .positions(Vec3(0, 0, 3), Vec3(0, 3, 3), Vec3(3, 3, 3))
-        .build(),
-    Triangle.builder()
-        .name("back-1")
-        .colors(Color.WHITE, Color.WHITE, Color.WHITE)
-        .positions(Vec3(), Vec3(0, 3, 0), Vec3(0, 3, 3))
-        .build(),
-    Triangle.builder()
-        .name("back-2")
-        .colors(Color.WHITE, Color.WHITE, Color.WHITE)
-        .positions(Vec3(0, 3, 3), Vec3(0, 0, 3), Vec3())
-        .build(),
-    Triangle.builder()
-        .name("light-1")
-        .colors(Color.WHITE, Color.WHITE, Color.WHITE)
-        .positions(Vec3(1, 1, 2.9), Vec3(2, 1, 2.9), Vec3(2, 2, 2.9))
-        .emissive(true)
-        .build(),
-    Triangle.builder()
-        .name("light-2")
-        .colors(Color.WHITE, Color.WHITE, Color.WHITE)
-        .positions(Vec3(2, 2, 2.9), Vec3(1, 2, 2.9), Vec3(1, 1, 2.9))
-        .emissive(true)
-        .build()
-);
-
-scene.rebuild();
-
+loadMesh(nextMeshIndex);
 // play
 loop(async ({ dt }) => {
+    if(currentMeshIndex !== nextMeshIndex) {
+        await loadMesh(nextMeshIndex);
+    }
     const image = await camera
         .parallelShot(scene, {
             bounces: 10,
@@ -164,5 +187,5 @@ loop(async ({ dt }) => {
         })
         .to(exposedWindow);
     image.paint();
-    window.setTitle(`FPS: ${(1 / dt).toFixed(2)}`);
+    window.setTitle(`Select Mesh with right/left arrows | FPS: ${(1 / dt).toFixed(2)}`);
 }).play();

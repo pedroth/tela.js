@@ -110,6 +110,41 @@ export function trace(ray, scene, options) {
     return finalColor;
 }
 
+export function traceFor(ray, scene, options) {
+    const { bounces, bilinearTexture, renderSkyBox, lightDir, useCache } = options;
+    let albedoAcc = Color.WHITE;
+    let currentRay = ray;
+    let firstHit = undefined;
+    for (let i = 0; i < bounces; i++) {
+        const hit = scene.interceptWithRay(currentRay);
+        if (!hit) return renderMissScene(currentRay, { renderSkyBox, lightDir, scene });
+        
+        const [, p, e] = hit;
+        if (i === 0) {
+            firstHit = p;
+        }
+        if (useCache) {
+            const cachedColor = cache.get(p);
+            if (cachedColor) { return cachedColor; }
+        }
+        
+        const albedo = getColorFromElement(e, currentRay, { bilinearTexture });
+        if (e.emissive) {
+            const attenuation = e.normalToPoint(p).dot(currentRay.dir);
+            const finalColor = albedoAcc.mul(albedo).scale(2 * attenuation);
+            if (useCache) { cache.set(firstHit, finalColor); }
+            return finalColor;
+        }
+        const mat = e.material;
+        let scatterRay = mat.scatter(currentRay, p, e);
+        const attenuation = Math.abs(e.normalToPoint(p).dot(scatterRay.dir));
+        albedoAcc = albedoAcc.mul(albedo).scale(2 * attenuation);
+        currentRay = scatterRay;
+    }
+    return renderMissScene(currentRay, { renderSkyBox, lightDir, scene });
+
+}
+
 export function traceMetro(ray, scene, options) {
     const { bounces, bilinearTexture, renderSkyBox, lightDir, useCache } = options;
     if (bounces < 0) return renderMissScene(ray, { renderSkyBox, lightDir, scene });

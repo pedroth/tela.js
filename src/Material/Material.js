@@ -65,10 +65,13 @@ export function DiElectric(indexOfRefraction = 1.0) {
             if (inRay.dir.y !== 0) t = p.y / inRay.dir.y;
             if (inRay.dir.z !== 0) t = p.z / inRay.dir.z;
 
-            const isInside = element.isInside(point);
-            const refractionRatio = isInside ? indexOfRefraction : 1 / indexOfRefraction;
             const vIn = inRay.dir;
-            const n = element.normalToPoint(point).scale(-1);
+            const outwardNormal = element.normalToPoint(point);
+            // outside: outward normal opposes vIn; inside: outward normal aligns with vIn
+            const isOutside = vIn.dot(outwardNormal) < 0;
+            const refractionRatio = isOutside ? 1 / indexOfRefraction : indexOfRefraction;
+            // n must align with vIn (forward direction) for the projection formula below
+            const n = isOutside ? outwardNormal.scale(-1) : outwardNormal;
             const cosThetaIn = Math.min(1, vIn.dot(n));
             const sinThetaIn = Math.sqrt(1 - cosThetaIn * cosThetaIn);
             const sinThetaOut = refractionRatio * sinThetaIn;

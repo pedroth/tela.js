@@ -141,7 +141,7 @@ async (canvas, logger) => {
             .radius(0.5)
             .name("glass-sphere")
             .color(Color.ofRGB(1, 1, 1))
-            .material(DiElectric(1.3))
+            .material(DiElectric(3))
             .position(Vec3(1.0, 1.5, 1.0))
             .build(),
         Triangle
@@ -155,7 +155,7 @@ async (canvas, logger) => {
             .builder()
             .name("alpha-tri-2")
             .colors(Color.ofRGB(1, 1, 1), Color.ofRGB(1, 1, 1), Color.ofRGB(1, 1, 1))
-            .material(DiElectric(2))
+            .material(DiElectric(3))
             .positions(Vec3(3, 1, 1), Vec3(3, 2, 1), Vec3(3, 1.5, 2))
             .build(),
         Sphere
@@ -170,7 +170,7 @@ async (canvas, logger) => {
 
     // boilerplate for fps
     loop(({ dt }) => {
-        camera.sceneShot(scene).to(exposedCanvas).paint();
+        camera.sceneShot(scene, {bounces: 10, samplesPerPxl: 1}).to(exposedCanvas).paint();
         logger.print(`FPS: ${(1 / dt).toFixed(2)}`);
     }).play();
 }

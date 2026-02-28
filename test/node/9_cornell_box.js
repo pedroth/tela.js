@@ -28,6 +28,8 @@ const camera = new Camera({ lookAt: Vec3(1.5, 1.5, 1.5) }).orbit(5, 0, 0);
 // mouse handling
 let mousedown = false;
 let mouse = Vec2();
+let nextMeshIndex = 0;
+let currentMeshIndex = -1;
 
 window.onMouseDown((x, y) => {
   mousedown = true;
@@ -63,6 +65,16 @@ window.onMouseWheel(({ deltaY }) => {
   exposedWindow = window.exposure();
 });
 
+window.onKeyDown((e) => {
+  const { key } = e;
+  if (key === "right") {
+    nextMeshIndex = (currentMeshIndex + 1) % meshes.length;
+  }
+  if (key === "left") {
+    nextMeshIndex = (currentMeshIndex - 1 + meshes.length) % meshes.length;
+  }
+});
+
 const meshes = [
   { mesh: "./assets/spot.obj", texture: "./assets/spot.png" },
   { mesh: "./assets/megaman.obj", texture: "./assets/megaman.png" },
@@ -80,25 +92,28 @@ const meshes = [
   { mesh: "./assets/moses_min.obj", texture: undefined },
   { mesh: "./assets/dragonHD.obj", texture: undefined },
 ];
-const meshIndex = 0;
-const meshObj = readFileSync(meshes[meshIndex].mesh, { encoding: "utf-8" });
-let mesh = Mesh.readObj(meshObj, "mesh");
-const meshBox = mesh.getBoundingBox();
-const maxDiagInv = 2 / meshBox.diagonal.fold((e, x) => Math.max(e, x), Number.MIN_VALUE);
-mesh = mesh
-  .mapVertices(v => v.sub(meshBox.center).scale(maxDiagInv))
-  .mapVertices(v => v.scale(1))
-  .mapVertices(v => Vec3(-v.z, -v.x, v.y))
-  .mapVertices(v => v.add(Vec3(1.5, 1.5, 1.0)))
-  .mapColors(() => Color.WHITE)
-  .mapMaterials(() => Metallic(1.33333));
-if (meshes[meshIndex].texture) {
-  mesh = mesh.addTexture(await Image.ofUrl(meshes[meshIndex].texture));
-}
-scene.addList(mesh.asTriangles());
 
-// cornell box
-scene.add(
+async function loadMesh(index) {
+  scene.clear();
+  const meshIndex = index;
+  const meshObj = readFileSync(meshes[meshIndex].mesh, { encoding: "utf-8" });
+  let mesh = Mesh.readObj(meshObj, "mesh");
+  const meshBox = mesh.getBoundingBox();
+  const maxDiagInv = 2 / meshBox.diagonal.fold((e, x) => Math.max(e, x), Number.MIN_VALUE);
+  mesh = mesh
+    .mapVertices(v => v.sub(meshBox.center).scale(maxDiagInv))
+    .mapVertices(v => v.scale(1))
+    .mapVertices(v => Vec3(-v.z, -v.x, v.y))
+    .mapVertices(v => v.add(Vec3(1.5, 1.5, 1.0)))
+    .mapColors(() => Color.WHITE)
+    .mapMaterials(() => Metallic(1.33333));
+  if (meshes[meshIndex].texture) {
+    mesh = mesh.addTexture(await Image.ofUrl(meshes[meshIndex].texture));
+  }
+  scene.addList(mesh.asTriangles());
+
+  // cornell box
+  scene.add(
   Triangle.builder()
     .name("left-1")
     .colors(Color.RED, Color.RED, Color.RED)
@@ -163,7 +178,12 @@ scene.add(
     .build()
 );
 
-scene.rebuild();
+  scene.rebuild();
+  currentMeshIndex = meshIndex;
+  exposedWindow = window.exposure();
+}
+
+await loadMesh(nextMeshIndex);
 
 const background = Image.ofUrl("./assets/sky.jpg");
 function renderSkyBox(ray) {
@@ -172,9 +192,12 @@ function renderSkyBox(ray) {
 
 // play
 loop(async ({ dt }) => {
+  if (currentMeshIndex !== nextMeshIndex) {
+    await loadMesh(nextMeshIndex);
+  }
   camera
     .sceneShot(scene, { bounces: 10, samplesPerPxl: 1, gamma: 0.5, isBiased: false, renderSkyBox})
     .to(exposedWindow)
     .paint();
-  window.setTitle(`FPS: ${(1 / dt).toFixed(2)}`);
+  window.setTitle(`Select Mesh with right/left arrows | FPS: ${(1 / dt).toFixed(2)}`);
 }).play();
