@@ -53,7 +53,7 @@ export function rasterGraphics(scene, camera, params = {}) {
 }
 
 
-function rasterSphere({ canvas, camera, elem, zBuffer }) {
+function rasterSphere({ canvas, camera, elem, zBuffer, params }) {
     const w = canvas.width;
     const h = canvas.height;
     const point = elem;
@@ -63,7 +63,7 @@ function rasterSphere({ canvas, camera, elem, zBuffer }) {
     let pointInCamCoord = camera.toCameraCoord(position)
     //frustum culling
     const z = pointInCamCoord.z;
-    if (z < distanceToPlane) return;
+    if ((z < distanceToPlane && params.clipCameraPlane) || z < 0) return;
     //project
     const projectedPoint = pointInCamCoord
         .scale(distanceToPlane / z);
@@ -112,27 +112,31 @@ function rasterLine({ canvas, camera, elem, zBuffer, params }) {
     // camera coords
     const pointsInCamCoord = positions.map((p) => camera.toCameraCoord(p));
     //frustum culling
-    let inFrustum = [];
-    let outFrustum = [];
-    pointsInCamCoord.forEach((p, i) => {
-        const zCoord = p.z;
-        if (zCoord < distanceToPlane) {
-            outFrustum.push(i);
-        } else {
-            inFrustum.push(i);
+    const checkFrustum = (condition) => {
+        let inFrustum = [];
+        let outFrustum = [];
+        pointsInCamCoord.forEach((p, i) => {
+            if (condition(p)) {
+                outFrustum.push(i);
+            } else {
+                inFrustum.push(i);
+            }
+        });
+        if (outFrustum.length === 2) return true;
+        if (outFrustum.length === 1) {
+            const inter = lineCameraPlaneIntersection(
+                pointsInCamCoord[outFrustum[0]],
+                pointsInCamCoord[inFrustum[0]],
+                camera
+            );
+            pointsInCamCoord[outFrustum[0]] = inter;
         }
-    });
-    if (params.clipCameraPlane && outFrustum.length === 2) return;
-    if (outFrustum.length === 1) {
-        const inVertex = inFrustum[0];
-        const outVertex = outFrustum[0];
-        const inter = lineCameraPlaneIntersection(
-            pointsInCamCoord[outVertex],
-            pointsInCamCoord[inVertex],
-            camera
-        );
-        pointsInCamCoord[outVertex] = inter;
-    }
+        return false;
+    };
+
+    if (params.clipCameraPlane && checkFrustum(p => p.z < distanceToPlane)) return;
+    if (checkFrustum(p => p.z < 0)) return;
+
     //project
     const projectedPoints = pointsInCamCoord
         .map(p => p.scale(distanceToPlane / p.z))
@@ -179,17 +183,9 @@ function rasterTriangle({ canvas, camera, elem, zBuffer, params }) {
         if (n.dot(pointsInCamCoord[0]) <= 0) return;
     }
     //frustum culling
-    let inFrustum = [];
-    let outFrustum = [];
-    pointsInCamCoord.forEach((p, i) => {
-        const zCoord = p.z;
-        if (zCoord < distanceToPlane) {
-            outFrustum.push(i);
-        } else {
-            inFrustum.push(i);
-        }
-    });
-    if (params.clipCameraPlane && outFrustum.length >= 1) return;
+    if (params.clipCameraPlane && pointsInCamCoord.some(p => p.z < distanceToPlane)) return;
+    if (pointsInCamCoord.some(p => p.z < 0)) return;
+
     //project
     const projectedPoints = pointsInCamCoord
         .map(p => p.scale(distanceToPlane / p.z))
