@@ -1,6 +1,7 @@
 
 import Vec from "../Vector/Vector.js";
 import { argmin, hashStr } from "../Utils/Utils.js";
+import { smin } from "../Utils/Math.js";
 
 export default class NaiveScene {
   constructor() {
@@ -46,11 +47,11 @@ export default class NaiveScene {
     this.sceneElements = [];
   }
 
-  distanceToPoint(p) {
+  distanceToPoint(p, combineLeafs = Math.min) {
     const elements = this.sceneElements;
     let distance = Number.MAX_VALUE;
     for (let i = 0; i < elements.length; i++) {
-      distance = Math.min(distance, elements[i].distanceToPoint(p));
+      distance = combineLeafs(distance, elements[i].distanceToPoint(p));
     }
     return distance;
   }
@@ -59,9 +60,9 @@ export default class NaiveScene {
     const epsilon = 1e-3;
     const n = p.dim;
     const grad = [];
-    const d = this.distanceToPoint(p);
+    const d = this.distanceToPoint(p, smin);
     for (let i = 0; i < n; i++) {
-      grad.push(this.distanceToPoint(p.add(Vec.e(n)(i).scale(epsilon))) - d);
+      grad.push(this.distanceToPoint(p.add(Vec.e(n)(i).scale(epsilon)), smin) - d);
     }
     return Vec.fromArray(grad).scale(Math.sign(d)).normalize();
   }
@@ -80,8 +81,8 @@ export default class NaiveScene {
     return closest;
   }
 
-  distanceOnRay(ray) {
-    return this.distanceToPoint(ray.init);
+  distanceOnRay(ray, combineLeafs = Math.min) {
+    return this.distanceToPoint(ray.init, combineLeafs);
   }
 
   getElementsNear(p) {

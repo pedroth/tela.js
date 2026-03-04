@@ -110,6 +110,8 @@ export function trace(ray, scene, options) {
     return finalColor;
 }
 
+
+// For future use, I found that this gives different results than recursive trace.
 export function traceFor(ray, scene, options) {
     const { bounces, bilinearTexture, renderSkyBox, lightDir, useCache } = options;
     let albedoAcc = Color.WHITE;
