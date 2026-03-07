@@ -29,6 +29,7 @@ export function rayTrace(ray, scene, params = {}) {
         isBiased,
         renderSkyBox,
         lightDir,
+        lightSharpness,
         useCache,
         useMetro
     } = params;
@@ -46,6 +47,7 @@ export function rayTrace(ray, scene, params = {}) {
         lightDir = Vec3(...lightDir);
     }
     lightDir = lightDir ?? undefined;
+    lightSharpness = lightSharpness ?? 200;
 
     const invSamples = (isBiased ? bounces : 1) / samplesPerPxl
     let c = Color.BLACK;
@@ -55,14 +57,14 @@ export function rayTrace(ray, scene, params = {}) {
         const r = Ray(ray.init, ray.dir.add(epsilonOrtho).normalize());
         c = c.add(
             useMetro ?
-                traceMetro(r, scene, { bounces, bilinearTexture, renderSkyBox, lightDir, useCache }) :
-                trace(r, scene, { bounces, bilinearTexture, renderSkyBox, lightDir, useCache })
+                traceMetro(r, scene, { bounces, bilinearTexture, renderSkyBox, lightDir, lightSharpness, useCache }) :
+                trace(r, scene, { bounces, bilinearTexture, renderSkyBox, lightDir, lightSharpness, useCache })
         );
     }
     return c.scale(invSamples).toGamma(gamma);
 }
 
-function renderMissScene(ray, { renderSkyBox, lightDir, scene, power: lightSharpness = 200 }) {
+function renderMissScene(ray, { renderSkyBox, lightDir, scene, lightSharpness = 200 }) {
     const skyColor = renderSkyBox ? renderSkyBox(ray) : Color.BLACK;
     if (!lightDir) return skyColor;
 
@@ -82,17 +84,17 @@ function renderMissScene(ray, { renderSkyBox, lightDir, scene, power: lightSharp
 }
 
 export function trace(ray, scene, options) {
-    const { bounces, bilinearTexture, renderSkyBox, lightDir, useCache } = options;
-    if (bounces < 0) return renderMissScene(ray, { renderSkyBox, lightDir, scene });
+    const { bounces, bilinearTexture, renderSkyBox, lightDir, lightSharpness, useCache } = options;
+    if (bounces < 0) return renderMissScene(ray, { renderSkyBox, lightDir, lightSharpness, scene });
     const hit = scene.interceptWithRay(ray);
-    if (!hit) return renderMissScene(ray, { renderSkyBox, lightDir, scene });
+    if (!hit) return renderMissScene(ray, { renderSkyBox, lightDir, lightSharpness, scene });
     const [, p, e] = hit;
-    if (useCache) {
+    const mat = e.material;
+    if (useCache && mat?.type === "Diffuse") {
         const cachedColor = cache.get(p);
         if (cachedColor) { return cachedColor; }
     }
     const albedo = getColorFromElement(e, ray, { bilinearTexture });
-    const mat = e.material;
     const isEmissive = e.emissive;
     if (isEmissive) {
         if (useCache) { cache.set(p, albedo); }
@@ -102,30 +104,31 @@ export function trace(ray, scene, options) {
     let scatterColor = trace(
         scatterRay,
         scene,
-        { bounces: bounces - 1, bilinearTexture, renderSkyBox, lightDir, useCache }
+        { bounces: bounces - 1, bilinearTexture, renderSkyBox, lightDir, lightSharpness, useCache }
     );
     const attenuation = Math.abs(e.normalToPoint(p).dot(scatterRay.dir));
     const finalColor = albedo.mul(scatterColor).scale(attenuation)
-    if (useCache) { cache.set(p, finalColor); }
+    if (useCache && mat?.type === "Diffuse") { cache.set(p, finalColor); }
     return finalColor;
 }
 
 
 // For future use, I found that this gives different results than recursive trace.
 export function traceFor(ray, scene, options) {
-    const { bounces, bilinearTexture, renderSkyBox, lightDir, useCache } = options;
+    const { bounces, bilinearTexture, renderSkyBox, lightDir, lightSharpness, useCache } = options;
     let albedoAcc = Color.WHITE;
     let currentRay = ray;
     let firstHit = undefined;
     for (let i = 0; i < bounces; i++) {
         const hit = scene.interceptWithRay(currentRay);
-        if (!hit) return renderMissScene(currentRay, { renderSkyBox, lightDir, scene });
+        if (!hit) return renderMissScene(currentRay, { renderSkyBox, lightDir, lightSharpness, scene });
         
         const [, p, e] = hit;
         if (i === 0) {
             firstHit = p;
         }
-        if (useCache) {
+        const mat = e.material;
+        if (useCache && mat?.type === "Diffuse") {
             const cachedColor = cache.get(p);
             if (cachedColor) { return cachedColor; }
         }
@@ -133,35 +136,34 @@ export function traceFor(ray, scene, options) {
         const albedo = getColorFromElement(e, currentRay, { bilinearTexture });
         if (e.emissive) {
             const attenuation = e.normalToPoint(p).dot(currentRay.dir);
-            const finalColor = albedoAcc.mul(albedo).scale(2 * attenuation);
+            const finalColor = albedoAcc.mul(albedo).scale(attenuation);
             if (useCache) { cache.set(firstHit, finalColor); }
             return finalColor;
         }
-        const mat = e.material;
         let scatterRay = mat.scatter(currentRay, p, e);
         const attenuation = Math.abs(e.normalToPoint(p).dot(scatterRay.dir));
         albedoAcc = albedoAcc.mul(albedo).scale(2 * attenuation);
         currentRay = scatterRay;
     }
-    return renderMissScene(currentRay, { renderSkyBox, lightDir, scene });
+    return renderMissScene(currentRay, { renderSkyBox, lightDir, lightSharpness, scene });
 
 }
 
 export function traceMetro(ray, scene, options) {
-    const { bounces, bilinearTexture, renderSkyBox, lightDir, useCache } = options;
-    if (bounces < 0) return renderMissScene(ray, { renderSkyBox, lightDir, scene });
+    const { bounces, bilinearTexture, renderSkyBox, lightDir, lightSharpness, useCache } = options;
+    if (bounces < 0) return renderMissScene(ray, { renderSkyBox, lightDir, lightSharpness, scene });
     const hit = scene.interceptWithRay(ray);
-    if (!hit) return renderMissScene(ray, { renderSkyBox, lightDir, scene });
+    if (!hit) return renderMissScene(ray, { renderSkyBox, lightDir, lightSharpness, scene });
     const [, p, e] = hit;
-    if (useCache) {
+    const mat = e.material;
+    if (useCache && mat?.type === "Diffuse") {
         const cachedColor = cache.get(p);
         if (cachedColor) { return cachedColor; }
     }
     const albedo = getColorFromElement(e, ray, { bilinearTexture });
-    const mat = e.material;
     const isEmissive = e.emissive;
     if (isEmissive) {
-        if (useCache) { cache.set(p, albedo); }
+        if (useCache && mat?.type === "Diffuse") { cache.set(p, albedo); }
         return albedo;
     }
     // Metropolis sampling
@@ -171,12 +173,12 @@ export function traceMetro(ray, scene, options) {
     let scatterColor = trace(
         scatterRay,
         scene,
-        { bounces: bounces - 1, bilinearTexture, renderSkyBox, lightDir, useCache }
+        { bounces: bounces - 1, bilinearTexture, renderSkyBox, lightDir, lightSharpness, useCache }
     );
     let scatterColorStar = trace(
         scatterRayStar,
         scene,
-        { bounces: bounces - 1, bilinearTexture, renderSkyBox, lightDir, useCache }
+        { bounces: bounces - 1, bilinearTexture, renderSkyBox, lightDir, lightSharpness, useCache }
     );
     const probM = scatterColorStar.toGray().red / scatterColor.toGray().red;
     if (Math.random() < probM) {
@@ -185,7 +187,7 @@ export function traceMetro(ray, scene, options) {
     }
     const attenuation = Math.abs(e.normalToPoint(p).dot(scatterRay.dir));
     const finalColor = albedo.mul(scatterColor).scale(attenuation)
-    if (useCache) { cache.set(p, finalColor); }
+    if (useCache && mat?.type === "Diffuse") { cache.set(p, finalColor); }
     return finalColor;
 }
 

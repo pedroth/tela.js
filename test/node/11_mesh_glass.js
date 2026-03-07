@@ -111,7 +111,7 @@ const shot = async (image) =>
         isBiased: false,
         useMetro: true,
         useCache: true,
-        // skyBoxPath: "./assets/sky.jpg"
+        skyBoxPath: "./assets/sky.jpg"
       })
     .to(image ?? Image.ofSize(width, height));
 

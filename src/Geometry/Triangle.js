@@ -80,9 +80,7 @@ export default class Triangle {
 
     normalToPoint(p) {
         if (this.radius === 0) {
-            const r = p.sub(this.positions[0]);
-            const dot = this.faceNormal.dot(r);
-            return dot < 1e-3 ? this.faceNormal : this.faceNormal.scale(-1);
+            return this.faceNormal;
         }
         const epsilon = 1e-6;
         const f = this.distanceToPoint(p);
@@ -96,20 +94,20 @@ export default class Triangle {
     }
 
     interceptWithRay(ray) {
-        if(this.radius === 0) {
+        if (this.radius === 0) {
             const epsilon = 1e-9
             const v = ray.dir;
             const p = ray.init.sub(this.positions[0]);
             const n = this.faceNormal;
             const t = - n.dot(p) / n.dot(v);
-            if (t <= epsilon) return;
-            const x = ray.trace(t);
+            if (t < 0) return;
+            const x = ray.trace(t - epsilon);
             for (let i = 0; i < this.positions.length; i++) {
                 const xi = this.positions[i];
                 const u = x.sub(xi);
                 const ni = n.cross(this.edges[i]);
                 const dot = ni.dot(u);
-                if (dot <= epsilon) return;
+                if (dot < 0) return;
             }
             return [t - epsilon, x, this];
         }

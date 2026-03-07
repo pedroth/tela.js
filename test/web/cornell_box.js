@@ -170,7 +170,7 @@ async (canvas, logger) => {
 
     // boilerplate for fps
     loop(({ dt }) => {
-        camera.sceneShot(scene, {bounces: 10, samplesPerPxl: 1}).to(exposedCanvas).paint();
+        camera.sceneShot(scene, {bounces: 10, samplesPerPxl: 1, useCache: true}).to(exposedCanvas).paint();
         logger.print(`FPS: ${(1 / dt).toFixed(2)}`);
     }).play();
 }

@@ -24,9 +24,9 @@ let exposedWindow = window.exposure();
 // scene
 const scene = new KScene();
 const camera = new Camera({ lookAt: Vec3(1.5, 1.5, 1.5) }).orbit(5, 0, 0);
-const meshObj = readFileSync("./assets/teapot.obj", { encoding: "utf-8" });
+const meshObj = readFileSync("./assets/spot.obj", { encoding: "utf-8" });
 let mesh = Mesh.readObj(meshObj, "mesh")
-// .addTexture(Image.ofUrl("./assets/spot.png"));
+.addTexture(Image.ofUrl("./assets/spot.png"));
 
 const box = mesh.getBoundingBox();
 const scaleInv = 2 / box.diagonal.fold((e, x) => Math.max(e, x), Number.MIN_VALUE);
@@ -35,8 +35,8 @@ mesh = mesh
   .mapVertices((v) => Vec3(-v.z, -v.x, v.y))
   .mapVertices((v) => v.add(Vec3(1.5, 1.5, 1.0)))
   .mapColors(() => Color.WHITE)
-  // .mapMaterials(() => DiElectric(1.3333));
-  .mapMaterials(() => Metallic(0.01));
+  .mapMaterials(() => DiElectric(1.3333));
+  // .mapMaterials(() => Metallic(0.01));
 scene.addList(mesh.asTriangles());
 scene.add(
   Triangle.builder()
@@ -150,6 +150,10 @@ loop(async ({ dt }) => {
       bounces: 6,
       samplesPerPxl: 1,
       gamma: 0.5,
+      isBiased: true,
+      useCache: false,
+      useMetro: true,
+      skyBoxPath: "./assets/sky.jpg",
     })
     .to(exposedWindow);
   image.paint();

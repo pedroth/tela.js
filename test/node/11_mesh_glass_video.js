@@ -35,10 +35,9 @@ bunnyMesh = bunnyMesh
   .mapVertices((v) =>
     v.sub(bunnyBox.min).div(bunnyBox.diagonal).scale(2).sub(Vec3(1, 1, 1))
   )
-  .mapVertices((v) => v.scale(0.5))
   .mapVertices((v) => Vec3(-v.y, v.x, v.z))
   .mapVertices((v) => Vec3(v.z, v.y, -v.x))
-  .mapVertices((v) => v.add(Vec3(1.5, 1.5, 1.5)))
+  .mapVertices((v) => v.add(Vec3(1.5, 1.5, 1.2)))
   .mapColors(() => Color.WHITE)
   .mapMaterials(() => DiElectric(1.3));
 scene.addList(bunnyMesh.asTriangles());
@@ -80,7 +79,18 @@ scene.add(
 
 const shot = async (image) => {
   return await camera
-    .parallelShot(scene, { samplesPerPxl: 200, bounces: 10, gamma: 0.5 })
+    .parallelShot(
+      scene,
+      {
+        samplesPerPxl: 20,
+        bounces: 10,
+        gamma: 0.5,
+        isBiased: false,
+        skyBoxPath: "./assets/sky.jpg",
+        useMetro: true,
+        useCache: true
+      }
+    )
     .to(image ?? Image.ofSize(width, height));
 };
 

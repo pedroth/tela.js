@@ -1,5 +1,40 @@
 /* eslint-disable no-undef */
 async (canvas, logger) => {
+    const meshes = [
+        { mesh: "/assets/spot.obj", texture: "/assets/spot.png" },
+        { mesh: "/assets/megaman.obj", texture: "/assets/megaman.png" },
+        { mesh: "/assets/spyro.obj", texture: "/assets/spyro.png" },
+        { mesh: "/assets/earth.obj", texture: "/assets/earth.jpg" },
+        { mesh: "/assets/blub.obj", texture: "/assets/blub.png" },
+        { mesh: "/assets/bob.obj", texture: "/assets/bob.png" },
+        { mesh: "/assets/oil.obj", texture: "/assets/oil.png" },
+        { mesh: "/assets/riku.obj", texture: "/assets/riku.png" },
+        { mesh: "/assets/wipeout.obj", texture: "/assets/wipeout.png" },
+        { mesh: "/assets/bunny_orig.obj", texture: undefined },
+        { mesh: "/assets/rocker_arm.obj", texture: undefined },
+        { mesh: "/assets/teapot.obj", texture: undefined },
+        { mesh: "/assets/torus.obj", texture: undefined },
+        { mesh: "/assets/moses_min.obj", texture: undefined },
+        { mesh: "/assets/dragonHD.obj", texture: undefined },
+    ];
+
+    // DOM: mesh selector
+    const div = document.createElement("div");
+    div.style.cssText = "padding: 8px;";
+    const label = document.createElement("label");
+    label.textContent = "Mesh: ";
+    const select = document.createElement("select");
+    meshes.forEach((m, i) => {
+        const option = document.createElement("option");
+        option.value = i;
+        option.textContent = m.mesh.split("/").pop();
+        select.appendChild(option);
+    });
+    select.value = 11; // teapot as default
+    label.appendChild(select);
+    div.appendChild(label);
+    document.body.appendChild(div);
+
     // resize incoming canvas:Canvas object.
     const width = 240;
     const height = 160;
@@ -41,35 +76,49 @@ async (canvas, logger) => {
         exposedCanvas = canvas.exposure();
     })
     // cornell box
-    scene.add(
+    const floorTriangles = [
         Triangle
             .builder()
             .name("bottom-1")
-            .colors(Color.WHITE, Color.WHITE, Color.WHITE)
+            .colors(Color.RED, Color.RED, Color.RED)
             .positions(Vec3(), Vec3(3, 0, 0), Vec3(3, 3, 0))
             .build(),
         Triangle
             .builder()
             .name("bottom-2")
-            .colors(Color.WHITE, Color.WHITE, Color.WHITE)
+            .colors(Color.RED, Color.RED, Color.RED)
             .positions(Vec3(3, 3, 0), Vec3(0, 3, 0), Vec3())
             .build(),
-    )
+    ];
+    scene.add(...floorTriangles);
 
-    // some objects
-    const obj = await fetch("/assets/teapot.obj").then(x => x.text());
-    let mesh = Mesh.readObj(obj, "mesh");
-    const meshBox = mesh.getBoundingBox();
-    const maxDiagInv = 2 / meshBox.diagonal.fold((e, x) => Math.max(e, x), Number.MIN_VALUE);
-    mesh = mesh
-        .mapVertices(v => v.sub(meshBox.center).scale(maxDiagInv))
-        .mapVertices(v => v.scale(1))
-        .mapVertices(v => Vec3(-v.y, v.x, v.z))
-        .mapVertices(v => Vec3(v.z, v.y, -v.x))
-        .mapVertices(v => v.add(Vec3(1.5, 1.5, 1.0)))
-        .mapColors(() => Color.WHITE)
-        .mapMaterials(() => DiElectric(1.333))
-    scene.addList(mesh.asTriangles());
+    async function loadMesh(index) {
+        const obj = await fetch(meshes[index].mesh).then(x => x.text());
+        let mesh = Mesh.readObj(obj, "mesh");
+        const meshBox = mesh.getBoundingBox();
+        const maxDiagInv = 2 / meshBox.diagonal.fold((e, x) => Math.max(e, x), Number.MIN_VALUE);
+        mesh = mesh
+            .mapVertices(v => v.sub(meshBox.center).scale(maxDiagInv))
+            .mapVertices(v => v.scale(1))
+            .mapVertices(v => Vec3(-v.y, v.x, v.z))
+            .mapVertices(v => Vec3(v.z, v.y, -v.x))
+            .mapVertices(v => v.add(Vec3(1.5, 1.5, 1.0)))
+            .mapColors(() => Color.WHITE)
+            // .mapMaterials(() => Metallic(0.333))
+            .mapMaterials(() => DiElectric(1.333))
+        if (meshes[index].texture) {
+            mesh = mesh.addTexture(await Canvas.ofUrl(meshes[index].texture));
+        }
+        scene.clear();
+        scene.add(...floorTriangles);
+        scene.addList(mesh.asTriangles());
+    }
+
+    await loadMesh(11); // teapot
+
+    select.addEventListener("change", async () => {
+        await loadMesh(Number(select.value));
+    });
 
     loop(async ({ dt }) => {
         const image = await camera
