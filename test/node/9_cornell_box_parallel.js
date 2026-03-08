@@ -1,5 +1,4 @@
-import exp from "constants";
-import { Camera, Mesh, Vec3, Vec2, Color, DiElectric, Triangle, KScene, Image, loop, Metallic, Window } from "../../src/index.node.js";
+import { Camera, Mesh, Vec3, Vec2, Color, Diffuse, DiElectric, Alpha, Triangle, KScene, Image, loop, Metallic, Window } from "../../src/index.node.js";
 import { readFileSync } from "fs";
 
 const width = 640 / 2;
@@ -17,6 +16,16 @@ let mousedown = false;
 let mouse = Vec2();
 let nextMeshIndex = 0;
 let currentMeshIndex = -1;
+
+const materials = [
+    { name: "Diffuse", create: () => Diffuse(), emissive: false },
+    { name: "Metallic", create: () => Metallic(0.1), emissive: false },
+    { name: "DiElectric", create: () => DiElectric(1.1), emissive: false },
+    { name: "Alpha", create: () => Alpha(0.5), emissive: false },
+    { name: "Diffuse+Emissive", create: () => Diffuse(), emissive: true },
+];
+let nextMaterialIndex = 0;
+let currentMaterialIndex = -1;
 
 window.onMouseDown((x, y) => {
     mousedown = true;
@@ -60,6 +69,12 @@ window.onKeyDown((e) => {
     if (key === "left") {
         nextMeshIndex = (currentMeshIndex - 1 + meshes.length) % meshes.length;
     }
+    if (key === "up") {
+        nextMaterialIndex = (currentMaterialIndex + 1) % materials.length;
+    }
+    if (key === "down") {
+        nextMaterialIndex = (currentMaterialIndex - 1 + materials.length) % materials.length;
+    }
 });
 
 const meshes = [
@@ -80,9 +95,10 @@ const meshes = [
     { mesh: "./assets/dragonHD.obj", texture: undefined },
 ];
 
-async function loadMesh(index) {
+async function loadMesh(index, matIndex) {
     scene.clear();
     const meshIndex = index;
+    const mat = materials[matIndex];
     const meshObj = readFileSync(meshes[meshIndex].mesh, { encoding: "utf-8" });
     let mesh = Mesh.readObj(meshObj, "mesh");
     const meshBox = mesh.getBoundingBox();
@@ -93,11 +109,15 @@ async function loadMesh(index) {
         .mapVertices(v => Vec3(-v.z, -v.x, v.y))
         .mapVertices(v => v.add(Vec3(1.5, 1.5, 1.0)))
         .mapColors(() => Color.WHITE)
-    // .mapMaterials(() => Metallic(1.33333));
+        .mapMaterials(() => mat.create());
     if (meshes[meshIndex].texture) {
         mesh = mesh.addTexture(await Image.ofUrl(meshes[meshIndex].texture));
     }
-    scene.addList(mesh.asTriangles());
+    const meshTriangles = mesh.asTriangles();
+    if (mat.emissive) {
+        meshTriangles.forEach(t => { t.emissive = true; });
+    }
+    scene.addList(meshTriangles);
 
     // cornell box
     scene.add(
@@ -167,14 +187,15 @@ async function loadMesh(index) {
 
     scene.rebuild();
     currentMeshIndex = meshIndex;
+    currentMaterialIndex = matIndex;
     exposedWindow = window.exposure();
 }
 
-loadMesh(nextMeshIndex);
+loadMesh(nextMeshIndex, nextMaterialIndex);
 // play
 loop(async ({ dt }) => {
-    if(currentMeshIndex !== nextMeshIndex) {
-        await loadMesh(nextMeshIndex);
+    if(currentMeshIndex !== nextMeshIndex || currentMaterialIndex !== nextMaterialIndex) {
+        await loadMesh(nextMeshIndex, nextMaterialIndex);
     }
     const image = await camera
         .parallelShot(scene, {
@@ -187,5 +208,5 @@ loop(async ({ dt }) => {
         })
         .to(exposedWindow);
     image.paint();
-    window.setTitle(`Select Mesh with right/left arrows | FPS: ${(1 / dt).toFixed(2)}`);
+    window.setTitle(`Mesh: left/right | Material[${materials[currentMaterialIndex].name}]: up/down | FPS: ${(1 / dt).toFixed(2)}`);
 }).play();

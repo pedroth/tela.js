@@ -1,4 +1,4 @@
-import { Camera, Mesh, NaiveScene, Vec3, Vec2, Image, loop, Window } from "../../src/index.node.js";
+import { Camera, Mesh, NaiveScene, Vec3, Vec2, Image, loop, Window, Color } from "../../src/index.node.js";
 import { readFileSync } from "fs";
 
 const width = 640;
@@ -24,12 +24,12 @@ const meshes = [
   { mesh: "./assets/oil.obj", texture: "./assets/oil.png" },
   { mesh: "./assets/riku.obj", texture: "./assets/riku.png" },
   { mesh: "./assets/wipeout.obj", texture: "./assets/wipeout.png" },
-  { mesh: "./assets/bunny_orig.obj", texture: undefined },
-  { mesh: "./assets/rocker_arm.obj", texture: undefined },
-  { mesh: "./assets/teapot.obj", texture: undefined },
-  { mesh: "./assets/torus.obj", texture: undefined },
-  { mesh: "./assets/moses_min.obj", texture: undefined },
-  { mesh: "./assets/dragonHD.obj", texture: undefined },
+//   { mesh: "./assets/bunny_orig.obj", texture: undefined },
+//   { mesh: "./assets/rocker_arm.obj", texture: undefined },
+//   { mesh: "./assets/teapot.obj", texture: undefined },
+//   { mesh: "./assets/torus.obj", texture: undefined },
+//   { mesh: "./assets/moses_min.obj", texture: undefined },
+//   { mesh: "./assets/dragonHD.obj", texture: undefined },
 ];
 
 async function loadMesh(index) {
@@ -41,7 +41,8 @@ async function loadMesh(index) {
   mesh = mesh
     .mapVertices(v => v.sub(box.center).scale(scaleInv))
     .mapVertices(v => Vec3(-v.y, v.x, v.z))
-    .mapVertices(v => Vec3(v.z, v.y, -v.x));
+    .mapVertices(v => Vec3(v.z, v.y, -v.x))
+    .mapColors(() => Color.WHITE);
   if (meshes[index].texture) {
     mesh = mesh.addTexture(await Image.ofUrl(meshes[index].texture));
   }
@@ -105,7 +106,7 @@ loop(async ({ dt }) => {
         {
             cullBackFaces: true,
             bilinearTextures: true,
-            clipCameraPlane: false
+            clipCameraPlane: true
         }
     )
         .to(window)

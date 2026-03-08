@@ -22,6 +22,7 @@ export function rasterGraphics(scene, camera, params = {}) {
         clearScreen,
         backgroundColor,
         perspectiveCorrect,
+        zNear,
     } = params;
     params.cullBackFaces = cullBackFaces ?? true;
     params.bilinearTexture = bilinearTexture ?? false;
@@ -29,6 +30,7 @@ export function rasterGraphics(scene, camera, params = {}) {
     params.clearScreen = clearScreen ?? true;
     params.backgroundColor = backgroundColor ?? Color.BLACK;
     params.perspectiveCorrect = perspectiveCorrect ?? false;
+    params.zNear = zNear ?? 0.1;
 
     return canvas => {
         params.clearScreen && canvas.fill(params.backgroundColor);
@@ -63,7 +65,7 @@ function rasterSphere({ canvas, camera, elem, zBuffer, params }) {
     let pointInCamCoord = camera.toCameraCoord(position)
     //frustum culling
     const z = pointInCamCoord.z;
-    if ((z < distanceToPlane && params.clipCameraPlane) || z < 0) return;
+    if (z < params.zNear && params.clipCameraPlane) return;
     //project
     const projectedPoint = pointInCamCoord
         .scale(distanceToPlane / z);
@@ -134,8 +136,7 @@ function rasterLine({ canvas, camera, elem, zBuffer, params }) {
         return false;
     };
 
-    if (params.clipCameraPlane && checkFrustum(p => p.z < distanceToPlane)) return;
-    if (checkFrustum(p => p.z < 0)) return;
+    if (params.clipCameraPlane && checkFrustum(p => p.z < params.zNear)) return;
 
     //project
     const projectedPoints = pointsInCamCoord
@@ -183,8 +184,7 @@ function rasterTriangle({ canvas, camera, elem, zBuffer, params }) {
         if (n.dot(pointsInCamCoord[0]) <= 0) return;
     }
     //frustum culling
-    if (params.clipCameraPlane && pointsInCamCoord.some(p => p.z < distanceToPlane)) return;
-    if (pointsInCamCoord.some(p => p.z < 0)) return;
+    if (params.clipCameraPlane && pointsInCamCoord.some(p => p.z < params.zNear)) return;
 
     //project
     const projectedPoints = pointsInCamCoord

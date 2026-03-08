@@ -20,6 +20,12 @@ export default class NaiveScene {
     for (let i = 0; i < elements.length; i++) {
       const hash = hashStr(String(elements[i].name));
       combinedHash = (combinedHash * prime) ^ hash;
+      if (elements[i].material) {
+        combinedHash = (combinedHash * prime) ^ hashStr(elements[i].material.type + String(elements[i].material.args));
+      }
+      if (elements[i].emissive) {
+        combinedHash = (combinedHash * prime) ^ 1;
+      }
     }
     return combinedHash >>> 0; // unsigned shift operator, converts combinedHash to unsigned number
   }

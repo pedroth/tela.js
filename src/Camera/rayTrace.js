@@ -4,6 +4,7 @@ import { Vec3 } from "../Vector/Vector.js";
 import Ray from "../Ray/Ray.js";
 import { randomPointInSphere } from "../Utils/Math.js";
 import { getBiLinearTexColor, getDefaultTexColor, getTexColor } from "./common.js";
+import { Alpha } from "../Material/Material.js";
 
 export function renderBackground(ray, backgroundImage) {
     const clampAcos = (x) => x > 1 ? 1 : x < -1 ? -1 : x;
@@ -89,12 +90,16 @@ export function trace(ray, scene, options) {
     const hit = scene.interceptWithRay(ray);
     if (!hit) return renderMissScene(ray, { renderSkyBox, lightDir, lightSharpness, scene });
     const [, p, e] = hit;
-    const mat = e.material;
+    let mat = e.material;
     if (useCache && mat?.type === "Diffuse") {
         const cachedColor = cache.get(p);
         if (cachedColor) { return cachedColor; }
     }
     const albedo = getColorFromElement(e, ray, { bilinearTexture });
+    const alpha = albedo.alpha;
+    if(alpha < 1.0) {
+        mat  = Alpha(alpha);
+    }
     const isEmissive = e.emissive;
     if (isEmissive) {
         if (useCache) { cache.set(p, albedo); }
