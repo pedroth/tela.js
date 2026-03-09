@@ -89,23 +89,27 @@ export function trace(ray, scene, options) {
     if (bounces < 0) return renderMissScene(ray, { renderSkyBox, lightDir, lightSharpness, scene });
     const hit = scene.interceptWithRay(ray);
     if (!hit) return renderMissScene(ray, { renderSkyBox, lightDir, lightSharpness, scene });
-    const [, p, e] = hit;
+    const [hitTime, p, e] = hit;
     let mat = e.material;
     if (useCache && mat?.type === "Diffuse") {
         const cachedColor = cache.get(p);
         if (cachedColor) { return cachedColor; }
     }
-    const albedo = getColorFromElement(e, ray, { bilinearTexture });
+    let albedo = getColorFromElement(e, ray, { bilinearTexture });
     const alpha = albedo.alpha;
-    if(alpha < 1.0) {
-        mat  = Alpha(alpha);
-    }
     const isEmissive = e.emissive;
     if (isEmissive) {
         if (useCache) { cache.set(p, albedo); }
         return albedo;
     }
-    let scatterRay = mat.scatter(ray, p, e);
+    let scatterRay;
+    if(Math.random() < alpha) {
+        albedo.alpha = 1;
+        scatterRay = mat.scatter(ray, p, e);
+    } else {
+        albedo = Color.WHITE;
+        scatterRay = Ray(ray.trace(hitTime +  1e-2), ray.dir);
+    }
     let scatterColor = trace(
         scatterRay,
         scene,
