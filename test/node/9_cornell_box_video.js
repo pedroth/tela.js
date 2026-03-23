@@ -4,11 +4,10 @@ import {
   Color,
   DiElectric,
   Triangle,
-  Image,
-  renderBackground,
   videoAsync,
   Sphere,
   NaiveScene,
+  measureTime,
 } from "../../src/index.node.js";
 
 const width = 640;
@@ -96,11 +95,6 @@ const sphere = Sphere.builder()
   .build();
 scene.add(sphere);
 
-const background = Image.ofUrl("./assets/sky.jpg");
-function renderSkyBox(ray) {
-  return renderBackground(ray, background);
-}
-
 const FPS = 30;
 const maxVideoTime = 6; // time in seconds
 let ite = 1;
@@ -116,16 +110,20 @@ async function animation({ time, image }) {
         samplesPerPxl: 100,
         gamma: 0.5,
         useCache: true,
-        useMetro: true
-        // isBiased: false,
-        // renderSkyBox
+        useMetro: true,
+        isBiased: false,
+        skyBoxPath: "./assets/sky.jpg"
       }
     )
     .to(image))
     .paint();
 }
 
-videoAsync("cornell_box_video.mp4", animation, { width, height, FPS })
-  .while(
-    ({ time }) => time < maxVideoTime
-  );
+measureTime(() => {
+  return videoAsync("cornell_box_video.mp4", animation, { width, height, FPS })
+    .while(
+      ({ time }) => time < maxVideoTime
+    );
+}).then((time) => {
+  console.log(`Video rendered in ${time.toFixed(2)} seconds.`);
+});
