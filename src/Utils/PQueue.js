@@ -19,6 +19,7 @@ export default class PQueue {
         this.data.push(element);
         if (this.data.length <= 1) return this;
         let i = this.data.length - 1;
+        // bubble up until the heap property is satisfied
         while (i > 0) {
             const parentIndex = i % 2 !== 0 ? Math.floor(i / 2) : i / 2 - 1;
             if (this.comparator(this.data[parentIndex], this.data[i]) <= 0) break;
@@ -39,8 +40,8 @@ export default class PQueue {
         if (this.data.length <= 1) {
             return this.data.pop();
         }
-        this.data[0] = this.data[this.data.length-1];
-        this.data = this.data.slice(0, -1);
+        this.data[0] = this.data[this.data.length-1]; // move last element to root
+        this.data.pop(); // remove last element
         this.data = heapifyBuilder(this.data, this.comparator)(0);
         return v;
     }
