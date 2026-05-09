@@ -118,7 +118,7 @@ async (canvas) => {
     });
 
     // Add loop for continuous rendering
-    loop(async () => {
+    loop(async ({dt}) => {
         (await camera.parallelShot(scene, {
             lightDir,
             lightSharpness,
@@ -126,5 +126,6 @@ async (canvas) => {
             skyBoxPath: "/assets/sky.jpg",
             isBiased: false,
         }).to(exposedCanvas)).paint();
+        logger.print(`fps: ${Math.floor(1 / dt)}`);
     }).play();
 }
