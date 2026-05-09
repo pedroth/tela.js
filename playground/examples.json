@@ -70,6 +70,11 @@
         "thumbnail": "playground/images/n-points.png"
     },
     {
+        "title": "3D IFS fractals",
+        "path": "/test/web/ifs_fractal.js",
+        "thumbnail": "playground/images/ifs_fractal.png"
+    },
+    {
         "title": "Point cloud bunny",
         "path": "/test/web/bunny.js",
         "thumbnail": "playground/images/bunny.png"
@@ -215,6 +220,11 @@
         "thumbnail": "playground/images/debug_voronoi.png"
     },
     {
+        "title": "debug voronoi 2",
+        "path": "/test/web/debug_voronoi_2.js",
+        "thumbnail": "playground/images/debug_voronoi_2.png"
+    },
+    {
         "title": "debug unlimited detail",
         "path": "/test/web/debug_unlimited_detail.js",
         "thumbnail": "playground/images/debug_unlimited_detail.png"
@@ -228,5 +238,10 @@
         "title": "debug perspective correct interpolation",
         "path": "/test/web/debug_perspective_interpolation.js",
         "thumbnail": "playground/images/debug_perspective_interpolation.png"
+    },
+    {
+        "title": "Ray Traced IFS",
+        "path": "/test/web/ifs_ray_trace.js",
+        "thumbnail": "playground/images/ifs_ray_trace.png"
     }
 ]
