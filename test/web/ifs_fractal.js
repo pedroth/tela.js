@@ -1,7 +1,8 @@
 /* eslint-disable no-undef */
+// AI gen example
 async (canvas, logger) => {
-    const width = 960;
-    const height = 640;
+    const width = 640;
+    const height = 480;
     canvas.resize(width, height);
 
     const scene = new NaiveScene();

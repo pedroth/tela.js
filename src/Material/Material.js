@@ -7,7 +7,7 @@ export const MATERIALS = {
     Alpha:  Alpha,
     DiElectric: DiElectric
 }
-const MATERIAL_NAMES = Object.keys(MATERIALS).reduce((e,x) => ({[x]: x, ...e}), {});
+export const MATERIAL_NAMES = Object.keys(MATERIALS).reduce((e,x) => ({[x]: x, ...e}), {});
 
 export function Diffuse() {
     return {

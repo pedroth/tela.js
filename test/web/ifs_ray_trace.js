@@ -1,4 +1,5 @@
 /* eslint-disable no-undef */
+// AI gen example
 async (canvas) => {
     const width = 640/2;
     const height = 480/2;
@@ -15,7 +16,7 @@ async (canvas) => {
         name: "Ray Traced IFS",
         burnIn: 20,
         iterations: 9000,
-        pointRadius: 0.015,
+        pointRadius: 0.05,
         matrices: [
             [Vec3(0.5, 0, 0), Vec3(0, 0.5, 0), Vec3(0, 0, 0.5)],
             [Vec3(0.5, 0, 0), Vec3(0, 0.5, 0), Vec3(0, 0, 0.5)],
@@ -87,6 +88,18 @@ async (canvas) => {
             .name("floor-2")
             .colors(Color.RED, Color.RED, Color.RED)
             .positions(Vec3(5, 5, -5), Vec3(-5, 5, -5), Vec3(-5, -5, -5))
+            .build(),
+        Triangle.builder()
+            .name("wall-1")
+            .material(Metallic(0.01))
+            .colors(Color.GREY, Color.GREY, Color.GREY)
+            .positions(Vec3(-5, -5, -5), Vec3(5, -5, -5), Vec3(5, -5, 5))
+            .build(),
+        Triangle.builder()
+            .name("wall-2")
+            .material(Metallic(0.01))
+            .colors(Color.GREY, Color.GREY, Color.GREY)
+            .positions(Vec3(5, -5, 5), Vec3(-5, -5, 5), Vec3(-5, -5, -5))
             .build()
     );
 
@@ -125,6 +138,7 @@ async (canvas) => {
             bounces: 5,
             skyBoxPath: "/assets/sky.jpg",
             isBiased: false,
+            useCache: true
         }).to(exposedCanvas)).paint();
         logger.print(`fps: ${Math.floor(1 / dt)}`);
     }).play();

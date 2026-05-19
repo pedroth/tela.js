@@ -53,28 +53,6 @@ scene.add(
     .colors(Color.WHITE, Color.WHITE, Color.WHITE)
     .positions(Vec3(3, 3, 0), Vec3(0, 3, 0), Vec3())
     .build(),
-  Triangle.builder()
-    .name("top-1")
-    .colors(Color.WHITE, Color.WHITE, Color.WHITE)
-    .positions(Vec3(3, 3, 3), Vec3(3, 0, 3), Vec3(0, 0, 3))
-    .build(),
-  Triangle.builder()
-    .name("top-2")
-    .colors(Color.WHITE, Color.WHITE, Color.WHITE)
-    .positions(Vec3(0, 0, 3), Vec3(0, 3, 3), Vec3(3, 3, 3))
-    .build(),
-  Triangle.builder()
-    .name("light-1")
-    .colors(Color.WHITE, Color.WHITE, Color.WHITE)
-    .positions(Vec3(1, 1, 2.9), Vec3(2, 1, 2.9), Vec3(2, 2, 2.9))
-    .emissive(true)
-    .build(),
-  Triangle.builder()
-    .name("light-2")
-    .colors(Color.WHITE, Color.WHITE, Color.WHITE)
-    .positions(Vec3(2, 2, 2.9), Vec3(1, 2, 2.9), Vec3(1, 1, 2.9))
-    .emissive(true)
-    .build()
 );
 
 const lightDir = Vec3(0, 1, 1).normalize();
@@ -88,7 +66,7 @@ const shot = async (image) => {
         bounces: 10,
         gamma: 0.5,
         isBiased: false,
-        // skyBoxPath: "./assets/sky.jpg",
+        skyBoxPath: "./assets/sky.jpg",
         useMetro: true,
         useCache: true,
         lightDir,
@@ -120,7 +98,7 @@ const imageStream = new Stream(
 console.log(
   "Video created in: ",
   await measureTime(async () => {
-    await saveImageStreamToVideo("./bunny_glass.mp4", imageStream, {
+    await saveImageStreamToVideo("./bunny_glass_sky.mp4", imageStream, {
       fps: FPS,
     }).while(({ time }) => time < maxT);
   })

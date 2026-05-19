@@ -4,7 +4,9 @@ import { Vec3 } from "../Vector/Vector.js";
 import Ray from "../Ray/Ray.js";
 import { randomPointInSphere } from "../Utils/Math.js";
 import { getBiLinearTexColor, getDefaultTexColor, getTexColor } from "./common.js";
-import { Alpha } from "../Material/Material.js";
+import { MATERIAL_NAMES } from "../Material/Material.js";
+
+const MAX_COLOR_CLAMP = 3; // to prevent color overflow
 
 export function renderBackground(ray, backgroundImage) {
     const clampAcos = (x) => x > 1 ? 1 : x < -1 ? -1 : x;
@@ -56,11 +58,11 @@ export function rayTrace(ray, scene, params = {}) {
         const epsilon = randomPointInSphere(3).scale(variance);
         const epsilonOrtho = epsilon.sub(ray.dir.scale(epsilon.dot(ray.dir)));
         const r = Ray(ray.init, ray.dir.add(epsilonOrtho).normalize());
-        c = c.add(
-            useMetro ?
-                traceMetro(r, scene, { bounces, bilinearTexture, renderSkyBox, lightDir, lightSharpness, useCache }) :
-                trace(r, scene, { bounces, bilinearTexture, renderSkyBox, lightDir, lightSharpness, useCache })
-        );
+        let sampleColor = useMetro ?
+            traceMetro(r, scene, { bounces, bilinearTexture, renderSkyBox, lightDir, lightSharpness, useCache }) :
+            trace(r, scene, { bounces, bilinearTexture, renderSkyBox, lightDir, lightSharpness, useCache });
+        sampleColor = sampleColor.clamp(0, MAX_COLOR_CLAMP);
+        c = c.add(sampleColor);
     }
     return c.scale(invSamples).toGamma(gamma);
 }
@@ -72,15 +74,8 @@ function renderMissScene(ray, { renderSkyBox, lightDir, scene, lightSharpness = 
     const hit = scene.interceptWithRay(Ray(ray.init, lightDir));
     if (hit) return Color.lerp(skyColor, Color.BLACK, 0.5); // in shadow
 
-    // 1. Clamp to 0 so we don't get artifacts behind the camera
     const dot = Math.max(0, lightDir.dot(ray.dir));
-
-    // 2. Use a high exponent for the sharp sun disk
-    // At dot = 0, sunIntensity is 0. No "if" needed.
     const sunIntensity = Math.pow(dot, lightSharpness);
-
-    // 3. Smooth Interpolation (Lerp)
-    // Instead of adding and scaling by 0.5, we transition between the two.
     return Color.lerp(skyColor, Color.WHITE, sunIntensity);
 }
 
@@ -103,12 +98,15 @@ export function trace(ray, scene, options) {
         return albedo;
     }
     let scatterRay;
-    if(Math.random() < alpha) {
+    // for textures with alpha channel, we can consider them as alpha maps and do alpha testing
+    if (Math.random() < alpha) {
+        // treat as opaque (alpha > 0), scatter the ray according to the material
         albedo.alpha = 1;
         scatterRay = mat.scatter(ray, p, e);
     } else {
+        // treat as fully transparent (alpha = 0), no scattering, just trace the ray through the object
         albedo = Color.WHITE;
-        scatterRay = Ray(ray.trace(hitTime +  1e-2), ray.dir);
+        scatterRay = Ray(ray.trace(hitTime + 1e-2), ray.dir);
     }
     let scatterColor = trace(
         scatterRay,
@@ -117,7 +115,7 @@ export function trace(ray, scene, options) {
     );
     const attenuation = Math.abs(e.normalToPoint(p).dot(scatterRay.dir));
     const finalColor = albedo.mul(scatterColor).scale(attenuation)
-    if (useCache && mat?.type === "Diffuse") { cache.set(p, finalColor); }
+    if (useCache && mat?.type === MATERIAL_NAMES.Diffuse) { cache.set(p, finalColor); }
     return finalColor;
 }
 
@@ -131,17 +129,17 @@ export function traceFor(ray, scene, options) {
     for (let i = 0; i < bounces; i++) {
         const hit = scene.interceptWithRay(currentRay);
         if (!hit) return renderMissScene(currentRay, { renderSkyBox, lightDir, lightSharpness, scene });
-        
+
         const [, p, e] = hit;
         if (i === 0) {
             firstHit = p;
         }
         const mat = e.material;
-        if (useCache && mat?.type === "Diffuse") {
+        if (useCache && mat?.type === MATERIAL_NAMES.Diffuse) {
             const cachedColor = cache.get(p);
             if (cachedColor) { return cachedColor; }
         }
-        
+
         const albedo = getColorFromElement(e, currentRay, { bilinearTexture });
         if (e.emissive) {
             const attenuation = e.normalToPoint(p).dot(currentRay.dir);
@@ -165,14 +163,14 @@ export function traceMetro(ray, scene, options) {
     if (!hit) return renderMissScene(ray, { renderSkyBox, lightDir, lightSharpness, scene });
     const [, p, e] = hit;
     const mat = e.material;
-    if (useCache && mat?.type === "Diffuse") {
+    if (useCache && mat?.type === MATERIAL_NAMES.Diffuse) {
         const cachedColor = cache.get(p);
         if (cachedColor) { return cachedColor; }
     }
     const albedo = getColorFromElement(e, ray, { bilinearTexture });
     const isEmissive = e.emissive;
     if (isEmissive) {
-        if (useCache && mat?.type === "Diffuse") { cache.set(p, albedo); }
+        if (useCache && mat?.type === MATERIAL_NAMES.Diffuse) { cache.set(p, albedo); }
         return albedo;
     }
     // Metropolis sampling
@@ -196,7 +194,7 @@ export function traceMetro(ray, scene, options) {
     }
     const attenuation = Math.abs(e.normalToPoint(p).dot(scatterRay.dir));
     const finalColor = albedo.mul(scatterColor).scale(attenuation)
-    if (useCache && mat?.type === "Diffuse") { cache.set(p, finalColor); }
+    if (useCache && mat?.type === MATERIAL_NAMES.Diffuse) { cache.set(p, finalColor); }
     return finalColor;
 }
 
@@ -250,6 +248,7 @@ const lightColorCache = (gridSpace) => {
         return Math.abs(h);
     }
     ans.set = (p, c) => {
+        c = c.clamp(0, MAX_COLOR_CLAMP);
         const h = ans.hash(p);
         if (h in point2ColorMap) {
             point2Ite[h] = point2Ite[h] + 1;

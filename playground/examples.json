@@ -170,6 +170,11 @@
         "thumbnail": "playground/images/glass.png"
     },
     {
+        "title": "Ray Traced IFS",
+        "path": "/test/web/ifs_ray_trace.js",
+        "thumbnail": "playground/images/ifs_ray_trace.png"
+    },
+    {
         "title": "image to rgb space",
         "path": "/test/web/image2rgb.js",
         "thumbnail": "playground/images/image2rgb.png"
@@ -238,10 +243,5 @@
         "title": "debug perspective correct interpolation",
         "path": "/test/web/debug_perspective_interpolation.js",
         "thumbnail": "playground/images/debug_perspective_interpolation.png"
-    },
-    {
-        "title": "Ray Traced IFS",
-        "path": "/test/web/ifs_ray_trace.js",
-        "thumbnail": "playground/images/ifs_ray_trace.png"
     }
 ]

@@ -1,4 +1,5 @@
 /* eslint-disable no-undef */
+// AI gen example
 async (canvas) => {
     const width = 640 / 2;
     const height = 480 / 2;
