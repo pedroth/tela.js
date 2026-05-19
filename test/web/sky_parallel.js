@@ -120,6 +120,8 @@ async (canvas, logger) => {
         await loadMesh(Number(select.value));
     });
 
+    const lightDir = Vec3(0, 1, 1).normalize();
+    const lightSharpness = 200;
     loop(async ({ dt }) => {
         const image = await camera
             .parallelShot(
@@ -128,7 +130,11 @@ async (canvas, logger) => {
                     bounces: 10,
                     gamma: 0.5,
                     isBiased: false,
-                    skyBoxPath: "/assets/sky.jpg"
+                    useCache: false,
+                    useMetro: true,
+                    skyBoxPath: "/assets/sky.jpg",
+                    lightDir,
+                    lightSharpness
                 })
             .to(exposedCanvas);
         image.paint();

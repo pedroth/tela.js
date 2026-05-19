@@ -181,11 +181,20 @@ async (canvas, logger) => {
     });
 
     // boilerplate for fps
+    const lightDir = Vec3(1, 0, 1).normalize();
+    const lightSharpness = 200;
     loop(async ({ dt }) => {
         (await
             camera.parallelShot(
                 scene,
-                { isBiased: false, skyBoxPath: "/assets/sky.jpg" }
+                {
+                    isBiased: false,
+                    useCache: true, 
+                    useMetro: true,
+                    skyBoxPath: "/assets/sky.jpg",
+                    lightDir,
+                    lightSharpness
+                }
             ).to(exposedCanvas)
         ).paint();
         logger.print(`PRay, FPS: ${(1 / dt).toFixed(2)}`);

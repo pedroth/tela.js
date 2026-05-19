@@ -83,6 +83,18 @@ export default class Color {
     return Color.ofRGB(1 - this.red, 1 - this.green, 1 - this.blue);
   }
 
+  /**
+     * Clamp each color channel to [min, max]
+     */
+  clamp(min = 0, max = 1) {
+    return Color.ofRGB(
+      Math.max(min, Math.min(max, this.red)),
+      Math.max(min, Math.min(max, this.green)),
+      Math.max(min, Math.min(max, this.blue)),
+      Math.max(min, Math.min(max, this.alpha))
+    );
+  }
+
   static ofArray(arr) {
     if (arr.length < 3) {
       throw new Error("Array must have at least 3 elements");

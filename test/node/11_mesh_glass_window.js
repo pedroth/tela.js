@@ -144,16 +144,20 @@ window.onMouseWheel(({ deltaY }) => {
 
 
 let frames = 0
+const lightDir = Vec3(1, 0, 1).normalize();
+const lightSharpness = 200;
 loop(async ({ dt }) => {
   const image = await camera
     .parallelShot(scene, {
       bounces: 6,
       samplesPerPxl: 1,
       gamma: 0.5,
-      isBiased: true,
-      useCache: false,
+      isBiased: false,
+      useCache: true,
       useMetro: true,
       skyBoxPath: "./assets/sky.jpg",
+      lightDir,
+      lightSharpness,
     })
     .to(exposedWindow);
   image.paint();
