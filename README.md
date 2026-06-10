@@ -12,6 +12,8 @@ Playground usage:
 
 [![Playground](/tela_playground.webp)](https://pedroth.github.io/tela.js)
 
+> I made a port to C with some increased performance, here: https://github.com/pedroth/tela.c
+
 # Table of Contents
 
 - [Quick start](#quick-start)
