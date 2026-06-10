@@ -11,7 +11,7 @@
     "src/"
   ],
   "dependencies": {
-    "@kmamal/sdl": "^0.10.2"
+    "koffi": "^3.0.2"
   },
   "devDependencies": {
     "bun-types": "latest",
@@ -19,11 +19,9 @@
     "eslint": "^8.55.0"
   },
   "trustedDependencies": [
-    "@kmamal/sdl"
+    "koffi"
   ],
-  "peerDependencies": {
-    "@kmamal/sdl": "^0.10.2"
-  },
+  "peerDependencies": {},
   "bugs": {
     "url": "https://github.com/pedroth/tela.js/issues"
   },

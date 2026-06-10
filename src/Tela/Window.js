@@ -1,6 +1,6 @@
 import { CHANNELS, MAX_8BIT } from "../Utils/Constants.js";
 import { clamp } from "../Utils/Math.js";
-import sdl from "@kmamal/sdl";
+import sdl from "../SDL/index.js";
 import Tela from "./Tela.js";
 import { Buffer } from "node:buffer";
 
