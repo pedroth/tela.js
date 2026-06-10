@@ -10,7 +10,6 @@ import {
     Color,
 } from "../../src/index.node.js";
 
-import V2, { resetArena } from "../../src/Vector/VectorArena.js";
 
 const width = 640;
 const height = 640;
@@ -137,4 +136,3 @@ loop(async ({ dt, time }) => {
     camera.raster(scene).to(window).paint();
 }).play();
 
-setInterval(() => resetArena(), 2000);
