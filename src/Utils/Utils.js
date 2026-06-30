@@ -113,21 +113,28 @@ export class MyWorker {
                         console.log(`Caught error while import from ${SOURCE} web, trying CDN fallback`);
                         const response = await fetch(cdnUrl);
                         let workerCode = await response.text();
-
-                        // --- THE FIX: Rewrite relative imports to point to absolute CDN paths ---
+                        
+                        // AI hack
                         // Find the base directory of the current worker file on the CDN
                         const cdnDir = cdnUrl.substring(0, cdnUrl.lastIndexOf('/'));
 
-                        // This regex looks for: import ... from "./..." or "../..."
+                        // Helper function to resolve relative paths against the CDN directory
+                        const resolveToCdn = (relativePath) => {
+                            return new URL(relativePath, cdnDir + '/').href;
+                        };
+
+                        // 1. TRANSFORM STATIC IMPORTS: import ... from "./..."
                         workerCode = workerCode.replace(
                             /from\s+['"](\.\.?\/[^'"]+)['"]/g,
-                            (match, relativePath) => {
-                                // Resolve the relative path against the absolute CDN directory URL
-                                const absoluteUrl = new URL(relativePath, cdnDir + '/').href;
-                                return `from "${absoluteUrl}"`;
-                            }
+                            (match, relativePath) => `from "${resolveToCdn(relativePath)}"`
                         );
-                        // ----------------------------------------------------------------------
+
+                        // 2. TRANSFORM DYNAMIC IMPORTS: import("./...") or import("../...")
+                        workerCode = workerCode.replace(
+                            /import\s*\(\s*['"](\.\.?\/[^'"]+)['"]\s*\)/g,
+                            (match, relativePath) => `import("${resolveToCdn(relativePath)}")`
+                        );
+                        // end AI hack
 
                         const blob = new Blob([workerCode], { type: 'application/javascript' });
                         const blobUrl = URL.createObjectURL(blob);
