@@ -92,66 +92,42 @@ export function hashStr(string) {
 }
 
 const __Worker = IS_NODE ? (await import("node:worker_threads")).Worker : Worker;
-
 export class MyWorker {
     constructor(path) {
         const IS_GITHUB = typeof window !== "undefined" && (window.location.host || window.LOCATION_HOST) === "pedroth.github.io";
         const SOURCE = IS_GITHUB ? "/tela.js" : "";
-
-        if (IS_NODE) {
-            let workerPath = "/" + (import.meta.dirname).split('/').slice(1, -1).join('/');
-            if (workerPath === "/") workerPath = "\\" + (import.meta.dirname).split('\\').slice(1, -1).join('\\');
-            this.worker = new __Worker(`${workerPath}/${path}`, { type: "module" });
-        } else {
-            // Browser environment fallback chain
-            this.initBrowserWorker(path, SOURCE);
-        }
-    }
-
-    async initBrowserWorker(path, source) {
-        // Attempt 1: Try GitHub Pages / Local Base path
         try {
-            const path1 = `${source}/src/${path}`;
-            console.log("Tela.js: Trying Path 1 ->", path1);
-            this.worker = new __Worker(path1, { type: "module" });
-            this.setupBrowserErrorFallback(path);
-            return;
+            if (IS_NODE) {
+                let workerPath = "/" + (import.meta.dirname).split('/').slice(1, -1).join('/');
+                if (workerPath === "/") workerPath = "\\" + (import.meta.dirname).split('\\').slice(1, -1).join('\\')
+                this.worker = new __Worker(`${workerPath}/${path}`, { type: "module" });
+            } else {
+                console.log("Creating worker from", `${SOURCE}/src/${path}`);
+                const workerPath = `${SOURCE}/src/${path}`;
+                this.worker = new __Worker(`${workerPath}`, { type: "module" });
+                this.worker.onerror = () => {
+                    this.worker = new __Worker(`/node_modules/tela.js/src/${path}`, { type: "module" });
+                    console.log(`Caught error while import from ${SOURCE} web, trying node_modules`);
+                    this.worker.onerror = async () => {
+                        const cdnUrl = `https://cdn.jsdelivr.net/npm/tela.js/src/${path}`;
+                        console.log("Tela.js: Fetching Worker from CDN ->", cdnUrl);
+
+                        const response = await fetch(cdnUrl);
+                        const workerCode = await response.text();
+                        const blob = new Blob([workerCode], { type: 'application/javascript' });
+                        const blobUrl = URL.createObjectURL(blob);
+
+                        this.worker = new __Worker(blobUrl, { type: "module" });
+                        console.log(`Caught error while import from ${SOURCE} web, trying CDN`);
+                        this.worker.onerror = () => {
+                            console.error("Tela.js: Failed to load worker from CDN. Please check your internet connection or try again later.");
+                        }
+                    }
+                }
+            }
         } catch (e) {
-            console.warn("Tela.js: Path 1 failed, trying node_modules path.");
+            console.log("Caught error while importing worker", e);
         }
-
-        // Attempt 2: Try standard local node_modules path
-        try {
-            const path2 = `/node_modules/tela.js/src/${path}`;
-            console.log("Tela.js: Trying Path 2 ->", path2);
-            this.worker = new __Worker(path2, { type: "module" });
-            return;
-        } catch (e) {
-            console.warn("Tela.js: Path 2 failed, falling back to CDN via Blob fetch.");
-        }
-
-        // Attempt 3: CDN Fallback (Bypassing Same-Origin Policy via Blob)
-        try {
-            const cdnUrl = `https://cdn.jsdelivr.net/npm/tela.js/src/${path}`;
-            console.log("Tela.js: Fetching Worker from CDN ->", cdnUrl);
-
-            const response = await fetch(cdnUrl);
-            const workerCode = await response.text();
-            const blob = new Blob([workerCode], { type: 'application/javascript' });
-            const blobUrl = URL.createObjectURL(blob);
-
-            this.worker = new __Worker(blobUrl, { type: "module" });
-        } catch (finalError) {
-            console.error("Tela.js: All Worker initialization paths failed.", finalError);
-        }
-    }
-
-    // This handles runtime errors inside the worker, not initialization blocks
-    setupBrowserErrorFallback(path) {
-        if (!this.worker) return;
-        this.worker.onerror = (err) => {
-            console.error(`Tela.js: Runtime error inside worker (${path}):`, err.message);
-        };
     }
 
     onMessage(lambda) {
@@ -163,22 +139,11 @@ export class MyWorker {
                 this.worker.removeEventListener('message', this.__lambda);
             }
             this.__lambda = message => lambda(message.data);
-            // Quick check to ensure worker exists before binding if CDN fetch is still pending
-            if (this.worker) {
-                this.worker.addEventListener("message", this.__lambda);
-            } else {
-                // If worker is still loading asynchronously from CDN, retry shortly
-                setTimeout(() => this.onMessage(lambda), 50);
-            }
+            this.worker.addEventListener("message", this.__lambda);
         }
     }
 
     postMessage(message) {
-        if (!this.worker) {
-            // Queue messages if CDN is still asynchronously spinning up the worker
-            setTimeout(() => this.postMessage(message), 50);
-            return;
-        }
         return this.worker.postMessage(message);
     }
 }
