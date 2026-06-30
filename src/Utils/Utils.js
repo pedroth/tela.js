@@ -109,18 +109,34 @@ export class MyWorker {
                     this.worker = new __Worker(`/node_modules/tela.js/src/${path}`, { type: "module" });
                     console.log(`Caught error while import from ${SOURCE} web, trying node_modules`);
                     this.worker.onerror = async () => {
-                        const cdnUrl = `https://cdn.jsdelivr.net/npm/tela.js/src/${path}`;
-                        console.log("Tela.js: Fetching Worker from CDN ->", cdnUrl);
+                        this.worker.onerror = async () => {
+                            const cdnUrl = `https://cdn.jsdelivr.net/npm/tela.js/src/${path}`;
+                            console.log(`Caught error while import from ${SOURCE} web, trying CDN fallback`);
+                            const response = await fetch(cdnUrl);
+                            let workerCode = await response.text();
 
-                        const response = await fetch(cdnUrl);
-                        const workerCode = await response.text();
-                        const blob = new Blob([workerCode], { type: 'application/javascript' });
-                        const blobUrl = URL.createObjectURL(blob);
+                            // --- THE FIX: Rewrite relative imports to point to absolute CDN paths ---
+                            // Find the base directory of the current worker file on the CDN
+                            const cdnDir = cdnUrl.substring(0, cdnUrl.lastIndexOf('/'));
 
-                        this.worker = new __Worker(blobUrl, { type: "module" });
-                        console.log(`Caught error while import from ${SOURCE} web, trying CDN`);
-                        this.worker.onerror = () => {
-                            console.error("Tela.js: Failed to load worker from CDN. Please check your internet connection or try again later.");
+                            // This regex looks for: import ... from "./..." or "../..."
+                            workerCode = workerCode.replace(
+                                /from\s+['"](\.\.?\/[^'"]+)['"]/g,
+                                (match, relativePath) => {
+                                    // Resolve the relative path against the absolute CDN directory URL
+                                    const absoluteUrl = new URL(relativePath, cdnDir + '/').href;
+                                    return `from "${absoluteUrl}"`;
+                                }
+                            );
+                            // ----------------------------------------------------------------------
+
+                            const blob = new Blob([workerCode], { type: 'application/javascript' });
+                            const blobUrl = URL.createObjectURL(blob);
+
+                            this.worker = new __Worker(blobUrl, { type: "module" });
+                            this.worker.onerror = (err) => {
+                                console.error("Tela.js: Worker failed execution even with CDN fallback:", err.message);
+                            }
                         }
                     }
                 }
