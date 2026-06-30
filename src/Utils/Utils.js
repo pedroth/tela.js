@@ -102,11 +102,16 @@ export class MyWorker {
                 if (workerPath === "/") workerPath = "\\" + (import.meta.dirname).split('\\').slice(1, -1).join('\\')
                 this.worker = new __Worker(`${workerPath}/${path}`, { type: "module" });
             } else {
+                console.log("Creating worker from", `${SOURCE}/src/${path}`);
                 const workerPath = `${SOURCE}/src/${path}`;
                 this.worker = new __Worker(`${workerPath}`, { type: "module" });
                 this.worker.onerror = () => {
                     this.worker = new __Worker(`/node_modules/tela.js/src/${path}`, { type: "module" });
                     console.log(`Caught error while import from ${SOURCE} web, trying node_modules`);
+                    this.worker.onerror = () => {
+                        this.worker = new __Worker(`https://cdn.jsdelivr.net/npm/tela.js/src/${path}`, { type: "module" }); 
+                        console.log(`Caught error while import from ${SOURCE} web, trying CDN`);
+                    }
                 }
             }
         } catch (e) {
