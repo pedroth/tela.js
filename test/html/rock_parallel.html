@@ -75,49 +75,50 @@
 
     const hyperPlanes = [];
     for (let i = 0; i < 10; i++) {
-        const r = Vec.RANDOM(3).map(x => 2 * x - 1).normalize();
+        const r = Vec.RANDOM(3).map(x => 2 * x - 1).normalize().toArray();
         hyperPlanes.push({ a: r, n: r });
     }
     function halfPlaneSDF(p, a, n) {
-        return p.sub(a).dot(n);
+        return (p.x - a[0]) * n[0] + (p.y - a[1]) * n[1] + (p.z - a[2]) * n[2];
     }
-    function distanceFunction(p) {
-        if (hyperPlanes.length === 0) return 0;
-        let minD = halfPlaneSDF(p, hyperPlanes[0].a, hyperPlanes[0].n);
-        for (let i = 1; i < hyperPlanes.length; i++) {
-            const { a, n } = hyperPlanes[i];
+    function distanceFunction(p, hyperPlanesSerial) {
+        if (hyperPlanesSerial.length === 0) return 0;
+        let minD = halfPlaneSDF(p, hyperPlanesSerial[0].a, hyperPlanesSerial[0].n);
+        for (let i = 1; i < hyperPlanesSerial.length; i++) {
+            const { a, n } = hyperPlanesSerial[i];
             minD = softMax(minD, halfPlaneSDF(p, a, n));
         }
         return minD + fbm(p.scale(1/0.15)) * 0.07;
     }
 
-    function normalFunction(p) {
+    function normalFunction(p, hyperPlanesSerial) {
         const epsilon = 1e-6;
-        const f = distanceFunction(p);
+        const f = distanceFunction(p, hyperPlanesSerial);
         const n = Vec3(
-            distanceFunction(p.add(Vec3(epsilon, 0, 0))) - f,
-            distanceFunction(p.add(Vec3(0, epsilon, 0))) - f,
-            distanceFunction(p.add(Vec3(0, 0, epsilon))) - f,
+            distanceFunction(p.add(Vec3(epsilon, 0, 0)), hyperPlanesSerial) - f,
+            distanceFunction(p.add(Vec3(0, epsilon, 0)), hyperPlanesSerial) - f,
+            distanceFunction(p.add(Vec3(0, 0, epsilon)), hyperPlanesSerial) - f,
         );
         return n.normalize();
     }
 
-    const rayScene = (ray) => {
+    const rayScene = (ray, { lightPosSerial, hyperPlanesSerial }) => {
         const maxIte = 10;
         const maxDist = 10;
         const epsilon = 0.1;
 
+        const lightPos = Vec.fromArray(lightPosSerial);
         const { init } = ray;
         let p = init;
-        let t = distanceFunction(p);
+        let t = distanceFunction(p, hyperPlanesSerial);
         for (let i = 0; i < maxIte; i++) {
             p = ray.trace(t);
-            const d = distanceFunction(p);
+            const d = distanceFunction(p, hyperPlanesSerial);
             t += d;
             if (d < epsilon) {
                 const shade = Math.max(
                     0,
-                    normalFunction(p).dot(light.pos.sub(p).normalize())
+                    normalFunction(p, hyperPlanesSerial).dot(lightPos.sub(p).normalize())
                 );
                 return Color.ofRGB(shade, 0, 0);
             }
@@ -166,9 +167,19 @@
         const t = time;
         light.pos = Vec3(Math.cos(t), Math.sin(t), 1).scale(2);
         (
-            camera
-                .rayMap(rayScene)
-                .to(canvas)
+            await camera
+                .rayMapParallel(rayScene, [
+                    hash,
+                    frac,
+                    cnoise,
+                    mix,
+                    fbm,
+                    softMax,
+                    halfPlaneSDF,
+                    distanceFunction,
+                    normalFunction,
+                ])
+                .to(canvas, { lightPosSerial: light.pos.toArray(), hyperPlanesSerial: hyperPlanes })
         ).paint();
         document.title = `Inigo Iq - Tela Rock | FPS: ${Math.floor(1 / dt)}`;
     }).play();
