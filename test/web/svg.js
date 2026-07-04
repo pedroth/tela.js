@@ -71,7 +71,7 @@ async (canvas) => {
                 const winding = theta / (2 * Math.PI);
                 count += Math.round(winding);
             }
-            return count < 0;
+            return count !== 0;
         };
 
         canvas.fill(Color.BLACK);

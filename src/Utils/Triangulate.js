@@ -39,6 +39,16 @@ function createBoxHierarchy(boxes, paths) {
 function triangulateBoxTree(boxTree) {
     const triangles = [];
     let path = [...joinBoxTreePaths(boxTree)];
+
+    // Normalize to CW winding (algorithm requires it)
+    let area = 0;
+    for (let k = 0; k < path.length; k++) {
+        const a = path[k];
+        const b = path[(k + 1) % path.length];
+        area += a.x * b.y - b.x * a.y;
+    }
+    if (area > 0) path.reverse(); // CCW → CW
+
     let i = 0;
     let samePath = 1e6;
     while (path.length > 3 && samePath > 0) {

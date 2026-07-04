@@ -458,6 +458,53 @@ function eatWhile(predicate) {
  *                                                                                      */
 //========================================================================================
 
+// AI Gen
+function arcToPoints(x1, y1, rx, ry, phi, fA, fS, x2, y2, samples = 30) {
+    if (x1 === x2 && y1 === y2) return [];
+    if (rx === 0 || ry === 0) return [Vec2(x2, y2)];
+    rx = Math.abs(rx);
+    ry = Math.abs(ry);
+    const phiRad = (phi * Math.PI) / 180;
+    const cosPhi = Math.cos(phiRad);
+    const sinPhi = Math.sin(phiRad);
+    const dx = (x1 - x2) / 2;
+    const dy = (y1 - y2) / 2;
+    const x1p = cosPhi * dx + sinPhi * dy;
+    const y1p = -sinPhi * dx + cosPhi * dy;
+    let rx2 = rx * rx;
+    let ry2 = ry * ry;
+    const x1p2 = x1p * x1p;
+    const y1p2 = y1p * y1p;
+    const radiiScale = x1p2 / rx2 + y1p2 / ry2;
+    if (radiiScale > 1) {
+        const s = Math.sqrt(radiiScale);
+        rx *= s; ry *= s;
+        rx2 = rx * rx; ry2 = ry * ry;
+    }
+    const sign = (fA !== fS) ? 1 : -1;
+    const sq = sign * Math.sqrt(Math.max(0, (rx2 * ry2 - rx2 * y1p2 - ry2 * x1p2) / (rx2 * y1p2 + ry2 * x1p2)));
+    const cxp = sq * rx * y1p / ry;
+    const cyp = -sq * ry * x1p / rx;
+    const cx = cosPhi * cxp - sinPhi * cyp + (x1 + x2) / 2;
+    const cy = sinPhi * cxp + cosPhi * cyp + (y1 + y2) / 2;
+    const ux = (x1p - cxp) / rx;
+    const uy = (y1p - cyp) / ry;
+    const vx = (-x1p - cxp) / rx;
+    const vy = (-y1p - cyp) / ry;
+    const theta1 = Math.atan2(uy, ux);
+    let dtheta = Math.atan2(vy, vx) - theta1;
+    if (!fS && dtheta > 0) dtheta -= 2 * Math.PI;
+    if (fS && dtheta < 0) dtheta += 2 * Math.PI;
+    const points = [];
+    for (let i = 0; i < samples; i++) {
+        const t = i / (samples - 1);
+        const theta = theta1 + t * dtheta;
+        const x = cosPhi * rx * Math.cos(theta) - sinPhi * ry * Math.sin(theta) + cx;
+        const y = sinPhi * rx * Math.cos(theta) + cosPhi * ry * Math.sin(theta) + cy;
+        points.push(Vec2(x, y));
+    }
+    return points;
+}
 
 function addFirstPointIfNeeded(currentPos, path, keyPointPath) {
     if (keyPointPath.length === 0) {
@@ -687,6 +734,30 @@ function readPath(svg, tagNode) {
                 currentPos = path.at(-1);
             }
         },
+        "A": (_, numbers) => {
+            for (let j = 0; j < numbers.length; j += 7) {
+                const [rx, ry, phi, fA, fS, x2, y2] = numbers.slice(j, j + 7);
+                const points = arcToPoints(currentPos.x, currentPos.y, rx, ry, phi, fA, fS, x2, y2, samples);
+                for (const p of points) {
+                    path.push(p);
+                    keyPointPath.push(p);
+                }
+                if (points.length > 0) currentPos = path.at(-1);
+            }
+        },
+        "a": (_, numbers) => {
+            for (let j = 0; j < numbers.length; j += 7) {
+                const [rx, ry, phi, fA, fS, dx, dy] = numbers.slice(j, j + 7);
+                const x2 = currentPos.x + dx;
+                const y2 = currentPos.y + dy;
+                const points = arcToPoints(currentPos.x, currentPos.y, rx, ry, phi, fA, fS, x2, y2, samples);
+                for (const p of points) {
+                    path.push(p);
+                    keyPointPath.push(p);
+                }
+                if (points.length > 0) currentPos = path.at(-1);
+            }
+        },
         "Z": () => {
             if (keyPointPath.length === 0) return;
             path.push(keyPointPath[0]);
@@ -709,6 +780,9 @@ function readPath(svg, tagNode) {
         .map(({ letter, numbers }) => {
             const vectors = [];
             const l = letter.toLowerCase();
+            if (l === "a") {
+                return { letter, vectors, numbers };
+            }
             if (l === "v" || l === "h") {
                 for (let i = 0; i < numbers.length; i += 1) {
                     if (l === "v") vectors.push(Vec2(0, numbers[i]));
@@ -721,8 +795,8 @@ function readPath(svg, tagNode) {
             }
             return { letter, vectors };
         })
-    vectorizedActions.forEach(({ letter, vectors }) => {
-        return (letter2action?.[letter] ?? (() => { }))(vectors);
+    vectorizedActions.forEach(({ letter, vectors, numbers }) => {
+        return (letter2action?.[letter] ?? (() => { }))(vectors, numbers);
     });
     if (path.length > 0) {
         if (!svg.defPaths[id]) {

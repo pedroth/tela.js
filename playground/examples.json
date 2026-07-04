@@ -190,6 +190,11 @@
         "thumbnail": "playground/images/svg.png"
     },
     {
+        "title": "rendering svg with camera",
+        "path": "/test/web/svg_2.js",
+        "thumbnail": "playground/images/svg_2.png"
+    },
+    {
         "title": "volumetric sin wave",
         "path": "/test/web/volumetric_parallel.js",
         "thumbnail": "playground/images/volumetric_parallel.png"
