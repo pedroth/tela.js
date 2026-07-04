@@ -1,22 +1,12 @@
-<!DOCTYPE html>
-<html lang="en">
-
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Inigo Iq - Tela Rock</title>
-</head>
-
-<body style="display: flex; margin-left: auto;margin-right: auto;max-width: 1080px">
-
-</body>
-<script type="module">
+/* eslint-disable no-undef */
+async (canvas, logger) => {
     // Inspired by https://youtu.be/6Qb6QtC6QMs?si=DRkw9tmLYMkKEzmE
-    import { Canvas, Color, Camera, Vec2, Vec3, Vec, loop } from "https://cdn.jsdelivr.net/npm/tela.js@1.2.40/src/index.js";
     // resize incoming canvas:Canvas object.
-    const width = 640/3;
-    const height = 480/3;
-    const canvas = Canvas.ofSize(width, height);
+    const width = 640 / 3;
+    const height = 480 / 3;
+
+    canvas.resize(width, height);
+
     // scene
     const camera = new Camera().orbit(10, 0, 0);
     const light = { pos: Vec3(100, 0, 0) };
@@ -88,7 +78,7 @@
             const { a, n } = hyperPlanesSerial[i];
             minD = softMax(minD, halfPlaneSDF(p, a, n));
         }
-        return minD + fbm(p.scale(1/0.15)) * 0.07;
+        return minD + fbm(p.scale(1 / 0.15)) * 0.07;
     }
 
     function normalFunction(p, hyperPlanesSerial) {
@@ -103,7 +93,7 @@
     }
 
     const rayScene = (ray, { lightPosSerial, hyperPlanesSerial }) => {
-        const maxIte = 10;
+        const maxIte = 20;
         const maxDist = 10;
         const epsilon = 0.1;
 
@@ -181,10 +171,6 @@
                 ])
                 .to(canvas, { lightPosSerial: light.pos.toArray(), hyperPlanesSerial: hyperPlanes })
         ).paint();
-        document.title = `Inigo Iq - Tela Rock | FPS: ${Math.floor(1 / dt)}`;
+        logger.print(`Inigo Iq - Tela Rock | FPS: ${Math.floor(1 / dt)}`);
     }).play();
-    canvas.DOM.style = "flex:1;"
-    document.body.appendChild(canvas.DOM);
-</script>
-
-</html>
+}

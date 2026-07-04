@@ -125,6 +125,11 @@
         "thumbnail": "playground/images/signed_bunny.png"
     },
     {
+        "title": "Rock SDF",
+        "path": "/test/web/signed_rock.js",
+        "thumbnail": "playground/images/signed_rock.png"
+    },
+    {
         "title": "SDF editor",
         "path": "/test/web/sdf_editor.js",
         "thumbnail": "playground/images/sdf_editor.png"
