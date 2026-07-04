@@ -646,7 +646,7 @@ function readPath(svg, tagNode) {
         "S": (vecs) => {
             const prevKeyPoint = keyPointPath.at(-2) ? keyPointPath.at(-2) : keyPointPath.at(-1);
             const control = currentPos.scale(2).sub(prevKeyPoint); // reflection bla bla
-            for (let j = 0; j < vecs.length; j += 3) {
+            for (let j = 0; j < vecs.length; j += 2) {
                 const cb = cBezier(
                     currentPos,
                     control,
@@ -668,7 +668,7 @@ function readPath(svg, tagNode) {
         "s": (vecs) => {
             const prevKeyPoint = keyPointPath.at(-2) ? keyPointPath.at(-2) : keyPointPath.at(-1);
             const control = currentPos.scale(2).sub(prevKeyPoint); // reflection bla bla
-            for (let j = 0; j < vecs.length; j += 3) {
+            for (let j = 0; j < vecs.length; j += 2) {
                 const cb = cBezier(
                     currentPos,
                     control,
@@ -952,23 +952,43 @@ function or(...rules) {
     throw accError;
 }
 
-function stream(stringOrArray) {
-    // copy array or string to array
-    const array = [...stringOrArray];
-    return {
-        head: () => array[0],
-        tail: () => stream(array.slice(1)),
-        take: (n) => stream(array.slice(n)),
-        isEmpty: () => array.length === 0,
-        toString: () =>
-            array.map(s => (typeof s === "string" ? s : JSON.stringify(s))).join(""),
-        filter: predicate => stream(array.filter(predicate)),
-        log: () => {
-            let s = stream(array);
-            while (!s.isEmpty()) {
-                console.log(s.head());
-                s = s.tail();
+function stream(stringOrArray, index = 0) {
+    const array = stringOrArray;
+    const size = array.length;
+    const ans = {};
+    ans.head = () => array[index];
+    ans.tail = () => stream(array, index + 1);
+    ans.take = (n) => stream(array, index + n);
+    ans.isEmpty = () => index >= size;
+    ans.toString = () => {
+        const acc = [];
+        for (let i = index; i < size; i++) {
+            const s = array[i];
+            acc.push(typeof s === "string" ? s : JSON.stringify(s));
+        }
+        return acc.join("");
+    };
+    ans.filter = predicate => {
+        const acc = [];
+        for (let i = index; i < size; i++) {
+            if (predicate(array[i])) {
+                acc.push(array[i]);
             }
         }
+        return stream(acc);
     };
+    ans.map = (lambda) => {
+        const acc = [];
+        for (let i = index; i < size; i++) {
+            acc.push(lambda(array[i]));
+        }
+        return acc;
+    };
+    ans.array = () => array.slice(index);
+    ans.log = () => {
+        for (let i = index; i < size; i++) {
+            console.log(array[i]);
+        }
+    }
+    return ans;
 }
