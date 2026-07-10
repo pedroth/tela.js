@@ -133,6 +133,10 @@ export default class Camera {
     }
   }
 
+  raster(scene, params) {
+    return this.reverseShot(scene, params);
+  }
+
   sdfShot(scene) {
     return this.rayMap(sdfTrace(scene));
   }

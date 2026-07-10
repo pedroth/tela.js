@@ -1,5 +1,5 @@
 
-import Vec from "../Vector/Vector.js";
+import { Vec3 } from "../Vector/Vector.js";
 import { argmin, hashStr } from "../Utils/Utils.js";
 import { smin } from "../Utils/Math.js";
 
@@ -10,7 +10,7 @@ export default class NaiveScene {
   }
 
   get(id) {
-    return this.id2ElemMap(id);
+    return this.id2ElemMap[id];
   }
 
   getHash() {
@@ -64,13 +64,16 @@ export default class NaiveScene {
 
   normalToPoint(p) {
     const epsilon = 1e-3;
-    const n = p.dim;
-    const grad = [];
-    const d = this.distanceToPoint(p, smin);
-    for (let i = 0; i < n; i++) {
-      grad.push(this.distanceToPoint(p.add(Vec.e(n)(i).scale(epsilon)), smin) - d);
-    }
-    return Vec.fromArray(grad).scale(Math.sign(d)).normalize();
+    const k0 = Vec3( 1, -1, -1);
+    const k1 = Vec3(-1, -1,  1);
+    const k2 = Vec3(-1,  1, -1);
+    const k3 = Vec3( 1,  1,  1);
+    const f = q => this.distanceToPoint(q, smin);
+    return k0.scale(f(p.add(k0.scale(epsilon))))
+      .add(k1.scale(f(p.add(k1.scale(epsilon)))))
+      .add(k2.scale(f(p.add(k2.scale(epsilon)))))
+      .add(k3.scale(f(p.add(k3.scale(epsilon)))))
+      .normalize();
   }
 
   interceptWithRay(ray) {

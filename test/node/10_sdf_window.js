@@ -41,6 +41,7 @@ function torusSdf(r, R) {
 function smin(a, b, k = 32) {
   const res = Math.exp(-k * a) + Math.exp(-k * b);
   return -Math.log(res) / k;
+  // return Math.min(a, b);
 }
 
 function normalFunction(F, p) {
@@ -64,16 +65,16 @@ const rayScene = (ray, { scene, time }) => {
   const torusDist = torusSdf(0.75, 0.25);
   for (let i = 0; i < maxIte; i++) {
     p = ray.trace(t);
-    const tau = ((Math.sin(2 * Math.PI * 0.25 * (time - 1)) + 1) / 2);
+    const tau = 0//((Math.sin(2 * Math.PI * 0.25 * (time - 1)) + 1) / 2);
     const torusD = torusDist(p);
-    const sceneDist = scene.distanceOnRay(Ray(p, ray.dir), smin);
+    const sceneDist = scene.distanceOnRay(Ray(p, ray.dir), smin)-0.01;
     const d = tau * torusD + (1 - tau) * sceneDist;
     t += d;
     if (d < epsilon) {
       const normal = normalFunction(torusDist, p).scale(tau).add(scene.normalToPoint(p).scale(1 - tau)).normalize();
       return Color.ofRGB(...normal.map(x => (x + 1) / 2).toArray());
     }
-    if (d > maxDist) return Color.ofRGB(0, 0, 0);
+    if (t > maxDist) return Color.ofRGB(0, 0, i / maxIte);
   }
   return Color.BLACK;
 };
