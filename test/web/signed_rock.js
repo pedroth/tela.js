@@ -92,7 +92,10 @@ async (canvas, logger) => {
         return n.normalize();
     }
 
-    const rayScene = (ray, { lightPosSerial, hyperPlanesSerial }) => {
+    const rayScene = async (ray, { lightPosSerial, hyperPlanesSerial, skyBoxPath, _memory_ }) => {
+        if (!_memory_._skyBox && skyBoxPath) {
+            _memory_._skyBox = await Canvas.ofUrl(skyBoxPath);
+        }
         const maxIte = 20;
         const maxDist = 10;
         const epsilon = 0.1;
@@ -112,8 +115,16 @@ async (canvas, logger) => {
                 );
                 return Color.ofRGB(shade, 0, 0);
             }
-            if (t > maxDist) return Color.ofRGB(0, 0, i / maxIte);
+            if (t > maxDist) {
+                const blue = i / maxIte;
+                if (_memory_._skyBox) {
+                    const color = renderBackground(ray, _memory_._skyBox);
+                    return Color.ofRGB(color.red, color.green, (color.blue + blue) * 0.5);
+                }
+                return Color.ofRGB(0, 0, blue);
+            }
         }
+        if (_memory_._skyBox) return renderBackground(ray, _memory_._skyBox);
         return Color.BLACK;
     };
 
@@ -169,7 +180,7 @@ async (canvas, logger) => {
                     distanceFunction,
                     normalFunction,
                 ])
-                .to(canvas, { lightPosSerial: light.pos.toArray(), hyperPlanesSerial: hyperPlanes })
+                .to(canvas, { lightPosSerial: light.pos.toArray(), hyperPlanesSerial: hyperPlanes, skyBoxPath: "/assets/sky.jpg" })
         ).paint();
         logger.print(`Inigo Iq - Tela Rock | FPS: ${Math.floor(1 / dt)}`);
     }).play();
