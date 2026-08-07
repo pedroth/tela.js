@@ -60,6 +60,11 @@
         "thumbnail": "playground/images/soft_body.png"
     },
     {
+        "title": "Area Maximization with length constraint",
+        "path": "/test/web/curvature_flow.js",
+        "thumbnail": "playground/images/curvature_flow.png"
+    },
+    {
         "title": "Elements",
         "path": "/test/web/elements.js",
         "thumbnail": "playground/images/elements.png"

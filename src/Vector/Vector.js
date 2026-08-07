@@ -7,7 +7,7 @@
 /** Dense Vector data structure
  *
  * Immutable class, not managing exceptions
- * For is faster than reduce, forEach, maps, perf here: https://replit.com/@pedroth/forVsForEach#index.js
+ * For is faster than reduce, forEach, maps, etc. because of lambda overhead
  * Didn't use private vars because of performance
  */
 export default class Vec {
@@ -46,23 +46,30 @@ export default class Vec {
   }
 
   add(u) {
-    return this.op(u, (a, b) => a + b);
+    const ans = BUILD_VEC(this._n);
+    for (let i = 0; i < this._n; i++) ans[i] = this._vec[i] + u._vec[i];
+    return new Vec(ans);
   }
 
   sub(u) {
-    return this.op(u, (a, b) => a - b);
+    const ans = BUILD_VEC(this._n);
+    for (let i = 0; i < this._n; i++) ans[i] = this._vec[i] - u._vec[i];
+    return new Vec(ans);
   }
 
   mul(u) {
-    return this.op(u, (a, b) => a * b);
+    const ans = BUILD_VEC(this._n);
+    for (let i = 0; i < this._n; i++) ans[i] = this._vec[i] * u._vec[i];
+    return new Vec(ans);
   }
 
   div(u) {
-    return this.op(u, (a, b) => a / b);
+    const ans = BUILD_VEC(this._n);
+    for (let i = 0; i < this._n; i++) ans[i] = this._vec[i] / u._vec[i];
+    return new Vec(ans);
   }
 
   dot(u) {
-    // didn't use reduce because this is faster
     let acc = 0;
     for (let i = 0; i < this._n; i++) {
       acc += this._vec[i] * u._vec[i];
@@ -71,11 +78,15 @@ export default class Vec {
   }
 
   squareLength() {
-    return this.dot(this);
+    let acc = 0;
+    for (let i = 0; i < this._n; i++) {
+      acc += this._vec[i] * this._vec[i];
+    }
+    return acc;
   }
 
   length() {
-    return Math.sqrt(this.dot(this));
+    return Math.sqrt(this.squareLength());
   }
 
   normalize() {
@@ -83,7 +94,9 @@ export default class Vec {
   }
 
   scale(r) {
-    return this.map((z) => z * r);
+    const ans = BUILD_VEC(this._n);
+    for (let i = 0; i < this._n; i++) ans[i] = this._vec[i] * r;
+    return new Vec(ans);
   }
 
   map(lambda) {
@@ -95,7 +108,6 @@ export default class Vec {
   }
 
   /**
-   *
    * @param {*} u: Vec
    * @param {*} operation: (a,b) => op(a,b)
    */
@@ -115,12 +127,23 @@ export default class Vec {
     return acc;
   }
 
-  fold = this.reduce;
-  foldLeft = this.fold;
+  fold(f, init = 0) {
+    return this.reduce(f, init);
+  }
+  
+  foldLeft(f, init = 0) {
+    return this.reduce(f, init);
+  }
 
+  // Optimized to avoid instantiating new vectors and doing square roots
   equals(u, precision = 1e-5) {
-    if (!(u instanceof Vec)) return false;
-    return this.sub(u).length() < precision;
+    if (!(u instanceof Vec) || this._n !== u._n) return false;
+    let distSq = 0;
+    for (let i = 0; i < this._n; i++) {
+      const d = this._vec[i] - u._vec[i];
+      distSq += d * d;
+    }
+    return distSq < (precision * precision);
   }
 
   take(n = 0, m = this._vec.length) {
@@ -152,7 +175,9 @@ export default class Vec {
   static ONES = (n) => {
     if (n === 2) return Vector2.ONES;
     if (n === 3) return Vector3.ONES;
-    return Vec.ZERO(n).map(() => 1);
+    const v = BUILD_VEC(n);
+    for (let i = 0; i < n; i++) v[i] = 1;
+    return new Vec(v);
   };
 
   static e = (n) => (i) => {
@@ -177,7 +202,8 @@ export default class Vec {
 }
 
 export const BUILD_VEC = (n) => new Float64Array(n);
-export const COPY_VEC = (array) => Float64Array.from(array);
+// Native slice is significantly faster than Float64Array.from
+export const COPY_VEC = (array) => new Float64Array(array);
 export class VectorException extends Error { }
 
 export function Vec3(x = 0, y = 0, z = 0) { return new Vector3(x, y, z); }
@@ -190,16 +216,11 @@ export class Vector3 {
     this.z = z;
   }
 
-  get n() {
-    return 3;
-  }
+  get n() { return 3; }
+  get dim() { return 3; }
 
-  get dim() {
-    return 3;
-  }
-
-  size = () => 3;
-  shape = () => [3];
+  size() { return 3; }
+  shape() { return [3]; }
 
   clone() {
     return new Vector3(this.x, this.y, this.z);
@@ -207,7 +228,7 @@ export class Vector3 {
 
   /**index starts at zero */
   get(i) {
-    return [this.x, this.y, this.z][i]
+    return i === 0 ? this.x : i === 1 ? this.y : this.z;
   }
 
   toArray() {
@@ -215,47 +236,37 @@ export class Vector3 {
   }
 
   toString() {
-    return "[" + this.toArray().join(", ") + "]";
+    return "[" + this.x + ", " + this.y + ", " + this.z + "]";
   }
 
   serialize() {
-    return this.toArray().join(", ");
+    return this.x + ", " + this.y + ", " + this.z;
   }
 
-  add(u) {
-    return this.op(u, (a, b) => a + b);
-  }
-
-  sub(u) {
-    return this.op(u, (a, b) => a - b);
-  }
-
-  mul(u) {
-    return this.op(u, (a, b) => a * b);
-  }
-
-  div(u) {
-    return this.op(u, (a, b) => a / b);
-  }
+  add(u) { return new Vector3(this.x + u.x, this.y + u.y, this.z + u.z); }
+  sub(u) { return new Vector3(this.x - u.x, this.y - u.y, this.z - u.z); }
+  mul(u) { return new Vector3(this.x * u.x, this.y * u.y, this.z * u.z); }
+  div(u) { return new Vector3(this.x / u.x, this.y / u.y, this.z / u.z); }
 
   dot(u) {
     return this.x * u.x + this.y * u.y + this.z * u.z;
   }
 
   squareLength() {
-    return this.dot(this);
+    return this.x * this.x + this.y * this.y + this.z * this.z;
   }
 
   length() {
-    return Math.sqrt(this.dot(this));
+    return Math.sqrt(this.squareLength());
   }
 
   normalize() {
-    return this.scale(1 / this.length());
+    const len = this.length();
+    return new Vector3(this.x / len, this.y / len, this.z / len);
   }
 
   scale(r) {
-    return this.map((z) => z * r);
+    return new Vector3(this.x * r, this.y * r, this.z * r);
   }
 
   map(lambda) {
@@ -263,19 +274,13 @@ export class Vector3 {
   }
 
   cross(v) {
-    const u = this;
-    return Vec3(
-      u.y * v.z - u.z * v.y,
-      u.z * v.x - u.x * v.z,
-      u.x * v.y - u.y * v.x
-    )
+    return new Vector3(
+      this.y * v.z - this.z * v.y,
+      this.z * v.x - this.x * v.z,
+      this.x * v.y - this.y * v.x
+    );
   }
 
-  /**
-   *
-   * @param {*} y: Vec
-   * @param {*} operation: (a,b) => op(a,b)
-   */
   op(u, operation) {
     return new Vector3(
       operation(this.x, u.x),
@@ -292,12 +297,21 @@ export class Vector3 {
     return acc;
   }
 
-  fold = this.reduce;
-  foldLeft = this.fold;
+  fold(f, init = 0) {
+    return this.reduce(f, init);
+  }
+  
+  foldLeft(f, init = 0) {
+    return this.reduce(f, init);
+  }
 
+  // Optimized distance calculation
   equals(u, precision = 1e-5) {
     if (!(u instanceof Vector3)) return false;
-    return this.sub(u).length() < precision;
+    const dx = this.x - u.x;
+    const dy = this.y - u.y;
+    const dz = this.z - u.z;
+    return (dx * dx + dy * dy + dz * dz) < (precision * precision);
   }
 
   take(n = 0, m = 3) {
@@ -313,18 +327,18 @@ export class Vector3 {
   }
 
   static fromArray(array) {
-    return new Vector3(...array);
+    return new Vector3(array[0], array[1], array[2]);
   }
 
   static of(...values) {
-    return new Vector3(...values);
+    return new Vector3(values[0], values[1], values[2]);
   }
 
   static e = (i) => {
     if (i === 0) return new Vector3(1, 0, 0);
     if (i === 1) return new Vector3(0, 1, 0);
     if (i === 2) return new Vector3(0, 0, 1);
-    return new Vec3();
+    return new Vector3();
   };
 
   static RANDOM = () => {
@@ -340,16 +354,11 @@ export class Vector2 {
     this.y = y;
   }
 
-  get n() {
-    return 2;
-  }
+  get n() { return 2; }
+  get dim() { return 2; }
 
-  get dim() {
-    return 2;
-  }
-
-  size = () => 2;
-  shape = () => [2];
+  size() { return 2; }
+  shape() { return [2]; }
 
   clone() {
     return new Vector2(this.x, this.y);
@@ -357,7 +366,7 @@ export class Vector2 {
 
   /**index starts at zero */
   get(i) {
-    return [this.x, this.y][i]
+    return i === 0 ? this.x : this.y;
   }
 
   toArray() {
@@ -365,47 +374,37 @@ export class Vector2 {
   }
 
   toString() {
-    return "[" + this.toArray().join(", ") + "]";
+    return "[" + this.x + ", " + this.y + "]";
   }
 
   serialize() {
-    return this.toArray().join(", ");
+    return this.x + ", " + this.y;
   }
 
-  add(u) {
-    return this.op(u, (a, b) => a + b);
-  }
-
-  sub(u) {
-    return this.op(u, (a, b) => a - b);
-  }
-
-  mul(u) {
-    return this.op(u, (a, b) => a * b);
-  }
-
-  div(u) {
-    return this.op(u, (a, b) => a / b);
-  }
+  add(u) { return new Vector2(this.x + u.x, this.y + u.y); }
+  sub(u) { return new Vector2(this.x - u.x, this.y - u.y); }
+  mul(u) { return new Vector2(this.x * u.x, this.y * u.y); }
+  div(u) { return new Vector2(this.x / u.x, this.y / u.y); }
 
   dot(u) {
     return this.x * u.x + this.y * u.y;
   }
 
   squareLength() {
-    return this.dot(this);
+    return this.x * this.x + this.y * this.y;
   }
 
   length() {
-    return Math.sqrt(this.dot(this));
+    return Math.sqrt(this.squareLength());
   }
 
   normalize() {
-    return this.scale(1 / this.length());
+    const len = this.length();
+    return new Vector2(this.x / len, this.y / len);
   }
 
   scale(r) {
-    return this.map((z) => z * r);
+    return new Vector2(this.x * r, this.y * r);
   }
 
   map(lambda) {
@@ -413,15 +412,9 @@ export class Vector2 {
   }
 
   cross(v) {
-    const u = this;
-    return u.x * v.y - u.y * v.x;
+    return this.x * v.y - this.y * v.x;
   }
 
-  /**
-   *
-   * @param {*} y: Vec
-   * @param {*} operation: (a,b) => op(a,b)
-   */
   op(u, operation) {
     return new Vector2(operation(this.x, u.x), operation(this.y, u.y));
   }
@@ -433,12 +426,20 @@ export class Vector2 {
     return acc;
   }
 
-  fold = this.reduce;
-  foldLeft = this.fold;
+  fold(f, init = 0) {
+    return this.reduce(f, init);
+  }
+  
+  foldLeft(f, init = 0) {
+    return this.reduce(f, init);
+  }
 
+  // Optimized distance calculation
   equals(u, precision = 1e-5) {
     if (!(u instanceof Vector2)) return false;
-    return this.sub(u).length() < precision;
+    const dx = this.x - u.x;
+    const dy = this.y - u.y;
+    return (dx * dx + dy * dy) < (precision * precision);
   }
 
   take(n = 0, m = 2) {
@@ -453,11 +454,11 @@ export class Vector2 {
   }
 
   static fromArray(array) {
-    return new Vector2(...array);
+    return new Vector2(array[0], array[1]);
   }
 
   static of(...values) {
-    return new Vector2(...values);
+    return new Vector2(values[0], values[1]);
   }
 
   static e = (i) => {
