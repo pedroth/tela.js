@@ -165,6 +165,11 @@
         "thumbnail": "playground/images/sky_parallel.png"
     },
     {
+        "title": "Sky Stickman",
+        "path": "/test/web/stickman.js",
+        "thumbnail": "playground/images/stickman.png"
+    },
+    {
         "title": "Megaman sky",
         "path": "/test/web/megaman_sky.js",
         "thumbnail": "playground/images/megaman_sky.png"

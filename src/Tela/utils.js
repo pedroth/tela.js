@@ -8,10 +8,11 @@ const TelaClass = await (async () => {
 
 export async function deserialize(telaJson, artifacts) {
     if (!telaJson) return;
-    const { url } = telaJson;
+    const { url, alphaKey } = telaJson;
     if (!url) return;
     if (url in artifacts) return artifacts[url];
     const tela = await TelaClass.ofUrl(url);
+    tela.alphaKey = alphaKey;
     artifacts[url] = tela;
     return tela;
 }

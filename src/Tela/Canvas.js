@@ -88,7 +88,7 @@ export default class Canvas extends Tela {
   }
 
   serialize() {
-    return { type: Canvas.name, url: this.url }
+    return { type: Canvas.name, url: this.url, alphaKey: this.alphaKey }
   }
 
   //========================================================================================

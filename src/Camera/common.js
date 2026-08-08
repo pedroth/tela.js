@@ -2,6 +2,22 @@ import Color from "../Color/Color.js";
 import { lerp } from "../Utils/Math.js";
 import { Vec2 } from "../Vector/Vector.js";
 
+function applyTextureAlphaKey(color, texture) {
+    const alphaKey = texture?.alphaKey;
+    if (!alphaKey) return color;
+    const [red, green, blue] = alphaKey.color;
+    const threshold = alphaKey.threshold ?? 0;
+    const distance = Math.max(
+        Math.abs(color.red - red),
+        Math.abs(color.green - green),
+        Math.abs(color.blue - blue)
+    );
+    if (distance <= threshold) {
+        return Color.ofRGB(color.red, color.green, color.blue, 0);
+    }
+    return color;
+}
+
 export function getDefaultTexColor(texUV) {
     texUV = texUV.scale(16).map(x => x % 1)
     return texUV.x < 0.5 && texUV.y < 0.5 ?
@@ -20,10 +36,10 @@ export function getBiLinearTexColor(texUV, texture) {
     const texInt2 = texInt0.add(Vec2(0, 1));
     const texInt3 = texInt0.add(Vec2(1, 1));
 
-    const color0 = texture.getPxl(...texInt0.toArray());
-    const color1 = texture.getPxl(...texInt1.toArray());
-    const color2 = texture.getPxl(...texInt2.toArray());
-    const color3 = texture.getPxl(...texInt3.toArray());
+    const color0 = applyTextureAlphaKey(texture.getPxl(...texInt0.toArray()), texture);
+    const color1 = applyTextureAlphaKey(texture.getPxl(...texInt1.toArray()), texture);
+    const color2 = applyTextureAlphaKey(texture.getPxl(...texInt2.toArray()), texture);
+    const color3 = applyTextureAlphaKey(texture.getPxl(...texInt3.toArray()), texture);
 
     const x = texInt.sub(texInt0);
     const bottomX = lerp(color0, color1)(x.x);
@@ -32,5 +48,5 @@ export function getBiLinearTexColor(texUV, texture) {
 }
 
 export function getTexColor(texUV, texture) {
-    return texture.getPxl(texUV.x * texture.width, texUV.y * texture.height);
+    return applyTextureAlphaKey(texture.getPxl(texUV.x * texture.width, texUV.y * texture.height), texture);
 }

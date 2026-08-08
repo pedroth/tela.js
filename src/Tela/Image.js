@@ -6,7 +6,7 @@ import { CHANNELS } from "../Utils/Constants.js";
 export default class Image extends Tela {
 
     serialize() {
-        return { type: Image.name, url: this.url };
+        return { type: Image.name, url: this.url, alphaKey: this.alphaKey };
     }
 
     toFile(fileName) {

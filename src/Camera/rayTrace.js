@@ -67,12 +67,38 @@ export function rayTrace(ray, scene, params = {}) {
     return c.scale(invSamples).toGamma(gamma);
 }
 
-function renderMissScene(ray, { renderSkyBox, lightDir, scene, lightSharpness = 200 }) {
+function renderMissScene(ray, { renderSkyBox, lightDir, scene, lightSharpness = 200, bilinearTexture = false }) {
     const skyColor = renderSkyBox ? renderSkyBox(ray) : Color.BLACK;
     if (!lightDir) return skyColor;
 
-    const hit = scene.interceptWithRay(Ray(ray.init, lightDir));
-    if (hit) return Color.lerp(skyColor, Color.BLACK, 0.5); // in shadow
+    let transmittance = 1;
+    let shadowRay = Ray(ray.init, lightDir);
+    const epsilon = 1e-2;
+    const maxShadowHits = 16;
+
+    for (let i = 0; i < maxShadowHits; i++) {
+        const hit = scene.interceptWithRay(shadowRay);
+        if (!hit) break;
+        const [hitTime, p, e] = hit;
+        const alpha = getColorFromElement(e, shadowRay, { bilinearTexture }).alpha;
+        transmittance *= (1 - alpha);
+        if (transmittance <= 1e-3) {
+            transmittance = 0;
+            break;
+        }
+        shadowRay = Ray(shadowRay.trace(hitTime + epsilon), lightDir);
+        if (!Number.isFinite(shadowRay.init.x) || !Number.isFinite(shadowRay.init.y) || !Number.isFinite(shadowRay.init.z)) {
+            break;
+        }
+        if (p === undefined) {
+            break;
+        }
+    }
+
+    const occlusion = 1 - transmittance;
+    if (occlusion > 0) {
+        return Color.lerp(skyColor, Color.BLACK, 0.5 * occlusion);
+    }
 
     const dot = Math.max(0, lightDir.dot(ray.dir));
     const sunIntensity = Math.pow(dot, lightSharpness);
@@ -81,9 +107,9 @@ function renderMissScene(ray, { renderSkyBox, lightDir, scene, lightSharpness = 
 
 export function trace(ray, scene, options) {
     const { bounces, bilinearTexture, renderSkyBox, lightDir, lightSharpness, useCache } = options;
-    if (bounces < 0) return renderMissScene(ray, { renderSkyBox, lightDir, lightSharpness, scene });
+    if (bounces < 0) return renderMissScene(ray, { renderSkyBox, lightDir, lightSharpness, scene, bilinearTexture });
     const hit = scene.interceptWithRay(ray);
-    if (!hit) return renderMissScene(ray, { renderSkyBox, lightDir, lightSharpness, scene });
+    if (!hit) return renderMissScene(ray, { renderSkyBox, lightDir, lightSharpness, scene, bilinearTexture });
     const [hitTime, p, e] = hit;
     let mat = e.material;
     if (useCache && mat?.type === "Diffuse") {
@@ -128,7 +154,7 @@ export function traceFor(ray, scene, options) {
     let firstHit = undefined;
     for (let i = 0; i < bounces; i++) {
         const hit = scene.interceptWithRay(currentRay);
-        if (!hit) return renderMissScene(currentRay, { renderSkyBox, lightDir, lightSharpness, scene });
+        if (!hit) return renderMissScene(currentRay, { renderSkyBox, lightDir, lightSharpness, scene, bilinearTexture });
 
         const [, p, e] = hit;
         if (i === 0) {
@@ -152,27 +178,40 @@ export function traceFor(ray, scene, options) {
         albedoAcc = albedoAcc.mul(albedo).scale(2 * attenuation);
         currentRay = scatterRay;
     }
-    return renderMissScene(currentRay, { renderSkyBox, lightDir, lightSharpness, scene });
+    return renderMissScene(currentRay, { renderSkyBox, lightDir, lightSharpness, scene, bilinearTexture });
 
 }
 
 export function traceMetro(ray, scene, options) {
     const { bounces, bilinearTexture, renderSkyBox, lightDir, lightSharpness, useCache } = options;
-    if (bounces < 0) return renderMissScene(ray, { renderSkyBox, lightDir, lightSharpness, scene });
+    if (bounces < 0) return renderMissScene(ray, { renderSkyBox, lightDir, lightSharpness, scene, bilinearTexture });
     const hit = scene.interceptWithRay(ray);
-    if (!hit) return renderMissScene(ray, { renderSkyBox, lightDir, lightSharpness, scene });
+    if (!hit) return renderMissScene(ray, { renderSkyBox, lightDir, lightSharpness, scene, bilinearTexture });
     const [, p, e] = hit;
     const mat = e.material;
     if (useCache && mat?.type === MATERIAL_NAMES.Diffuse) {
         const cachedColor = cache.get(p);
         if (cachedColor) { return cachedColor; }
     }
-    const albedo = getColorFromElement(e, ray, { bilinearTexture });
+    let albedo = getColorFromElement(e, ray, { bilinearTexture });
     const isEmissive = e.emissive;
     if (isEmissive) {
         if (useCache && mat?.type === MATERIAL_NAMES.Diffuse) { cache.set(p, albedo); }
         return albedo;
     }
+    // Respect alpha maps in Metro mode as in regular trace().
+    // alpha == 0 => fully transparent, alpha == 1 => fully opaque.
+    const alpha = albedo.alpha;
+    if (Math.random() >= alpha) {
+        const passthroughRay = Ray(ray.trace(hit[0] + 1e-2), ray.dir);
+        return traceMetro(
+            passthroughRay,
+            scene,
+            { bounces: bounces - 1, bilinearTexture, renderSkyBox, lightDir, lightSharpness, useCache }
+        );
+    }
+    albedo.alpha = 1;
+
     // Metropolis sampling
     // https://en.wikipedia.org/wiki/Metropolis_light_transport
     let scatterRay = mat.scatter(ray, p, e);

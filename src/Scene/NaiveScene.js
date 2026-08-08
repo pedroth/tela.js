@@ -7,6 +7,7 @@ export default class NaiveScene {
   constructor() {
     this.id2ElemMap = {};
     this.sceneElements = [];
+    this._elementHashCache = new WeakMap();
   }
 
   get(id) {
@@ -18,16 +19,60 @@ export default class NaiveScene {
     let combinedHash = elements.length;
     const prime = 31;  // A prime number, typically used in hash functions
     for (let i = 0; i < elements.length; i++) {
-      const hash = hashStr(String(elements[i].name));
+      const element = elements[i];
+      const hash = this._getElementHash(element);
       combinedHash = (combinedHash * prime) ^ hash;
-      if (elements[i].material) {
-        combinedHash = (combinedHash * prime) ^ hashStr(elements[i].material.type + String(elements[i].material.args));
-      }
-      if (elements[i].emissive) {
-        combinedHash = (combinedHash * prime) ^ 1;
-      }
     }
     return combinedHash >>> 0; // unsigned shift operator, converts combinedHash to unsigned number
+  }
+
+  _getElementHash(element) {
+    const cached = this._elementHashCache.get(element);
+    const material = element.material;
+    const materialType = material?.type;
+    const materialArgs = String(material?.args);
+    const signature = {
+      name: element.name,
+      emissive: element.emissive,
+      materialType,
+      materialArgs,
+      positionsRef: element.positions,
+      texCoordsRef: element.texCoords,
+      colorsRef: element.colors,
+    };
+
+    if (
+      cached &&
+      cached.name === signature.name &&
+      cached.emissive === signature.emissive &&
+      cached.materialType === signature.materialType &&
+      cached.materialArgs === signature.materialArgs &&
+      cached.positionsRef === signature.positionsRef &&
+      cached.texCoordsRef === signature.texCoordsRef &&
+      cached.colorsRef === signature.colorsRef
+    ) {
+      return cached.hash;
+    }
+
+    let hash = hashStr(String(element.name));
+    if (material) {
+      hash = (hash * 31) ^ hashStr(materialType + materialArgs);
+    }
+    if (element.emissive) {
+      hash = (hash * 31) ^ 1;
+    }
+    if (element.positions) {
+      hash = (hash * 31) ^ hashStr(element.positions.map(p => p.toArray().join(",")).join("|"));
+    }
+    if (element.texCoords) {
+      hash = (hash * 31) ^ hashStr(element.texCoords.map(t => t.toArray().join(",")).join("|"));
+    }
+    if (element.colors) {
+      hash = (hash * 31) ^ hashStr(element.colors.map(c => c.toArray().join(",")).join("|"));
+    }
+
+    this._elementHashCache.set(element, { ...signature, hash: hash >>> 0 });
+    return hash >>> 0;
   }
 
   add(...elements) {
@@ -51,6 +96,7 @@ export default class NaiveScene {
   clear() {
     this.id2ElemMap = {};
     this.sceneElements = [];
+    this._elementHashCache = new WeakMap();
   }
 
   distanceToPoint(p, combineLeafs = Math.min) {
