@@ -90,6 +90,11 @@
         "thumbnail": "playground/images/bunny_explode.png"
     },
     {
+        "title": "Flag physics",
+        "path": "/test/web/flag.js",
+        "thumbnail": "playground/images/flag.png"
+    },
+    {
         "title": "Wire frame meshes",
         "path": "/test/web/wireframe.js",
         "thumbnail": "playground/images/wireframe.png"
