@@ -10,10 +10,12 @@ export default class VoxelScene extends NaiveScene {
     constructor(gridSpace = 0.1) {
         super();
         this.gridMap = {};
+        this.nearElementsCache = Object.create(null);
         this.gridSpace = gridSpace;
     }
 
     addList(elements) {
+        this.nearElementsCache = Object.create(null);
         const binary = [0, 1];
         const n = binary.length ** 3;
         const powers = [binary.length ** 2, binary.length];
@@ -45,6 +47,7 @@ export default class VoxelScene extends NaiveScene {
     clear() {
         super.clear();
         this.gridMap = {};
+        this.nearElementsCache = Object.create(null);
     }
 
     distanceToPoint(p) {
@@ -113,10 +116,18 @@ export default class VoxelScene extends NaiveScene {
         const maxDist = 10;
         const maxIte = maxDist / this.gridSpace;
         let t = this.gridSpace;
+        const { init, dir } = ray;
         for (let n = 0; n < maxIte; n++) {
-            const p = ray.trace(t);
-            if (this.gridMap[hash(p, this.gridSpace)]) {
+            const x = init.x + dir.x * t;
+            const y = init.y + dir.y * t;
+            const z = init.z + dir.z * t;
+            if (this.gridMap[hashCoord(
+                Math.floor(x / this.gridSpace),
+                Math.floor(y / this.gridSpace),
+                Math.floor(z / this.gridSpace)
+            )]) {
                 // Found occupied cell, compute actual SDF distance from ray origin
+                const p = Vec3(x, y, z);
                 const nearElements = this.getElementsNear(p);
                 let distance = Number.MAX_VALUE;
                 for (let i = 0; i < nearElements.length; i++) {
@@ -134,6 +145,9 @@ export default class VoxelScene extends NaiveScene {
         const ix = Math.floor(p.x / this.gridSpace);
         const iy = Math.floor(p.y / this.gridSpace);
         const iz = Math.floor(p.z / this.gridSpace);
+        const cacheKey = coordKey(ix, iy, iz);
+        const cached = this.nearElementsCache[cacheKey];
+        if (cached) return cached;
         const range = [-1, 0, 1];
         const n = range.length;
         const nn = n * n;
@@ -148,7 +162,9 @@ export default class VoxelScene extends NaiveScene {
                 Object.assign(elements, cell);
             }
         }
-        return Object.values(elements);
+        const nearElements = Object.values(elements);
+        this.nearElementsCache[cacheKey] = nearElements;
+        return nearElements;
     }
 
     getElementsInBox(box) {
@@ -214,4 +230,8 @@ function hash(p, gridSpace) {
         Math.floor(p.y / gridSpace),
         Math.floor(p.z / gridSpace)
     );
+}
+
+function coordKey(ix, iy, iz) {
+    return `${ix},${iy},${iz}`;
 }
