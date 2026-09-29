@@ -150,6 +150,11 @@
         "thumbnail": "playground/images/sdf_editor_parallel.png"
     },
     {
+        "title": "SDF editor voxel",
+        "path": "/test/web/sdf_editor_voxel.js",
+        "thumbnail": "playground/images/sdf_editor_voxel.png"
+    },
+    {
         "title": "Cornell box (SLOW)",
         "path": "/test/web/cornell_box.js",
         "thumbnail": "playground/images/cornell_box.png"
