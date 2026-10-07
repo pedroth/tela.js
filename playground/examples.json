@@ -230,6 +230,16 @@
         "thumbnail": "playground/images/black_hole_parallel.png"
     },
     {
+        "title": "Amazing Shader 3",
+        "path": "/test/web/amazing_shader_3.js",
+        "thumbnail": "playground/images/amazing_shader_3.png"
+    },
+    {
+        "title": "p5.js font port",
+        "path": "/test/web/font_p5_port.js",
+        "thumbnail": "playground/images/font_p5_port.png"
+    },
+    {
         "title": "debug mesh spheres test",
         "path": "/test/web/debug_normal_shot_test.js",
         "thumbnail": "playground/images/debug_normal_shot_test.png"

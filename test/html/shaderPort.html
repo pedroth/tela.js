@@ -39,7 +39,8 @@
 // AI port from https://fragcoord.xyz/s/mi99r927
 import {
     Canvas,
-    Color
+    Color,
+    loop
 } from "https://cdn.jsdelivr.net/npm/tela.js/src/index.js";
 
 
@@ -557,100 +558,31 @@ function renderPixel(x, y, vars) {
 
 
 // ============================================================
-// PARALLEL RENDERER
-// ============================================================
-
-const parallel = canvas.mapParallel(
-    renderPixel,
-    [
-        rotate,
-        normalize3,
-        noise,
-        aces,
-        clamp01
-    ]
-);
-
-
-// ============================================================
-// DEBUG FIRST FRAME
-// ============================================================
-//
-// This verifies that the Tela canvas itself is visible.
-// It should briefly show a gradient before the shader frame.
-// ============================================================
-
-canvas.map((x, y) => {
-
-    const r = x / WIDTH;
-    const g = y / HEIGHT;
-
-    return Color.ofRGB(
-        r,
-        g,
-        0.15,
-        1
-    );
-
-});
-
-canvas.paint();
-
-
-// ============================================================
 // RENDER
 // ============================================================
 
-let rendering = false;
-
-let startTime = performance.now();
-
-async function render() {
-
-    if (rendering) {
-        requestAnimationFrame(render);
-        return;
-    }
-
-    rendering = true;
-
-    try {
-
-        const time =
-            (performance.now() - startTime) / 1000;
-
-
-        await parallel.run({
-
+loop(async ({ time, dt }) => {
+    const resultCanvas = await canvas
+        .mapParallel(
+            renderPixel,
+            [
+                rotate,
+                normalize3,
+                noise,
+                aces,
+                clamp01
+            ]
+        )
+        .run({
             AA: AA,
-
             width: canvas.width,
-
             height: canvas.height,
-
             time: time
-
         });
 
-
-        canvas.paint();
-
-    } catch (error) {
-
-        console.error(
-            "Tela shader render failed:",
-            error
-        );
-
-    } finally {
-
-        rendering = false;
-
-        requestAnimationFrame(render);
-    }
-}
-
-render();
+    resultCanvas.paint();
+    document.title = `Tela.js Raymarch Shader | FPS: ${Math.floor(1 / dt)}`;
+}).play();
 
 </script>
 
