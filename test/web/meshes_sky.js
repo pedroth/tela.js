@@ -4,6 +4,7 @@ async (canvas, logger) => {
         { mesh: "/assets/spot.obj", texture: "/assets/spot.png" },
         { mesh: "/assets/megaman.obj", texture: "/assets/megaman.png" },
         { mesh: "/assets/spyro.obj", texture: "/assets/spyro.png" },
+        { mesh: "/assets/mario.obj", texture: "/assets/mario.png" },
         { mesh: "/assets/earth.obj", texture: "/assets/earth.jpg" },
         { mesh: "/assets/blub.obj", texture: "/assets/blub.png" },
         { mesh: "/assets/bob.obj", texture: "/assets/bob.png" },

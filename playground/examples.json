@@ -240,6 +240,11 @@
         "thumbnail": "playground/images/font_p5_port.png"
     },
     {
+        "title": "Mario soft body physics",
+        "path": "/test/web/mario_physics.js",
+        "thumbnail": "playground/images/mario_physics.png"
+    },
+    {
         "title": "debug mesh spheres test",
         "path": "/test/web/debug_normal_shot_test.js",
         "thumbnail": "playground/images/debug_normal_shot_test.png"
