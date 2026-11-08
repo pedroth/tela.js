@@ -245,6 +245,11 @@
         "thumbnail": "playground/images/mario_physics.png"
     },
     {
+        "title": "Interactive fluid",
+        "path": "/test/web/interactive_fluid.js",
+        "thumbnail": "playground/images/interactive_fluid.png"
+    },
+    {
         "title": "Walk on spheres",
         "path": "/test/web/walk_on_spheres.js",
         "thumbnail": "playground/images/walk_on_spheres.png"
